@@ -160,6 +160,11 @@ describe('Three Lessons', function () {
             expect(context.player1).toBeActivePlayer();
         });
 
+        // Ruling 2026-02-10: for a modified Play a Card action like "Play a unit and give it an
+        // Experience token," the unit enters play and is given the token simultaneously. So a
+        // low-HP unit can survive an enemy -X/-X aura that would otherwise defeat it on entry,
+        // because the +1/+1 Experience (and Shield) are applied at the same time it enters.
+        // Same resolved case as Jedi General's Clone Trooper test (07_TS26).
         it('should let a low-HP unit survive Supreme Leader Snoke because the Experience token is given as it enters play', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

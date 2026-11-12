@@ -40,6 +40,10 @@ export class BetweenVariableXYCardSelector<TContext extends AbilityContext = Abi
             : `Select between ${minCards} and ${maxCards} ${description}`;
     }
 
+    public override wouldExceedLimit(selectedCards: Card[], card: Card, context: TContext) {
+        return !selectedCards.includes(card) && selectedCards.length >= this.maxNumCardsFunc(context, selectedCards);
+    }
+
     public override hasReachedLimit(selectedCards: Card[], context: TContext) {
         const matchingCards = this.getMatchingCards(context);
         const useSingleSelectMode = this.useSingleSelectModeFunc == null ? false : this.useSingleSelectModeFunc(context.source, matchingCards, context);

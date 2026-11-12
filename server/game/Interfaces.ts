@@ -104,6 +104,9 @@ export interface IOngoingEffectProps<TTarget> {
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
     ability?: PlayerOrCardAbility;
+
+    /** The player resolving the ability that created this lasting effect */
+    createdByPlayer?: Player;
     target?: TTarget | TTarget[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
@@ -201,7 +204,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
  * excess-property checks pass a property that exists in any union member). Nest to combine more than
  * two shapes, e.g. `ExclusiveUnion<A, ExclusiveUnion<B, C>>`.
  */
-type PropsNotIn<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+type PropsNotIn<T, U> = Partial<Record<Exclude<keyof T, keyof U>, never>>;
 type ExclusiveUnion<T, U> = (T & PropsNotIn<U, T>) | (U & PropsNotIn<T, U>);
 
 /** Shared properties for the play-cost variants below. */
@@ -376,13 +379,9 @@ export type EffectArg =
   | { id: string; label: string; name: string; facedown: boolean; type: CardType }
   | EffectArg[];
 
-export type WhenType<TSource extends Card = Card> = {
-    [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
-};
+export type WhenType<TSource extends Card = Card> = Partial<Record<EventName, (event: any, context?: TriggeredAbilityContext<TSource>) => boolean>>;
 
-export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> & {
-    [StandardTriggeredAbilityTypeValue in StandardTriggeredAbilityType]?: true;
-};
+export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> & Partial<Record<StandardTriggeredAbilityType, true>>;
 
 export type IOngoingCardOrPlayerEffect<TTarget extends Card | Player> = TTarget extends Card ? OngoingCardEffect : OngoingPlayerEffect;
 

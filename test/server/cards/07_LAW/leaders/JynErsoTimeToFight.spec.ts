@@ -251,6 +251,47 @@ describe('Jyn Erso, Time to Fight', () => {
                 expect(context.player1.hand.length).toBe(0);
                 expect(context.player1.deck.length).toBe(0);
             });
+
+            it('should search when an enemy Rebel unit was taken and defeated with No Glory, Only Results this phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jyn-erso#time-to-fight',
+                        hand: ['no-glory-only-results'],
+                        resources: 10,
+                        deck: ['confiscate', 'death-star-plans', 'home-one#alliance-flagship']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 takes control of P2's Battlefield Marine and defeats it, so it was a friendly Rebel unit of P1 when defeated
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // P1 uses Jyn's ability
+                context.player1.clickCard(context.jynErso);
+                context.player1.clickPrompt('Search the top 3 cards of your deck for a card and draw it');
+                expect(context.player1).toHavePrompt('Select a card');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [
+                        context.confiscate,
+                        context.deathStarPlans,
+                        context.homeOne
+                    ]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.deathStarPlans);
+
+                expect(context.deathStarPlans).toBeInZone('hand', context.player1);
+                expect(context.jynErso.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('Leader Unit side on attack ability', function() {

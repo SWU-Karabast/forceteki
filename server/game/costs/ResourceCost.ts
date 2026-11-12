@@ -8,10 +8,14 @@ import type { Card } from '../core/card/Card';
 import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, ICostAdjustTriggerResult, IPenaltyAspectFilters, ResourceCostType } from '../core/cost/CostInterfaces';
 import { CostAdjustStage, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
+import * as CostPaymentRecovery from '../core/cost/CostPaymentRecovery';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
 import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvaluator';
 import { SimpleAdjustedCost } from '../core/cost/evaluation/SimpleAdjustedCost';
 import type { Player } from '../core/Player';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { TargetedCostAdjuster } from '../core/cost/TargetedCostAdjuster';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -71,6 +75,19 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         }
     }
 
+    /**
+     * Returns the game systems that would be applied to targets chosen for any targeted cost adjusters that can be used to pay this cost
+     * (e.g. dealing damage to units for Marauder)
+     */
+    public getTargetedCostAdjusterEffectSystems(context: AbilityContext<TCard>): GameSystem<AbilityContext<IUnitCard>>[] {
+        const matchingAdjusters = this.resolveCostAdjustments(context).matchingAdjusters;
+
+        return Array.from(matchingAdjusters.values())
+            .flat()
+            .filter((adjuster): adjuster is TargetedCostAdjuster => adjuster.isTargeted())
+            .map((adjuster) => adjuster.getTargetEffectSystem());
+    }
+
     /** Returns the lowest possible cost that could be paid, accounting for all cost adjustments */
     public getAdjustedCost(context: AbilityContext<TCard>): number {
         const evaluationResult = this.resolveCostAdjustments(context);
@@ -119,9 +136,24 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         this.triggerNextAdjustmentStages(context, costAdjustTriggerResult, abilityCostResult, remainingStages);
 
         context.game.queueSimpleStep(() => {
-            if (!abilityCostResult.cancelled) {
-                events.push(this.getExhaustResourceEvent(context, costAdjustTriggerResult));
+            if (abilityCostResult.cancelled) {
+                return;
             }
+
+            // the game state may have changed during payment in a way that couldn't be predicted when the cost was evaluated
+            // (e.g. a replacement effect defeating a unit that was providing a cost adjustment)
+            const readyResourceCount = this.payingPlayer(context).readyResourceCount;
+            if (readyResourceCount < costAdjustTriggerResult.adjustedCost.value) {
+                CostPaymentRecovery.queueUnpayableCostRecovery(
+                    context,
+                    abilityCostResult,
+                    this.payingPlayer(context),
+                    CostPaymentRecovery.buildInsufficientResourcesReason(costAdjustTriggerResult.adjustedCost.value, readyResourceCount)
+                );
+                return;
+            }
+
+            events.push(this.getExhaustResourceEvent(context, costAdjustTriggerResult));
         }, `generate exhaust resources event for ${context.source.internalName}`);
     }
 
@@ -198,7 +230,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
             getPenaltyAspects: (filter?: IPenaltyAspectFilters) => costTracker.penaltyAspects(filter),
             adjustedCost: costTracker,
-            adjustStage: CostAdjustStage.Increase_7,
+            adjustStage: CostAdjustStage.Increase_8,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
             resourceCostType: this.resourceCostType,
             costAdjusterTargets,

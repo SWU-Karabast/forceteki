@@ -238,5 +238,101 @@ describe('Boga, Loyal Varactyl', function() {
 
             expect(context.atst).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
+
+        it('should not stack its discount if both of its abilities choose the same unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['boga#loyal-varactyl'],
+                    discard: ['wampa'],
+                    base: 'tarkintown'
+                },
+                player2: {
+                    hand: ['vanquish']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.boga);
+            context.player1.clickCard(context.wampa);
+
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.boga);
+            context.player1.clickCard(context.wampa);
+
+            // Both permissions are identical, so the unit is played directly for 1 less (4 -> 3)
+            const exhaustedResourceCount = context.player1.exhaustedResourceCount;
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCount + 3);
+        });
+
+        it('should let the player choose between its discount and another permission for the same unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['boga#loyal-varactyl'],
+                    groundArena: [{ card: 'wampa', upgrades: ['second-chance'] }],
+                    base: 'tarkintown'
+                },
+                player2: {
+                    hand: ['vanquish'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.wampa);
+
+            context.player1.clickCard(context.boga);
+            context.player1.clickCard(context.wampa);
+
+            context.player2.passAction();
+
+            const exhaustedResourceCount = context.player1.exhaustedResourceCount;
+            context.player1.clickCard(context.wampa);
+            expect(context.player1).toHaveExactPromptButtons([
+                'Play Wampa for free (via Second Chance)',
+                'Play Wampa for 1 resource less (via Boga)',
+                'Cancel'
+            ]);
+
+            // The discounts don't stack: only Boga's applies (4 -> 3)
+            context.player1.clickPrompt('Play Wampa for 1 resource less (via Boga)');
+
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCount + 3);
+        });
+
+        it('should not discount the chosen unit if another ability plays it from the discard pile', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'boba-fett#collecting-the-bounty',
+                    hand: ['boga#loyal-varactyl', 'nightbrother#mauls-gauntlet'],
+                    discard: ['wampa'],
+                    base: 'tarkintown'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.boga);
+            context.player1.clickCard(context.wampa);
+
+            context.player2.passAction();
+
+            // Nightbrother plays Wampa for 3 less (4 -> 1), without Boga's discount
+            context.player1.clickCard(context.nightbrother);
+            const exhaustedResourceCount = context.player1.exhaustedResourceCount;
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCount + 1);
+        });
     });
 });

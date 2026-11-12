@@ -13,15 +13,20 @@ Node 22.x. TypeScript, CommonJS, compiled with `tsc` into `build/` and run from 
 ```bash
 npm install
 npm run get-cards          # downloads card data into test/json/ (gitignored); required before build/test
+npm run check-card-data    # offline: is test/json/ current for this checkout? exit 1 = run get-cards
 npm run build              # tsc -> build/server
 npm run dev                # builds (server + tests) and starts the game node on port 9500
 npm run lint               # eslint --quiet   (lint-fix / lint-verbose also available)
 npm run validate-cards     # structural checks on card impls + their test files (CI gate)
+npm run validate-specs     # every spec sits in the jasmine group (game / non-game) its harness belongs to (CI gate)
 npm test                   # full build + whole jasmine suite
 npm run test-fast          # skips the full rebuild path; still recompiles server+test via test/tsconfig.json
+npm run test-nongame       # fast build + only the connection-layer / services / utils specs, serial (seconds)
 npm run test-parallel      # 4 workers; on failure it may only name the suite — re-run with `npm test` for details
 npm run test-undo          # runs every test twice with a snapshot rollback in between (see Undo below)
 ```
+
+**Check the card data before you build, test or start the server, and again after switching branches or pulling.** The cached `test/json/` belongs to whichever branch last ran `get-cards`, and a branch that changes `card-data-version.txt`, `scripts/fetchdata.js` or `scripts/mockdata.js` expects different data. `npm run check-card-data` compares the two without downloading anything; when it exits 1, run `npm run get-cards` first. Otherwise the run stops partway with `Card data hash mismatch ... please run 'npm run get-cards'`.
 
 ### Running a single test
 
@@ -39,7 +44,7 @@ If you hit `Importing card class with repeated id!`, delete `build/` and rebuild
 
 ### CI gates (`.github/workflows/pullrequest.yml`)
 
-`npx eslint --quiet`, `npm run validate-cards`, `npm run test-parallel`, `npm run test-parallel-undo`.
+`npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel`, `npm run test-parallel-undo`.
 
 ## Architecture
 
@@ -86,7 +91,7 @@ Every engine object extends `GameObjectBase` and must carry `@registerState()` /
 
 ### Card data pipeline
 
-`npm run get-cards` (`scripts/fetchdata.js`) downloads FFG card JSON into `test/json/` (gitignored) and generates `_cardMap.json` and friends. Cards FFG hasn't published yet are hand-defined in `scripts/mockdata.js`. `card-data-version.txt` + `fetchdata.js` + `mockdata.js` hash into `card-data-hash.txt`, which busts the CI cache and is checked at server startup — bump `card-data-version.txt` to force a refresh.
+`npm run get-cards` (`scripts/fetchdata.js`) downloads FFG card JSON into `test/json/` (gitignored) and generates `_cardMap.json` and friends. Cards FFG hasn't published yet are hand-defined in `scripts/mockdata.js`. `card-data-version.txt` + `fetchdata.js` + `mockdata.js` hash into `card-data-hash.txt`, which busts the CI cache and is checked at server startup — bump `card-data-version.txt` to force a refresh. `npm run check-card-data` (`scripts/checkCardData.js`) makes the same comparison on demand.
 
 ## Testing
 
@@ -116,6 +121,33 @@ describe('Tarkintown', function() {
 - Only one `setupTestAsync` per test case (harness throws if a `beforeEach` and the body both call it).
 - Custom matchers in `test/helpers/CustomMatchers.js`: `toBeAbleToSelectExactly`, `toHaveExactPromptButtons`, `toBeInZone`, `toHaveExactUpgradeNames`, `toHaveAvailableActionWhenClickedBy`, `toBeActivePlayer`, `toHavePassAbilityButton`, etc. Prefer these over raw property assertions — several also validate game-state consistency.
 - Engine-level scenarios (costs, timing windows, search, undo, …) live under `test/scenarios/`.
+
+### Writing a server spec (the HTTP / socket connection layer)
+
+Specs for `server/gamenode/`, `server/services/`, `server/utils/` and `server/scripts/` are the **non-game** group (`jasmine-nongame.json`); everything else is the **game** group (`jasmine-game.json`). `npm run validate-specs` fails CI if a spec's harness does not match its group, so an `integration()` spec cannot sit in a non-game directory or the reverse. `npm run test-nongame` runs the non-game group in seconds. The plan, the backlog and the list of known findings are in `long-term-project-docs/game-node-test-suite.md`; the record of finished work is `game-node-test-suite-history.md` beside it.
+
+Pick the harness by what the spec drives: `integration()` for the rules engine; `serverIntegration()` (`test/helpers/server/`) for the connection layer — it builds a real `GameServer` in-process on a virtual clock, and `harness.createClient()` makes the same HTTP calls and socket handshake `forceteki-client` does; plain jasmine with spies only for a pure unit (as `UserFactory.spec.ts` does).
+
+Server specs live in `test/server/gamenode/<area>/`, grouped by what they are about rather than by the production file they cover; put a new spec in its area, never directly under `gamenode/`:
+
+- `auth/authentication/` — who the caller is: tokens and cookies, sign-in and account creation, anonymous identity, service secrets.
+- `auth/authorization/` — what a known caller may do: the route manifest, roles, anonymous-versus-logged-in limits, chat permissions.
+- `lobby/` — creating and joining lobbies, where a socket is routed, spectators, the lobby lifecycle, in-game connections, reports, the socket command allowlist, test game setups.
+- `matchmaking/` — queues, matchmaking and the quick-lobby countdown.
+- `account/` — a logged-in user's own data routes (preferences now; decks, settings and cosmetics as they get specs).
+- `harness/` — specs of the test tooling itself (the harness, the fake DB, the socket.io drift guard, the scheduler), not of the server.
+
+Use the seams the harness provides rather than reaching into the server:
+
+- **Time:** `harness.clock.advanceAsync(ms)`. Never sleep in real time. Account time (the profile cache, moderation expiry, the username-change cooldown) is on the same virtual clock. JWT expiry is the exception: `jsonwebtoken` reads the *wall* clock, so to test an expired token mint one that is already expired (`AuthTokens.badSessionTokens`).
+- **DynamoDB:** every harness has one by default: an empty `FakeDynamoDbService`, or pass a seeding function as `serverIntegration(defs, { database: (db) => ... })`, which runs before the server starts (roles, settings and mod actions are read at startup and then hourly). Seed and read through `harness.db`; the real role, settings, cosmetics and mod-action services run over it. Extend the fake rather than writing an inline one. `{ database: false }` is the local-dev configuration (no role can be granted, no client can be logged in, and dev accounts live in a per-worker in-memory store); use it only when that is the subject. A production-like server is `env: { ENVIRONMENT: 'production' }`.
+- **Logged-in users:** a signed-in client presents only its session token, and the server finds the account from it, as the FE does. `harness.createClient({ authenticated: true, profile })` seeds a new account (with `profile` for fields such as `preferences` or `moderation`); `harness.createAccountClient(account)` signs in to one you seeded with `harness.db.seedAccount()`. The server caches a profile once any request or socket has resolved it, so seed what it owns (mutes, preferences, usernames) before the client's first signed-in request; a later write straight into `harness.db` is not seen until the cached copy expires, whereas a change made through a route is.
+- **Assert on the wire:** check what a client receives. Read the server's own state (`harness.server.testLobbies`, `lobbyCount`, `getUserLobbyId`, `harness.clock.pendingTaskCount`) only for what no client can see, such as a lobby or timer the server should have let go, and say why in the spec. Whether the server has forgotten a user is `TestClient.hasNoPlaceAsync()` (it reconnects the client, so use it last).
+- **Setups and commands:** `harness.openLobbyAsync`, `createLobbyWithGuestAsync`, `startLiveGameAsync` and `startQuickGameAsync` build lobbies and games, and throw if a step is refused. `TestClient` has one method per command the real client sends (`sendChatMessageAsync`, `setReadyStatusAsync`, `concedeAsync`, …), and `lobbyChat`, `gameChat`, `lobbyChatFrom` and `gameChatFrom` read the chat. Use the raw `sendLobbyMessageAsync` / `sendGameMessageAsync` only for a payload no real client sends.
+- **Stats sites:** `harness.statsHttpClient` (`FakeHttpClient`). **Env:** `{ env: { ... } }`, restored on shutdown. **Raw requests:** `harness.requestAsync(method, path, { cookie, headers, body })`.
+- **Routes:** every HTTP route has a row in `test/server/gamenode/auth/authorization/RouteAuthManifest.ts`; adding a route fails `RouteAuthManifest.spec.ts` until you say who may call it.
+
+Do not cast to `any` to reach into `GameServer` or `Lobby` (ESLint errors on `as any` in `test/server/gamenode` and `test/helpers/server`, but it does not catch bracket access or `as unknown as`, which are the same smell, so keep them out in review) — add a seam to the server or the harness instead, and if a reach cannot be avoided yet, disable the rule on that line and say what removes the need. When a spec exposes behaviour that looks wrong, do not write a spec that asserts it (that makes the bug a requirement) and do not fix it inside a test change. If it could be exploited, do not describe it anywhere in the repository (specs, comments, the plan document): report it to the maintainers privately (security fixes are made separately, in dedicated commits). Otherwise leave a `TODO` where the spec belongs saying what to add, and record it in the plan document's open findings; the fix comes in that topic area's step d (see the plan's roadmap), as its own commit together with the spec.
 
 ## Manual testing against the client
 

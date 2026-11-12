@@ -305,6 +305,10 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.getInPlayCards(filter).length > 0;
     }
 
+    public hasSomeInPlayUpgrade(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        return this.getInPlayCards({ ...filter, type: WildcardCardType.Upgrade }).length > 0;
+    }
+
     public getLeaderCards(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
         const leaderFilter = [WildcardCardType.LeaderUnit, CardType.Leader, CardType.LeaderUpgrade];
         return this.getInPlayCards({ ...filter, type: leaderFilter });
@@ -321,20 +325,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.game.allArenas.getUnitCards({ ...filter, controller: this });
     }
 
-    public getArenaUpgrades(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
-        return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
-    }
-
     public hasSomeArenaCard(filter: IAllArenasForPlayerCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
     }
 
     public hasSomeArenaUnit(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
-    }
-
-    public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
-        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
     public get hasTheForce(): boolean {
@@ -607,18 +603,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @param {PlayType} [playingType]
      */
     public isCardInPlayableZone(card: Card, playingType: PlayType = null) {
-        // Check if card can be legally played by this player out of discard from an ongoing effect
-        if (
-            card.zoneName === ZoneName.Discard &&
-            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
-        ) {
-            return card
-                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
-                .map((value) => value.player ?? card.owner)
-                .includes(this);
-        }
-
-        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
@@ -690,8 +674,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     public getStartingHandSize() {
         let startingHandSize = 6;
-        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
-            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+        if (this.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
                 startingHandSize += value.amount;
             });
         }
@@ -797,10 +781,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
             new PlayableZone(PlayType.Plot, this.resourceZone),
-            new PlayableZone(PlayType.Piloting, this.deckZone),
-            new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableZone(PlayType.Piloting, this.discardZone),
-            new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
         this._baseZone = new BaseZone(this.game, this, this.base, this.getAllDeckLeaders());

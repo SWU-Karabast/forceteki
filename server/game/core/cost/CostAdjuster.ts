@@ -11,9 +11,8 @@ import { EnumHelpers } from '../utils/EnumHelpers';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerStateBase, stateRef, statePrimitive, type GameObjectId } from '../GameObjectUtils';
-import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
+import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
-import type { CostAdjustStage } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -34,7 +33,8 @@ export enum CostAdjustType {
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
     DefeatCreditTokens = 'defeatCreditTokens',
-    DefeatResources = 'defeatResources'
+    DefeatResources = 'defeatResources',
+    DamageUnits = 'damageUnits'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -96,6 +96,19 @@ export interface IDefeatResourcesCostAdjusterProperties extends ICostAdjusterPro
     readyResourcesOnly?: boolean;
 }
 
+export interface IDamageUnitsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DamageUnits;
+
+    /** The amount of damage dealt to each unit chosen */
+    damagePerUnit: number;
+
+    /** The amount the cost is reduced by for each unit chosen */
+    amountPerUnit: number;
+
+    /** Optional condition for which friendly units may be chosen. Defaults to any friendly unit. */
+    canDamageUnitCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
+}
+
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreAllAspects;
 }
@@ -138,12 +151,14 @@ export type ICostAdjusterProperties =
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
   | IDefeatCreditTokensCostAdjusterProperties
-  | IDefeatResourcesCostAdjusterProperties;
+  | IDefeatResourcesCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
-  | IDefeatResourcesCostAdjusterProperties;
+  | IDefeatResourcesCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
     attachTargets?: Card[];
@@ -351,13 +366,21 @@ export abstract class CostAdjuster extends GameObjectBase {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
         adjustResultCopy.adjustedCost.applyStaticDecrease(thisStageDiscount);
 
+        // units chosen to be damaged are assumed to survive and still provide their cost adjustments (see DamageUnitsCostAdjuster)
+        const removingSelections = previousTargetSelections?.filter((selection) => selection.stage !== CostAdjustStage.DamageUnits_3);
+
         const triggerStages = CostHelpers.getCostAdjustStagesInTriggerOrder();
         const remainingStages = triggerStages.slice(triggerStages.indexOf(adjustResult.adjustStage) + 1);
 
         for (const stage of remainingStages) {
             const adjustersForStage = adjustResultCopy.matchingAdjusters.get(stage) || [];
             for (const adjuster of adjustersForStage) {
-                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy, previousTargetSelections);
+                // the adjuster's source may have left play during payment (e.g. defeated by an upstream stage)
+                if (adjuster.isCancelled) {
+                    continue;
+                }
+
+                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy, removingSelections);
 
                 if (adjustResultCopy.adjustedCost.value === 0) {
                     break;

@@ -163,5 +163,40 @@ describe('Director Krennic, On the Verge of Greatness', function() {
             context.player1.clickCard(context.rhokaiGunship);
             expect(context.player1.exhaustedResourceCount).toBe(6);
         });
+
+        it('Krennic\'s ability still discounts the first unit with a "when defeated" ability while Razor Crest is in play', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'qira#i-alone-survived',
+                    base: 'echo-base',
+                    hand: ['distant-patroller', 'superlaser-technician'],
+                    groundArena: ['director-krennic#on-the-verge-of-greatness'],
+                    spaceArena: ['razor-crest#stay-off-the-ice']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Distant Patroller has printed cost of 2, pay 1 after discount
+            context.player1.clickCard(context.distantPatroller);
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+
+            context.player2.passAction();
+
+            // Superlaser Technician has printed cost of 3, should pay full cost as a when defeated unit has already been played this round
+            context.player1.clickCard(context.superlaserTechnician);
+            expect(context.player1.exhaustedResourceCount).toBe(4);
+        });
+
+        // Ruling 2025: Krennic's discount still applies even while Krennic is being sacrificed to an
+        // Exploit cost, stacking with the Exploit discount. Cost discounts may be applied in any order.
+        xit('still provides his discount while being sacrificed to an Exploit cost', function () {
+            pending('Not yet implemented');
+            // Play a unit that has BOTH Exploit and a "When Defeated" ability, as the first such unit
+            // this round (so it is eligible for Krennic's discount), and choose Krennic as one of the
+            // units to exploit. Krennic's cost discount still applies to the played unit, stacking with
+            // the Exploit discount.
+        });
     });
 });

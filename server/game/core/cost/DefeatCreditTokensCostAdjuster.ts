@@ -27,7 +27,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         game: Game,
         sourcePlayer: Player
     ) {
-        super(game, sourcePlayer, CostAdjustStage.DefeatCredits_6, {
+        super(game, sourcePlayer, CostAdjustStage.DefeatCredits_7, {
             costAdjustType: CostAdjustType.DefeatCreditTokens,
             matchAbilityCosts: true,
             matchCardEffectResourcePayments: true

@@ -225,4 +225,48 @@ describe('The Tarkin Doctrine, Protect and Punish', function() {
             });
         });
     });
+
+    integration(function(contextRef) {
+        it('The Tarkin Doctrine\'s granted ability should trigger when its controller plays a Fortification upgrade from the opponent\'s discard pile', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-tarkin-doctrine#protect-and-punish', 'a-fine-addition'],
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
+                    discard: ['carbonite-chamber'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Attach The Tarkin Doctrine to player1's base
+            context.player1.clickCard(context.theTarkinDoctrine);
+            context.player1.clickCard(context.p1Base);
+            context.player2.passAction();
+
+            // Defeat an enemy unit to enable A Fine Addition
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.deathStarStormtrooper);
+            expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
+            context.player2.passAction();
+
+            // Play player2's Carbonite Chamber (Fortification) from their discard pile
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.carboniteChamber);
+            expect(context.player1).toHavePrompt('Attach Carbonite Chamber to a base');
+            context.player1.clickCard(context.p1Base);
+            expect(context.carboniteChamber).toBeAttachedTo(context.p1Base);
+
+            // The granted ability triggers for player1, who played the upgrade
+            expect(context.player1).toHavePrompt('Exhaust an enemy unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });

@@ -41,7 +41,6 @@ export default class AFineAddition extends EventCard {
                     condition: (context) => context.target.zoneName === ZoneName.Discard,
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-                        canPlayFromAnyZone: true,
                         playAsType: WildcardCardType.Upgrade,
                     }),
                     onFalse: AbilityHelper.immediateEffects.playCardFromHand({

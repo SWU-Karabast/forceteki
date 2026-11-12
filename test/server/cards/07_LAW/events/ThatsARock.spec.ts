@@ -84,7 +84,6 @@ describe('Thats A Rock', function() {
 
                 // Choose to use Padmé's ability
                 context.player1.clickPrompt('Exhaust Padmé Amidala to deal 1 damage to a unit');
-                context.player1.clickPrompt('Trigger');
 
                 // All units are valid targets
                 expect(context.player1).toHavePrompt('Deal 1 damage to a unit');

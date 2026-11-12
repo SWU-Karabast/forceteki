@@ -24,6 +24,7 @@ describe('Teeka, You\'re In Luck', function() {
             ]);
             expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickPrompt('Give a unit Sentinel for this phase');
+            expect(context.player1).toHavePrompt('Give a unit Sentinel for this phase');
             expect(context.player1).toBeAbleToSelectExactly([context.frontlineShuttle, context.jediConsular, context.teeka, context.battlefieldMarine, context.awing]);
             expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.jediConsular);
@@ -65,6 +66,7 @@ describe('Teeka, You\'re In Luck', function() {
             ]);
             expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickPrompt('A unit loses Sentinel for this phase');
+            expect(context.player1).toHavePrompt('Choose a unit to lose Sentinel for this phase');
             expect(context.player1).toBeAbleToSelectExactly([context.frontlineShuttle, context.imperialArmoredCommando, context.teeka, context.battlefieldMarine, context.awing]);
             expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.imperialArmoredCommando);

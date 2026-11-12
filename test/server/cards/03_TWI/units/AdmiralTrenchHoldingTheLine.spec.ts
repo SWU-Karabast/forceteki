@@ -91,4 +91,39 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.player1).toBeActivePlayer();
         });
     });
+
+    integration(function (contextRef) {
+        it('should return a unit that was taken and defeated with No Glory, Only Results to its owner\'s hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results']
+                },
+                player2: {
+                    hand: ['admiral-trench#holding-the-line'],
+                    groundArena: ['wampa'],
+                    discard: ['battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player1 takes control of Wampa and defeats it, it goes to its owner's discard pile
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player2);
+
+            // Wampa was defeated this phase and is in player2's discard pile, so Admiral Trench can return it
+            context.player2.clickCard(context.admiralTrenchHoldingTheLine);
+            expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
+
+            context.player2.clickCard(context.wampa);
+            context.player2.clickDone();
+
+            expect(context.wampa).toBeInZone('hand', context.player2);
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+            expect(context.player1).toBeActivePlayer();
+        });
+    });
 });

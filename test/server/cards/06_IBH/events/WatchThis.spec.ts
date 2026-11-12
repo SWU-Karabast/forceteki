@@ -73,7 +73,6 @@ describe('Watch This', function() {
                 context.player1.passAction();
                 context.player2.clickCard(context.blueLeader);
                 context.player2.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player2.clickPrompt('Trigger'); // trigger its move to the ground arena
                 context.player2.clickPrompt('Pass'); // pass its ambush
 
                 context.player1.clickCard(context.watchThis);

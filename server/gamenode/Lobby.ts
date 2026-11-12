@@ -26,9 +26,10 @@ import {
     SwuGameFormat
 } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import type { DiscordDispatcher } from './DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
+import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
@@ -117,6 +118,7 @@ export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
+    matchmakingSearchContext?: IMatchmakingSearchContext;
 }
 
 export enum MatchmakingType {
@@ -132,6 +134,18 @@ export interface RematchRequest {
 
 export class Lobby {
     private static readonly MaxGameMessageErrors = 100;
+
+    /** Seconds a quick lobby's countdown counts down from. */
+    private static readonly QuickLobbyCountdownStartSeconds = 5;
+
+    private static readonly QuickLobbyCountdownTickMs = 1000;
+
+    /**
+     * How long after a quick lobby is set up its game can first start: the countdown ticks down from
+     * {@link QuickLobbyCountdownStartSeconds} to 0, and the game starts on the tick after that once both
+     * players are connected.
+     */
+    public static readonly QuickLobbyCountdownMs = (Lobby.QuickLobbyCountdownStartSeconds + 1) * Lobby.QuickLobbyCountdownTickMs;
 
     private readonly _id: string;
     private readonly _lobbyName: string;
@@ -363,15 +377,84 @@ export class Lobby {
     }
 
     private isUserChatDisabled(user: LobbyUserWrapper): boolean {
-        const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
         const lobbyChatMuted = user.id === this.userWhoMutedChat;
-        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
 
-        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
+        return this.isUserModerationMuted(user) || lobbyChatMuted || this.hasUserDisabledChatInPreferences(user);
+    }
+
+    private isUserModerationMuted(user: LobbyUserWrapper): boolean {
+        const isLegacyModerationMuted = this.getLobbyUserAccount(user)?.getModeration()?.moderationType === ModerationType.Mute;
+        const isModActionMuted = this.server.modActionService?.isPlayerMuted(user.id) ?? false;
+
+        return isLegacyModerationMuted || isModActionMuted;
+    }
+
+    private hasUserDisabledChatInPreferences(user: LobbyUserWrapper): boolean {
+        return !this.isPrivate && this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
+    }
+
+    /** The user's account, or `undefined` for a user created ahead of their first socket connection. */
+    private getLobbyUserAccount(user: LobbyUserWrapper): User | undefined {
+        return user.socket?.user ?? user.user;
+    }
+
+    /** Matches the `authenticated` flag the client receives. */
+    private isLobbyUserAnonymous(user: LobbyUserWrapper): boolean {
+        const account = this.getLobbyUserAccount(user);
+        return !!account && !account.isAuthenticatedUser();
+    }
+
+    /**
+     * Server-side copy of the client's chat rules (`getChatDisabledInfo` in both `Chat` and `ChatDrawer`),
+     * so a modified client cannot send messages the official client would not let it send.
+     */
+    private getChatBlockedReason(sender: LobbyUserWrapper): string | null {
+        if (this.isPrivate) {
+            return null;
+        }
+
+        const opponent = this.users.find((u) => u.id !== sender.id);
+
+        if (!this.config.allowAnonymousChat && this.isLobbyUserAnonymous(sender)) {
+            return 'sender is anonymous';
+        }
+        if (this.isUserModerationMuted(sender)) {
+            return 'sender is muted';
+        }
+        if (!this.config.allowAnonymousChat && opponent && this.isLobbyUserAnonymous(opponent)) {
+            return 'opponent is anonymous';
+        }
+        if (sender.id === this.userWhoMutedChat) {
+            return 'sender muted the lobby chat';
+        }
+        if (this.hasUserDisabledChatInPreferences(sender)) {
+            return 'sender disabled chat in preferences';
+        }
+        if (opponent && this.isUserChatDisabled(opponent)) {
+            return 'opponent has chat disabled';
+        }
+
+        return null;
+    }
+
+    /** Returns whether the user may chat, logging a warning if not. */
+    private checkUserCanChat(userId: string, context: string): boolean {
+        const sender = this.users.find((u) => u.id === userId);
+        if (!sender) {
+            return false;
+        }
+
+        const blockedReason = this.getChatBlockedReason(sender);
+        if (blockedReason) {
+            logger.warn(`Lobby: dropped ${context} from user ${userId}: ${blockedReason}`, { lobbyId: this.id, userId });
+            return false;
+        }
+
+        return true;
     }
 
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
-        const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
+        const authenticatedStatus = user.socket?.user.isAuthenticatedUser();
 
         const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
         if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
@@ -436,11 +519,14 @@ export class Lobby {
         return this.users.some((u) => u.id === id);
     }
 
-    public createLobbyUser(user: User, decklist = null): void {
+    public createLobbyUser(user: User, decklist = null, matchmakingSearchContext?: IMatchmakingSearchContext): void {
         const existingUser = this.users.find((u) => u.id === user.getId());
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
+            if (matchmakingSearchContext) {
+                existingUser.matchmakingSearchContext = matchmakingSearchContext;
+            }
             return;
         }
         this.users.push(({
@@ -453,6 +539,7 @@ export class Lobby {
                 ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, cardPool: this.cardPool })
                 : {},
             deck,
+            matchmakingSearchContext,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -482,7 +569,7 @@ export class Lobby {
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
-                username: user.getId(),
+                username: user.getUsername(),
                 socket,
                 user: socket.user,
                 state: 'connected'
@@ -578,7 +665,13 @@ export class Lobby {
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.queueFormatKey, user, existingUser.deck.originalDeckList);
+                        this.server.requeueUser(
+                            socket,
+                            this.queueFormatKey,
+                            user,
+                            existingUser.deck.originalDeckList,
+                            existingUser.matchmakingSearchContext?.preference
+                        );
                     }
                 );
             }
@@ -604,7 +697,7 @@ export class Lobby {
         return Promise.resolve();
     }
 
-    private quickLobbyCountdownAsync(remainingSeconds = 5) {
+    private quickLobbyCountdownAsync(remainingSeconds = Lobby.QuickLobbyCountdownStartSeconds) {
         if (remainingSeconds > -1) {
             this.matchingCountdownText = `Starts in ${remainingSeconds}`;
         } else if (remainingSeconds > -4) {
@@ -622,7 +715,7 @@ export class Lobby {
         }
 
         this.matchingCountdownTask =
-            this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
+            this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), Lobby.QuickLobbyCountdownTickMs, 'Lobby: error during quick lobby countdown');
 
         this.sendLobbyState(true);
         return Promise.resolve();
@@ -697,7 +790,7 @@ export class Lobby {
         const existingUser = this.users.find((u) => u.id === socket.user.getId());
         Contract.assertNotNullLike(existingUser, `Unable to find user with id ${socket.user.getId()} in lobby ${this.id}`);
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
-        if (!existingUser) {
+        if (!existingUser || !this.checkUserCanChat(existingUser.id, 'lobby chat message')) {
             return;
         }
 
@@ -1032,7 +1125,13 @@ export class Lobby {
     }
 
     private typingState(socket: Socket, isTyping: boolean) {
+        Contract.assertTrue(typeof isTyping === 'boolean', 'Typing state argument is not a boolean');
+
         const userId = socket.user.getId();
+        if (isTyping && !this.checkUserCanChat(userId, 'typing state')) {
+            return;
+        }
+
         this.gameChat.setTypingState(userId, isTyping);
     }
 
@@ -1220,7 +1319,11 @@ export class Lobby {
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
 
-    public async startTestGameAsync(testSetupData: any) {
+    public async startTestGameAsync(
+        testSetupData: any,
+        player1Info: Pick<IUser, 'id' | 'username'>,
+        player2Info: Pick<IUser, 'id' | 'username'>
+    ) {
         // cardPool is a lobby setting, not a board-setup option, so it is not passed on to the test harness
         const { cardPool, ...setupData } = testSetupData;
         if (setupData.autoSingleTarget == null) {
@@ -1242,8 +1345,8 @@ export class Lobby {
             setupData,
             this.cardDataGetter,
             router,
-            { id: 'exe66', username: 'Order66' },
-            { id: 'th3w4y', username: 'ThisIsTheWay' },
+            player1Info,
+            player2Info,
             UndoMode.Free,
             legalCardTitles
         );
@@ -1519,6 +1622,36 @@ export class Lobby {
 
     private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
 
+    /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
+    private static readonly allowedLobbyCommands = new Set([
+        'concedeBo3',
+        'muteChat',
+        'proceedToNextBo3Game',
+        'rematch',
+        'reportScreenResolution',
+        'requestRematch',
+        'retransmitGameMessages',
+        'sendChatMessage',
+        'setReadyStatus',
+        'startGameAsync',
+        'submitReport',
+        'typingState',
+        'updateDeck',
+        'updateSetting',
+    ]);
+
+    /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
+    private static readonly allowedGameCommands = new Set([
+        'cardClicked',
+        'chat',
+        'concede',
+        'menuButton',
+        'perCardMenuButton',
+        'rollbackToSnapshot',
+        'statefulPromptResults',
+        'toggleOptionSetting',
+    ]);
+
     private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         try {
             if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
@@ -1534,7 +1667,7 @@ export class Lobby {
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         const start = process.hrtime.bigint();
         try {
-            if (!this[command] || typeof this[command] !== 'function') {
+            if (!Lobby.allowedLobbyCommands.has(command) || typeof this[command] !== 'function') {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
             }
 
@@ -1580,7 +1713,12 @@ export class Lobby {
             //     return this.onLeaveGame(socket);
             // }
 
-            if (!this.game[command] || typeof this.game[command] !== 'function') {
+            if (!Lobby.allowedGameCommands.has(command) || typeof this.game[command] !== 'function') {
+                logger.warn(`Lobby: ignoring unknown game command '${String(command).substring(0, 64)}'`, { lobbyId: this.id, userId: socket.user.getId() });
+                return;
+            }
+
+            if (command === 'chat' && (typeof args[0] !== 'string' || !this.checkUserCanChat(socket.user.getId(), 'game chat message'))) {
                 return;
             }
 
@@ -1633,7 +1771,15 @@ export class Lobby {
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.queueFormatKey, user.socket.user, user.deck.originalDeckList);
+                this.server.requeueUser(
+                    user.socket,
+                    this.queueFormatKey,
+                    user.socket.user,
+                    user.deck.originalDeckList,
+                    user.matchmakingSearchContext?.preference,
+                    user.matchmakingSearchContext?.searchStartedAt,
+                    user.matchmakingSearchContext?.preferencesPublishedAt
+                );
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -2028,7 +2174,7 @@ export class Lobby {
     }
 
     private sendLobbyStateToSpectator(socket: Socket): void {
-        socket.socket.send('lobbystate', this.getLobbyState());
+        socket.send('lobbystate', this.getLobbyState());
     }
 
     public handleGameEnd(): void {
@@ -2279,15 +2425,14 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
-        // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getState(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
+                spectator.socket.send('gamestate', game.getState(spectator.id));
             }
         }
     }
@@ -2318,15 +2463,6 @@ export class Lobby {
             startIndex: safeStart,
             totalCount: totalCount
         });
-    }
-
-    private safeSetUserConnected(userId: string): void {
-        try {
-            const user = this.getUser(userId);
-            user.state = 'connected';
-        } catch (error) {
-            logger.error(`Lobby: error setting user ${userId} connected`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
-        }
     }
 
     public sendLobbyState(forceSend = false): void {
@@ -2432,6 +2568,42 @@ export class Lobby {
         const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
+        // the client only offers reports to logged-in players, and player reports only against logged-in opponents
+        const sender = this.users.find((u) => u.id === socket.user.getId());
+        const opponentUser = this.users.find((u) => u.id !== socket.user.getId());
+        if ((sender && this.isLobbyUserAnonymous(sender)) ||
+          (reportType === ReportType.PlayerReport && opponentUser && this.isLobbyUserAnonymous(opponentUser))) {
+            logger.warn(`Lobby (submitReport): dropped ${reportLabel} from user ${socket.user.getId()}: anonymous reporter or reported player`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Please log in to submit reports',
+            });
+            return;
+        }
+
+        const modActionService = this.server.modActionService;
+        if (!modActionService) {
+            logger.error('Lobby (submitReport): mod action service unavailable, allowing report without checking restrictions', {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+        } else if (modActionService.isReportingDisabled(socket.user.getId())) {
+            logger.info(`Lobby (submitReport): Blocked ${reportLabel} from ${socket.user.getId()}, reporting is disabled`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Reporting has been disabled for your account'
+            });
+            return;
+        }
 
         try {
             let parsedDescription = '';

@@ -19,16 +19,20 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.sequential((sequentialContext) => [
                 AbilityHelper.immediateEffects.takeControlOfResource((context) => ({ target: context.player })),
-                AbilityHelper.immediateEffects.whenSourceLeavesPlayDelayedCardEffect((_context) => ({
+                AbilityHelper.immediateEffects.whenSourceLeavesPlayDelayedCardEffect(() => ({
                     title: 'Return the stolen resource to its owner',
                     // we use a context handler here to force evaluation of the target's exhausted state to happen when the delayed effect resolves,
                     // instead of when it's created
                     target: sequentialContext.events[0]?.card,
-                    immediateEffect: AbilityHelper.immediateEffects.resourceCard((_context) => ({
-                        targetPlayer: RelativePlayer.Opponent,
-                        target: sequentialContext.events[0]?.card,
-                        readyResource: !sequentialContext.events[0]?.card.exhausted
-                    }))
+                    immediateEffect: AbilityHelper.immediateEffects.conditional({
+                        // the effect fizzles if the stolen card is no longer a resource (e.g. it was defeated) since there is nothing to return
+                        condition: () => sequentialContext.events[0]?.card.isResource(),
+                        onTrue: AbilityHelper.immediateEffects.resourceCard(() => ({
+                            targetPlayer: RelativePlayer.Opponent,
+                            target: sequentialContext.events[0]?.card,
+                            readyResource: !sequentialContext.events[0]?.card.exhausted
+                        }))
+                    })
                 }))
             ])
         });

@@ -32,7 +32,8 @@ export default class Overgrowth extends EventCard {
                             name: 'enemyUnit',
                             immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
                                 amount: context.targets.friendlyUnit.getPower(),
-                                target: context.targets.enemyUnit
+                                target: context.targets.enemyUnit,
+                                source: context.targets.friendlyUnit
                             }))
                         })
                     }),

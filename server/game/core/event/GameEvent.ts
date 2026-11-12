@@ -3,6 +3,8 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { EventWindow } from './EventWindow';
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { CardRef } from '../lki/CardRef';
+import type { ILastKnownInformation } from './LastKnownInformation';
 
 export enum EventResolutionStatus {
     CREATED = 'created',
@@ -19,10 +21,53 @@ export class GameEvent {
     public isContingent = false;
     public readonly name: string;
 
+    /**
+     * Reference to the card this event is about, bound while the event resolves so later reads name
+     * the identity the event fired on rather than whatever occupies that card now.
+     *
+     * Set only via {@link setLastKnownInformation}, so it is present on exactly the events that
+     * carry last known information.
+     */
+    public get cardRef(): CardRef | undefined {
+        return this._cardRef;
+    }
+
+    /**
+     * Characteristics of {@link cardRef}'s card as of the moment this event was about to resolve.
+     *
+     * @deprecated Reach for `cardStates.getLastKnownProperties(event.cardRef)` instead. This struct
+     * is removed in phase 4 of the LKI migration.
+     */
+    public get lastKnownInformation(): ILastKnownInformation | undefined {
+        return this._lastKnownInformation;
+    }
+
+    /**
+     * Records last known information for this event.
+     *
+     * The struct and the reference are deliberately **inseparable**: an event carrying one without
+     * the other is the bug this method exists to prevent. Events reach this from two directions —
+     * the pre-resolution hook for events that resolve in a window, and a synchronous call for
+     * synthetic events that never enter one (`UseWhenDefeatedSystem`). Both must produce both, and
+     * a future third path cannot silently produce only the struct.
+     */
+    public setLastKnownInformation(info: ILastKnownInformation, cardRef: CardRef): void {
+        Contract.assertNotNullLike(
+            cardRef,
+            `Attempting to set last known information on event ${this.name} without a card reference. ` +
+            'Every path that captures last known information must also bind the reference it describes.'
+        );
+
+        this._lastKnownInformation = info;
+        this._cardRef = cardRef;
+    }
+
     public get eventId() {
         return this._eventId;
     }
 
+    private _cardRef?: CardRef;
+    private _lastKnownInformation?: ILastKnownInformation;
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;

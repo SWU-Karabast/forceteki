@@ -408,9 +408,11 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInPlay).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no attack target)
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', '(No effect) Ambush']);
-                context.player1.clickPrompt('Draw a card');
-                context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: 'Draw a card', optional: true },
+                    { title: 'Ambush', optional: true, hasEffect: false },
+                ]);
+                context.player1.clickTrigger('Draw a card');
                 expect(context.player1.handSize).toBe(handSize + 1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -435,9 +437,11 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInHand).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to attacker being defeated)
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', '(No effect) Ambush']);
-                context.player1.clickPrompt('Draw a card');
-                context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: 'Draw a card', optional: true },
+                    { title: 'Ambush', optional: true, hasEffect: false },
+                ]);
+                context.player1.clickTrigger('Draw a card');
                 expect(context.player1.handSize).toBe(handSize + 1);
 
                 expect(context.player2).toBeActivePlayer();

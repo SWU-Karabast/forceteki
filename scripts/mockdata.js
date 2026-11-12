@@ -1,346 +1,17 @@
 const mockCards = [
-    // Add mock cards here
-    buildMockCard({
-        title: 'Darth Vader',
-        subtitle: 'No One to Stop Us',
-        cost: 7,
-        power: 5,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        traits: ['force', 'imperial', 'sith'],
-        types: ['leader'],
-        setId: {
-            set: 'IC27',
-            number: 1
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'darth-vader#no-one-to-stop-us'
-    }),
-    buildMockCard({
-        title: 'Princess Leia',
-        subtitle: 'On a Diplomatic Mission',
-        cost: 6,
-        power: 4,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        traits: ['rebel', 'official'],
-        types: ['leader'],
-        setId: {
-            set: 'IC27',
-            number: 8
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'princess-leia#on-a-diplomatic-mission'
-    }),
-    buildMockCard({
-        title: 'Moff Gideon',
-        subtitle: 'Cold Calling',
-        cost: 5,
-        power: 3,
-        hp: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        traits: ['imperial', 'official'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 22
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'moff-gideon#cold-calling'
-    }),
-    buildMockCard({
-        title: 'Admiral Holdo',
-        subtitle: 'We Are The Spark',
-        cost: 5,
-        power: 3,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        traits: ['resistance', 'official'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 38
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'admiral-holdo#we-are-the-spark'
-    }),
-    buildMockCard({
-        title: 'Grand Inquisitor',
-        subtitle: 'How The Mighty Will Fall',
-        cost: 4,
-        power: 3,
-        hp: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'villainy'],
-        traits: ['force', 'imperial', 'inquisitor'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 103
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'grand-inquisitor#how-the-mighty-will-fall'
-    }),
-    buildMockCard({
-        title: 'Captain Rex',
-        subtitle: 'Staunch Advocate',
-        cost: 7,
-        power: 7,
-        hp: 5,
-        hasNonKeywordAbility: false,
-        aspects: ['vigilance', 'heroism'],
-        traits: ['republic', 'clone', 'trooper'],
-        keywords: ['sentinel', 'shielded', 'restore 3'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 41
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'captain-rex#staunch-advocate'
-    }),
-    buildMockCard({
-        title: 'I\'ve Got A Bad Feeling',
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        traits: ['innate'],
-        types: ['event'],
-        setId: {
-            set: 'IC27',
-            number: 166
-        },
-        unique: false,
-        internalName: 'ive-got-a-bad-feeling'
-    }),
-    buildMockCard({
-        title: 'Darth Sidious',
-        subtitle: 'Move Against the Jedi',
-        cost: 7,
-        power: 5,
-        hp: 8,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        traits: ['force', 'separatist', 'sith'],
-        keywords: ['restore 3'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 26
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'darth-sidious#move-against-the-jedi'
-    }),
-    buildMockCard({
-        title: 'Darth Vader',
-        subtitle: 'Useless to Resist',
-        cost: 8,
-        power: 8,
-        hp: 8,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'villainy'],
-        traits: ['force', 'imperial', 'sith'],
-        keywords: ['ambush'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 67
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'darth-vader#useless-to-resist'
-    }),
-    buildMockCard({
-        title: 'Avar Kriss',
-        subtitle: 'For Light and Life',
-        cost: 2,
-        power: 0,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'heroism'],
-        traits: ['force', 'jedi', 'republic'],
-        keywords: ['raid 1'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 71
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'avar-kriss#for-light-and-life'
-    }),
-    buildMockCard({
-        title: 'Anakin Skywalker',
-        subtitle: 'Destined For Darkness',
-        cost: 5,
-        power: 7,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'heroism'],
-        traits: ['force', 'jedi', 'republic'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 78
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'anakin-skywalker#destined-for-darkness'
-    }),
-    buildMockCard({
-        title: 'The Inquisitor\'s TIE',
-        subtitle: 'Would Rather Win',
-        cost: 4,
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'villainy'],
-        traits: ['imperial', 'vehicle', 'fighter', 'inquisitor'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 104
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'the-inquisitors-tie#would-rather-win'
-    }),
-    buildMockCard({
-        title: 'Boba Fett',
-        subtitle: 'Compensated If He Dies',
-        cost: 5,
-        power: 4,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        traits: ['underworld', 'bounty hunter'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 146
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'boba-fett#compensated-if-he-dies'
-    }),
-    buildMockCard({
-        title: 'Millennium Falcon',
-        subtitle: 'YA-HOO!',
-        cost: 4,
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        traits: ['rebel', 'vehicle', 'transport'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 158
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'millennium-falcon#yahoo'
-    }),
-    buildMockCard({
-        title: 'Lando Calrissian',
-        subtitle: 'Check This Out',
-        cost: 3,
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'cunning'],
-        traits: ['official'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 167
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'lando-calrissian#check-this-out'
-    }),
-    buildMockCard({
-        title: 'Cunning Ploy',
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'cunning'],
-        traits: ['trick'],
-        types: ['event'],
-        setId: {
-            set: 'IC27',
-            number: 168
-        },
-        unique: false,
-        internalName: 'cunning-ploy'
-    }),
-    buildMockCard({
-        title: 'Jar Jar Binks',
-        subtitle: 'Bumbling Representative',
-        cost: 2,
-        power: 1,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['heroism'],
-        traits: ['republic', 'gungan', 'official'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 187
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'jar-jar-binks#bumbling-representative'
-    }),
-    buildMockCard({
-        title: 'Grand Admiral Thrawn',
-        subtitle: 'Listen to Me Carefully',
-        cost: 6,
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        traits: ['imperial', 'official'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 24
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'grand-admiral-thrawn#listen-to-me-carefully'
-    }),
-    buildMockCard({
-        title: 'Qui-Gon Jinn',
-        subtitle: 'Unwavering Belief',
-        cost: 5,
-        power: 5,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'heroism'],
-        keywords: ['sentinel'],
-        traits: ['republic', 'force', 'jedi'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 79
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'quigon-jinn#unwavering-belief'
-    }),
+    // -------- Begin Mock Cards --------
     // -------- End Mock Cards --------
 ];
+
+// -------- Begin Mock Reprints --------
+// For cards already in the official data that are reprinted in an upcoming (mocked) set.
+// Instead of a buildMockCard entry - which would shadow the official card data and drop
+// the real card's other printings - the new set code is grafted onto the official card's
+// setCodes, so the real stats and the existing card implementation are reused as-is.
+// Note: `set` must exist in the `setNumber` map in fetchdata.js to be picked up.
+const mockReprints = [
+];
+// -------- End Mock Reprints --------
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string, text: string?, deployBox: string?, epicAction: string?, backSideTitle: string?, backSideSubtitle: string?, backSideTraits: string[]?, backSideAspects: string[]? }} cardData */
 function buildMockCard(cardData) {
@@ -447,7 +118,39 @@ function addMockCards(cards) {
         allCards.push(card);
     }
 
+    applyMockReprints(allCards);
+
     return { mockCardNames, cards: allCards };
+}
+
+/** @param {Array<{ internalName: string, setCodes?: { set: string, number: number }[], setId: { set: string, number: number } }>} allCards */
+function applyMockReprints(allCards) {
+    for (const reprint of mockReprints) {
+        const matches = allCards.filter((card) => card.internalName === reprint.internalName);
+
+        if (matches.length === 0) {
+            console.log(`\nWARNING: mock reprint target '${reprint.internalName}' not found in card data. Check the internalName.`);
+            continue;
+        }
+
+        let patchedCount = 0;
+        for (const card of matches) {
+            if (!card.setCodes) {
+                card.setCodes = [card.setId];
+            }
+
+            if (card.setCodes.some((setCode) => setCode.set === reprint.setId.set && setCode.number === reprint.setId.number)) {
+                continue;
+            }
+
+            card.setCodes.push(reprint.setId);
+            patchedCount++;
+        }
+
+        if (patchedCount === 0) {
+            console.log(`\nMock reprint '${reprint.internalName}' (${buildSetStr(reprint)}) found in official data. The mock reprint can now be safely removed from mockdata.js`);
+        }
+    }
 }
 
 module.exports = { addMockCards };

@@ -150,7 +150,6 @@ describe('Boba Fett, Daimyo', function () {
 
             expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Exhaust this leader to give a friendly unit +1/+0 for this phase']);
             context.player1.clickPrompt('Exhaust this leader to give a friendly unit +1/+0 for this phase');
-            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.battlefieldMarine);
 
             context.player1.clickPrompt('Trigger');
@@ -228,6 +227,52 @@ describe('Boba Fett, Daimyo', function () {
                 expect(context.daggerSquadronPilot.getHp()).toBe(1);
                 expect(context.daggerSquadronPilot.getPower()).toBe(3);
             });
+        });
+
+        describe('Boba Fett\'s ability with Pilot units', function () {
+            // Ruling (JTL): a Pilot card in play as a unit still has the Piloting keyword, so it counts as
+            // a unit with "1 or more keywords" for deployed Daimyō Boba Fett's ability (each other friendly
+            // unit that has 1 or more keywords gets +1/+0).
+            xit('counts a Pilot card in play as a unit as having the Piloting keyword (so Boba\'s "1 or more keywords" buff applies)', function () {
+                pending('Not yet implemented');
+                // A Pilot card is in play as a unit (not attached as an upgrade); it still has the Piloting
+                // keyword. Deployed Daimyō Boba Fett's +1/+0 to each other friendly unit with 1 or more
+                // keywords should apply to it.
+            });
+        });
+
+        it('Boba Fett\'s leader ability should trigger when its controller plays an opponent-owned unit with a keyword with Unrefusable Offer', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    leader: 'boba-fett#daimyo',
+                },
+                player2: {
+                    groundArena: [{ card: 'pyke-sentinel', upgrades: ['unrefusable-offer'] }],
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Defeat the opponent's Sentinel unit and collect the bounty to play it under player1's control
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.pykeSentinel);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
+            expect(context.pykeSentinel.owner).toBe(context.player2.player);
+
+            // Boba Fett reacts to player1 playing the opponent-owned unit with a keyword
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give a friendly unit +1/+0 for this phase');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
+            context.player1.clickCard(context.pykeSentinel);
+
+            expect(context.bobaFett.exhausted).toBeTrue();
+            expect(context.pykeSentinel.getPower()).toBe(3);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

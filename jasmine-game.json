@@ -3,7 +3,9 @@
     "spec_files": [
         "**/*[sS]pec.js",
         "!server/utils/**",
-        "!server/gamenode/**"
+        "!server/gamenode/**",
+        "!server/services/**",
+        "!server/scripts/**"
     ],
     "helpers": [
         "helpers/server/ServerTestEnv.js",

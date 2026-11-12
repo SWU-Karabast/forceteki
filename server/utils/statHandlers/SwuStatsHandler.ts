@@ -13,6 +13,7 @@ import { requireEnvVars } from '../../env';
 import { StatsMessageKey } from '../stats/statsMessages';
 import type { ICardMetrics, IOAuthTokenResponse } from './StatHandlerTypes';
 import { RefreshTokenSource } from './StatHandlerTypes';
+import type { IHttpClient } from '../IHttpClient';
 
 
 interface ITurnResults {
@@ -94,8 +95,9 @@ export class SwuStatsHandler {
     private readonly clientSecret: string;
     private readonly tokenUrl: string;
     private readonly userFactory: UserFactory;
+    private readonly httpClient: IHttpClient;
 
-    public constructor(userFactory) {
+    public constructor(userFactory, httpClient: IHttpClient) {
         // Use environment variable for API URL, defaulting to the known endpoint
         requireEnvVars([
             'SWUSTATS_API_KEY',
@@ -108,6 +110,7 @@ export class SwuStatsHandler {
         this.clientId = process.env.SWUSTATS_CLIENT_ID;
         this.clientSecret = process.env.SWUSTATS_CLIENT_SECRET;
         this.userFactory = userFactory;
+        this.httpClient = httpClient;
     }
 
     /**
@@ -155,7 +158,7 @@ export class SwuStatsHandler {
                 payload: payloadForLogging
             });
             // Send to SWUstats API
-            const response = await fetch(this.apiUrl, {
+            const response = await this.httpClient.fetch(this.apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -417,7 +420,7 @@ export class SwuStatsHandler {
             formData.append('client_secret', this.clientSecret);
             formData.append('refresh_token', refreshToken);
 
-            const response = await fetch(this.tokenUrl, {
+            const response = await this.httpClient.fetch(this.tokenUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -476,7 +479,7 @@ export class SwuStatsHandler {
             });
 
             const decksUrl = 'https://swustats.net/TCGEngine/APIs/UserAPIs/GetUserDecks.php';
-            const response = await fetch(`${decksUrl}?${params.toString()}`, {
+            const response = await this.httpClient.fetch(`${decksUrl}?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${accessToken}`,

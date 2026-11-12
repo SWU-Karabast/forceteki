@@ -277,5 +277,40 @@ describe('Greef Karga, Gracious Magistrate', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('when the player plays a unit owned by the opponent', function() {
+            it('should trigger for the player who played it from the opponent\'s discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'greef-karga#gracious-magistrate',
+                        hand: ['takedown']
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // Player1 plays the opponent-owned unit; Greef's trigger fires for player1
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Greef Karga to give an Advantage token to Stolen AT-Hauler');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.greefKarga.exhausted).toBeTrue();
+                expect(context.stolenAthauler).toHaveExactUpgradeNames(['advantage']);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

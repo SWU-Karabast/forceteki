@@ -1,7 +1,7 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
-import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
+import { AbilityType, EffectName, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
 import type { IEventRegistration, ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
@@ -62,7 +62,7 @@ export abstract class TriggeredAbilityBase extends CardAbility {
 
     private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered = false;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -70,6 +70,11 @@ export abstract class TriggeredAbilityBase extends CardAbility {
 
     public get isWhenDefeated() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenDefeated);
+    }
+
+    /** True if "When Defeated" is this ability's only trigger (i.e. not combined with e.g. "When Played") */
+    public get isOnlyWhenDefeated() {
+        return this.isWhenDefeated && this.when != null && Object.keys(this.when).length === 1;
     }
 
     public get isWhenPlayed() {
@@ -142,13 +147,25 @@ export abstract class TriggeredAbilityBase extends CardAbility {
     private isActiveForEvents(events: GameEvent[], window: TriggeredAbilityWindow): boolean {
         Contract.assertTrue(this.card.canRegisterTriggeredAbilities());
 
-        if (!this.card.getTriggeredAbilities().includes(this)) {
+        if (!this.card.getTriggeredAbilities().includes(this) || this.isLostWhenDefeatedTrigger(events)) {
             for (const event of events) {
                 window.markTriggerMissed(this, event);
             }
             return false;
         }
         return !events.some((event) => window.hasMissedTrigger(this, event));
+    }
+
+    /**
+     * True if the card has lost its "When Defeated" abilities and these events would trigger this ability through
+     * its When Defeated condition. A When Defeated-only ability is already removed by getTriggeredAbilities(), so
+     * this is for combined triggers (e.g. "When Played/When Defeated"): only the defeat event is blocked, so the
+     * other half keeps working.
+     */
+    private isLostWhenDefeatedTrigger(events: GameEvent[]): boolean {
+        return this.isWhenDefeated &&
+          events.some((event) => event.name === EventName.OnCardDefeated) &&
+          this.card.hasOngoingEffect(EffectName.LoseWhenDefeatedAbilities);
     }
 
     public override getTitle(context?: AbilityContext): string {

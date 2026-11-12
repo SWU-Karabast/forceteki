@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class AvarKrissForLightAndLife extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'avar-kriss#for-light-and-life-id',
+            id: '2971364981',
             internalName: 'avar-kriss#for-light-and-life',
         };
     }

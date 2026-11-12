@@ -27,7 +27,6 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     playAsType: WildcardCardType.Any | WildcardCardType.NonUnit | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     adjustCost?: ICostAdjusterProperties;
     nested?: boolean;
-    canPlayFromAnyZone?: boolean;
     exploitValue?: number;
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 
@@ -60,7 +59,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         playType: PlayType.PlayFromHand,
         playAsType: WildcardCardType.Any,
         nested: false,
-        canPlayFromAnyZone: false,
     };
 
     public eventHandler(event): void {
@@ -103,7 +101,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
-        event.ignoredRequirements = properties.ignoredRequirements ?? [];
+        event.ignoredRequirements = this.getIgnoredRequirements(properties);
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
@@ -171,8 +169,19 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             const newContext = action.createContext(context.player);
             return this.checkActionPlayType(properties.playType, action.playType) &&
               this.checkActionPlayAsType(card, action.playType, properties.playAsType, action) &&
-              action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+              action.meetsRequirements(newContext, this.getIgnoredRequirements(properties)) === '';
         });
+    }
+
+    /**
+     * An ability that plays a card from out of play is itself the permission to play it from that zone; its
+     * target resolver has already established which zone and cards are legal, so the zone check is skipped.
+     */
+    private getIgnoredRequirements(properties: IPlayCardProperties): string[] {
+        const ignoredRequirements = properties.ignoredRequirements ?? [];
+        return properties.playType === PlayType.PlayFromOutOfPlay
+            ? ignoredRequirements.concat('zone')
+            : ignoredRequirements;
     }
 
     private checkActionPlayType(playType: PlayType, actionPlayType: PlayType): boolean {
@@ -207,7 +216,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             triggerHandlingMode: properties.nested ? TriggerHandlingMode.ResolvesTriggers : TriggerHandlingMode.PassesTriggersToParentWindow,
             costAdjusters,
             entersReady: properties.entersReady,
-            canPlayFromAnyZone: properties.canPlayFromAnyZone,
             exploitValue: properties.exploitValue,
             attachTargetCondition: properties.attachTargetCondition,
             enterPlayEffect: properties.enterPlayEffect,

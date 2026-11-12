@@ -28,7 +28,7 @@ export default class AdmiralAckbarItsATrap extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Exhaust a non-leader unit. If you do, its controller creates an X-Wing token',
+            title: 'Exhaust a unit. If you do, its controller creates an X-Wing token',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

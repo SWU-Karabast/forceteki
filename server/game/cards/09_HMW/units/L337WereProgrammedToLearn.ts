@@ -25,7 +25,7 @@ export default class L337WereProgrammedToLearn extends NonLeaderUnitCard {
                     event.card.printedCost <= 3
             },
             immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
-                target: context.event.card,
+                target: context.event.card.zone === context.player.discardZone ? context.event.card : [],
                 playAsType: CardType.Event,
                 adjustCost: { costAdjustType: CostAdjustType.Free }
             }))

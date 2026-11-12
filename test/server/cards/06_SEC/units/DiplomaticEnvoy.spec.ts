@@ -62,5 +62,46 @@ describe('Diplomatic Envoy', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Diplomatic Envoy\'s ability with a unit owned by the opponent', function () {
+            it('should give Ambush to an opponent-owned unit played from the opponent\'s discard pile', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown', 'diplomatic-envoy', 'battlefield-marine'],
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler', 'cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // defeat the opponent's Stolen AT-Hauler, its When Defeated lets player1 play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.diplomaticEnvoy);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.clickDone();
+
+                context.player2.passAction();
+
+                // play the Stolen AT-Hauler owned by player2, it gains Ambush
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toBeInZone('discard', context.player2);
+                expect(context.stolenAthauler.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

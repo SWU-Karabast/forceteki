@@ -1,89 +1,127 @@
+import { logger } from '../../../server/logger';
 import { RealScheduler } from '../../../server/utils/RealScheduler';
 
 /**
- * Covers the production scheduler against real Node timers.
- *
- * The rest of the suite runs on `TestScheduler`, so without these the claim that production is "safe
- * by construction" would rest entirely on a fake. Delays are kept tiny so the specs stay fast.
+ * Exercises the production scheduler with Jasmine controlling the timers, rather than substituting
+ * TestScheduler or relying on wall-clock sleeps.
  */
 describe('RealScheduler', function () {
     let scheduler: RealScheduler;
 
     beforeEach(function () {
+        jasmine.clock().install();
         scheduler = new RealScheduler();
     });
 
-    function waitMs(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    it('runs a one-shot callback', async function () {
-        let ran = false;
-        scheduler.setTimeout(() => (ran = true), 1);
-
-        await waitMs(30);
-
-        expect(ran).toBe(true);
+    afterEach(function () {
+        jasmine.clock().uninstall();
     });
 
-    it('does not run a cancelled callback', async function () {
-        let ran = false;
-        scheduler.setTimeout(() => (ran = true), 5).cancel();
+    it('runs a one-shot callback', function () {
+        const callback = jasmine.createSpy('callback');
+        scheduler.setTimeout(callback, 10);
 
-        await waitMs(30);
+        jasmine.clock().tick(9);
+        expect(callback).not.toHaveBeenCalled();
 
-        expect(ran).toBe(false);
+        jasmine.clock().tick(1);
+        expect(callback).toHaveBeenCalledTimes(1);
+
+        jasmine.clock().tick(30);
+        expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('stops a repeating callback when cancelled', async function () {
-        let ticks = 0;
-        const task = scheduler.setInterval(() => ticks++, 1);
+    it('does not run a cancelled callback', function () {
+        const callback = jasmine.createSpy('callback');
+        scheduler.setTimeout(callback, 10).cancel();
 
-        await waitMs(30);
+        jasmine.clock().tick(30);
+
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('stops a repeating callback when cancelled', function () {
+        const callback = jasmine.createSpy('callback');
+        const task = scheduler.setInterval(callback, 10);
+
+        jasmine.clock().tick(30);
+        expect(callback).toHaveBeenCalledTimes(3);
         task.cancel();
-        const ticksAtCancel = ticks;
-        await waitMs(30);
 
-        expect(ticksAtCancel).toBeGreaterThan(0);
-        expect(ticks).toBe(ticksAtCancel);
+        jasmine.clock().tick(30);
+        expect(callback).toHaveBeenCalledTimes(3);
     });
 
     describe('error guarding', function () {
-        // These are the reason the guard exists: an escaping error from a timer callback reaches the
-        // process-level handler and terminates the node. If the guard regresses, the spec process
-        // dies outright rather than reporting a failure.
-        it('contains a synchronous throw', async function () {
+        let errorSpy: jasmine.Spy;
+
+        beforeEach(function () {
+            errorSpy = spyOn(logger, 'error');
+        });
+
+        it('contains and reports a synchronous throw with its context', function () {
+            const error = new Error('sync boom');
             scheduler.setTimeout(() => {
-                throw new Error('sync boom');
-            }, 1, { message: 'RealScheduler spec: sync throw' });
+                throw error;
+            }, 1, { message: 'RealScheduler spec: sync throw', metadata: { taskId: 'sync-task' } });
 
-            await waitMs(30);
+            jasmine.clock().tick(1);
 
-            expect(true).toBe(true);
+            expect(errorSpy).toHaveBeenCalledOnceWith('RealScheduler spec: sync throw', {
+                error: { message: error.message, stack: error.stack },
+                taskId: 'sync-task',
+            });
         });
 
-        it('contains a rejection from an async callback', async function () {
-            scheduler.setTimeout(async () => {
+        it('reports an error without an explicit context', function () {
+            const error = new Error('boom');
+            scheduler.setTimeout(() => {
+                throw error;
+            }, 1);
+
+            jasmine.clock().tick(1);
+
+            expect(errorSpy).toHaveBeenCalledOnceWith('Scheduler: error in scheduled callback', {
+                error: { message: error.message, stack: error.stack },
+            });
+        });
+
+        it('contains and reports a rejection from an async callback', async function () {
+            const error = new Error('async boom');
+            const callback = jasmine.createSpy<() => Promise<void>>('callback').and.callFake(async () => {
                 await Promise.resolve();
-                throw new Error('async boom');
-            }, 1, { message: 'RealScheduler spec: async rejection' });
+                throw error;
+            });
+            scheduler.setTimeout(callback, 1, { message: 'RealScheduler spec: async rejection' });
 
-            await waitMs(30);
+            jasmine.clock().tick(1);
+            await expectAsync(callback.calls.mostRecent().returnValue).toBeRejectedWith(error);
 
-            expect(true).toBe(true);
+            expect(errorSpy).toHaveBeenCalledOnceWith('RealScheduler spec: async rejection', {
+                error: { message: error.message, stack: error.stack },
+            });
         });
 
-        it('keeps a repeating task running after a tick throws', async function () {
+        it('keeps a repeating task running after a tick throws', function () {
+            const error = new Error('every tick fails');
             let ticks = 0;
             const task = scheduler.setInterval(() => {
                 ticks++;
-                throw new Error('every tick fails');
-            }, 1, { message: 'RealScheduler spec: throwing interval' });
+                throw error;
+            }, 10, { message: 'RealScheduler spec: throwing interval' });
 
-            await waitMs(40);
+            jasmine.clock().tick(30);
+
+            expect(ticks).toBe(3);
+            expect(errorSpy).toHaveBeenCalledTimes(3);
+            expect(errorSpy).toHaveBeenCalledWith('RealScheduler spec: throwing interval', {
+                error: { message: error.message, stack: error.stack },
+            });
             task.cancel();
 
-            expect(ticks).toBeGreaterThan(1);
+            jasmine.clock().tick(30);
+            expect(ticks).toBe(3);
+            expect(errorSpy).toHaveBeenCalledTimes(3);
         });
     });
 });

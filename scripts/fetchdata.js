@@ -118,6 +118,11 @@ function populateMissingData(attributes, id) {
                 data: []
             };
             break;
+        case '5495312929': // Omega - Close Your Eyes and Focus (HMW): official data lists Grit as a keyword, but it is granted by the deploy box text, not printed
+            attributes.keywords = {
+                data: []
+            };
+            break;
         case '5683908835': // Count Dooku - Face of the Confederacy
             attributes.keywords = {
                 data: [{
@@ -158,6 +163,17 @@ function populateMissingData(attributes, id) {
             break;
         case '9349017358':
             attributes.title = 'C-3PO';
+            break;
+        case '6565211534': // Mayor's Majordomo - No Problem Groveling (errata: add Twi'lek trait)
+            attributes.traits = {
+                data: [{ attributes: {
+                    name: 'Official'
+                } },
+                { attributes: {
+                    name: 'Twi\'lek'
+                } },
+                ]
+            };
             break;
     }
 

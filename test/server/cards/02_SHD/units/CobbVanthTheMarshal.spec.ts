@@ -103,8 +103,8 @@ describe('Cobb Vanth, The Marshal', function() {
                 // Lets exhaust 100% of the resources to ensure it can still be played free of cost (ignoring aspect penalties too)
                 context.player1.exhaustResources(20);
                 context.player1.clickCard(context.daggerSquadronPilot);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
-                context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot for free (via Cobb Vanth)', 'Play Dagger Squadron Pilot with Piloting for free (via Cobb Vanth)']);
+                context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting for free (via Cobb Vanth)');
                 context.player1.clickCard(context.cartelTurncoat);
                 expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
                 expect(context.player1.exhaustedResourceCount).toBe(20);
@@ -166,8 +166,8 @@ describe('Cobb Vanth, The Marshal', function() {
                 // Lets exhaust 100% of the resources to ensure it can still be played free of cost (ignoring aspect penalties too)
                 context.player1.exhaustResources(20);
                 context.player1.clickCard(context.daggerSquadronPilot);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
-                context.player1.clickPrompt('Play Dagger Squadron Pilot');
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot for free (via Cobb Vanth)', 'Play Dagger Squadron Pilot with Piloting for free (via Cobb Vanth)']);
+                context.player1.clickPrompt('Play Dagger Squadron Pilot for free (via Cobb Vanth)');
                 expect(context.daggerSquadronPilot).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(20);
 

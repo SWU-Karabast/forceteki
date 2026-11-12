@@ -19,6 +19,7 @@ export default class BladeOfTalzinAGiftOfShadows extends UpgradeCard {
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) =>
                     context.event.lastKnownInformation.parentCard.hasSomeTrait(Trait.Night) &&
+                    context.event.lastKnownInformation.parentCardController === context.player &&
                     context.source.zoneName === ZoneName.Discard,
                 onTrue: abilityHelper.immediateEffects.returnToHand((context) => ({ target: context.source }))
             })

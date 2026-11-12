@@ -10,6 +10,13 @@ export interface ICostResult {
     canCancel: boolean;
     cancelled: boolean;
     costAdjustments?: ICostAdjustEvaluationResult;
+
+    /**
+     * Set if payment was started but the cost could no longer be paid due to a change in game state (see `CostPaymentRecovery`).
+     * Unless the player undoes, the payment is abandoned: the ability doesn't resolve, but costs already paid are not refunded, so
+     * the ability's resolution is still committed. `cancelled` is also set so that the remaining payment steps are skipped.
+     */
+    unpayable?: boolean;
 }
 
 export interface ICost<TContext extends AbilityContext = AbilityContext> {

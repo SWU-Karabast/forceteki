@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GrandInquisitorHowTheMightyWillFall extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-inquisitor#how-the-mighty-will-fall-id',
+            id: '4369298974',
             internalName: 'grand-inquisitor#how-the-mighty-will-fall',
         };
     }

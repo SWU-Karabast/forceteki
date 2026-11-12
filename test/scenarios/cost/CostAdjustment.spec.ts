@@ -88,7 +88,77 @@ describe('Cost adjustment', function() {
             });
         });
 
-        // TODO: Add tests for Guardian of the Whills and Darksaber's non-overlapping cost adjusters
-        // once targeting and cost calculation are fixed: https://github.com/SWU-Karabast/forceteki/issues/1971
+        describe('Non-overlapping cost adjusters', function () {
+            it('should apply The Darksaber\'s aspect ignore and Guardian of the Whills\' discount to different targets without combining (issue #1971)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'bokatan-kryze#princess-in-exile',
+                        base: 'kestro-city',
+                        hand: ['the-darksaber'],
+                        groundArena: ['guardian-of-the-whills', 'follower-of-the-way'],
+                        resources: 4
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theDarksaber);
+
+                // The Darksaber costs 4 on the Mandalorian (aspect penalty ignored) and 5 on Guardian of the
+                // Whills (4 + 2 aspect penalty - 1 discount). With 4 resources only the Mandalorian is payable,
+                // so Guardian is excluded from targeting: if the adjusters wrongly combined the cost would be 3
+                expect(context.player1).toBeAbleToSelectExactly([context.followerOfTheWay]);
+                expect(context.player1).not.toBeAbleToSelect(context.guardianOfTheWhills);
+
+                context.player1.clickCard(context.followerOfTheWay);
+                expect(context.followerOfTheWay).toHaveExactUpgradeNames(['the-darksaber']);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+            });
+
+            it('should correctly charge 5 for The Darksaber on Guardian of the Whills when both adjusted costs are payable', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'bokatan-kryze#princess-in-exile',
+                        base: 'kestro-city',
+                        hand: ['the-darksaber'],
+                        groundArena: ['guardian-of-the-whills', 'follower-of-the-way'],
+                        resources: 5
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theDarksaber);
+
+                // 4 on the Mandalorian and 5 on Guardian are both affordable with 5 resources
+                expect(context.player1).toBeAbleToSelectExactly([context.followerOfTheWay, context.guardianOfTheWhills]);
+
+                context.player1.clickCard(context.guardianOfTheWhills);
+                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames(['the-darksaber']);
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+            });
+
+            it('should not be playable at all when neither adjusted cost is payable', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'bokatan-kryze#princess-in-exile',
+                        base: 'kestro-city',
+                        hand: ['the-darksaber'],
+                        groundArena: ['guardian-of-the-whills', 'follower-of-the-way'],
+                        resources: 3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Costs 4 on the Mandalorian and 5 on Guardian: neither is payable with 3 resources
+                expect(context.player1).not.toBeAbleToSelect(context.theDarksaber);
+                context.player1.clickCardNonChecking(context.theDarksaber);
+                expect(context.theDarksaber).toBeInZone('hand', context.player1);
+            });
+        });
     });
 });

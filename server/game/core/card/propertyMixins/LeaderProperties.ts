@@ -6,6 +6,7 @@ import type { PlayableOrDeployableCardConstructor } from '../baseClasses/Playabl
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ICardStateGetter } from '../../lki/CardStateGetter';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
@@ -27,10 +28,10 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
         // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
         // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.
         @statePrimitive()
-        protected accessor _deployed: boolean = false;
+        protected accessor _deployed = false;
 
         @statePrimitive()
-        protected accessor _onStartingSide: boolean = true;
+        protected accessor _onStartingSide = true;
 
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
@@ -56,7 +57,7 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
          * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<ILeaderCard>, AbilityHelper: IAbilityHelper) { }
+        protected setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<ILeaderCard>, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 
         // TODO TYPE REFACTOR: separate out the Leader types from the playable types
         public override getPlayCardActions() {

@@ -243,5 +243,52 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(4);
             expect(context.player2).toBeActivePlayer();
         });
+
+        // Ruling (JTL): a pilot leader attached as an upgrade is bounced by Bamboozle (it is treated
+        // as an upgrade, so Bamboozle's "return to hand" affects it like any other upgrade and the
+        // leader returns to the base, undeployed).
+        it('should return a pilot leader attached as an upgrade to base undeployed', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'han-solo#never-tell-me-the-odds',
+                    spaceArena: ['cartel-spacer'],
+                    resources: 10
+                },
+                player2: {
+                    hand: ['bamboozle']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hanSolo);
+            context.player1.clickPrompt('Deploy Han Solo as a Pilot');
+            context.player1.clickCard(context.cartelSpacer);
+
+            expect(context.hanSolo).toBeInZone('spaceArena');
+            expect(context.cartelSpacer).toHaveExactUpgradeNames(['han-solo#never-tell-me-the-odds']);
+
+            context.player2.clickCard(context.bamboozle);
+            expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer]);
+            context.player2.clickCard(context.cartelSpacer);
+            expect(context.cartelSpacer.exhausted).toBeTrue();
+            expect(context.cartelSpacer.isUpgraded()).toBeFalse();
+
+            // Bamboozle returns the upgrade rather than defeating it, so Han flips back to base undeployed
+            expect(context.hanSolo).toBeInZone('base');
+            expect(context.hanSolo.deployed).toBeFalse();
+
+            // Ensure Han cannot re-deploy: clicking him auto-fires his exhaust action rather than
+            // offering Deploy / Deploy as Pilot buttons (it's his only remaining action)
+            context.moveToNextActionPhase();
+            context.player1.clickCard(context.hanSolo);
+            expect(context.player1).toHavePrompt('View cards for Han Solo ability');
+            context.player1.clickDone();
+
+            // resolve the 'then' attack (cartel spacer is ready again in the new phase)
+            context.player1.clickCard(context.cartelSpacer);
+            context.player1.clickCard(context.p2Base);
+        });
     });
 });

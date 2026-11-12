@@ -107,7 +107,6 @@ export enum EffectName {
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     CanBePlayedWithPilotingIgnoringPilotLimit = 'canBePlayedWithPilotingIgnoringPilotLimit',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
-    CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CloneUnit = 'cloneUnit',
     CopyStandardTriggeredAbilities = 'copyStandardTriggeredAbilities',
@@ -116,16 +115,20 @@ export enum EffectName {
     DoesNotReady = 'doesNotReady',
     DamageDealtByThisCardIsUnpreventable = 'damageDealtByThisCardIsUnpreventable',
     DealsCombatDamageFirst = 'dealsCombatDamageFirst',
+    DealsCombatDamageLast = 'dealsCombatDamageLast',
     DrawAdditionalCardsInRegroup = 'drawAdditionalCardsInRegroup',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
     GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
+    GainPlayPermission = 'gainPlayPermission',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
+    LimitReadyDuringRegroup = 'limitReadyDuringRegroup',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    LoseWhenDefeatedAbilities = 'loseWhenDefeatedAbilities',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
@@ -315,6 +318,7 @@ export enum EventName {
     OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
     OnDamageHealed = 'onDamageHealed',
+    OnDamageUnitsToPayCost = 'onDamageUnitsToPayCost',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnDefeatCreditsToPayCost = 'onDefeatCreditsToPayCost',
@@ -365,6 +369,8 @@ export enum MetaEventName {
     AttackSteps = 'attackSteps',
     Conditional = 'conditional',
     ChooseModalEffects = 'ChooseModalEffects',
+    ChooseNumber = 'chooseNumber',
+    SelectChoice = 'selectChoice',
     DistributeDamage = 'distributeDamage',
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
@@ -758,6 +764,18 @@ export enum CardPool {
 export enum GamesToWinMode {
     BestOfOne = 'bestOfOne',
     BestOfThree = 'bestOfThree',
+}
+
+export enum MatchmakingCompetitivenessPreference {
+    Competitive = 'competitiveTesting',
+    Casual = 'casualBrewing',
+    NoPreference = 'noPreference',
+}
+
+export enum MatchmakingCompetitivenessPreferenceSearchStage {
+    SamePreferenceOnly = 'samePreferenceOnly',
+    IncludesNoPreference = 'includesNoPreference',
+    AnyPreference = 'anyPreference',
 }
 
 export enum RematchMode {

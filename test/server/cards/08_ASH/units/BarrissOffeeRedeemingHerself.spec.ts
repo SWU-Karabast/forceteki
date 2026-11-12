@@ -52,6 +52,37 @@ describe('Barriss Offee, Redeeming Herself', function() {
                 expect(context.barrissOffeeRedeemingHerself.damage).toBe(0);
                 expect(context.barrissOffeeRedeemingHerself).toHaveExactUpgradeNames([]);
             });
+
+            it('heals nothing and gives no Advantage token when no unit is chosen', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.barrissOffeeRedeemingHerself);
+                expect(context.player1).toHavePrompt('Distribute 2 healing to 1 target');
+
+                context.player1.setDistributeHealingPromptState(new Map([]));
+
+                expect(context.wampa.damage).toBe(3);
+                expect(context.atst.damage).toBe(1);
+                expect(context.wampa).toHaveExactUpgradeNames([]);
+                expect(context.atst).toHaveExactUpgradeNames([]);
+                expect(context.barrissOffeeRedeemingHerself).toHaveExactUpgradeNames([]);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('heals nothing and gives no Advantage token when a damaged unit is chosen but 0 healing is distributed to it', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.barrissOffeeRedeemingHerself);
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.wampa, 0]
+                ]));
+
+                expect(context.wampa.damage).toBe(3);
+                expect(context.wampa).toHaveExactUpgradeNames([]);
+                expect(context.atst).toHaveExactUpgradeNames([]);
+                expect(context.barrissOffeeRedeemingHerself).toHaveExactUpgradeNames([]);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

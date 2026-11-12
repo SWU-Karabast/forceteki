@@ -220,10 +220,22 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         for (const repeatedAbility of repeatedAbilities) {
             // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
+            // per simultaneous batch of triggering events. Events resolved in different event windows (e.g. a discard
+            // caused by a "then" step resolving after an initial discard) are sequential occurrences and each trigger
+            // the ability separately.
             if (repeatedAbility.collectiveTrigger) {
+                const seenTriggeringBatches = new Set<EventWindow | GameEvent>();
                 const abilityTriggers = abilitiesToResolve.filter((context) => context.ability === repeatedAbility);
                 abilitiesToResolve = abilitiesToResolve.filter((context) => context.ability !== repeatedAbility);
-                abilitiesToResolve.push(abilityTriggers[0]);
+
+                for (const context of abilityTriggers) {
+                    const batchKey = context.event.window ?? context.event;
+                    if (!seenTriggeringBatches.has(batchKey)) {
+                        seenTriggeringBatches.add(batchKey);
+                        abilitiesToResolve.push(context);
+                    }
+                }
+
                 this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
                 continue;
             }

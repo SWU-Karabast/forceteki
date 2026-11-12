@@ -21,7 +21,7 @@ export default class JediVector extends NonLeaderUnitCard {
 
         registrar.addConstantAbility({
             title: `While you control a ${TextHelper.Trait.Lightsaber} upgrade, this unit gets +1/+0`,
-            condition: (context) => context.player.hasSomeArenaUpgrade({ trait: Trait.Lightsaber }),
+            condition: (context) => context.player.hasSomeInPlayUpgrade({ trait: Trait.Lightsaber }),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
         });
     }

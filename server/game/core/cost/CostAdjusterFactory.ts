@@ -4,6 +4,7 @@ import { Contract } from '../utils/Contract';
 import type { ICostAdjusterProperties } from './CostAdjuster';
 import type { CostAdjuster } from './CostAdjuster';
 import { CostAdjustType } from './CostAdjuster';
+import { DamageUnitsCostAdjuster } from './DamageUnitsCostAdjuster';
 import { DefeatResourcesCostAdjuster } from './DefeatResourcesCostAdjuster';
 import { FreeCostAdjuster } from './FreeCostAdjuster';
 import { IgnoreAspectCostAdjuster } from './IgnoreAspectCostAdjuster';
@@ -30,6 +31,9 @@ export function create(game: Game, source: Card, properties: ICostAdjusterProper
         case CostAdjustType.DefeatResources:
             Contract.assertTrue(source.hasCost(), `Defeat resources cost adjuster source '${source.internalName}' must have a cost`);
             return new DefeatResourcesCostAdjuster(game, source, properties);
+        case CostAdjustType.DamageUnits:
+            Contract.assertTrue(source.hasCost(), `Damage units cost adjuster source '${source.internalName}' must have a cost`);
+            return new DamageUnitsCostAdjuster(game, source, properties);
         default:
             Contract.fail(`Unknown cost adjust type: ${(properties as any).costAdjustType}`);
     }

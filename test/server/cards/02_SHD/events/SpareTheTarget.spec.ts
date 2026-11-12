@@ -66,6 +66,20 @@ describe('Spare the Target', function() {
                 // card draw resolves automatically since these bounty collections aren't optional
                 expect(context.player1.handSize).toBe(1);
             });
+
+            // Ruling 2025-01-20: Spare the Target can never play a card from hand. When it returns a
+            // unit with Unrefusable Offer attached, collecting that Bounty cannot play the unit from
+            // hand (even if the returning player is not the owner / it lands in their own hand).
+            // NOTE: the errata is now live (see the card JSON `rules` field) — Unrefusable Offer's Bounty
+            // plays the unit "from its owner's discard pile or from capture", not from hand — so collecting
+            // it can never play the returned unit out of hand.
+            xit('does not allow Unrefusable Offer\'s Bounty to play the returned unit from hand', function () {
+                pending('Not yet implemented');
+                // Spare the Target returns a unit that has Unrefusable Offer attached (including cases
+                // where control was previously swapped so it returns to the collecting player's own
+                // hand). Collecting Unrefusable Offer's Bounty must not be able to play that unit from
+                // hand.
+            });
         });
     });
 });

@@ -22,6 +22,7 @@ export default class SeparatistCouncilQuarrelsomeHoldouts extends NonLeaderUnitC
                 choices: () => ({
                     ['Create a Battle Droid token']: abilityHelper.immediateEffects.createBattleDroid(),
                     ['Give 2 Experience tokens to a Battle Droid tokens']: abilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Give 2 Experience tokens to a Battle Droid token',
                         cardCondition: (card) => card.isTokenUnit() && card.title === 'Battle Droid',
                         immediateEffect: abilityHelper.immediateEffects.giveExperience({ amount: 2 })
                     })

@@ -16,6 +16,7 @@ describe('Manufactured Soldiers', function () {
 
             // Scenario 1: Create 2 Clone Trooper tokens
             context.player1.clickCard(context.manufacturedSoldiers);
+            expect(context.player1).toHavePrompt('Choose an effect for Manufactured Soldiers');
             expect(context.player1).toHaveExactPromptButtons([
                 'Create 2 Clone Trooper tokens',
                 'Create 3 Battle Droid tokens',

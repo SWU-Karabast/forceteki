@@ -27,6 +27,33 @@ describe('I\'ll Cover For You', function() {
                 expect(context.tieBomber.damage).toBe(1);
             });
 
+            it('should not allow selecting a third unit once 2 are selected', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['ill-cover-for-you'],
+                    },
+                    player2: {
+                        groundArena: ['atst', 'darth-vader#twilight-of-the-apprentice'],
+                        spaceArena: ['tie-bomber']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.illCoverForYou);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.tieBomber);
+
+                // Only the 2 selected units remain selectable (to unselect)
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tieBomber]);
+
+                context.player1.clickDone();
+
+                expect(context.atst.damage).toBe(1);
+                expect(context.tieBomber.damage).toBe(1);
+                expect(context.darthVader.damage).toBe(0);
+            });
+
             it('should deal damage to the only enemy unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
