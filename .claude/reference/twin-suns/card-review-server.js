@@ -65,6 +65,25 @@ function suggest(texts, type) {
     return out.length ? out : ['NONE'];
 }
 
+// Cards whose entire text is keyword abilities (reminder text in parentheses is ignored) have nothing
+// opponent-dependent to test per card, so they are marked NONE / Finished automatically.
+const KEYWORDS = String.raw`Ambush|Grit|Hidden|Overwhelm|Saboteur|Sentinel|Shielded|Raid \d+|Restore \d+|Exploit \d+|Piloting \[[^\]]*\]|Smuggle \[[^\]]*\]`;
+const KEYWORDS_ONLY = new RegExp(String.raw`^(?:(?:${KEYWORDS})[\s,]*)+$`, 'i');
+function isKeywordOnly(fields) {
+    const texts = fields.filter(([l]) => l !== 'Rules').map(([, v]) => v);
+    return texts.length > 0 && texts.every((t) => {
+        const stripped = t.replace(/\([^()]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+        return stripped && KEYWORDS_ONLY.test(stripped);
+    });
+}
+
+function autoMarkKeywordOnly() {
+    const updates = loadCards().cards
+        .filter((c) => c.status === 'Unreviewed' && !c.saved.tags && !c.saved.note && isKeywordOnly(c.fields))
+        .map((c) => ({ dir: c.dir, internalName: c.internalName, tags: ['NONE'], note: 'Keywords only (auto-marked)', status: 'Finished' }));
+    return updates.length ? applyUpdates(updates) : { saved: 0, files: [], errors: [] };
+}
+
 function reviewFiles() {
     return fs.readdirSync(REVIEW_DIR).filter((f) => /^\d\d_[A-Z0-9]+\.md$/.test(f)).sort();
 }
@@ -275,5 +294,13 @@ const server = http.createServer((req, res) => {
         return send(res, 500, { error: String(e.message || e) });
     }
 });
+
+const auto = autoMarkKeywordOnly();
+if (auto.saved) {
+    console.log(`Auto-marked ${auto.saved} keyword-only card(s) as NONE / Finished in: ${auto.files.join(', ')}`);
+}
+if (auto.errors.length) {
+    console.log(`Auto-mark problems: ${auto.errors.join('; ')}`);
+}
 
 server.listen(PORT, HOST, () => console.log(`Card review server: http://localhost:${PORT}/  (writes to ${REVIEW_DIR})`));
