@@ -15,6 +15,7 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
+                // Player 2 plays Alliance X-Wing at its normal cost
                 context.player2.clickCard(context.allianceXwing);
 
                 expect(context.allianceXwing).toBeInZone('spaceArena', context.player2);
@@ -37,14 +38,14 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
-                // unit: 2 + 3
+                // Player 2 plays a unit: 2 + 3
                 context.player2.clickCard(context.allianceXwing);
                 expect(context.allianceXwing).toBeInZone('spaceArena', context.player2);
                 expect(context.player2.exhaustedResourceCount).toBe(5);
 
                 context.player1.passAction();
 
-                // event: 1 + 3
+                // Player 2 plays an event: 1 + 3
                 context.player2.clickCard(context.momentOfPeace);
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa).toHaveExactUpgradeNames(['shield']);
@@ -52,7 +53,7 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 context.player1.passAction();
 
-                // upgrade: 1 + 3
+                // Player 2 plays an upgrade: 1 + 3
                 context.player2.clickCard(context.resilient);
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa).toHaveExactUpgradeNames(['shield', 'resilient']);
@@ -71,6 +72,7 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
+                // Player 1 plays Alliance X-Wing at its normal cost
                 context.player1.clickCard(context.allianceXwing);
 
                 expect(context.allianceXwing).toBeInZone('spaceArena', context.player1);
@@ -92,6 +94,7 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
+                // Alliance X-Wing costs 5 with Raddus exhausted, but player 2 has only 4 resources
                 expect(context.allianceXwing).not.toHaveAvailableActionWhenClickedBy(context.player2);
             });
 
@@ -110,10 +113,12 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
+                // Player 2 uses Tarkin's leader action
                 context.player2.clickCard(context.grandMoffTarkin);
                 context.player2.clickPrompt('Give an experience token to an Imperial unit');
                 context.player2.clickCard(context.deathStarStormtrooper);
 
+                // Only the ability's own cost of 1 resource is paid
                 expect(context.deathStarStormtrooper).toHaveExactUpgradeNames(['experience']);
                 expect(context.player2.exhaustedResourceCount).toBe(1);
             });
@@ -132,13 +137,16 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
+                // Player 1 attacks with Raddus
                 context.player1.clickCard(context.raddus);
                 context.player1.clickCard(context.p2Base);
 
+                // Raddus is exhausted and Restore heals player 1's base
                 expect(context.raddus.exhausted).toBeTrue();
                 expect(context.p1Base.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(8);
 
+                // Player 2 plays Alliance X-Wing at the increased cost: 2 + 3
                 context.player2.clickCard(context.allianceXwing);
 
                 expect(context.allianceXwing).toBeInZone('spaceArena', context.player2);
@@ -160,7 +168,7 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
-                // 5 + 3
+                // Player 2 defeats Raddus with Vanquish: 5 + 3
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.raddus);
 
@@ -169,6 +177,7 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 context.player1.passAction();
 
+                // Player 2 plays Alliance X-Wing at its normal cost
                 context.player2.clickCard(context.allianceXwing);
 
                 expect(context.allianceXwing).toBeInZone('spaceArena', context.player2);
@@ -188,11 +197,14 @@ describe('Raddus, Hope of the Resistance', function() {
 
                 const { context } = contextRef;
 
+                // Raddus readies in the next action phase
                 context.moveToNextActionPhase();
 
                 expect(context.raddus.exhausted).toBeFalse();
 
                 context.player1.passAction();
+
+                // Player 2 plays Alliance X-Wing at its normal cost
                 context.player2.clickCard(context.allianceXwing);
 
                 expect(context.allianceXwing).toBeInZone('spaceArena', context.player2);
