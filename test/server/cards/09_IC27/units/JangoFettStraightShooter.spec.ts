@@ -1,6 +1,8 @@
 describe('Jango Fett, Straight Shooter', function() {
     integration(function(contextRef) {
         describe('Jango Fett\'s When Defeated ability', function() {
+            const abilityPrompt = 'Discard a card from your hand. If you do, return an event from your discard pile to your hand';
+
             it('should allow discarding a card from hand to return a chosen event from your discard pile', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -27,6 +29,7 @@ describe('Jango Fett, Straight Shooter', function() {
 
                 // Discard is optional and any card in hand can be chosen
                 expect(context.jangoFettStraightShooter).toBeInZone('discard');
+                expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.disarm]);
 
@@ -192,6 +195,47 @@ describe('Jango Fett, Straight Shooter', function() {
                 expect(context.surpriseStrike).toBeInZone('discard', context.player1);
                 expect(context.disarm).toBeInZone('hand', context.player1);
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('still offers the on-board pass button if the player chooses to trigger it from the trigger resolution order prompt', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['disarm'],
+                        groundArena: ['jango-fett#straight-shooter'],
+                        spaceArena: ['landing-shuttle']
+                    },
+                    player2: {
+                        hand: ['superlaser-blast'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 plays Superlaser Blast to defeat all units
+                context.player2.clickCard(context.superlaserBlast);
+
+                // P1 has simultaneous triggers for Jango and Landing Shuttle
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: abilityPrompt, optional: true, source: context.jangoFett },
+                    { title: 'Draw a card', optional: true, source: context.landingShuttle },
+                ]);
+
+                // P1 chooses to trigger Jango from the prompt
+                context.player1.clickTrigger(abilityPrompt, context.jangoFett);
+
+                // During targeting, the player still gets the on-board pass button
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.disarm]);
+
+                // P1 chooses to pass the ability
+                context.player1.clickPrompt('Pass');
+
+                // Pass the remaining optional ability
+                expect(context.player1).toHavePassableTriggerPrompt('Draw a card', context.landingShuttle);
+                context.player1.clickPass('Draw a card', context.landingShuttle);
             });
         });
     });
