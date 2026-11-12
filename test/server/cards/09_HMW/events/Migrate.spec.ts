@@ -24,7 +24,7 @@ describe('Migrate', function() {
             expect(p2Beast.length).toBe(0);
         });
 
-        xit('Migrates\'s ability should create a Beast token for every 3 resources they control, but less than 3', async function() {
+        it('Migrates\'s ability should create a Beast token for every 3 resources they control, but less than 3', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
