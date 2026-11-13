@@ -1,6 +1,6 @@
 import { captureState } from '../StateCapture';
 
-describe('Render snapshots: board', function() {
+describe('Render captures: board', function() {
     integration(function(contextRef) {
         it('a mirrored board in the action phase', async function () {
             // Both players have the same board, so one participant's view shows every card both as

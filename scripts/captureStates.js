@@ -1,6 +1,6 @@
 // `npm run capture-states -- --check | --update`
-// Runs the capture specs in test/stateSnapshots/. --check (the default, and what CI runs) fails
-// when the committed snapshots differ from what the engine sends; --update rewrites them.
+// Runs the capture specs in test/stateCaptures/. --check (the default, and what CI runs) fails
+// when the committed captures differ from what the engine sends; --update rewrites them.
 
 const { execSync } = require('child_process');
 const { existsSync, readdirSync, rmSync, statSync } = require('fs');
@@ -38,7 +38,7 @@ const pruneCompiledWithoutSource = (buildDir, sourceDir) => {
     }
 };
 
-pruneCompiledWithoutSource('build/test/stateSnapshots', 'test/stateSnapshots');
+pruneCompiledWithoutSource('build/test/stateCaptures', 'test/stateCaptures');
 
 try {
     run('node scripts/build-test.js');

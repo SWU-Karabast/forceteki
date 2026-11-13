@@ -81,7 +81,7 @@ jobs:
 
       - run: npm run test-parallel-undo
 
-  state-snapshots:
+  state-captures:
     if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:

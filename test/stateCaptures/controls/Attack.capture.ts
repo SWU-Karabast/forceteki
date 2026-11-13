@@ -1,6 +1,6 @@
 import { captureChain } from '../StateCapture';
 
-describe('Control snapshots: attack', function() {
+describe('Control captures: attack', function() {
     integration(function(contextRef) {
         it('a unit attacks and defeats another', async function () {
             await contextRef.setupTestAsync({

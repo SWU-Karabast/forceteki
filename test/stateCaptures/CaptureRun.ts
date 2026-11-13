@@ -1,4 +1,4 @@
-// One `npm run capture-states` run: whether it checks or updates the committed snapshots, which
+// One `npm run capture-states` run: whether it checks or updates the committed captures, which
 // files its captures produced, and what it found. Capture helpers record each file here as they go;
 // `CaptureReport` asks it for the verdict once every capture spec has run.
 
@@ -10,13 +10,13 @@ export enum CaptureMode {
     Update = 'update',
 }
 
-export class SnapshotRun {
-    /** Where the committed snapshots live, relative to the repo root (capture runs from there). */
-    private static readonly Root = join(process.cwd(), 'test', 'stateSnapshots');
+export class CaptureRun {
+    /** Where the committed captures live, relative to the repo root (capture runs from there). */
+    private static readonly Root = join(process.cwd(), 'test', 'stateCaptures');
 
-    private static current?: SnapshotRun;
+    private static current?: CaptureRun;
 
-    /** Every snapshot file written or checked in this run, as a `/`-separated path under the root. */
+    /** Every capture file written or checked in this run, as a `/`-separated path under the root. */
     private readonly recorded = new Set<string>();
 
     /** Files whose committed contents differ from what the engine produced, in check mode. */
@@ -25,25 +25,25 @@ export class SnapshotRun {
     private constructor(public readonly mode: CaptureMode) {}
 
     /** The run in progress, or an error if this isn't a capture run. */
-    public static get(): SnapshotRun {
-        if (!SnapshotRun.current) {
+    public static get(): CaptureRun {
+        if (!CaptureRun.current) {
             const mode = process.env.CAPTURE_STATES;
             if (mode !== CaptureMode.Check && mode !== CaptureMode.Update) {
                 throw new Error('state capture runs only under `npm run capture-states`');
             }
-            SnapshotRun.current = new SnapshotRun(mode);
+            CaptureRun.current = new CaptureRun(mode);
         }
-        return SnapshotRun.current;
+        return CaptureRun.current;
     }
 
-    /** Writes or checks one snapshot file, at `relativePath` (`/`-separated) under the root. */
+    /** Writes or checks one capture file, at `relativePath` (`/`-separated) under the root. */
     public record(relativePath: string, content: string) {
         if (this.recorded.has(relativePath)) {
-            throw new Error(`state snapshot ${relativePath} is captured twice; give each capture its own name`);
+            throw new Error(`state file ${relativePath} is captured twice; give each capture its own name`);
         }
         this.recorded.add(relativePath);
 
-        const path = join(SnapshotRun.Root, relativePath);
+        const path = join(CaptureRun.Root, relativePath);
         if (this.mode === CaptureMode.Update) {
             mkdirSync(dirname(path), { recursive: true });
             writeFileSync(path, content);
@@ -52,7 +52,7 @@ export class SnapshotRun {
         } else {
             const committed = readFileSync(path, 'utf8');
             if (committed !== content) {
-                const differences = SnapshotRun.describeDifferences(committed, content);
+                const differences = CaptureRun.describeDifferences(committed, content);
                 this.mismatches.push(`${relativePath}: differs from what the engine sends${differences.map((line) => `\n      ${line}`).join('')}`);
             }
         }
@@ -122,14 +122,14 @@ export class SnapshotRun {
         if (differences.length === 0) {
             return ['only the formatting differs (line endings or whitespace)'];
         }
-        if (differences.length > SnapshotRun.MaxDifferencesShown) {
-            const hidden = differences.length - SnapshotRun.MaxDifferencesShown;
-            return [...differences.slice(0, SnapshotRun.MaxDifferencesShown), `... and ${hidden} more`];
+        if (differences.length > CaptureRun.MaxDifferencesShown) {
+            const hidden = differences.length - CaptureRun.MaxDifferencesShown;
+            return [...differences.slice(0, CaptureRun.MaxDifferencesShown), `... and ${hidden} more`];
         }
         return differences;
     }
 
-    /** In check mode, everything that makes the committed snapshots out of date. */
+    /** In check mode, everything that makes the committed captures out of date. */
     public problems(): string[] {
         if (this.mode !== CaptureMode.Check) {
             return [];
@@ -138,7 +138,7 @@ export class SnapshotRun {
     }
 
     /**
-     * In update mode, deletes committed snapshots no capture produced. Call it only once every
+     * In update mode, deletes committed files no capture produced. Call it only once every
      * capture spec has run and passed: a spec that didn't run, or failed partway, never reached its
      * captures, so its files would look stale.
      */
@@ -146,21 +146,21 @@ export class SnapshotRun {
         if (this.mode !== CaptureMode.Update) {
             return;
         }
-        this.staleFiles().forEach((file) => rmSync(join(SnapshotRun.Root, file)));
+        this.staleFiles().forEach((file) => rmSync(join(CaptureRun.Root, file)));
     }
 
     private staleFiles(): string[] {
-        return SnapshotRun.committedSnapshots(SnapshotRun.Root).filter((file) => !this.recorded.has(file));
+        return CaptureRun.committedCaptures(CaptureRun.Root).filter((file) => !this.recorded.has(file));
     }
 
-    private static committedSnapshots(dir: string): string[] {
+    private static committedCaptures(dir: string): string[] {
         return readdirSync(dir).flatMap((entry) => {
             const path = join(dir, entry);
             if (statSync(path).isDirectory()) {
-                return SnapshotRun.committedSnapshots(path);
+                return CaptureRun.committedCaptures(path);
             }
             // recorded paths use `/`; on Windows `relative` gives `\`
-            return entry.endsWith('.json') ? [relative(SnapshotRun.Root, path).replace(/\\/g, '/')] : [];
+            return entry.endsWith('.json') ? [relative(CaptureRun.Root, path).replace(/\\/g, '/')] : [];
         });
     }
 }

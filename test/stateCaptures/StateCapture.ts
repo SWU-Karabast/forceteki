@@ -2,18 +2,18 @@
 // spec does, then saves `game.getState()` at the moments a client would receive a state:
 //
 // - `captureState` saves one board for the participants named, as `render/<name>.<participant>.json`.
-//   Render snapshots are for checking that a client draws a board correctly.
+//   Render captures are for checking that a client draws a board correctly.
 // - `captureChain` saves a sequence of states for one participant, each with the messages that
-//   participant sent to move on to the next, as `controls/<name>.json`. Control snapshots are for
+//   participant sent to move on to the next, as `controls/<name>.json`. Control captures are for
 //   checking that a client sends the right message when clicked.
 //
-// `npm run capture-states -- --update` writes the snapshots; `--check` (what CI runs) fails when
+// `npm run capture-states -- --update` writes the captures; `--check` (what CI runs) fails when
 // the engine no longer produces exactly what is committed. Clients fetch these files at a given
 // commit to test their board against; nothing here knows about any client.
 
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { SnapshotRun } from './SnapshotRun';
+import { CaptureRun } from './CaptureRun';
 
 /** The participants a state can be captured for, and the id each is read with. */
 const Participants = {
@@ -145,10 +145,10 @@ const nameCards = (value: unknown): Map<string, string> => {
  * - a card's id becomes its name, `Card-battlefield-marine-1` (see `nameCards`), and any other game
  *   object id becomes `Player-1`, `Zone-2`, … in order of first appearance. The engine numbers them by
  *   creation order across every object it registers, most of which never reach the state, so an
- *   engine change that creates one more object would otherwise renumber the snapshot without the
+ *   engine change that creates one more object would otherwise renumber the capture without the
  *   board changing; and naming cards after themselves means adding a card to a board renames no
- *   other card. The hyphen marks a name as the snapshot's, never an id the engine made;
- * - a card's `setId` becomes its first printing, so a reprint doesn't change the snapshot;
+ *   other card. The hyphen marks a name as the capture's, never an id the engine made;
+ * - a card's `setId` becomes its first printing, so a reprint doesn't change the capture;
  * - chat is left out.
  */
 const normalize = (value: unknown): unknown => {
@@ -199,7 +199,7 @@ const normalize = (value: unknown): unknown => {
     return visit(value);
 };
 
-/** A snapshot's file contents. Round-tripped through JSON first, as the socket does to a state. */
+/** A capture's file contents. Round-tripped through JSON first, as the socket does to a state. */
 const serialize = (value: unknown) => {
     const content = JSON.stringify(normalize(JSON.parse(JSON.stringify(value))), null, 2) + '\n';
 
@@ -213,13 +213,13 @@ const serialize = (value: unknown) => {
 
 /**
  * Saves the state each named participant would be sent right now, as
- * `test/stateSnapshots/render/<name>.<participant>.json`.
+ * `test/stateCaptures/render/<name>.<participant>.json`.
  *
  * Reading a state moves that participant's chat and animation cursors on, just as sending it
  * does, so call this at the moments a client would actually receive a state.
  */
 export const captureState = (game: CapturedGame, name: string, participants: Participant[]) => {
-    const run = SnapshotRun.get();
+    const run = CaptureRun.get();
     for (const participant of participants) {
         run.record(`render/${name}.${participant}.json`, serialize(game.getState(Participants[participant])));
     }
@@ -235,7 +235,7 @@ interface IChainStep {
 const gamesWithChain = new WeakSet<CapturedGame>();
 
 /**
- * Starts a chain saved as `test/stateSnapshots/controls/<name>.json`. Call `step(participant)` at
+ * Starts a chain saved as `test/stateCaptures/controls/<name>.json`. Call `step(participant)` at
  * each moment that participant receives a state; every message they send before the next step is
  * recorded as that step's `send`. Call `save()` after the last step, which sends nothing.
  *
@@ -244,7 +244,7 @@ const gamesWithChain = new WeakSet<CapturedGame>();
  * engine on to the next state.
  */
 export const captureChain = (game: CapturedGame, name: string) => {
-    const run = SnapshotRun.get();
+    const run = CaptureRun.get();
     if (gamesWithChain.has(game)) {
         throw new Error(`chain ${name}: this game already has a chain recording; save it first`);
     }
