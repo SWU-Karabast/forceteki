@@ -129,12 +129,17 @@ export class CaptureRun {
         return differences;
     }
 
-    /** In check mode, everything that makes the committed captures out of date. */
-    public problems(): string[] {
+    /**
+     * In check mode, everything that makes the committed captures out of date. Leave out the stale
+     * files when a capture spec failed: it may have stopped before its captures, so its files would
+     * be listed as if its spec had been deleted.
+     */
+    public problems(includeStaleFiles: boolean): string[] {
         if (this.mode !== CaptureMode.Check) {
             return [];
         }
-        return [...this.mismatches, ...this.staleFiles().map((file) => `${file}: no capture spec produces it anymore`)];
+        const stale = includeStaleFiles ? this.staleFiles().map((file) => `${file}: no capture spec produces it anymore`) : [];
+        return [...this.mismatches, ...stale];
     }
 
     /**

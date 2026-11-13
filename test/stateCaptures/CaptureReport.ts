@@ -7,10 +7,22 @@ import { CaptureRun } from './CaptureRun';
 // captures, so their files look stale and the run can't say whether the captures are current
 const specsNotRun: string[] = [];
 
+// Whether a capture spec or suite failed, and so may not have reached all its captures
+let anyFailed = false;
+
 jasmine.getEnv().addReporter({
     specDone: (result) => {
         if (result.status === 'pending' || result.status === 'excluded') {
             specsNotRun.push(result.fullName);
+        }
+        if (result.status === 'failed') {
+            anyFailed = true;
+        }
+    },
+
+    suiteDone: (result) => {
+        if (result.status === 'failed') {
+            anyFailed = true;
         }
     },
 
@@ -29,7 +41,7 @@ afterAll(function () {
         return;
     }
 
-    const problems = CaptureRun.get().problems();
+    const problems = CaptureRun.get().problems(!anyFailed);
     if (problems.length > 0) {
         fail(`Captured states are out of date. If the change is intended, run \`npm run capture-states -- --update\` and commit the result.\n  ${problems.join('\n  ')}`);
     }
