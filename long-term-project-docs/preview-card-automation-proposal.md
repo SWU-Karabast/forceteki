@@ -1,20 +1,19 @@
 # Preview card automation
 
-**Status:** draft for lead review · **Date:** 2026-11-08 · **Repos:** forceteki, forceteki-client, forceteki-infra
+**Status:** draft for lead review · **Date:** 2026-11-13 · **Repos:** forceteki, forceteki-client, forceteki-infra
 
 ## Summary
 
 During preview season the Unimplemented page goes stale. It also lists only cards that are not implemented, so players can't tell "already implemented" apart from "not on the server yet". We propose:
 
-1. **A scheduled GitHub Actions workflow, hosted in forceteki-infra.** Twice a day it:
-   - asks swudb which cards are revealed in each preview set,
-   - downloads new or changed images and makes our image variants,
-   - uploads them to S3 with a few labels on each file,
-   - updates a small index of the set.
+1. **A scheduled GitHub Actions workflow, hosted in forceteki-infra.**
+   - Every six hours, an update run first asks swudb whether any set has new cards. That is one request, and the run stops there unless something changed. When something did, it processes just the new cards.
+   - Once a day at 4 AM US Eastern, a full run re-checks every image in each preview set and picks up localized images.
+   - Both kinds of run upload our image variants to S3 with a few labels on each file, and keep a small index of each set up to date.
 
    Named people can also start a run by hand from GitHub.
 2. **A card-status endpoint on the game server.** It reads each set's index when the page asks for it, checks the index before using it, and joins it with the server's card data. The page then shows every revealed card in a preview set as implemented or not implemented, with no deploy needed for new reveals.
-3. **One image pipeline, in TypeScript.** `images-scripts/process_cards.py` (client repo) is ported into forceteki as a command-line tool that the workflow runs. Developers can still run it locally for manual corrections. The port is validated against the Python output, then the Python script is retired.
+3. **One image pipeline, in TypeScript.** `images-scripts/process_cards.py` (client repo) is ported into forceteki as a command-line tool that the workflow runs. Developers can still run it locally for manual corrections. The port is validated against the Python output, first against a local S3 and then in a second S3 bucket alongside production. Only then is the Python script retired.
 4. **Nothing that can get permanently out of sync.** The images and their labels are the only source of truth. The index is a cache that any run can rebuild, the server never uses an index that fails its checks, and S3 versioning allows rollback.
 
 **Why GitHub Actions and not the game node:** swudb's Cloudflare already throttles some of the game node's deck-list requests. Scanning from the same IP would compete with those requests, and with deck imports in general. Moving the work off the game node also keeps image processing, a native image library and image-bucket write access away from the server. Section 13 covers the game-node design we considered.
@@ -38,7 +37,7 @@ It carries per-set special cases (TS26's non-standard swudb file numbers, IBH's 
 
 Goals:
 
-- Newly revealed preview cards appear on the page within about 12 hours, without a deploy.
+- Newly revealed preview cards appear on the page within about six hours, without a deploy.
 - The page shows every revealed card in a preview set with its implementation status.
 - One image pipeline that behaves like the Python script and still runs locally.
 - No work on the game node beyond reading a small index.
@@ -78,7 +77,7 @@ One request per set therefore tells us every revealed card, its name, both image
 ## 5. Image pipeline (TypeScript port)
 
 - **Location.**
-  - The tool lives in `scripts/cardImages/`, run with ts-node like `validate-cards`. It takes the Python script's options: `--set`, `--locales`, `--from` / `--to`, `--dry-run`, `--tokens`, `--ffg-en-fallback`, `--strict-locales`, `--overwrite-downloads` and the tuning flags.
+  - The tool lives in `scripts/cardImages/`, run with ts-node like `validate-cards`. It takes the Python script's options: `--set`, `--locales`, `--from` / `--to`, `--dry-run`, `--bucket`, `--tokens`, `--ffg-en-fallback`, `--strict-locales`, `--overwrite-downloads` and the tuning flags. A new S3 endpoint option lets it target a local S3 for testing (section 11).
   - The definitions of the index and the file labels live in `server/utils/cardImages/`, so the server can read and check the index.
   - sharp, the image library, is a devDependency imported only under `scripts/`. The server never loads it.
 - **Kept exactly as today:**
@@ -114,7 +113,7 @@ Only the images are a source of truth. Everything else can be rebuilt from them.
 } }
 ```
 
-**Keeping the index current.** Every run, scheduled or local, does this:
+**Keeping the index current.** Every run that writes images does this: an update run that found changes, a full run, or a local run. An update run that finds nothing new stops before it touches the index.
 
 1. **Load the index** (1 request). If it's missing or fails its checks, rebuild it.
 2. **Catch up.** List the set's main-file folder: 1 request per 1,000 files, returning names and timestamps but no image data.
@@ -136,29 +135,61 @@ A **full rebuild** happens only when the index is missing, fails its checks, or 
 
 **Where it lives.** In forceteki-infra. It checks out forceteki, installs its dependencies, and runs the tool. Section 8 explains why it lives in the infra repo.
 
-**Triggers.**
+The workflow has two kinds of run.
 
-- A schedule, twice a day.
-- `workflow_dispatch` for manual runs. Its inputs are a fixed list of choices and booleans: sets, dry run, re-check all images, rebuild the index, restore. They are passed to the tool through environment variables, never pasted into shell commands, which guards against script injection.
+**1. Update run: new cards only.** It runs every six hours, as two jobs. The first is a check that needs no AWS credentials, no forceteki checkout and no package install; a few lines of `curl` and `jq` do it. The second, the update job, runs only if the check finds a change.
 
-**Each run, for each preview set:**
+The check:
+
+1. Read the per-set counts saved by the last successful run from GitHub Actions' cache, a small file GitHub stores for the workflow. No S3 is involved.
+2. Make one request to swudb's `getAllSets`, and compare each set's `previewedCount` with the saved value.
+3. If nothing changed, stop. That costs one request to swudb, none to our bucket, and a few seconds of runner time.
+4. If a count changed, or there are no saved counts, start the update job for the sets that changed.
+
+The update job:
 
 1. Load the index and catch it up (section 6).
-2. Call `getSetInfo` to list the revealed cards. If the response fails validation, probe numbers 1 to the scan limit instead.
+2. Call `getSetInfo` to list the revealed cards, and compare the list with the index. If the response fails validation, probe numbers 1 to the scan limit instead.
+3. Download and process only the new cards: four variants per language, English copies for languages without an FFG image, uploaded with labels, main file last. Existing images are not re-checked.
+4. Catch up the index again, and save it if anything changed.
+5. Save the new count only after every new card has been processed. If the job fails, or a card is listed before its image is up, the old count stays and the next update run retries.
+
+The saved counts aren't a source of truth. If they're lost or wrong, the next check starts an update, or the next full run does the work and saves them again. The worst case is a reveal waiting until the next full run. GitHub only lets runs on `main` write the cache that scheduled runs read.
+
+A count also rises when swudb adds a variant or a promo printing to any set. That starts an update job that finds nothing to do and just saves the new count.
+
+**2. Full run.** It runs once a day, and for manual runs. For each preview set:
+
+1. Load the index and catch it up (section 6).
+2. Call `getSetInfo` to list the revealed cards, with the same fallback.
 3. Re-check each revealed card's images with conditional GETs, using the versions recorded in the index. An unchanged image costs a 304; a new or changed one is downloaded. Pinned cards are skipped.
-4. Process the changed cards: four variants per language, English copies for languages without an FFG image, then upload with labels, main file last.
+4. Process the changed cards, as in an update run.
 5. Fetch the FFG index for each locale (a few paginated requests) and pick up newly published localized images.
-6. Catch up the index again and save it if anything changed. Post a summary of new, changed, failed and pinned cards to the run's page, and post failures to the existing Discord error channel (its webhook stored as an environment secret).
+6. Catch up the index again, save it if anything changed, and save the current counts for the update runs' checks.
 
-**Request budget.** Each run makes two or three API calls plus one conditional request per revealed card image, about 200 for a full set. The requests go out at low concurrency, with a User-Agent that names Karabast. If that proves too much, existing images can be re-checked once a day, with only new cards fetched in between.
+Full runs don't depend on the saved counts, so they also catch what the checks can't see: an image swapped for a better one, a localized image from FFG, or a corrected name.
 
-**Schedule.** Every 12 hours, since previews mostly drop in US hours. Suggested slots are 05:17 and 17:17 UTC, roughly half past midnight and half past noon US Eastern.
+**Every run that writes** posts a summary of new, changed, failed and pinned cards to the run's page. It also posts failures to the existing Discord error channel, with the webhook stored as an environment secret.
 
-- GitHub can delay scheduled runs, and drop some under load, especially at the start of every hour. Hence the odd minute.
-- Cron runs in UTC and doesn't follow daylight saving.
-- A late or dropped run is caught up by the next one.
+**Manual runs** use `workflow_dispatch`. Its inputs are a fixed list of choices and booleans: sets, dry run, re-check all images, rebuild the index, restore. They are passed to the tool through environment variables, never pasted into shell commands, which guards against script injection.
 
-**One workflow run at a time.** One concurrency group with `cancel-in-progress: false`. At most one run executes and one waits; a newer queued run replaces the waiting one.
+**Schedule.**
+
+- **Update runs** every six hours, at 00:37, 06:37, 12:37 and 18:37 UTC. In Eastern Standard Time that is 7:37 PM, 1:37 AM, 7:37 AM and 1:37 PM.
+- **The full run** once a day at 09:07 UTC, which is 4:07 AM Eastern Standard Time.
+- **Daylight saving.** GitHub's schedules are UTC-only and ignore daylight saving, so from March to November every run lands an hour later in Eastern time.
+- **Delays.** GitHub can delay scheduled runs, and drop some under load, especially at the start of every hour; hence the odd minutes. A late or dropped run is caught up by the next one.
+- **Keepalive.** In a public repository, GitHub switches scheduled workflows off after 60 days without repository activity, and forceteki-infra changes rarely. The workflow therefore includes a step that keeps itself enabled through GitHub's API. The spike confirms this works.
+
+**Request budget.**
+
+- A quiet day costs swudb four small API calls from the update runs' checks, plus the full run.
+- The full run makes two or three API calls plus one conditional request per revealed card image, about 200 for a full set.
+- An update job adds one API call plus the new images, and only when something was revealed.
+- All requests go out at low concurrency, with a User-Agent that names Karabast.
+- Our bucket is touched only by update jobs, full runs and local runs.
+
+**One write at a time.** Update jobs and full runs share one concurrency group with `cancel-in-progress: false`. At most one runs and one waits, and a newer queued run replaces the waiting one. An update cancelled this way is retried by the next update run, because its count was never saved. The check writes nothing, so it stays outside the group.
 
 **AWS access** goes through GitHub's OpenID Connect, so no long-lived AWS keys are stored in GitHub. The role, defined in forceteki-infra's CDK:
 
@@ -179,7 +210,7 @@ So the restriction comes from where the workflow lives and from what a run is al
 
 1. **The workflow lives in forceteki-infra.** Fewer people have write access there than to forceteki, and only they can start a run.
 2. **Two environments, usable only from `main`.**
-   - Scheduled runs use `card-images-scheduled`, and manual runs use `card-images-manual`. The workflow picks one by event type.
+   - Scheduled update and full runs use `card-images-scheduled`, and manual runs use `card-images-manual`. The workflow picks one by event type. The update runs' check needs no credentials and uses neither.
    - Both environments' deployment-branch rules allow only `main`.
    - Only repository admins can configure environments, and "Allow administrators to bypass configured protection rules" is turned off.
 3. **AWS trusts only those two environments.** The role's trust policy matches their OIDC subjects exactly, for example `repo:SWU-Karabast/forceteki-infra:environment:card-images-manual`. A run from another branch, from a fork, or from a workflow that doesn't use the environments can't get credentials, so it can't touch our images.
@@ -234,7 +265,9 @@ The tool works on a developer's machine the way the Python script does, for back
 
 ## 11. Validating the port
 
-The port replaces the Python script only after all of these pass:
+Testing moves through three places, in order: a local S3 in Docker, a second S3 bucket in our AWS account, then production. The tool's bucket and S3 endpoint options let the same code target any of them. The port replaces the Python script only after every check below passes.
+
+**Stage 1: local S3 in Docker.** All development and automated tests run against a local S3 container. The client repo already runs Adobe's S3Mock this way on port 9090 for cosmetics work, and `scripts/syncS3.ts` already talks to it; forceteki's `docker-compose.yml` gets the same service. If the mock lacks an S3 feature the tool relies on, such as versioning for `restore` or conditional writes for the optional lock, that part is tested in stage 2 instead.
 
 1. **Behavior inventory.** Every Python behavior in section 5 becomes a named unit or integration test: per-set special cases, file naming, FFG filtering and face swap, fallback rules, the upload check, retries, token mode and the strict-locales exit codes.
 2. **Side-by-side comparison.** Run both pipelines on the same downloaded inputs for TWI, IBH, TS26, HMW and the current preview set, in every locale. Require:
@@ -243,22 +276,40 @@ The port replaces the Python script only after all of these pass:
    - visual similarity above an agreed threshold (for example SSIM of at least 0.99), plus side-by-side sheets for a human pass.
 3. **Discovery parity.** For the same sets, the swudb API and image probing must find the same cards and faces.
 4. **Index parity.** After a scripted sequence of runs (new cards, updated images, pins, a run stopped partway, two overlapping runs), the index each run maintains must equal a full rebuild from the images.
-5. **Dry run against production.** Run `--to check-exists` against the live bucket for every set. The plan should contain only re-encoded images: no new or missing keys and no header changes. That shows the key layout and header logic match.
-6. **Cutover.**
+
+**Stage 2: a second bucket in our AWS account,** for example `karabast-data-staging`. It is set up like production: public-read, with versioning on. The Python script keeps owning production throughout.
+
+1. **Full upload.** Upload every set into the second bucket with the new tool, as the cutover will.
+2. **Bucket against bucket.** Compare the second bucket with production file by file:
+   - every production key exists in the second bucket,
+   - it has the same dimensions and passes the similarity check,
+   - every file carries its labels.
+
+   Side-by-side sheets go to a human pass.
+3. **The workflow on its real schedule.** Point the workflow at the second bucket for a few days. Update runs, the full run, pins, `verify` and `restore` all run for real.
+4. **The site against the second bucket.** A dev server and a dev build of the client read the indexes and images from the second bucket. This needs the client's image base URL to become configurable; today it is hardcoded in `s3Utils.ts`.
+
+**Stage 3: production.**
+
+1. **Dry run against production.** Run `--to check-exists` against the live bucket for every set. The plan should contain only re-encoded images: no new or missing keys and no header changes. That shows the key layout and header logic match.
+2. **Cutover.**
    - Turn on versioning, then re-upload every set with the new tool. Every file is re-encoded anyway, and this gives every file its labels.
    - Build the indexes for the current preview sets.
-   - Run the workflow in dry-run mode for a few days, then let it write.
+   - Point the workflow at production, in dry-run mode for a few days, then let it write.
    - The re-encoded images look the same, so no cache bust is needed.
+
+After cutover we suggest keeping the second bucket for testing future pipeline changes. It holds copies of public images, a couple of gigabytes, so it costs little.
 
 On the server side, the index fetching, the checks and the endpoint are tested with the existing harness: virtual clock, `FakeHttpClient` in place of S3, and the fake DB.
 
 ## 12. Server and client changes
 
-**The server reads indexes on demand.** When the page asks for card status and the server's copy is more than an hour old, it re-fetches each preview set's index from its public URL with `If-None-Match`.
+**The server reads indexes on demand.** It keeps its copy of each index in memory. When the page asks for card status and that copy is more than an hour old, it re-fetches each preview set's index from its public URL with `If-None-Match`. The page is therefore at most an hour behind the latest run.
 
 - An unchanged index costs a 304 of a few hundred bytes.
 - When nobody opens the page, there is no traffic at all.
 - No polling, and no AWS credentials on the server.
+- The index location is configurable, so a dev server can read the second test bucket (section 11).
 
 **Before using an index, the server checks it:**
 
@@ -271,26 +322,36 @@ A valid index replaces the server's copy. An invalid one is ignored: the server 
 
 Fargate keeps nothing across restarts. If the index is bad when the server starts, the page shows only the cards the server has data for until it's fixed. If we want the last good copy to survive restarts, the server could keep it in DynamoDB, as the only writer, storing only checked data. We suggest starting without that.
 
-The new public endpoint (name to be agreed):
+**The new public endpoint** (name to be agreed) sends only what the page uses. Every set is a group. A preview set lists all its revealed cards; a released set lists only its unimplemented cards.
 
 ```
 GET /api/card-status
 {
-  "previewSets": [{
-    "set": "IC27", "cardCount": 194, "revealed": 194, "implemented": 150,
-    "cards": [{
-      "setId": { "set": "IC27", "number": 22 },
-      "id": "...",              // null when the server has no card data yet
-      "titleAndSubtitle": "...", // swudb's title when the server has no data
-      "types": "unit",          // null when unknown
-      "implemented": false,
-      "faces": [{ "portrait": true }]
-    }]
-  }],
-  "unimplemented": [ /* released-set cards, same shape as get-unimplemented */ ]
+  "sets": [
+    { "set": "IC27", "preview": true, "cardCount": 194, "cards": [
+        { "number": 22, "name": "Moff Gideon, Cold Calling" },
+        { "number": 38, "name": "Admiral Holdo, We Are The Spark", "implemented": true },
+        { "number": 25, "name": "…", "implemented": true, "landscape": true }
+    ] },
+    { "set": "SOR", "cards": [ { "number": 12, "name": "…" } ] }
+  ]
 }
 ```
 
+The values above are illustrative.
+
+| Field | What the page uses it for |
+|---|---|
+| `set` (per set) | Image URLs and the set filter |
+| `preview` (per set) | Which sets show a full grid; sent only when true |
+| `cardCount` (per set) | The "of 194" in the progress line; left out when swudb doesn't publish it, as for HMW |
+| `number` | Image URLs and sorting; set plus number also identifies each card in the rendered list |
+| `name` | Name search: the server's title and subtitle, or swudb's title for cards the server has no data for |
+| `implemented` | The status marker and the implemented / not-implemented filter; sent only when true |
+| `landscape` | Shows bases as landscape tiles, in the grid and the hover preview; sent only when true |
+
+- **Size.** About 55–60 bytes per card, or roughly 12 KB for a 200-card set. The game server doesn't compress HTTP responses, so that is what goes over the wire. A repeat visit with unchanged data gets a 304, because Express adds an ETag by default.
+- **Counts** such as "150 implemented" are computed by the client from the list.
 - **The join.** Index entry, then `_setCodeMap.json` (`SET_NNN` to card id), then the card data in `DeckValidator`. This already handles reprints and duplicate numbers within a set. A mock card without an image yet is still listed.
 - **Image-only cards never enter card data,** so deck validation and the engine are unaffected.
 - **Why not have the client read the indexes itself?** The join needs the server's card data anyway, and one endpoint keeps the client simple.
@@ -298,9 +359,11 @@ GET /api/card-status
 
 **Client:**
 
-- The Unimplemented page shows each preview set as a full grid of revealed cards with an implemented / not-implemented marker, a status filter, and progress such as "194 of 194 revealed, 150 implemented".
+- The Unimplemented page shows each preview set as a full grid of revealed cards with an implemented / not-implemented marker, and progress such as "194 of 194 revealed, 150 implemented".
+- A filter shows all cards, only implemented cards, or only unimplemented cards.
 - Name search covers every card. Cards known only from swudb are searchable by title.
 - Unimplemented cards from released sets keep their own section.
+- The card image base URL, hardcoded in `s3Utils.ts` today, becomes configurable, so a dev build can show the second test bucket.
 - `images-scripts/` is deleted once the port is signed off.
 
 ## 13. Alternative considered: the game node
@@ -311,7 +374,7 @@ The first version of this proposal ran the job on the game node, as a separate l
 - write access to the image bucket for the game node,
 - CPU and memory safeguards on a 2 vCPU / 4 GiB task.
 
-Its advantages were a "run now" button on our own site and no wait for the server to notice a change. Neither matters much with runs twice a day and GitHub's run button.
+Its advantages were a "run now" button on our own site and no wait for the server to notice a change. Neither matters much with update runs every six hours and GitHub's run button.
 
 ## 14. Infra and repo setup
 
@@ -320,7 +383,8 @@ Its advantages were a "run now" button on our own site and no wait for the serve
   - in CDK, the GitHub OIDC provider (if the account doesn't have one yet) and the role from section 7,
   - in the repo settings (admins), the two environments (only `main` may deploy to them, admin bypass off) and the Discord webhook secret.
 - **The `karabast-data` bucket:** turn on versioning, and add a lifecycle rule that deletes old versions after about 90 days.
-- **forceteki:** exclude sharp's packages (`node_modules/sharp`, `node_modules/@img`) in `.dockerignore`, so the server image doesn't carry an unused native library. The server needs no new permissions.
+- **A second bucket** for stage 2 testing (section 11), set up like production: public-read, with versioning on. While testing, the workflow's role gets the same permissions on it as on `karabast-data`.
+- **forceteki:** add the S3 mock service to `docker-compose.yml`, and exclude sharp's packages (`node_modules/sharp`, `node_modules/@img`) in `.dockerignore`, so the server image doesn't carry an unused native library. The server needs no new permissions.
 - **Both repos:** confirm that `main` requires a reviewed PR. The workflow file lives in forceteki-infra, and the code it runs comes from forceteki.
 
 ## 15. Rollout
@@ -329,26 +393,31 @@ Its advantages were a "run now" button on our own site and no wait for the serve
    - calls `getAllSets` and `getSetInfo`,
    - requests a few images,
    - reports status codes and Cloudflare headers,
-   - prints the OIDC subject GitHub issues.
+   - prints the OIDC subject GitHub issues,
+   - saves and restores a value in the Actions cache,
+   - re-enables itself through GitHub's API.
 
-   It confirms that the runners aren't challenged and pins down the trust-policy strings.
-2. **Port and validation** (sections 5 and 11). The Python script is retired after sign-off.
-3. **Versioning, AWS role, environments and workflow.** Turn on versioning, re-upload with labels, and build the indexes. Run the workflow in dry-run mode first.
-4. **Endpoint and new page.** Switch the client over, then remove `get-unimplemented`.
+   It confirms that the runners aren't challenged and pins down the trust-policy strings. It also checks the two things the update runs' check and the keepalive depend on.
+2. **Port, tested against local S3** (section 5, and section 11 stage 1).
+3. **Second bucket** (section 11, stage 2). Create the bucket, set up the AWS role, environments and workflow against it, then run the comparison and a few days on the real schedule. The endpoint and new page can be built against it at the same time.
+4. **Production cutover** (section 11, stage 3). Turn on versioning, re-upload with labels, build the indexes, and point the workflow at production, dry-run first. The Python script is retired after sign-off.
+5. **Switch the client** to the new page, then remove `get-unimplemented`.
 
 ## 16. Risks
 
 | Risk | Mitigation |
 |---|---|
-| Cloudflare challenges or throttles GitHub's runners | Spike first; one listing call per set plus conditional image requests, twice a day; if blocked, run the tool by hand as today, with the indexes and new page still working |
+| Cloudflare challenges or throttles GitHub's runners | Spike first. Update runs start with one small API call and stop there unless something changed; the only full re-check is the daily full run. If blocked, run the tool by hand as today; the indexes and the new page still work |
 | swudb changes or removes its API | Strict response validation; fall back to image probing; the run summary and Discord show it |
 | swudb changes its image URLs | The run fails visibly; the tool is fixed and re-run |
 | Someone runs the workflow without permission | Section 8: workflow in forceteki-infra, `main`-only environments, AWS trust pinned to them, named allowlist, optional second-admin sign-off |
 | GitHub delays or drops a scheduled run | The next run catches up; runs are idempotent |
+| GitHub switches the schedule off after 60 days without activity in forceteki-infra | The workflow keeps itself enabled through GitHub's API; the spike confirms this |
+| An update run's check misses a change: a swapped image, a new translation, or lost saved counts | The daily full run doesn't depend on the check |
 | A scheduled run overwrites a hand correction | Pinned cards are skipped |
 | An index is wrong or corrupted | The server rejects it and keeps its last good copy; the next run rebuilds it; versioning can restore it |
 | Two runs mix one card's files | `verify` finds it and a re-run fixes it; an optional lock can prevent it |
-| The port changes image output | Side-by-side comparison and a dry run before cutover |
+| The port changes image output | A local side-by-side comparison, a full trial in a second bucket, and a dry run against production before cutover |
 
 ## 17. Decisions for the leads
 
@@ -356,5 +425,4 @@ Its advantages were a "run now" button on our own site and no wait for the serve
 2. Second-admin sign-off: turn it on now, or leave it available but off (suggested)?
 3. Turn on S3 versioning for `karabast-data`? It can be suspended later but never fully removed.
 4. Use swudb's undocumented API for discovery and names, with image probing as the fallback, or probe images only?
-5. Which UTC times should the schedule use?
-6. Rename the page, for example to "Card status"?
+5. Rename the page, for example to "Card status"?
