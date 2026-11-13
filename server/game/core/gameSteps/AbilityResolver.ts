@@ -103,7 +103,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         // If the player already chose to Trigger this optional ability inline (in the simultaneous-trigger
         // prompt), skip the interstitial pass flow entirely — no pass handler is needed and no pass button
         // should appear on target selection.
-        this.passAbilityHandler = (preResolvedOptional !== PreResolvedOptionalChoice.Trigger && (!!this.context.ability.optional || optional)) ? {
+        this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
             buttonText: this.passButtonText,
             arg: 'passAbility',
             hasBeenShown: false,
@@ -453,7 +453,11 @@ export class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
-        if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+        if (
+            this.preResolvedOptional !== PreResolvedOptionalChoice.Trigger &&
+            this.passAbilityHandler &&
+            !this.passAbilityHandler.hasBeenShown
+        ) {
             this.passAbilityHandler.hasBeenShown = true;
 
             this.game.promptWithOptionalTrigger(this.passAbilityHandler.playerChoosing, {
