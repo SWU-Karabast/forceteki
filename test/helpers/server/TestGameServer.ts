@@ -31,6 +31,9 @@ export type DatabaseSeeder = (db: FakeDynamoDbService) => void;
 export interface ITestGameServerOptions {
     config?: TestConfigOverrides;
 
+    /** Where the virtual clock starts; see {@link TestScheduler} for the default. */
+    clockStart?: Date;
+
     /**
      * Gives the server the DynamoDB-backed services a deployed one has - server roles, settings,
      * cosmetics and mod actions, and a user store - over a {@link FakeDynamoDbService}. Without this the
@@ -181,7 +184,7 @@ export class TestGameServer extends GameServer {
      * `createAsync` for the production construction path, and statics are inherited.
      */
     public static async startAsync(setup: ITestGameServerSetup, options: ITestGameServerOptions = {}): Promise<TestGameServer> {
-        const clock = new TestScheduler();
+        const clock = new TestScheduler(options.clockStart?.getTime());
 
         let fakeDatabase: FakeDynamoDbService | undefined;
         let dbServices: ITestDbServices | undefined;

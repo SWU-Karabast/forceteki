@@ -50,6 +50,12 @@ export interface IServerTestOptions {
 
     /** Record every route the server registers, readable as {@link ServerTestHarness.routes}. */
     recordRoutes?: boolean;
+
+    /**
+     * Where the virtual clock starts, for behaviour tied to calendar dates (e.g. retention buckets that
+     * only exist from a given month). Defaults to the {@link TestScheduler} default.
+     */
+    clockStart?: Date;
 }
 
 /** How {@link ServerTestHarness.openLobbyAsync} and the builders on top of it set a custom lobby up. */
@@ -152,7 +158,7 @@ export class ServerTestHarness {
             // routes are registered during construction, so recording has to start before it
             const routeRecording = options.recordRoutes ? recordRegisteredRoutes() : undefined;
 
-            const server = await TestGameServer.startAsync(setup, { config: options.config, database });
+            const server = await TestGameServer.startAsync(setup, { config: options.config, database, clockStart: options.clockStart });
 
             return new ServerTestHarness(
                 server,

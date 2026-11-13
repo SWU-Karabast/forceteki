@@ -1,18 +1,30 @@
-import type { DeleteCommandOutput, PutCommandOutput, UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
+import type { DeleteCommandOutput, PutCommandOutput, TransactWriteCommandOutput, UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuid } from 'uuid';
 
 import type {
     IDeckDataEntity,
     IModActionEntity,
+    IPlayerReportCleanupCursor,
+    IPlayerReportEntity,
+    IPlayerReportIndexEntity,
+    IPlayerReportLogEntity,
     IServerRoleUsersListsEntity,
     IServerSettingsEntity,
     IUsernameChangeEntity,
     IUserPreferences,
     IUserProfileDataEntity
 } from '../../../server/services/DynamoDBInterfaces';
-import { isTrackedModAction } from '../../../server/services/DynamoDBInterfaces';
-import { IDeckDataEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from '../../../server/services/DynamoDBInterfaceSchemas';
-import type { DynamoDBService } from '../../../server/services/DynamoDBService';
+import { isTrackedModAction, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
+import {
+    IDeckDataEntitySchema,
+    ModActionEntitySchema,
+    PlayerReportEntitySchema,
+    PlayerReportIndexEntitySchema,
+    PlayerReportLogEntitySchema,
+    UsernameChangeEntitySchema
+} from '../../../server/services/DynamoDBInterfaceSchemas';
+import type { DynamoDBService, PlayerReportTransitionResult } from '../../../server/services/DynamoDBService';
+import { OPEN_PLAYER_REPORT_GSI_KEY } from '../../../server/services/DynamoDBService';
 import type { ICosmeticEntity } from '../../../server/utils/cosmetics/CosmeticsInterfaces';
 import { getDefaultPreferences } from '../../../server/utils/user/UserFactory';
 
@@ -30,6 +42,9 @@ type FakedMethod =
   | 'saveUsernameChangeAsync' | 'getUsernameChangesAsync'
   | 'saveModActionAsync' | 'getModActionsAsync' | 'activateMuteAsync' | 'cancelModActionAsync'
   | 'removeModActionFromActiveIndexAsync'
+  | 'savePlayerReportAsync' | 'getPlayerReportMetaAsync' | 'getPlayerReportAsync' | 'getPlayerReportsByGsiKeyAsync'
+  | 'getPlayerReportIndexAsync' | 'transitionPlayerReportAsync' | 'queryAttributesByGsiAsync'
+  | 'deletePlayerReportLogsAsync' | 'deletePlayerReportAsync' | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync'
   | 'getServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
   | 'getCosmeticsAsync' | 'saveCosmeticAsync' | 'initializeCosmeticsAsync' | 'deleteCosmeticAsync' | 'clearAllCosmeticsAsync';
 
@@ -59,6 +74,12 @@ export interface ISeededAccount {
 }
 
 export type ServerRoleLists = Partial<Record<keyof IServerRoleUsersListsEntity, string[]>>;
+
+/** A stored player report record, plus the GSI bucket it is filed under (open, or closed in a month). */
+export interface IStoredPlayerReport {
+    report: IPlayerReportEntity;
+    gsiKey: string;
+}
 
 /** A stored mod action, plus whether it is still in the sparse `ACTIVE_MODACTION` index. */
 export type StoredModAction = IModActionEntity & { active: boolean };
@@ -106,6 +127,8 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - `getUserProfileAsync` returns `undefined` for an unknown user, while `updateUserProfileAsync` and
  *   `recordNewLoginAsync` upsert, as DynamoDB's `UpdateItem` does;
  * - only tracked, uncancelled mod actions are in the active index, and cancelling is conditional;
+ * - a player report's status transition only applies while it is still in the expected status, and the
+ *   retention deletes only while it is still closed and was closed before the cutoff, as their conditions do;
  * - a deck is stored as its schema parses it, so only a deck's own fields are kept;
  * - creating a cosmetic with an id that is already taken fails with a `ConditionalCheckFailedException`;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
@@ -134,6 +157,29 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     /** `<user id>#<deck id>` -> deck. */
     public readonly decks = new Map<string, IDeckDataEntity>();
     public readonly cosmetics = new Map<string, ICosmeticEntity>();
+
+    /** Report id -> record and its GSI bucket. */
+    public readonly playerReports = new Map<string, IStoredPlayerReport>();
+
+    /** Report id -> its chat and game logs. */
+    public readonly playerReportLogs = new Map<string, IPlayerReportLogEntity[]>();
+
+    /** Report id -> the day bucket its logs expire in; absent while the ticket is open. */
+    public readonly playerReportLogExpiry = new Map<string, string>();
+    public playerReportIndex: IPlayerReportIndexEntity[] = [];
+    public playerReportCleanupCursor: IPlayerReportCleanupCursor | null = null;
+
+    /** Every GSI bucket the retention cleanup asked for, in order. */
+    public readonly queriedGsiKeys: string[] = [];
+
+    /** The next this many transitions fail as if another write changed the report first. */
+    public failNextPlayerReportTransitions = 0;
+
+    /** Reports whose retention deletes throw, as a throttled request would. */
+    public readonly failingPlayerReportCleanupIds = new Set<string>();
+
+    /** GSI buckets whose cleanup query throws. */
+    public readonly failingGsiKeys = new Set<string>();
     public roleUsers: IServerRoleUsersListsEntity = { admins: [], developers: [], moderators: [], contributors: [] };
     public serverSettings?: IServerSettingsEntity;
 
@@ -408,6 +454,134 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
             item.active = false;
         }
         return Promise.resolve(updateResult);
+    }
+
+    // ---- Player reports ----
+
+    public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], indexEntries: IPlayerReportIndexEntity[]): Promise<TransactWriteCommandOutput> {
+        if (this.playerReports.has(report.id)) {
+            return Promise.reject(Object.assign(new Error('Transaction cancelled'), { name: 'TransactionCanceledException' }));
+        }
+        this.playerReports.set(report.id, { report: structuredClone(report), gsiKey: OPEN_PLAYER_REPORT_GSI_KEY });
+        this.playerReportLogs.set(report.id, structuredClone(logs));
+        this.playerReportIndex.push(...structuredClone(indexEntries));
+        return Promise.resolve({ $metadata: {} });
+    }
+
+    public getPlayerReportMetaAsync(reportId: string): Promise<IPlayerReportEntity | null> {
+        const stored = this.playerReports.get(reportId);
+        return Promise.resolve(stored ? PlayerReportEntitySchema.parse(structuredClone(stored.report)) : null);
+    }
+
+    public async getPlayerReportAsync(reportId: string): Promise<{ report: IPlayerReportEntity; logs: IPlayerReportLogEntity[] } | null> {
+        const report = await this.getPlayerReportMetaAsync(reportId);
+        if (!report) {
+            return null;
+        }
+        const logs = (this.playerReportLogs.get(reportId) ?? []).map((log) => PlayerReportLogEntitySchema.parse(structuredClone(log)));
+        return { report, logs };
+    }
+
+    public getPlayerReportsByGsiKeyAsync(gsiKey: string): Promise<IPlayerReportEntity[]> {
+        return Promise.resolve([...this.playerReports.values()]
+            .filter((stored) => stored.gsiKey === gsiKey)
+            .map((stored) => PlayerReportEntitySchema.parse(structuredClone(stored.report))));
+    }
+
+    public getPlayerReportIndexAsync(playerId: string): Promise<IPlayerReportIndexEntity[]> {
+        return Promise.resolve(this.playerReportIndex
+            .filter((entry) => entry.playerId === playerId)
+            .map((entry) => PlayerReportIndexEntitySchema.parse(structuredClone(entry))));
+    }
+
+    public transitionPlayerReportAsync(
+        report: IPlayerReportEntity,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string,
+        logExpiryGsiKey: string | null,
+    ): Promise<PlayerReportTransitionResult> {
+        const stored = this.playerReports.get(report.id);
+        if (this.failNextPlayerReportTransitions > 0 || !stored || stored.report.status !== expectedStatus) {
+            this.failNextPlayerReportTransitions = Math.max(0, this.failNextPlayerReportTransitions - 1);
+            return Promise.resolve({ success: false, reason: 'condition' });
+        }
+
+        const written = Object.fromEntries(
+            Object.entries({ ...stored.report, ...set }).filter(([key, value]) => value !== undefined && !remove.includes(key as keyof IPlayerReportEntity))
+        ) as unknown as IPlayerReportEntity;
+        this.playerReports.set(report.id, { report: written, gsiKey });
+
+        for (const entry of this.playerReportIndex.filter((indexEntry) => indexEntry.reportId === report.id)) {
+            entry.status = written.status;
+            entry.outcome = written.outcome;
+        }
+        if (this.playerReportLogs.has(report.id)) {
+            if (logExpiryGsiKey) {
+                this.playerReportLogExpiry.set(report.id, logExpiryGsiKey);
+            } else {
+                this.playerReportLogExpiry.delete(report.id);
+            }
+        }
+        return Promise.resolve({ success: true, report: structuredClone(written) });
+    }
+
+    /** Serves the report buckets: log expiry days by `reportId`, open and closed-month buckets by report fields. */
+    public queryAttributesByGsiAsync(gsiKey: string, attributes: string[]): Promise<Record<string, any>[]> {
+        this.queriedGsiKeys.push(gsiKey);
+        if (this.failingGsiKeys.has(gsiKey)) {
+            return Promise.reject(new Error(`throttled on ${gsiKey}`));
+        }
+
+        const pick = (item: Record<string, unknown>) => Object.fromEntries(attributes.map((attribute) => [attribute, item[attribute]]));
+        const logs = [...this.playerReportLogExpiry.entries()]
+            .filter(([, key]) => key === gsiKey)
+            .map(([reportId]) => pick({ reportId }));
+        const reports = [...this.playerReports.values()]
+            .filter((stored) => stored.gsiKey === gsiKey)
+            .map((stored) => pick({ ...stored.report }));
+        return Promise.resolve([...logs, ...reports]);
+    }
+
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string, closedBefore: string): Promise<boolean> {
+        if (!this.isPlayerReportDueForCleanup(reportId, closedBefore)) {
+            return Promise.resolve(false);
+        }
+        this.playerReportLogs.delete(reportId);
+        this.playerReportLogExpiry.delete(reportId);
+        const stored = this.playerReports.get(reportId);
+        stored.report = { ...stored.report, logsDeletedAt: deletedAt };
+        return Promise.resolve(true);
+    }
+
+    public deletePlayerReportAsync(reportId: string, _reporterId: string, _reportedPlayerId: string, closedBefore: string): Promise<boolean> {
+        if (!this.isPlayerReportDueForCleanup(reportId, closedBefore)) {
+            return Promise.resolve(false);
+        }
+        this.playerReports.delete(reportId);
+        this.playerReportLogs.delete(reportId);
+        this.playerReportLogExpiry.delete(reportId);
+        this.playerReportIndex = this.playerReportIndex.filter((entry) => entry.reportId !== reportId);
+        return Promise.resolve(true);
+    }
+
+    public getPlayerReportCleanupCursorAsync(): Promise<IPlayerReportCleanupCursor | null> {
+        return Promise.resolve(this.playerReportCleanupCursor ? { ...this.playerReportCleanupCursor } : null);
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: IPlayerReportCleanupCursor): Promise<PutCommandOutput> {
+        this.playerReportCleanupCursor = { ...cursor };
+        return Promise.resolve(putResult);
+    }
+
+    /** The condition of both retention deletes: still closed, and closed before the cutoff */
+    private isPlayerReportDueForCleanup(reportId: string, closedBefore: string): boolean {
+        if (this.failingPlayerReportCleanupIds.has(reportId)) {
+            throw new Error(`throttled on ${reportId}`);
+        }
+        const report = this.playerReports.get(reportId)?.report;
+        return report?.status === PlayerReportStatus.Closed && report.closedAt < closedBefore;
     }
 
     // ---- Server roles and settings ----
