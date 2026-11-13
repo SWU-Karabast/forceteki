@@ -21,12 +21,21 @@ Follow these instructions to get to the point of being able to run the [unit tes
 
 The following demonstrates how to install dependencies and also some sample commands for interacting with the repo and running tests.
 
+`get-cards` keeps an ignored source cache at `test/json/_sourceCardCache.json`. The first run downloads the
+non-variant catalog; subsequent runs fetch records updated since the previous sync, with a two-hour overlap
+to account for the API's CDN cache. Local card fixes and mock data are reapplied on every run without requiring
+a full download. Existing generated files cannot seed this cache, so upgrading requires one initial refresh.
+
+Run `npm run get-cards -- --force` to replace the source cache with a full download. A full refresh also happens
+automatically after seven days, or when the cache is missing or invalid. This catches deleted/unpublished cards
+and changes to related data that may not update a card's `updatedAt` timestamp. Incremental runs cannot detect
+those changes immediately; use `--force` when needed. Obsolete generated card files are removed during regeneration.
+
 ```bash
 # install node dependencies
 npm install
 
-# run once to download card definition files
-# NOTE: TWI cards are currently being filtered out
+# download card definitions; later runs fetch only new or updated records
 npm run get-cards
 
 # run this to transpile (build) the code. the 'npm test' command will automatically run it's own build script.
