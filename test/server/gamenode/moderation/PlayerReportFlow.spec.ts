@@ -120,6 +120,47 @@ describe('Player report flow', function () {
             })).status).toBe(400);
             expect((await moderator.requestAsync('put', `/api/mod/reports/${id}`, { status: PlayerReportStatus.Open })).status).toBe(404);
         });
+
+        it('only changes the status of an existing report and never creates one', async function () {
+            const { harness } = contextRef;
+            const moderator = harness.createAccountClient(roles.accounts.moderator);
+            const unknownId = '7b2c5a3e-1f4d-4c8a-9e6b-2d3f4a5b6c7d';
+
+            // A valid close or reopen for an id nobody filed is a 404 and leaves nothing behind
+            const close = { status: PlayerReportStatus.Closed, outcome: PlayerReportOutcome.NoAction, closingNote: 'x' };
+            expect((await moderator.requestAsync('put', `/api/mod/reports/${unknownId}`, close)).status).toBe(404);
+            expect((await moderator.requestAsync('put', `/api/mod/reports/${unknownId}`, { status: PlayerReportStatus.Open })).status).toBe(404);
+            expect(harness.db.playerReports.size).toBe(0);
+            expect(harness.db.playerReportLogs.size).toBe(0);
+            expect(harness.db.playerReportIndex).toEqual([]);
+            expect((await moderator.requestAsync('get', '/api/mod/reports')).body.total).toBe(0);
+
+            // Report fields sent along with a status update are ignored
+            const { reporter, reported } = await fileReportAsync(harness, { description: 'insulted me' });
+            const [summary] = (await moderator.requestAsync('get', '/api/mod/reports')).body.reports;
+            const update = await moderator.requestAsync('put', `/api/mod/reports/${summary.id}`, {
+                ...close,
+                id: unknownId,
+                reporterId: reported.id,
+                reportedPlayerId: reporter.id,
+                offense: PlayerReportType.Other,
+                description: 'rewritten',
+                createdAt: '2020-01-01T00:00:00.000Z',
+            });
+            expect(update.status).toBe(200);
+
+            expect([...harness.db.playerReports.keys()]).toEqual([summary.id]);
+            const { report } = (await moderator.requestAsync('get', `/api/mod/reports/${summary.id}`)).body;
+            expect(report).toEqual(jasmine.objectContaining({
+                id: summary.id,
+                status: PlayerReportStatus.Closed,
+                reporterId: reporter.id,
+                reportedPlayerId: reported.id,
+                offense: PlayerReportType.ChatHarrasment,
+                description: 'insulted me',
+                createdAt: summary.createdAt,
+            }));
+        });
     }, { database: roles.seed, clockStart: new Date('2026-11-02T12:00:00.000Z') });
 
     serverIntegration(function (contextRef) {
