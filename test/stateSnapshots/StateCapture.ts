@@ -50,34 +50,51 @@ const UuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 /**
  * A game object's id: `<getGameObjectName()>_<n>`, numbered by one counter shared by every object
- * the game registers (`GameStateManager.register`). Lists the names the `getGameObjectName()`
- * overrides return; add one here if a new override's objects reach the state. Matching only these
- * names leaves look-alikes such as set codes (`SOR_210`) alone.
+ * the game registers (`GameStateManager.register`). Lists the `getGameObjectName()` names seen in
+ * a state so far; a capture whose state has an id of any other name fails, naming the one to add.
+ * Matching only these names leaves look-alikes such as set codes (`SOR_210`) alone.
  */
 const GameObjectIdPattern = /\b(?:Card|Player|Zone|GameObject|StateWatcherRegistrar|StateWatcher_[A-Za-z0-9]+)_\d+\b/g;
+
+/**
+ * Anything still shaped like a game object id after normalizing: a word-style name (`OngoingEffectImpl`),
+ * `_`, a number. Set codes (`SOR_210`) are all capitals, so they don't match.
+ */
+const MissedGameObjectIdPattern = /\b[A-Z][a-z]\w*_\d+\b/g;
 
 /** Fields left out because they change between runs without the board changing, or are chat. */
 const DroppedKeys = new Set(['newMessages', 'messageOffset', 'totalMessages']);
 
-let firstPrintings: Map<string, unknown>;
+interface ISetId {
+    set: string;
+    number: number;
+}
+
+const isSetId = (value: unknown): value is ISetId =>
+    typeof (value as ISetId)?.set === 'string' && typeof (value as ISetId)?.number === 'number';
+
+const printingKey = (setId: ISetId) => `${setId.set} ${setId.number}`;
+
+let firstPrintings: Map<string, ISetId>;
 
 /**
- * Each card's first printing, by card id. The engine sends a card's newest printing as its
- * `setId`, which changes whenever a card is reprinted; its first printing never does. `get-cards`
- * lists a card's printings in `setCodes` with the first printing first.
+ * The first printing of the card printed as `setId`. The engine sends a card's newest printing as
+ * its `setId`, which changes whenever a card is reprinted; its first printing never does. `get-cards`
+ * lists a card's printings in `setCodes` with the first printing first. Keyed by printing rather than
+ * card id, so a `setId` is normalized wherever it appears, with or without its card's id beside it.
  */
-const firstPrinting = (cardId: string): unknown => {
+const firstPrinting = (setId: ISetId): ISetId | undefined => {
     if (!firstPrintings) {
         const cardDir = join(process.cwd(), 'test', 'json', 'Card');
         firstPrintings = new Map();
         for (const file of readdirSync(cardDir)) {
             const card = JSON.parse(readFileSync(join(cardDir, file), 'utf8'));
-            if (card.setCodes?.length > 0) {
-                firstPrintings.set(card.id, card.setCodes[0]);
+            for (const printing of card.setCodes ?? []) {
+                firstPrintings.set(printingKey(printing), card.setCodes[0]);
             }
         }
     }
-    return firstPrintings.get(cardId);
+    return firstPrintings.get(printingKey(setId));
 };
 
 /**
@@ -125,8 +142,8 @@ const normalize = (value: unknown): unknown => {
                     result[stabilize(key)] = visit(grandchild);
                 }
             }
-            if ('setId' in result && typeof result.id === 'string') {
-                result.setId = firstPrinting(result.id) ?? result.setId;
+            if (isSetId(result.setId)) {
+                result.setId = firstPrinting(result.setId) ?? result.setId;
             }
             return result;
         }
@@ -137,7 +154,16 @@ const normalize = (value: unknown): unknown => {
 };
 
 /** A snapshot's file contents. Round-tripped through JSON first, as the socket does to a state. */
-const serialize = (value: unknown) => JSON.stringify(normalize(JSON.parse(JSON.stringify(value))), null, 2) + '\n';
+const serialize = (value: unknown) => {
+    const content = JSON.stringify(normalize(JSON.parse(JSON.stringify(value))), null, 2) + '\n';
+
+    // an id GameObjectIdPattern doesn't list would keep the engine's number and renumber silently
+    const missedNames = new Set([...content.matchAll(MissedGameObjectIdPattern)].map(([id]) => id.replace(/_\d+$/, '')));
+    if (missedNames.size > 0) {
+        throw new Error(`state has game object ids that aren't normalized; add ${[...missedNames].join(', ')} to GameObjectIdPattern in StateCapture.ts`);
+    }
+    return content;
+};
 
 /**
  * Saves the state each named participant would be sent right now, as
