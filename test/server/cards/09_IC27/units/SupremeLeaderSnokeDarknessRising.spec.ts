@@ -85,6 +85,70 @@ describe('Supreme Leader Snoke, Darkness Rising', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('Snoke\'s when played ability should count a friendly unit as defeated when Ty Yorrick increases the damage to lethal', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['supreme-leader-snoke#darkness-rising'],
+                    groundArena: ['ty-yorrick#monster-hunter', 'wampa'],
+                },
+                player2: {
+                    groundArena: ['atst'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.supremeLeaderSnoke);
+
+            // Ty Yorrick's optional damage increase applies when the ability is initiated
+            expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+            context.player1.clickPrompt('Trigger');
+
+            // 5 damage dealt to each other unit, defeating both 5 HP friendly units
+            expect(context.supremeLeaderSnoke.damage).toBe(0);
+            expect(context.tyYorrickMonsterHunter).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.atst.damage).toBe(5);
+
+            // Without the increase Wampa would have survived at 4 damage; both friendly defeats count, draw 2 cards
+            expect(context.player1.hand.length).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Snoke\'s when played ability should not count a friendly unit as defeated when Vigil reduces the damage below lethal', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['supreme-leader-snoke#darkness-rising'],
+                    groundArena: [{ card: 'wampa', damage: 1 }],
+                    spaceArena: ['vigil#securing-the-future'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.supremeLeaderSnoke);
+
+            // Vigil's two damage modification abilities trigger on the damage dealt to Wampa and Vigil
+            expect(context.player1).toHaveExactPromptButtons([
+                'Reduce all damage dealt to friendly non-Vigil units by 1',
+                'Increase all damage dealt to Vigil by another card by 1'
+            ]);
+            context.player1.clickPrompt('Reduce all damage dealt to friendly non-Vigil units by 1');
+
+            // Vigil prevents 1 of the damage to Wampa (4 remaining HP), so it survives at 4 damage.
+            // Damage dealt to Vigil itself is increased to 5 by its other ability.
+            expect(context.wampa.damage).toBe(4);
+            expect(context.wampa).toBeInZone('groundArena');
+            expect(context.vigil.damage).toBe(5);
+            expect(context.vigil).toBeInZone('spaceArena');
+
+            // No friendly unit was defeated this way, no card is drawn
+            expect(context.player1.hand.length).toBe(0);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Snoke\'s when played ability should not draw a card when Queen Amidala prevents her damage by defeating another friendly unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
