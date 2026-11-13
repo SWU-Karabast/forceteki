@@ -80,5 +80,92 @@ describe('Leia\'s Disguise', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).not.toHaveExactUpgradeNames(['shield']);
         });
+
+        describe('When another copy of Leia\'s Disguise is already in play for the same controller,', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['leias-disguise'],
+                        groundArena: [
+                            { card: 'leia-organa#defiant-princess', upgrades: ['leias-disguise'] },
+                            'battlefield-marine'
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+                const copies = context.player1.findCardsByName('leias-disguise');
+                context.copyInHand = copies.find((copy) => copy.zoneName === 'hand');
+                context.copyInPlay = copies.find((copy) => copy.zoneName === 'groundArena');
+            });
+
+            it('defeating the copy that was just played (unique rule) does not throw and gives no Shield', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.copyInHand);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Leia\'s Disguise to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([context.copyInHand, context.copyInPlay]);
+
+                // The copy just played is defeated: its When Played ability is checked while it is attached to nothing
+                context.player1.clickCard(context.copyInHand);
+
+                expect(context.copyInHand).toBeInZone('discard');
+                expect(context.copyInPlay).toBeAttachedTo(context.leiaOrgana);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
+                expect(context.leiaOrgana).toHaveExactUpgradeNames(['leias-disguise']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('defeating the copy that was already in play leaves the new copy on the non-Leia unit, with no Shield', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.copyInHand);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Leia\'s Disguise to defeat');
+                context.player1.clickCard(context.copyInPlay);
+
+                expect(context.copyInPlay).toBeInZone('discard');
+                expect(context.copyInHand).toBeAttachedTo(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['leias-disguise']);
+                expect(context.leiaOrgana).toHaveExactUpgradeNames([]);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('When the copy played on Leia Organa is the one the unique rule defeats,', function () {
+            it('does not throw; the defeated upgrade is no longer attached, so its When Played ability gives no Shield (behaviour recorded, whether the rules want last known information here is open)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['leias-disguise'],
+                        groundArena: [
+                            'leia-organa#defiant-princess',
+                            { card: 'battlefield-marine', upgrades: ['leias-disguise'] }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+                const copies = context.player1.findCardsByName('leias-disguise');
+                const copyInHand = copies.find((copy) => copy.zoneName === 'hand');
+                const copyInPlay = copies.find((copy) => copy.zoneName === 'groundArena');
+
+                context.player1.clickCard(copyInHand);
+                context.player1.clickCard(context.leiaOrgana);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Leia\'s Disguise to defeat');
+                context.player1.clickCard(copyInHand);
+
+                expect(copyInHand).toBeInZone('discard');
+                expect(copyInPlay).toBeAttachedTo(context.battlefieldMarine);
+                expect(context.leiaOrgana).toHaveExactUpgradeNames([]);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['leias-disguise']);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
