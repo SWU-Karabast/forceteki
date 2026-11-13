@@ -455,6 +455,32 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.p1Base.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(8);
             });
+
+            it('should not offer an increase for a friendly ability whose only nested effect is a delayed effect', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['ty-yorrick#monster-hunter', 'maul#master-of-the-shadow-collective'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Maul's when-attack-ends ability takes control "until Maul leaves the arena" via a delayed effect,
+                // whose properties depend on a unit not yet chosen when the ability is initiated
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Select a unit to take control of until Maul leaves the arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
+            });
         });
     });
 });
