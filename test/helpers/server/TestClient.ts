@@ -1,10 +1,11 @@
 import { randomUUID } from 'crypto';
 import type { Response as SupertestResponse } from 'supertest';
 
-import type { PlayerTimeRemainingStatus } from '../../../server/game/core/actionTimer/IActionTimer';
+import type { IByoyomiTimer } from '../../../server/game/core/actionTimer/IByoyomiTimer';
 import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, RematchMode, SwuGameFormat } from '../../../server/game/core/Constants';
 import { SnapshotType } from '../../../server/game/core/Constants';
-import type { IStatefulPromptResults } from '../../../server/game/core/gameSteps/PromptInterfaces';
+import type { IButton, IStatefulPromptResults } from '../../../server/game/core/gameSteps/PromptInterfaces';
+import type { PlayerPromptState } from '../../../server/game/core/PlayerPromptState';
 import type { IGetSnapshotSettings, IQuickSnapshotSettings } from '../../../server/game/core/snapshot/SnapshotInterfaces';
 import type { PlayerReportType } from '../../../server/game/Interfaces';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
@@ -66,26 +67,23 @@ export type IConnectResult =
   | { connected: true }
   | { connected: false; errorMessage: string };
 
-/** A button on a player's prompt, as the game state carries it. */
-export interface IPromptButton {
-    text: string;
-    arg: unknown;
-    command: string;
-    uuid: string;
-    disabled?: boolean;
-}
+/**
+ * A button on a player's prompt as the server sends it: an `IButton`, with the two fields `UiPrompt` adds before sending
+ * (the command the client sends back, `menuButton` unless the button names another, and its prompt's uuid). Its `arg` is
+ * not always the string `IButton` says: the initiative choice sends a number.
+ */
+export type IPromptButton = IButton & { command: string; uuid: string };
 
-/** The parts of a player's prompt a spec reads, as the game state carries it (`PlayerPromptState`). */
-export interface IPromptState {
-    menuTitle?: string;
-    promptTitle?: string;
-
-    /** The kind of prompt, such as `initiative`, `resource` or `actionWindow`; absent while the player is waiting. */
-    promptType?: string;
+/** A player's prompt as the server sends it (`PlayerPromptState.getState`), with its buttons as sent. */
+export type IPromptState = Omit<ReturnType<PlayerPromptState['getState']>, 'buttons' | 'perCardButtons'> & {
     buttons: IPromptButton[];
-}
+    perCardButtons: IPromptButton[];
+};
 
-/** The parts of a card in a player's hand a spec reads, as the game state carries it. */
+/**
+ * The parts of a card in a player's hand a spec reads, as the game state carries it. Production has no type to take this
+ * from: `Card.getSummary` returns `any`.
+ */
 export interface IHandCard {
 
     /** What {@link TestClient.clickCardAsync} takes. */
@@ -93,20 +91,12 @@ export interface IHandCard {
     name: string;
 }
 
-/** A player's action timer as a client is sent it: the fields forceteki-client shows (`GameTimer`, `TimerWarningIcon`). */
-export interface IActionTimerView {
-
-    /**
-     * Turn time left in whole seconds, rounded up; `null` before the turn time has started, once it is spent, and while the
-     * timer is stopped. A paused timer still shows what it has left.
-     */
-    turnSeconds: number | null;
-
-    /** Main time left in whole seconds, rounded up. */
-    mainSeconds: number;
-    status: PlayerTimeRemainingStatus;
-    isRunning: boolean;
-}
+/**
+ * A player's action timer as a client is sent it, under the timer's own names (`IByoyomiTimer`): the fields forceteki-client
+ * shows (`GameTimer`, `TimerWarningIcon`). The game state calls `isRunning` `timerIsRunning`. A paused timer still shows
+ * the turn time it has left.
+ */
+export type IActionTimerView = Pick<IByoyomiTimer, 'turnTimeRemainingSeconds' | 'mainTimeRemainingSeconds' | 'timeRemainingStatus' | 'isRunning'>;
 
 /**
  * Type guard for {@link IConnectResult}. See `GameServer.isSuccessfulSocketAuth` for why a predicate
@@ -632,9 +622,9 @@ export class TestClient {
         }
 
         return {
-            turnSeconds: playerState.turnTimeRemainingSeconds ?? null,
-            mainSeconds: playerState.mainTimeRemainingSeconds,
-            status: playerState.timeRemainingStatus,
+            turnTimeRemainingSeconds: playerState.turnTimeRemainingSeconds ?? null,
+            mainTimeRemainingSeconds: playerState.mainTimeRemainingSeconds,
+            timeRemainingStatus: playerState.timeRemainingStatus,
             isRunning: playerState.timerIsRunning,
         };
     }

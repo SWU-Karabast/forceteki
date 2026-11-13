@@ -23,21 +23,21 @@ describe('Action timer pauses', function () {
                 expect(waiting.prompt.buttons.map((button) => button.text)).withContext('the opponent is asked')
                     .toContain('Deny');
                 expect(waiting.timerOf(active)).withContext('the requester, paused')
-                    .toEqual({ turnSeconds: 18, mainSeconds: 120, status: PlayerTimeRemainingStatus.NoAlert, isRunning: false });
+                    .toEqual({ turnTimeRemainingSeconds: 18, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: false });
                 expect(waiting.timerOf(waiting)).withContext('the opponent, deciding')
-                    .toEqual({ turnSeconds: 20, mainSeconds: 120, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                    .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
 
                 await harness.clock.advanceAsync(10_000);
                 await waiting.clickButtonAsync('Deny');
 
-                expect(waiting.timerOf(active)).toEqual({ turnSeconds: 18, mainSeconds: 120, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                expect(waiting.timerOf(active)).toEqual({ turnTimeRemainingSeconds: 18, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                 expect(waiting.timerOf(waiting).isRunning).toBeFalse();
                 await harness.clock.advanceToDeadlineAsync(18_000, {
                     justBefore: () => {
-                        expect(waiting.timerOf(active).turnSeconds).toBe(18);
+                        expect(waiting.timerOf(active).turnTimeRemainingSeconds).toBe(18);
                     },
                     atDeadline: () => {
-                        expect(waiting.timerOf(active).turnSeconds).withContext('the requester\'s main time starts')
+                        expect(waiting.timerOf(active).turnTimeRemainingSeconds).withContext('the requester\'s main time starts')
                             .toBeNull();
                     },
                 });
@@ -55,7 +55,7 @@ describe('Action timer pauses', function () {
 
                 expect(waiting.gameChat.map((entry) => entry.text)).toContain(`${active.username} has rolled back to their previous action`);
                 expect(waiting.timerOf(active)).withContext('on the main time it had, with the 30 s spent still spent')
-                    .toEqual({ turnSeconds: null, mainSeconds: 90, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                    .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 90, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
             });
         });
 
@@ -77,13 +77,13 @@ describe('Action timer pauses', function () {
 
                 expect(waiting.gameChatFrom(active)).withContext('the messages arrived')
                     .toContain('one moment');
-                expect(waiting.timerOf(active).turnSeconds).toBe(10);
+                expect(waiting.timerOf(active).turnTimeRemainingSeconds).toBe(10);
                 await harness.clock.advanceToDeadlineAsync(10_000, {
                     justBefore: () => {
-                        expect(waiting.timerOf(active).turnSeconds).toBe(10);
+                        expect(waiting.timerOf(active).turnTimeRemainingSeconds).toBe(10);
                     },
                     atDeadline: () => {
-                        expect(waiting.timerOf(active).turnSeconds).withContext('main time starts 20 s after the action did')
+                        expect(waiting.timerOf(active).turnTimeRemainingSeconds).withContext('main time starts 20 s after the action did')
                             .toBeNull();
                     },
                 });

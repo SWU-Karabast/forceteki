@@ -1,3 +1,5 @@
+import { PromptType } from '../../../server/game/core/gameSteps/PromptInterfaces';
+import type { IUser } from '../../../server/Settings';
 import path from 'path';
 import request from 'supertest';
 import type { Response as SupertestResponse } from 'supertest';
@@ -87,7 +89,7 @@ export interface ILobbyWithGuest {
  * winner of the flip), and the other. Throws if neither has that choice.
  */
 export function initiativeChooserOf(player1: TestClient, player2: TestClient): { chooser: TestClient; other: TestClient } {
-    const chooser = [player1, player2].find((player) => player.prompt.promptType === 'initiative');
+    const chooser = [player1, player2].find((player) => player.prompt.promptType === PromptType.Initiative);
     if (!chooser) {
         throw new Error(`neither user ${player1.id} nor user ${player2.id} has the initiative choice`);
     }
@@ -109,10 +111,7 @@ export interface IPlayersAtFirstAction {
  * Identity a test client presents to the API. Mirrors the payload the real client builds in
  * `getUserPayload`, which is a bare `{ id, username }` object for anonymous users.
  */
-export interface ITestUserPayload {
-    id: string;
-    username: string;
-}
+export type ITestUserPayload = Pick<IUser, 'id' | 'username'>;
 
 /**
  * The card data and deck validator are expensive to build (the validator reads every card), so they
@@ -460,7 +459,7 @@ export class ServerTestHarness {
             await player.clickButtonAsync('Confirm Resources');
         }
 
-        if (active.prompt.promptType !== 'actionWindow') {
+        if (active.prompt.promptType !== PromptType.ActionWindow) {
             throw new Error(`playThroughSetupAsync: user ${active.id} was not given the first action; their prompt is '${active.prompt.menuTitle}'`);
         }
 

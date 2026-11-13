@@ -1,3 +1,4 @@
+import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { FakeDynamoDbService } from '../../../helpers/server/FakeDynamoDbService';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import { initiativeChooserOf, ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
@@ -244,7 +245,7 @@ describe('ServerTestHarness', function () {
                 const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
 
                 expect([active, waiting]).toEqual(jasmine.arrayWithExactContents([owner, guest]));
-                expect(active.prompt.promptType).toBe('actionWindow');
+                expect(active.prompt.promptType).toBe(PromptType.ActionWindow);
                 expect(active.prompt.buttons.map((button) => button.text)).toContain('Pass');
                 expect(waiting.prompt.buttons).toEqual([]);
                 expect(active.hand.length).withContext('six drawn, two resourced')
@@ -258,7 +259,7 @@ describe('ServerTestHarness', function () {
 
                 const { active } = await harness.playThroughSetupAsync(first, second);
 
-                expect(active.prompt.promptType).toBe('actionWindow');
+                expect(active.prompt.promptType).toBe(PromptType.ActionWindow);
             });
 
             it('names the buttons a prompt has when asked to click one it does not', async function () {

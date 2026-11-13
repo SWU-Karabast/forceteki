@@ -1,3 +1,4 @@
+import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { PlayerTimeRemainingStatus } from '../../../../server/game/core/actionTimer/IActionTimer';
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
@@ -6,7 +7,7 @@ import { initiativeChooserOf } from '../../../helpers/server/ServerTestHarness';
 const { turnTimeMs, mainTimeMs } = actionTimerLimits;
 
 /** A timer that is not counting down, with all its main time: how a game that is not timed shows every player's. */
-const notTimed = { turnSeconds: null, mainSeconds: mainTimeMs / 1000, status: PlayerTimeRemainingStatus.NoAlert, isRunning: false };
+const notTimed = { turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: mainTimeMs / 1000, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: false };
 
 /**
  * Which games have action timers, and the timer around the game rather than within it: the end of the game (including an
@@ -98,16 +99,16 @@ describe('Timed games', function () {
                     expect(waiting.gameState.winners).withContext('the game goes on')
                         .toEqual([]);
                     expect(waiting.timerOf(active))
-                        .toEqual({ turnSeconds: 20, mainSeconds: 110, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                        .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 110, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                     expect(waiting.timerOf(waiting))
-                        .toEqual({ turnSeconds: 20, mainSeconds: 120, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                        .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                     await harness.clock.advanceToDeadlineAsync(turnTimeMs, {
                         justBefore: () => {
-                            expect(waiting.timerOf(active).turnSeconds).toBe(20);
+                            expect(waiting.timerOf(active).turnTimeRemainingSeconds).toBe(20);
                         },
                         atDeadline: () => {
                             expect(waiting.timerOf(active)).withContext('the main time spent before the end stays spent')
-                                .toEqual({ turnSeconds: null, mainSeconds: 110, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                                .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 110, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                         },
                     });
                 });
@@ -125,7 +126,7 @@ describe('Timed games', function () {
                     expect(waiting.gameState.winners).withContext('the game goes on')
                         .toEqual([]);
                     expect(waiting.timerOf(active))
-                        .toEqual({ turnSeconds: 20, mainSeconds: 0, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                        .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 0, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                     await harness.clock.advanceToDeadlineAsync(turnTimeMs, {
                         justBefore: () => {
                             expect(waiting.gameState.winners).toEqual([]);
@@ -149,9 +150,9 @@ describe('Timed games', function () {
 
                     expect(active.gameState.winners).withContext('the game goes on')
                         .toEqual([]);
-                    expect(active.prompt.promptType).toBe('actionWindow');
+                    expect(active.prompt.promptType).toBe(PromptType.ActionWindow);
                     expect(active.timerOf(waiting))
-                        .toEqual({ turnSeconds: null, mainSeconds: 0, status: PlayerTimeRemainingStatus.NoAlert, isRunning: false });
+                        .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 0, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: false });
                     await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
 
                     expect(active.gameState.winners).toEqual([waiting.username]);
@@ -170,13 +171,13 @@ describe('Timed games', function () {
                     await active.connectAsync();
 
                     expect(active.timerOf(active)).withContext('as the new socket is sent it')
-                        .toEqual({ turnSeconds: 5, mainSeconds: 120, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                        .toEqual({ turnTimeRemainingSeconds: 5, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                     await harness.clock.advanceToDeadlineAsync(5_000, {
                         justBefore: () => {
-                            expect(waiting.timerOf(active).turnSeconds).not.toBeNull();
+                            expect(waiting.timerOf(active).turnTimeRemainingSeconds).not.toBeNull();
                         },
                         atDeadline: () => {
-                            expect(waiting.timerOf(active).turnSeconds).toBeNull();
+                            expect(waiting.timerOf(active).turnTimeRemainingSeconds).toBeNull();
                         },
                     });
                 });
@@ -192,7 +193,7 @@ describe('Timed games', function () {
                     await spectator.connectAsync({ spectator: true });
 
                     expect(spectator.timerOf(active))
-                        .toEqual({ turnSeconds: null, mainSeconds: 115, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                        .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 115, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                     expect(spectator.timerOf(waiting)).toEqual(notTimed);
                 });
             });

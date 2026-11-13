@@ -1,3 +1,4 @@
+import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { PlayerTimeRemainingStatus } from '../../../../server/game/core/actionTimer/IActionTimer';
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
@@ -8,13 +9,13 @@ import type { IActionTimerView, TestClient } from '../../../helpers/server/TestC
 const { turnTimeMs, mainTimeMs, warningSeconds, dangerSeconds, drawMarginMs } = actionTimerLimits;
 
 /** A timer counting down its turn time, with all its main time left. */
-function onTurnTime(turnSeconds: number, mainSeconds = mainTimeMs / 1000): IActionTimerView {
-    return { turnSeconds, mainSeconds, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true };
+function onTurnTime(turnTimeRemainingSeconds: number, mainTimeRemainingSeconds = mainTimeMs / 1000): IActionTimerView {
+    return { turnTimeRemainingSeconds, mainTimeRemainingSeconds, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true };
 }
 
 /** A timer that is not counting down. */
-function stopped(mainSeconds = mainTimeMs / 1000): IActionTimerView {
-    return { turnSeconds: null, mainSeconds, status: PlayerTimeRemainingStatus.NoAlert, isRunning: false };
+function stopped(mainTimeRemainingSeconds = mainTimeMs / 1000): IActionTimerView {
+    return { turnTimeRemainingSeconds: null, mainTimeRemainingSeconds, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: false };
 }
 
 /**
@@ -30,9 +31,9 @@ describe('Action timer', function () {
             return harness.playThroughSetupAsync(owner, guest);
         }
 
-        /** Moves the clock through a whole turn time and then `mainSeconds` of main time, which the player on the clock spends. */
-        async function spendAsync(harness: ServerTestHarness, mainSeconds: number): Promise<void> {
-            await harness.clock.advanceAsync(turnTimeMs + mainSeconds * 1000);
+        /** Moves the clock through a whole turn time and then `mainTimeRemainingSeconds` of main time, which the player on the clock spends. */
+        async function spendAsync(harness: ServerTestHarness, mainTimeRemainingSeconds: number): Promise<void> {
+            await harness.clock.advanceAsync(turnTimeMs + mainTimeRemainingSeconds * 1000);
         }
 
         function chatOf(viewer: TestClient): string[] {
@@ -97,7 +98,7 @@ describe('Action timer', function () {
                 await active.clickButtonAsync('Skip Resourcing');
 
                 expect(active.prompt.promptType).withContext('the first action of round 2')
-                    .toBe('actionWindow');
+                    .toBe(PromptType.ActionWindow);
                 expect(waiting.timerOf(active)).toEqual(onTurnTime(20));
             });
 
@@ -109,7 +110,7 @@ describe('Action timer', function () {
 
                 await waiting.clickButtonAsync('Pass');
 
-                expect(waiting.prompt.promptType).toBe('resource');
+                expect(waiting.prompt.promptType).toBe(PromptType.Resource);
                 expect(active.timerOf(waiting)).withContext('the player who passed last, with the main time they spent')
                     .toEqual(onTurnTime(20, 110));
                 expect(active.timerOf(active)).toEqual(onTurnTime(20));
@@ -132,7 +133,7 @@ describe('Action timer', function () {
                         expect(statesSent()).toEqual(statesBefore.map((count) => count + 1));
                         for (const viewer of [active, waiting]) {
                             expect(viewer.timerOf(active)).withContext(`as ${viewer.username} sees it`)
-                                .toEqual({ turnSeconds: null, mainSeconds: 120, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
+                                .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
                         }
                     },
                 });
@@ -150,17 +151,17 @@ describe('Action timer', function () {
                 await waiting.clickButtonAsync('Pass');
 
                 expect(active.prompt.promptType).withContext('the regroup phase')
-                    .toBe('resource');
+                    .toBe(PromptType.Resource);
                 expect(waiting.timerOf(active)).toEqual(onTurnTime(20, 90));
                 expect(waiting.timerOf(waiting)).toEqual(onTurnTime(20, 120));
 
                 await active.clickButtonAsync('Skip Resourcing');
                 await waiting.clickButtonAsync('Skip Resourcing');
 
-                expect([active, waiting].some((player) => player.prompt.promptType === 'actionWindow'))
+                expect([active, waiting].some((player) => player.prompt.promptType === PromptType.ActionWindow))
                     .withContext('the next round')
                     .toBeTrue();
-                expect(waiting.timerOf(active).mainSeconds).toBe(90);
+                expect(waiting.timerOf(active).mainTimeRemainingSeconds).toBe(90);
             });
         });
 
@@ -178,7 +179,7 @@ describe('Action timer', function () {
                     atDeadline: () => {
                         for (const viewer of [active, waiting]) {
                             expect(viewer.timerOf(active)).withContext(`as ${viewer.username} sees it`)
-                                .toEqual({ turnSeconds: null, mainSeconds: 30, status: PlayerTimeRemainingStatus.Warning, isRunning: true });
+                                .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 30, timeRemainingStatus: PlayerTimeRemainingStatus.Warning, isRunning: true });
                             expect(chatOf(viewer)).toContain(warning);
                         }
                     },
@@ -193,12 +194,12 @@ describe('Action timer', function () {
 
                 await harness.clock.advanceToDeadlineAsync((warningSeconds - dangerSeconds) * 1000, {
                     justBefore: () => {
-                        expect(waiting.timerOf(active).status).toBe(PlayerTimeRemainingStatus.Warning);
+                        expect(waiting.timerOf(active).timeRemainingStatus).toBe(PlayerTimeRemainingStatus.Warning);
                         expect(chatOf(waiting)).not.toContain(danger);
                     },
                     atDeadline: () => {
                         expect(waiting.timerOf(active))
-                            .toEqual({ turnSeconds: null, mainSeconds: 10, status: PlayerTimeRemainingStatus.Danger, isRunning: true });
+                            .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 10, timeRemainingStatus: PlayerTimeRemainingStatus.Danger, isRunning: true });
                         expect(chatOf(waiting)).toContain(danger);
                     },
                 });

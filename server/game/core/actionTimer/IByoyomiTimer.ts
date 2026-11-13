@@ -28,7 +28,8 @@ export interface IByoyomiTimer extends IActionTimer {
 
     /**
      * Milliseconds until the player times out if their timer keeps running: the turn time left (unless it is spent) and
-     * the main time left.
+     * the main time left. In milliseconds so that the two are added before any rounding, and a run-out timer counts as 0;
+     * see `SimpleActionTimer.timeRemainingMs`.
      */
     get msUntilTimeout(): number;
 

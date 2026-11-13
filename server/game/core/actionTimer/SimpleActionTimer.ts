@@ -45,7 +45,15 @@ export class SimpleActionTimer {
         return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : null;
     }
 
-    /** Milliseconds left: `null` if the timer is not started (or was stopped), and 0 once it has run out. */
+    /**
+     * Milliseconds left: `null` if the timer is not started (or was stopped), and 0 once it has run out.
+     *
+     * The precision is not the point: no player would notice a fraction of a second either side of a limit, and real timers
+     * fire a few milliseconds late anyway. The timeout draw rule reads this rather than {@link timeRemainingSeconds} for two
+     * other reasons. A timer that has run out reads 0 here, where `timeRemainingSeconds` gives `null`, which is easy to
+     * mistake for "never started" (a run-out main timer was once read as a full one that way). And times can be added
+     * before any rounding: two rounded-up seconds values can add up to a second more than the time actually left.
+     */
     public get timeRemainingMs(): number | null {
         if (this.endTime === null) {
             return null;
