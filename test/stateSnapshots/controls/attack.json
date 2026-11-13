@@ -23,7 +23,7 @@
                   "zone": "outsideTheGame",
                   "name": "The Force",
                   "type": "tokenCard",
-                  "uuid": "Card-1",
+                  "uuid": "Card-the-force-1",
                   "printedType": "tokenCard",
                   "isBlanked": false,
                   "selectable": false
@@ -48,7 +48,7 @@
                   "power": 4,
                   "hp": 5,
                   "type": "basicUnit",
-                  "uuid": "Card-2",
+                  "uuid": "Card-wampa-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": true,
@@ -86,7 +86,7 @@
                 "power": 5,
                 "hp": 8,
                 "type": "leader",
-                "uuid": "Card-3",
+                "uuid": "Card-darth-vader#dark-lord-of-the-sith-1",
                 "printedType": "leader",
                 "isBlanked": false,
                 "selectable": false,
@@ -109,7 +109,7 @@
               "name": "Kestro City",
               "hp": 30,
               "type": "base",
-              "uuid": "Card-4",
+              "uuid": "Card-kestro-city-1",
               "printedType": "base",
               "isBlanked": false,
               "selectable": false,
@@ -199,7 +199,7 @@
                   "zone": "outsideTheGame",
                   "name": "The Force",
                   "type": "tokenCard",
-                  "uuid": "Card-5",
+                  "uuid": "Card-the-force-2",
                   "printedType": "tokenCard",
                   "isBlanked": false,
                   "selectable": false
@@ -225,7 +225,7 @@
                   "power": 3,
                   "hp": 3,
                   "type": "basicUnit",
-                  "uuid": "Card-6",
+                  "uuid": "Card-battlefield-marine-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": false,
@@ -253,7 +253,7 @@
                   "power": 3,
                   "hp": 7,
                   "type": "basicUnit",
-                  "uuid": "Card-7",
+                  "uuid": "Card-consular-security-force-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": false,
@@ -290,7 +290,7 @@
                 "power": 4,
                 "hp": 7,
                 "type": "leader",
-                "uuid": "Card-8",
+                "uuid": "Card-luke-skywalker#faithful-friend-1",
                 "printedType": "leader",
                 "isBlanked": false,
                 "selectable": false,
@@ -313,7 +313,7 @@
               "name": "Administrator's Tower",
               "hp": 30,
               "type": "base",
-              "uuid": "Card-9",
+              "uuid": "Card-administrators-tower-1",
               "printedType": "base",
               "isBlanked": false,
               "selectable": false,
@@ -381,7 +381,7 @@
       "send": [
         [
           "cardClicked",
-          "Card-2"
+          "Card-wampa-1"
         ]
       ]
     },
@@ -408,7 +408,7 @@
                   "zone": "outsideTheGame",
                   "name": "The Force",
                   "type": "tokenCard",
-                  "uuid": "Card-1",
+                  "uuid": "Card-the-force-1",
                   "printedType": "tokenCard",
                   "isBlanked": false,
                   "selectable": false
@@ -433,7 +433,7 @@
                   "power": 4,
                   "hp": 5,
                   "type": "basicUnit",
-                  "uuid": "Card-2",
+                  "uuid": "Card-wampa-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": false,
@@ -470,7 +470,7 @@
                 "power": 5,
                 "hp": 8,
                 "type": "leader",
-                "uuid": "Card-3",
+                "uuid": "Card-darth-vader#dark-lord-of-the-sith-1",
                 "printedType": "leader",
                 "isBlanked": false,
                 "selectable": false,
@@ -493,7 +493,7 @@
               "name": "Kestro City",
               "hp": 30,
               "type": "base",
-              "uuid": "Card-4",
+              "uuid": "Card-kestro-city-1",
               "printedType": "base",
               "isBlanked": false,
               "selectable": false,
@@ -576,7 +576,7 @@
                   "zone": "outsideTheGame",
                   "name": "The Force",
                   "type": "tokenCard",
-                  "uuid": "Card-5",
+                  "uuid": "Card-the-force-2",
                   "printedType": "tokenCard",
                   "isBlanked": false,
                   "selectable": false
@@ -602,7 +602,7 @@
                   "power": 3,
                   "hp": 3,
                   "type": "basicUnit",
-                  "uuid": "Card-6",
+                  "uuid": "Card-battlefield-marine-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": true,
@@ -632,7 +632,7 @@
                   "power": 3,
                   "hp": 7,
                   "type": "basicUnit",
-                  "uuid": "Card-7",
+                  "uuid": "Card-consular-security-force-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": true,
@@ -671,7 +671,7 @@
                 "power": 4,
                 "hp": 7,
                 "type": "leader",
-                "uuid": "Card-8",
+                "uuid": "Card-luke-skywalker#faithful-friend-1",
                 "printedType": "leader",
                 "isBlanked": false,
                 "selectable": false,
@@ -694,7 +694,7 @@
               "name": "Administrator's Tower",
               "hp": 30,
               "type": "base",
-              "uuid": "Card-9",
+              "uuid": "Card-administrators-tower-1",
               "printedType": "base",
               "isBlanked": false,
               "selectable": true,
@@ -764,7 +764,7 @@
       "send": [
         [
           "cardClicked",
-          "Card-6"
+          "Card-battlefield-marine-1"
         ]
       ]
     },
@@ -791,7 +791,7 @@
                   "zone": "outsideTheGame",
                   "name": "The Force",
                   "type": "tokenCard",
-                  "uuid": "Card-1",
+                  "uuid": "Card-the-force-1",
                   "printedType": "tokenCard",
                   "isBlanked": false,
                   "selectable": false
@@ -816,7 +816,7 @@
                   "power": 4,
                   "hp": 5,
                   "type": "basicUnit",
-                  "uuid": "Card-2",
+                  "uuid": "Card-wampa-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": false,
@@ -853,7 +853,7 @@
                 "power": 5,
                 "hp": 8,
                 "type": "leader",
-                "uuid": "Card-3",
+                "uuid": "Card-darth-vader#dark-lord-of-the-sith-1",
                 "printedType": "leader",
                 "isBlanked": false,
                 "selectable": false,
@@ -876,7 +876,7 @@
               "name": "Kestro City",
               "hp": 30,
               "type": "base",
-              "uuid": "Card-4",
+              "uuid": "Card-kestro-city-1",
               "printedType": "base",
               "isBlanked": false,
               "selectable": false,
@@ -947,7 +947,7 @@
                   "zone": "outsideTheGame",
                   "name": "The Force",
                   "type": "tokenCard",
-                  "uuid": "Card-5",
+                  "uuid": "Card-the-force-2",
                   "printedType": "tokenCard",
                   "isBlanked": false,
                   "selectable": false
@@ -973,7 +973,7 @@
                   "power": 3,
                   "hp": 7,
                   "type": "basicUnit",
-                  "uuid": "Card-7",
+                  "uuid": "Card-consular-security-force-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": false,
@@ -1004,7 +1004,7 @@
                   "power": 3,
                   "hp": 3,
                   "type": "basicUnit",
-                  "uuid": "Card-6",
+                  "uuid": "Card-battlefield-marine-1",
                   "printedType": "basicUnit",
                   "isBlanked": false,
                   "selectable": false
@@ -1033,7 +1033,7 @@
                 "power": 4,
                 "hp": 7,
                 "type": "leader",
-                "uuid": "Card-8",
+                "uuid": "Card-luke-skywalker#faithful-friend-1",
                 "printedType": "leader",
                 "isBlanked": false,
                 "selectable": false,
@@ -1056,7 +1056,7 @@
               "name": "Administrator's Tower",
               "hp": 30,
               "type": "base",
-              "uuid": "Card-9",
+              "uuid": "Card-administrators-tower-1",
               "printedType": "base",
               "isBlanked": false,
               "selectable": false,
@@ -1118,9 +1118,9 @@
         "newAnimations": [
           {
             "kind": "damage",
-            "cardId": "Card-6",
+            "cardId": "Card-battlefield-marine-1",
             "sourceCardIds": [
-              "Card-2"
+              "Card-wampa-1"
             ],
             "amount": 3,
             "batch": 1,
@@ -1128,9 +1128,9 @@
           },
           {
             "kind": "damage",
-            "cardId": "Card-2",
+            "cardId": "Card-wampa-1",
             "sourceCardIds": [
-              "Card-6"
+              "Card-battlefield-marine-1"
             ],
             "amount": 3,
             "batch": 1,
@@ -1138,9 +1138,9 @@
           },
           {
             "kind": "damage",
-            "cardId": "Card-9",
+            "cardId": "Card-administrators-tower-1",
             "sourceCardIds": [
-              "Card-2"
+              "Card-wampa-1"
             ],
             "amount": 1,
             "batch": 1,
@@ -1148,7 +1148,7 @@
           },
           {
             "kind": "defeat",
-            "cardId": "Card-6",
+            "cardId": "Card-battlefield-marine-1",
             "batch": 2,
             "seq": 3
           }

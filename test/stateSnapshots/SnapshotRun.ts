@@ -84,8 +84,28 @@ export class SnapshotRun {
         };
         const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 
+        // arrays of cards are matched by uuid, so a card added or removed is one line rather than
+        // every card after it shifting by one
+        const uuidsOf = (items: unknown[]) => items.map((item) => (isObject(item) && typeof item.uuid === 'string' ? item.uuid : undefined));
+        const byUuid = (items: unknown[]) => new Map(items.map((item) => [(item as Record<string, unknown>).uuid as string, item]));
+
         const compare = (before: unknown, after: unknown, path: string) => {
             if (Array.isArray(before) && Array.isArray(after)) {
+                const beforeUuids = uuidsOf(before);
+                const afterUuids = uuidsOf(after);
+                const allUuids = [...beforeUuids, ...afterUuids];
+                if (allUuids.length > 0 && allUuids.every((uuid) => uuid !== undefined) && new Set(beforeUuids).size === before.length && new Set(afterUuids).size === after.length) {
+                    const beforeItems = byUuid(before);
+                    const afterItems = byUuid(after);
+                    for (const uuid of new Set(allUuids)) {
+                        compare(beforeItems.get(uuid), afterItems.get(uuid), `${path}[${uuid}]`);
+                    }
+                    const kept = beforeUuids.filter((uuid) => afterItems.has(uuid));
+                    if (kept.join() !== afterUuids.filter((uuid) => beforeItems.has(uuid)).join()) {
+                        differences.push(`${path}: order changed`);
+                    }
+                    return;
+                }
                 for (let i = 0; i < Math.max(before.length, after.length); i++) {
                     compare(before[i], after[i], `${path}[${i}]`);
                 }

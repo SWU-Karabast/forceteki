@@ -75,7 +75,32 @@ const isSetId = (value: unknown): value is ISetId =>
 
 const printingKey = (setId: ISetId) => `${setId.set} ${setId.number}`;
 
-let firstPrintings: Map<string, ISetId>;
+/** What normalizing reads from the card data `get-cards` downloads. */
+interface ICardIndex {
+
+    /** Each printing's first printing, keyed by `printingKey`. */
+    firstPrintings: Map<string, ISetId>;
+
+    /** Each card's internal name (`battlefield-marine`), by card id. */
+    internalNames: Map<string, string>;
+}
+
+let cardIndex: ICardIndex;
+
+const cards = (): ICardIndex => {
+    if (!cardIndex) {
+        cardIndex = { firstPrintings: new Map(), internalNames: new Map() };
+        const cardDir = join(process.cwd(), 'test', 'json', 'Card');
+        for (const file of readdirSync(cardDir)) {
+            const card = JSON.parse(readFileSync(join(cardDir, file), 'utf8'));
+            cardIndex.internalNames.set(card.id, card.internalName);
+            for (const printing of card.setCodes ?? []) {
+                cardIndex.firstPrintings.set(printingKey(printing), card.setCodes[0]);
+            }
+        }
+    }
+    return cardIndex;
+};
 
 /**
  * The first printing of the card printed as `setId`. The engine sends a card's newest printing as
@@ -83,18 +108,33 @@ let firstPrintings: Map<string, ISetId>;
  * lists a card's printings in `setCodes` with the first printing first. Keyed by printing rather than
  * card id, so a `setId` is normalized wherever it appears, with or without its card's id beside it.
  */
-const firstPrinting = (setId: ISetId): ISetId | undefined => {
-    if (!firstPrintings) {
-        const cardDir = join(process.cwd(), 'test', 'json', 'Card');
-        firstPrintings = new Map();
-        for (const file of readdirSync(cardDir)) {
-            const card = JSON.parse(readFileSync(join(cardDir, file), 'utf8'));
-            for (const printing of card.setCodes ?? []) {
-                firstPrintings.set(printingKey(printing), card.setCodes[0]);
+const firstPrinting = (setId: ISetId): ISetId | undefined => cards().firstPrintings.get(printingKey(setId));
+
+/**
+ * Names each card in `value` after itself: the card whose `uuid` is `Card_54` and whose `id` is
+ * battlefield-marine's becomes `Card-battlefield-marine-1`, copies of one card numbered in the order
+ * they appear. Collected before anything is renamed, since a card's id can appear before the card
+ * does (in a chain's `send`, or a `parentCardId`).
+ */
+const nameCards = (value: unknown): Map<string, string> => {
+    const names = new Map<string, string>();
+    const copies = new Map<string, number>();
+    const visit = (child: unknown) => {
+        if (Array.isArray(child)) {
+            child.forEach(visit);
+        } else if (child && typeof child === 'object') {
+            const { uuid, id } = child as Record<string, unknown>;
+            const internalName = typeof id === 'string' ? cards().internalNames.get(id) : undefined;
+            if (typeof uuid === 'string' && (/^Card_\d+$/).test(uuid) && internalName && !names.has(uuid)) {
+                const copy = (copies.get(internalName) ?? 0) + 1;
+                copies.set(internalName, copy);
+                names.set(uuid, `Card-${internalName}-${copy}`);
             }
+            Object.values(child).forEach(visit);
         }
-    }
-    return firstPrintings.get(printingKey(setId));
+    };
+    visit(value);
+    return names;
 };
 
 /**
@@ -102,10 +142,12 @@ const firstPrinting = (setId: ISetId): ISetId | undefined => {
  * - generated uuids become `uuid-1`, `uuid-2`, … in order of first appearance, so a uuid has the
  *   same name throughout a file, and a message in a chain names the same prompt as the state it
  *   answers;
- * - game object ids become `Card-1`, `Card-2`, … the same way. The engine numbers them by creation
- *   order across every object it registers, most of which never reach the state, so an engine
- *   change that creates one more object would otherwise renumber the snapshot without the board
- *   changing. The hyphen marks a name as the snapshot's, never an id the engine made;
+ * - a card's id becomes its name, `Card-battlefield-marine-1` (see `nameCards`), and any other game
+ *   object id becomes `Player-1`, `Zone-2`, … in order of first appearance. The engine numbers them by
+ *   creation order across every object it registers, most of which never reach the state, so an
+ *   engine change that creates one more object would otherwise renumber the snapshot without the
+ *   board changing; and naming cards after themselves means adding a card to a board renames no
+ *   other card. The hyphen marks a name as the snapshot's, never an id the engine made;
  * - a card's `setId` becomes its first printing, so a reprint doesn't change the snapshot;
  * - chat is left out.
  */
@@ -118,8 +160,12 @@ const normalize = (value: unknown): unknown => {
         return uuids.get(uuid);
     };
 
+    const cardNames = nameCards(value);
     const objectIds = new Map<string, string>();
     const stableObjectId = (id: string) => {
+        if (cardNames.has(id)) {
+            return cardNames.get(id);
+        }
         if (!objectIds.has(id)) {
             objectIds.set(id, `${id.replace(/_\d+$/, '')}-${objectIds.size + 1}`);
         }
