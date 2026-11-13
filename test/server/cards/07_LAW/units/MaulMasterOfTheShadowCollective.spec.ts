@@ -34,6 +34,23 @@ describe('Maul, Master of the Shadow Collective', function() {
                 expect(context.wampa.controller).toBe(context.player2Object);
             });
 
+            it('should not take control of any unit (and not throw) if the player chooses nothing', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atatSuppressor, context.atst, context.ravenousRathtar]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.wampa.controller).toBe(context.player2Object);
+                expect(context.atatSuppressor.controller).toBe(context.player2Object);
+                expect(context.atst.controller).toBe(context.player2Object);
+                expect(context.ravenousRathtar.controller).toBe(context.player2Object);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should take control of an enemy non-leader unit until Maul leaves the arena (via return to hand) if he dealt combat damage to a base', function () {
                 const { context } = contextRef;
 

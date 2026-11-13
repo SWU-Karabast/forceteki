@@ -128,6 +128,15 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IDelayedEffectProperties>): void {
+        // A delayed effect applied to a card needs that card: if no card was chosen (e.g. the player chose nothing for an optional
+        // selection that this effect follows) there is nothing to apply the effect to, and addPropertiesToEvent would throw. This is
+        // checked here and not in hasLegalTarget because the target can legitimately be unknown until the earlier steps of a
+        // sequential effect have resolved (e.g. DJ, Blatant Thief), while the ability's message is already being built.
+        const { delayedEffectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
+        if (delayedEffectType === DelayedEffectType.Card && Helpers.asArray(target).length === 0) {
+            return;
+        }
+
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(context, additionalProperties));
         }
