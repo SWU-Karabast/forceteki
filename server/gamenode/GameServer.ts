@@ -2353,8 +2353,8 @@ export class GameServer {
             this.playerMatchmakingDisconnectedTime.delete(userId);
         }
 
-        // a player still active in another lobby within the last 60s is refused; one who has gone quiet there, or who joined
-        // it and never connected, is let go and taken out of it
+        // Active lobbies retain the 60s activity guard. Completed matches can be left immediately.
+        // Stale memberships, including users who never connected, fall through to cleanup.
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousRole = this.userLobbyMap.get(userId)?.role;
@@ -2362,12 +2362,20 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (previousRole === UserRole.Player && userLastActivity != null) {
+                if (previousRole === UserRole.Player && !previousLobby.isMatchComplete && userLastActivity != null) {
                     const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
                     }
+                }
+
+                if (previousRole === UserRole.Player && previousLobby.isMatchComplete) {
+                    // The result screen may still be open in another tab. Retire its socket before
+                    // transferring the user so a late disconnect/requeue cannot affect the new session.
+                    const previousSocket = previousLobby.users.find((u) => u.id === userId)?.socket;
+                    previousSocket?.removeEventsListeners(['disconnect', 'game', 'lobby', 'requeue']);
+                    previousSocket?.disconnect();
                 }
 
                 this.userLobbyMap.delete(userId);
