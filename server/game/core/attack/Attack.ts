@@ -7,16 +7,23 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
 import type { AbilityContext } from '../ability/AbilityContext';
 
+export enum RelativeDamageTiming {
+    AttackerBeforeDefender = 'attackerBeforeDefender',
+    DefenderBeforeAttacker = 'defenderBeforeAttacker',
+    Simultaneous = 'simultaneous',
+    Conflict = 'conflict'
+}
+
 export class Attack {
     private readonly game: Game;
-    public readonly attacker: IUnitCard;
     public readonly attackingPlayer: Player;
-    public readonly attackerInPlayId: number;
     public readonly id: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
-    private readonly attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number;
+    private _attacker: IUnitCard;
+    private _attackerInPlayId: number;
+    private attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number;
     private unitControllersChanged = new Set<IAttackableCard>();
     private targets: IAttackableCard[];
     private defendingPlayer: Player;
@@ -38,7 +45,7 @@ export class Attack {
         this.id = game.getNextAttackId();
 
         this.game = game;
-        this.attacker = attacker;
+        this._attacker = attacker;
         this.attackingPlayer = attacker.controller;
         this.targets = targets;
         this.defendingPlayer = targets[0].controller;
@@ -47,9 +54,44 @@ export class Attack {
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
         // e.g., to check if the defender was defeated
-        this.attackerInPlayId = attacker.inPlayId;
+        this._attackerInPlayId = attacker.inPlayId;
 
         this.isAmbush = isAmbush;
+    }
+
+    public get attacker(): IUnitCard {
+        return this._attacker;
+    }
+
+    public get attackerInPlayId(): number {
+        return this._attackerInPlayId;
+    }
+
+    /**
+     * Makes `newAttacker` the attacker for the rest of this attack. The previous attacker stops being part of
+     * the attack; if it is still in play it stays where it is. Anything tied to the previous attacker's
+     * declaration (such as a combat damage override from the ability that initiated the attack) is dropped.
+     */
+    public replaceAttacker(newAttacker: IUnitCard): void {
+        Contract.assertTrue(newAttacker.isInPlay(), `Attempting to replace the attacker with ${newAttacker.internalName} but it is not in play`);
+        Contract.assertFalse(newAttacker === this._attacker, `${newAttacker.internalName} is already the attacker`);
+        Contract.assertFalse(this.targets.includes(newAttacker), `Attempting to replace the attacker with ${newAttacker.internalName} but it is a target of the attack`);
+        Contract.assertTrue(
+            newAttacker.controller === this.attackingPlayer,
+            `Attempting to replace the attacker with ${newAttacker.internalName} but it is not controlled by the attacking player`
+        );
+
+        const previousAttacker = this._attacker;
+        if (previousAttacker.isInPlay() && previousAttacker.activeAttack === this) {
+            previousAttacker.unsetActiveAttack();
+        }
+        this.unitControllersChanged.delete(previousAttacker);
+
+        this._attacker = newAttacker;
+        this._attackerInPlayId = newAttacker.inPlayId;
+        this.attackerCombatDamageOverride = undefined;
+
+        newAttacker.setActiveAttack(this);
     }
 
     public getAttackerCombatDamage(context: AbilityContext): number | null {
@@ -110,31 +152,19 @@ export class Attack {
 
 
     /**
-     * Get total combat damage from targets.
-     * @param earlyCombatDamageOnly - `true`: only include damage for targets that deal damage first, `false`: only include damage for targets that don't deal damage first
+     * Get the total combat damage dealt to the attacker by the given targets (all targets by default).
      */
     public getTargetCombatDamage(
         _context: AbilityContext,
-        earlyCombatDamageOnly: boolean = false
-    ): number | null {
-        if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
-            return null;
-        }
-
+        targets: IAttackableCard[] = this.targets
+    ): number {
         // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
-        const reducer = (totalDamage: number, target: IAttackableCard): number => {
+        return targets.reduce((totalDamage: number, target: IAttackableCard): number => {
             if (target.isBase() || target.hasRestriction(AbilityRestriction.DealCombatDamage)) {
                 return totalDamage;
             }
             return totalDamage + this.getUnitPower(target);
-        };
-
-        return this.targets
-            .filter((t) => {
-                const dealsFirst = this.targetDealsCombatDamageFirst(t);
-                return earlyCombatDamageOnly ? dealsFirst : !dealsFirst;
-            })
-            .reduce(reducer, 0);
+        }, 0);
     }
 
     public hasOverwhelm(): boolean {
@@ -145,14 +175,37 @@ export class Attack {
         return this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
     }
 
-    public targetDealsCombatDamageFirst(attackTarget: IAttackableCard): boolean {
-        return this.targets.includes(attackTarget) &&
-          !attackTarget.isBase() &&
-          attackTarget.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
-    }
+    /**
+     * Determines when the given target deals its combat damage relative to the attacker, based on the
+     * "deals combat damage first / last" effects on both units. Returns {@link RelativeDamageTiming.Conflict}
+     * if one effect has the attacker deal damage first and another has the target deal damage first, in which
+     * case the active player chooses the order.
+     */
+    public getRelativeDamageTiming(attackTarget: IAttackableCard): RelativeDamageTiming {
+        Contract.assertTrue(this.targets.includes(attackTarget), `${attackTarget.internalName} is not a target of this attack`);
 
-    public anyTargetDealsCombatDamageFirst(): boolean {
-        return this.targets.some((t) => this.targetDealsCombatDamageFirst(t));
+        if (attackTarget.isBase()) {
+            return RelativeDamageTiming.Simultaneous;
+        }
+
+        const attackerDealsFirst =
+            this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageFirst) ||
+            attackTarget.hasOngoingEffect(EffectName.DealsCombatDamageLast);
+
+        const targetDealsFirst =
+            attackTarget.hasOngoingEffect(EffectName.DealsCombatDamageFirst) ||
+            this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageLast);
+
+        if (attackerDealsFirst && targetDealsFirst) {
+            return RelativeDamageTiming.Conflict;
+        }
+        if (attackerDealsFirst) {
+            return RelativeDamageTiming.AttackerBeforeDefender;
+        }
+        if (targetDealsFirst) {
+            return RelativeDamageTiming.DefenderBeforeAttacker;
+        }
+        return RelativeDamageTiming.Simultaneous;
     }
 
     public getLegalTargets(): IAttackableCard[] {

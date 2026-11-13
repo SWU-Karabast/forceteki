@@ -96,6 +96,30 @@ export namespace TextHelper {
     }
 
     /**
+     * Returns the display representation of a resource cost with aspect icons, as printed on a card (e.g. "pay 5[Cunning][Villainy]").
+     * In test environments, the aspects follow the amount in parentheses for readability. In production, the aspect tokens
+     * immediately follow the resource token so the client renders them as a single printed cost.
+     *
+     * @example
+     * // In tests: "You may pay 5 resources (Cunning, Villainy)"
+     * // Otherwise: "You may pay {resource:5}:cunning::villainy:"
+     * const ex = `You may pay ${TextHelper.resourceCost(5, [Aspect.Cunning, Aspect.Villainy])}`;
+     *
+     * @param amount The amount of resources to display
+     * @param aspects The aspect icons printed with the cost
+     * @returns A string representing the cost, either as plain text (in tests) or replacement tokens
+     */
+    export function resourceCost(amount: number, aspects: Aspect[] = []): string {
+        if (aspects.length === 0) {
+            return resource(amount);
+        }
+
+        return process.env.NODE_ENV === 'test'
+            ? `${resource(amount)} (${aspectList(aspects)})`
+            : `${resource(amount)}${aspectList(aspects)}`;
+    }
+
+    /**
      * Returns the display representation of a keyword. In test environments, this will return a human-readable string (e.g. "Restore 2"),
      * but in production, it returns a token like `{keyword:restore:2}` which the client can replace with stylized text.
      *

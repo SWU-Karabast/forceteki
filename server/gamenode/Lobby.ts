@@ -259,6 +259,16 @@ export class Lobby {
         return this.winHistory.gamesToWinMode;
     }
 
+    /** A finished game releases a Bo1 player; a Bo3 player must finish the whole set. */
+    public get isMatchComplete(): boolean {
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree) {
+            return !!this.winHistory.setEndResult || this.isBo3SetComplete();
+        }
+
+        // Use the current game state so undoing a win makes the match active again.
+        return this.game?.isEnded ?? false;
+    }
+
     public get queueFormatKey(): IQueueFormatKey {
         return { format: this.format, cardPool: this.cardPool, gamesToWinMode: this.gamesToWinMode };
     }
@@ -390,7 +400,7 @@ export class Lobby {
     }
 
     private hasUserDisabledChatInPreferences(user: LobbyUserWrapper): boolean {
-        return this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
+        return !this.isPrivate && this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
     }
 
     /** The user's account, or `undefined` for a user created ahead of their first socket connection. */
@@ -410,7 +420,7 @@ export class Lobby {
      */
     private getChatBlockedReason(sender: LobbyUserWrapper): string | null {
         if (this.isPrivate) {
-            return this.hasUserDisabledChatInPreferences(sender) ? 'sender disabled chat in preferences' : null;
+            return null;
         }
 
         const opponent = this.users.find((u) => u.id !== sender.id);
@@ -569,7 +579,7 @@ export class Lobby {
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
-                username: user.getId(),
+                username: user.getUsername(),
                 socket,
                 user: socket.user,
                 state: 'connected'
@@ -2174,7 +2184,7 @@ export class Lobby {
     }
 
     private sendLobbyStateToSpectator(socket: Socket): void {
-        socket.socket.send('lobbystate', this.getLobbyState());
+        socket.send('lobbystate', this.getLobbyState());
     }
 
     public handleGameEnd(): void {

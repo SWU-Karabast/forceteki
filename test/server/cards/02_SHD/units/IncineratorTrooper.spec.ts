@@ -23,7 +23,7 @@ describe('Incinerator Trooper', function() {
                 // check board state
                 expect(context.incineratorTrooper.damage).toBe(0);
                 expect(context.jedhaAgitator).toBeInZone('discard');
-                expect(context.getChatLogs(2)).toContain('player1 attacks Jedha Agitator with Incinerator Trooper (dealing damage before the defender)');
+                expect(context.getChatLogs(2)).toContain('Incinerator Trooper (attacker) deals combat damage before Jedha Agitator (defender)');
 
                 // Case 2 attacking wampa should defeat incinerator-trooper and give 2 damage to wampa
                 context.player2.passAction();
@@ -34,7 +34,7 @@ describe('Incinerator Trooper', function() {
                 // check board state
                 expect(context.incineratorTrooper).toBeInZone('discard');
                 expect(context.wampa.damage).toBe(2);
-                expect(context.getChatLogs(3)).toContain('player1 attacks Wampa with Incinerator Trooper (dealing damage before the defender)');
+                expect(context.getChatLogs(3)).toContain('Incinerator Trooper (attacker) deals combat damage before Wampa (defender)');
             });
 
             it('does not deal damage first when defending.', function () {

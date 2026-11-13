@@ -36,7 +36,6 @@ export class FakeIoSocket implements IRawGameSocket {
 
     private _connected = true;
     private readonly inboundListeners = new Map<string, ((...args: any[]) => void)[]>();
-    private readonly joinedRooms = new Set<string>();
     private readonly _emittedEvents: IFakeEmittedEvent[] = [];
     private pendingDisconnectDispatch: Promise<void> | null = null;
 
@@ -59,7 +58,11 @@ export class FakeIoSocket implements IRawGameSocket {
             return false;
         }
 
-        this._emittedEvents.push({ event, args });
+        // A real socket serializes what it sends, so the client holds a copy taken at that moment. Recording
+        // the server's own objects instead would let a later change to them rewrite what a spec already
+        // received. JSON is what socket.io's encoder uses for these payloads (an `undefined` argument
+        // arrives as `null`).
+        this._emittedEvents.push({ event, args: JSON.parse(JSON.stringify(args)) });
         return true;
     }
 
@@ -82,14 +85,6 @@ export class FakeIoSocket implements IRawGameSocket {
 
     public eventNames(): (string | symbol)[] {
         return Array.from(this.inboundListeners.keys()).filter((event) => this.inboundListeners.get(event).length > 0);
-    }
-
-    public join(room: string): any {
-        this.joinedRooms.add(room);
-    }
-
-    public leave(room: string): any {
-        this.joinedRooms.delete(room);
     }
 
     public disconnect(_close?: boolean): this {

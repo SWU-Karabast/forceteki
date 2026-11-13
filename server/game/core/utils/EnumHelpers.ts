@@ -191,10 +191,19 @@ export namespace EnumHelpers {
         return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
     };
 
+    /**
+     * A card keeps its controller while it moves between the zones where control can differ from ownership
+     * (the arenas, the resource zone and the base zone) and goes back to its owner when it leaves them
+     * (e.g. a unit or base upgrade going to the discard pile).
+     *
+     * The base zone has to count on the way in as well as on the way out: a card that changes controller as
+     * it enters the base zone (e.g. an opponent's Fortify upgrade played from their resources) would
+     * otherwise be reset to its owner and land in the owner's base instead of the controller's.
+     */
     export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
-        const nextZoneName = asConcreteZone(nextZone);
-        // the base zone only counts on the way out (e.g. a base upgrade going to the discard pile), so that undeploying a leader keeps resetting control
-        return (isArena(prevZone) || prevZone === ZoneName.Resource || prevZone === ZoneName.Base) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
+        const isControlledZone = (zoneName: ZoneName) => isArena(zoneName) || zoneName === ZoneName.Resource || zoneName === ZoneName.Base;
+
+        return isControlledZone(prevZone) && !isControlledZone(asConcreteZone(nextZone));
     };
 
     export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | WildcardCardType.LeaderUnit | CardType.BasicUnit | CardType.NonTokenLeaderUnit | CardType.TokenLeaderUnit | CardType.TokenUnit => {

@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class WatTamborWarpedWarbling extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wat-tambor#warped-warbling-id',
+            id: '7874824511',
             internalName: 'wat-tambor#warped-warbling',
         };
     }

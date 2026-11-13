@@ -162,6 +162,33 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.getChatLogs(3)).toContain('player2\'s Wampa is defeated by player1 due to having no remaining HP');
         });
 
+        it('should not allow selecting a third unit once 2 are selected', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'wampa', 'cantina-braggart']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickCard(context.wampa);
+
+            // Only the 2 selected units remain selectable (to unselect)
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa]);
+
+            context.player1.clickDone();
+
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.cantinaBraggart).toBeInZone('groundArena');
+        });
+
         it('should be able to attack two of many units when played with Ambush', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

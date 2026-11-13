@@ -24,8 +24,8 @@ export interface ITestDbServices {
  *
  * This is the seam the whole server hangs off: every service that reads the database asks this one
  * function for it. It must run **before the server is constructed** - `GameServer`'s field
- * initialisers and `authMiddleware`'s per-route `UserFactory` capture the promise it returns at
- * construction, so spying afterwards silently changes nothing for them.
+ * initialisers capture the promise it returns at construction, so spying afterwards silently changes
+ * nothing for them.
  *
  * jasmine removes the spy when the spec ends. A second call in the same spec points the existing spy
  * at the new fake, so a spec has one database at a time.

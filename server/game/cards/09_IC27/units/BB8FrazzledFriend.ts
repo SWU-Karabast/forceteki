@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class BB8FrazzledFriend extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bb8#frazzled-friend-id',
+            id: '7360388305',
             internalName: 'bb8#frazzled-friend',
         };
     }

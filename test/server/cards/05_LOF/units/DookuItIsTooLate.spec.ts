@@ -95,12 +95,37 @@ describe('Dooku, It Is Too Late', function () {
             // Ruling 2025-09-29: Dooku's protection is a snapshot taken when his ability resolves —
             // every unit with Hidden at that moment stays protected for the phase, even if its Hidden
             // is removed afterward (the lasting effect does not dynamically update).
-            xit('keeps protecting a unit even after its Hidden keyword is removed', function () {
-                pending('Not yet implemented');
-                // A friendly unit has Hidden granted by another source (e.g. Grand Inquisitor granting
-                // Fifth Brother Hidden) when Dooku's When Played resolves. The opponent then removes the
-                // Hidden source (e.g. Waylay on Grand Inquisitor). Fifth Brother is still protected from
-                // being attacked for the rest of the phase.
+            it('keeps protecting a unit even after its Hidden keyword is removed', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['dooku#it-is-too-late'],
+                        // Aurra Sing has printed Hidden but was not played this phase, so she is attackable
+                        groundArena: ['aurra-sing#patient-and-deadly'],
+                        resources: 10,
+                    },
+                    player2: {
+                        hand: ['tusken-tracker'],
+                        groundArena: ['rebel-pathfinder'],
+                        resources: 10,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Aurra Sing has Hidden when Dooku's When Played resolves
+                context.player1.clickCard(context.dooku);
+
+                // Tusken Tracker's When Played makes each enemy unit lose Hidden for this phase
+                context.player2.clickCard(context.tuskenTracker);
+
+                context.player1.passAction();
+
+                // Aurra Sing no longer has Hidden but Dooku's snapshot protection still applies:
+                // she can't be attacked this phase (Dooku has Hidden itself, only the base is attackable)
+                context.player2.clickCard(context.rebelPathfinder);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });

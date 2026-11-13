@@ -19,16 +19,26 @@ const userKeysTheFrontEndReads = [
     'usernameChangesBlocked',
 ];
 
-/** The FE's first request of a session: the token alone, so the server looks the account up from its claims. */
+/**
+ * The FE's sign-in sequence: `/api/get-user`, and if the server has no account for the session yet,
+ * `/api/create-user` followed by `/api/get-user` again.
+ */
 async function signInAsync(harness: ServerTestHarness, identity: ISignInIdentity) {
-    return await harness.requestAsync('post', '/api/get-user', {
-        cookie: sessionCookie(mintSessionToken(signInClaims(identity))),
-    });
+    const cookie = sessionCookie(mintSessionToken(signInClaims(identity)));
+    const getUserAsync = async () => await harness.requestAsync('post', '/api/get-user', { cookie });
+
+    const first = await getUserAsync();
+    if (first.status === 401 && first.body.code === 'ACCOUNT_NOT_FOUND') {
+        await harness.requestAsync('post', '/api/create-user', { cookie });
+        return await getUserAsync();
+    }
+
+    return first;
 }
 
 /**
- * How a logged-in account comes to exist and is found again: the server's "database path" for a session
- * token, which runs on the FE's first request of a session and creates, finds or links the account.
+ * How a logged-in account comes to exist and is found again: a session token is resolved to an account by its
+ * provider identity, and `/api/create-user` makes, finds or links one when the identity has none yet.
  *
  * These are what a refactor of account handling must not change silently - which provider identities map to
  * which account, what a new account starts with, and what the FE is told about it.
@@ -79,14 +89,14 @@ describe('Account login', function () {
                 expect(response.body.user.preferences).toEqual(getDefaultPreferences());
             });
 
-            it('does not count creating the account as a login', async function () {
+            it('records the first sync of the new account as a login', async function () {
                 const { harness } = contextRef;
 
-                await signInAsync(harness, identity);
+                const response = await signInAsync(harness, identity);
 
-                expect(harness.db.loggedInUserIds).toEqual([]);
+                expect(harness.db.loggedInUserIds).toEqual([response.body.user.id]);
             });
-        }, { database: true });
+        });
     });
 
     describe('signing in again', function () {
@@ -121,7 +131,7 @@ describe('Account login', function () {
 
                 expect(second.body.user.id).toBe(first.body.user.id);
                 expect(harness.db.profiles.size).toBe(1);
-                expect(harness.db.loggedInUserIds).toEqual([first.body.user.id]);
+                expect(harness.db.loggedInUserIds).toEqual([first.body.user.id, first.body.user.id]);
             });
 
             it('tells the FE what it reads of an account', async function () {
@@ -142,7 +152,7 @@ describe('Account login', function () {
                     usernameChangesBlocked: null,
                 }));
             });
-        }, { database: true });
+        });
     });
 
     describe('signing in with a different provider but the same email', function () {
@@ -173,24 +183,102 @@ describe('Account login', function () {
                 expect(response.body.user.id).toBe(account.id);
                 expect(harness.db.profiles.size).toBe(1);
             });
-        }, { database: true });
+        });
     });
 
-    // TODO: enable once an identity linked to an account whose profile is gone can sign in. Today the owner is
-    // refused on every attempt, because the sign-in re-saves the OAuth link, which already exists (Open finding #8).
+    describe('a sign-in whose email the provider has not verified', function () {
+        serverIntegration(function (contextRef) {
+            const emailNotVerified = { success: false, message: 'Authentication failed', code: 'EMAIL_NOT_VERIFIED' };
+
+            function expectNoIdentityLinks(harness: ServerTestHarness, identity: ISignInIdentity): void {
+                expect(harness.db.oauthLinks.has(`${identity.provider}_${identity.providerId}`)).withContext('identity link')
+                    .toBeFalse();
+            }
+
+            for (const provider of ['discord', 'google']) {
+                const unverified: ISignInIdentity = { username: 'Unverified', provider, providerId: '808', email: 'unverified@example.test', emailVerified: false };
+
+                it(`is refused for a new ${provider} identity, and no account is created for it`, async function () {
+                    const { harness } = contextRef;
+                    const cookie = sessionCookie(mintSessionToken(signInClaims(unverified)));
+
+                    const synced = await signInAsync(harness, unverified);
+                    const created = await harness.requestAsync('post', '/api/create-user', { cookie });
+
+                    expect(synced.status).toBe(401);
+                    expect(synced.body).toEqual(emailNotVerified);
+                    expect(created.status).toBe(401);
+                    expect(created.body).toEqual(emailNotVerified);
+                    expect(harness.db.profiles.size).toBe(0);
+                    expect(harness.db.emailLinks.size).toBe(0);
+                    expectNoIdentityLinks(harness, unverified);
+                });
+
+                it(`does not link a ${provider} identity to the account that has its email`, async function () {
+                    const { harness } = contextRef;
+                    const account = harness.db.seedAccount({ provider: 'other', providerId: '1', email: unverified.email });
+                    const cookie = sessionCookie(mintSessionToken(signInClaims(unverified)));
+
+                    const created = await harness.requestAsync('post', '/api/create-user', { cookie });
+
+                    expect(created.status).toBe(401);
+                    expect(created.body).toEqual(emailNotVerified);
+                    expectNoIdentityLinks(harness, unverified);
+                    expect(harness.db.emailLinks.get(unverified.email)).toBe(account.id);
+                    expect(harness.db.profiles.size).toBe(1);
+                });
+
+                it(`is refused for a ${provider} identity already linked to an account`, async function () {
+                    const { harness } = contextRef;
+                    const account = harness.db.seedAccount({ provider, providerId: '909' });
+
+                    const response = await signInAsync(harness, { ...account, emailVerified: false });
+
+                    expect(response.status).toBe(401);
+                    expect(response.body).toEqual(emailNotVerified);
+                    expect(harness.db.loggedInUserIds).toEqual([]);
+                });
+            }
+
+            it('signs in once the provider has verified the email', async function () {
+                const { harness } = contextRef;
+                const identity: ISignInIdentity = { username: 'Later', provider: 'discord', providerId: '707', email: 'later@example.test' };
+
+                const refused = await signInAsync(harness, { ...identity, emailVerified: false });
+                const accepted = await signInAsync(harness, identity);
+
+                expect(refused.status).toBe(401);
+                expect(accepted.status).toBe(200);
+                expect(harness.db.oauthLinks.get('discord_707')).toBe(accepted.body.user.id);
+            });
+        });
+    });
+
     describe('an identity linked to an account whose profile no longer exists', function () {
         serverIntegration(function (contextRef) {
             const identity: ISignInIdentity = { username: 'Orphan', provider: 'discord', providerId: '555', email: 'orphan@example.test' };
 
-            xit('signs the owner in to a freshly created profile (Open finding #8)', async function () {
+            it('signs the owner in to a new profile under the id the identity is linked to', async function () {
                 const { harness } = contextRef;
                 harness.db.oauthLinks.set('discord_555', 'account-with-no-profile');
 
                 const response = await signInAsync(harness, identity);
 
                 expect(response.status).toBe(200);
+                expect(response.body.user.id).toBe('account-with-no-profile');
                 expect(harness.db.profiles.size).toBe(1);
+                expect(harness.db.oauthLinks.get('discord_555')).toBe('account-with-no-profile');
             });
-        }, { database: true });
+
+            it('does not link the identity to another account that has the same email', async function () {
+                const { harness } = contextRef;
+                harness.db.oauthLinks.set('discord_555', 'account-with-no-profile');
+                harness.db.seedAccount({ provider: 'google', providerId: '9', email: identity.email });
+
+                const response = await signInAsync(harness, identity);
+
+                expect(response.body.user.id).toBe('account-with-no-profile');
+            });
+        });
     });
 });

@@ -2,7 +2,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { PromptType } from '../PromptInterfaces';
-import type { IModalEffectSelectionButton, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import type { IButton, IModalEffectSelectionButton, ITriggerWindowSourceCard } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /** A single selectable option in the {@link ModalEffectSelectionPrompt}. */
@@ -30,6 +30,9 @@ export interface IModalEffectSelectionPromptProperties {
     sourceCard: ITriggerWindowSourceCard;
 
     choices: IModalEffectSelectionChoice[];
+
+    /** Present when the player may choose none of the options; rendered as a plain button after the options. */
+    passButtonText?: string;
 }
 
 /**
@@ -55,11 +58,21 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
         return {
             menuTitle: this.properties.title,
             promptDescription: this.properties.description,
-            buttons: this.properties.choices.map((choice, index) => this.makeChoiceButton(choice, index)),
+            buttons: this.makeButtons(),
             promptTitle: this.properties.sourceCard.name,
             promptUuid: this.uuid,
             promptType: PromptType.ModalEffectSelection
         };
+    }
+
+    private makeButtons(): IButton[] {
+        const buttons: IButton[] = this.properties.choices.map((choice, index) => this.makeChoiceButton(choice, index));
+
+        if (this.properties.passButtonText) {
+            buttons.push({ text: this.properties.passButtonText, arg: 'pass' });
+        }
+
+        return buttons;
     }
 
     private makeChoiceButton(choice: IModalEffectSelectionChoice, index: number): IModalEffectSelectionButton {
@@ -84,6 +97,11 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
     }
 
     public override menuCommand(_player: Player, arg: string): boolean {
+        if (arg === 'pass' && this.properties.passButtonText) {
+            this.complete();
+            return true;
+        }
+
         const choice = this.properties.choices[Number(arg)];
         if (!choice) {
             return false;

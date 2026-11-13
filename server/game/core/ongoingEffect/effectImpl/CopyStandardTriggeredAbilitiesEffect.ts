@@ -28,7 +28,7 @@ const abilityTypeDisplayName: Record<StandardTriggeredAbilityType, string> = {
 
 @registerState()
 export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>[]> {
-    @stateValue() private accessor _preCopyTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _preCopyTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
     private readonly abilityType: StandardTriggeredAbilityType;
 
     public constructor(game: Game, sourceUnits: Card | Card[], abilityType: StandardTriggeredAbilityType) {

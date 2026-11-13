@@ -73,7 +73,8 @@ export enum EntryType {
     Played = 'played',
     Created = 'created',
     Rescued = 'rescued',
-    Deployed = 'deployed'
+    Deployed = 'deployed',
+    PutIntoPlay = 'putIntoPlay'
 }
 
 export enum StatType {
@@ -115,6 +116,7 @@ export enum EffectName {
     DoesNotReady = 'doesNotReady',
     DamageDealtByThisCardIsUnpreventable = 'damageDealtByThisCardIsUnpreventable',
     DealsCombatDamageFirst = 'dealsCombatDamageFirst',
+    DealsCombatDamageLast = 'dealsCombatDamageLast',
     DrawAdditionalCardsInRegroup = 'drawAdditionalCardsInRegroup',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
@@ -124,8 +126,10 @@ export enum EffectName {
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
+    LimitReadyDuringRegroup = 'limitReadyDuringRegroup',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    LoseWhenDefeatedAbilities = 'loseWhenDefeatedAbilities',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
@@ -293,6 +297,7 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnAttackEnd = 'onAttackEnd',
+    OnAttackerReplaced = 'onAttackerReplaced',
     OnBeginRound = 'onBeginRound',
     OnBlastCounterClaimed = 'onBlastCounterClaimed',
     OnBountyCollected = 'onBountyCollected',

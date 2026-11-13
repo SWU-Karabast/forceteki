@@ -1,0 +1,826 @@
+{
+  "playerUpdate": "player1",
+  "id": 12345,
+  "manualMode": false,
+  "owner": "player1",
+  "players": {
+    "111": {
+      "cardPiles": {
+        "hand": [
+          {
+            "id": "8148673131",
+            "setId": {
+              "set": "SOR",
+              "number": 172
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "aggression"
+            ],
+            "zone": "hand",
+            "name": "Open Fire",
+            "type": "event",
+            "uuid": "Card-open-fire-1",
+            "printedType": "event",
+            "isBlanked": false,
+            "aspectPenaltyAspects": [
+              "aggression"
+            ],
+            "selectable": false
+          },
+          {
+            "id": "2703877689",
+            "setId": {
+              "set": "SOR",
+              "number": 126
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "command"
+            ],
+            "zone": "hand",
+            "name": "Resupply",
+            "type": "event",
+            "uuid": "Card-resupply-1",
+            "printedType": "event",
+            "isBlanked": false,
+            "selectable": true,
+            "selected": false
+          }
+        ],
+        "outsideTheGame": [
+          {
+            "id": "4571900905",
+            "setId": {
+              "set": "LOF"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "outsideTheGame",
+            "name": "The Force",
+            "type": "tokenCard",
+            "uuid": "Card-the-force-1",
+            "printedType": "tokenCard",
+            "isBlanked": false,
+            "selectable": false
+          }
+        ],
+        "capturedZone": [],
+        "resources": [
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SOR",
+              "number": 247
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-underworld-thug-1",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": true
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SOR",
+              "number": 247
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-underworld-thug-2",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": true
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SOR",
+              "number": 247
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-underworld-thug-3",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": true
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SOR",
+              "number": 247
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-underworld-thug-4",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SOR",
+              "number": 247
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-underworld-thug-5",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SOR",
+              "number": 247
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-underworld-thug-6",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          }
+        ],
+        "groundArena": [
+          {
+            "id": "6577517407",
+            "setId": {
+              "set": "SOR",
+              "number": 164
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "aggression"
+            ],
+            "zone": "groundArena",
+            "name": "Wampa",
+            "power": 5,
+            "hp": 6,
+            "type": "basicUnit",
+            "uuid": "Card-wampa-1",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": true,
+            "selected": false,
+            "exhausted": false,
+            "damage": 2,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "2007868442",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Experience",
+            "power": 1,
+            "hp": 1,
+            "type": "tokenUpgrade",
+            "uuid": "Card-experience-1",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "selectable": false,
+            "parentCardId": "Card-wampa-1"
+          },
+          {
+            "id": "8752877738",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Shield",
+            "power": 0,
+            "hp": 0,
+            "type": "tokenUpgrade",
+            "uuid": "Card-shield-1",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "selectable": false,
+            "parentCardId": "Card-wampa-1"
+          },
+          {
+            "id": "4317911650",
+            "setId": {
+              "set": "SOR",
+              "number": 95
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "command",
+              "heroism"
+            ],
+            "zone": "groundArena",
+            "name": "Battlefield Marine",
+            "power": 3,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-battlefield-marine-1",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": true,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "6514927936",
+            "setId": {
+              "set": "SOR",
+              "number": 9
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "heroism",
+              "command"
+            ],
+            "zone": "groundArena",
+            "name": "Leia Organa",
+            "power": 3,
+            "hp": 6,
+            "type": "nonTokenLeaderUnit",
+            "uuid": "Card-leia-organa#alliance-general-1",
+            "printedType": "leader",
+            "isBlanked": false,
+            "selectable": true,
+            "selected": false,
+            "exhausted": false,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false,
+            "epicDeployActionSpent": true
+          }
+        ],
+        "spaceArena": [
+          {
+            "id": "5562575456",
+            "setId": {
+              "set": "SOR",
+              "number": 225
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "villainy"
+            ],
+            "zone": "spaceArena",
+            "name": "TIE/ln Fighter",
+            "power": 2,
+            "hp": 1,
+            "type": "basicUnit",
+            "uuid": "Card-tieln-fighter-1",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": true,
+            "selected": false,
+            "exhausted": false,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          }
+        ],
+        "discard": [],
+        "credits": []
+      },
+      "disconnected": false,
+      "hasInitiative": true,
+      "availableResources": 3,
+      "leaders": [
+        {
+          "id": "6514927936",
+          "setId": {
+            "set": "SOR",
+            "number": 9
+          },
+          "controllerId": "111",
+          "ownerId": "111",
+          "aspects": [
+            "heroism",
+            "command"
+          ],
+          "zone": "groundArena",
+          "name": "Leia Organa",
+          "power": 3,
+          "hp": 6,
+          "type": "nonTokenLeaderUnit",
+          "uuid": "Card-leia-organa#alliance-general-1",
+          "printedType": "leader",
+          "isBlanked": false,
+          "selectable": true,
+          "selected": false,
+          "exhausted": false,
+          "damage": 0,
+          "sentinel": false,
+          "cannotBeAttacked": false,
+          "isAttacker": false,
+          "isDefender": false,
+          "epicDeployActionSpent": true
+        }
+      ],
+      "base": {
+        "id": "5662039114",
+        "setId": {
+          "set": "SHD",
+          "number": 22
+        },
+        "controllerId": "111",
+        "ownerId": "111",
+        "aspects": [
+          "command"
+        ],
+        "zone": "base",
+        "name": "Nevarro City",
+        "hp": 30,
+        "type": "base",
+        "uuid": "Card-nevarro-city-1",
+        "printedType": "base",
+        "isBlanked": false,
+        "selectable": false,
+        "damage": 7,
+        "epicActionSpent": false,
+        "isDefender": false,
+        "upgrades": []
+      },
+      "id": "111",
+      "left": false,
+      "name": "player1",
+      "phase": "action",
+      "promptedActionWindows": {
+        "setup": true,
+        "action": true,
+        "regroup": true
+      },
+      "user": {
+        "blockList": [],
+        "settings": {
+          "optionSettings": {
+            "autoSingleTarget": false
+          }
+        },
+        "promptedActionWindows": {
+          "setup": true,
+          "action": true,
+          "regroup": true
+        },
+        "id": "111",
+        "username": "player1"
+      },
+      "promptState": {
+        "selectOrder": false,
+        "dropdownListOptions": [],
+        "menuTitle": "Choose an action",
+        "promptTitle": "Action Window",
+        "buttons": [
+          {
+            "text": "Pass",
+            "arg": "pass",
+            "disabled": false,
+            "command": "menuButton",
+            "uuid": "uuid-1"
+          },
+          {
+            "text": "Claim Initiative",
+            "arg": "claimInitiative",
+            "disabled": false,
+            "command": "menuButton",
+            "uuid": "uuid-1"
+          }
+        ],
+        "promptUuid": "uuid-1",
+        "promptType": "actionWindow",
+        "displayCards": [],
+        "perCardButtons": [],
+        "playerIsNewlyActive": false
+      },
+      "isActionPhaseActivePlayer": true,
+      "aspects": [
+        "heroism",
+        "command",
+        "command"
+      ],
+      "forceToken": {
+        "active": false
+      },
+      "credits": [],
+      "mainTimeRemainingSeconds": 120,
+      "timeRemainingStatus": "NoAlert",
+      "timerIsRunning": false,
+      "numCardsInDeck": 8
+    },
+    "222": {
+      "cardPiles": {
+        "hand": [
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "hand",
+            "selectable": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "hand",
+            "selectable": false
+          }
+        ],
+        "outsideTheGame": [
+          {
+            "id": "4571900905",
+            "setId": {
+              "set": "LOF"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "outsideTheGame",
+            "name": "The Force",
+            "type": "tokenCard",
+            "uuid": "Card-the-force-2",
+            "printedType": "tokenCard",
+            "isBlanked": false,
+            "selectable": false
+          }
+        ],
+        "capturedZone": [],
+        "resources": [
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": true
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": true
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": true
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          }
+        ],
+        "groundArena": [
+          {
+            "id": "6577517407",
+            "setId": {
+              "set": "SOR",
+              "number": 164
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "aggression"
+            ],
+            "zone": "groundArena",
+            "name": "Wampa",
+            "power": 5,
+            "hp": 6,
+            "type": "basicUnit",
+            "uuid": "Card-wampa-2",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false,
+            "damage": 2,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "2007868442",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Experience",
+            "power": 1,
+            "hp": 1,
+            "type": "tokenUpgrade",
+            "uuid": "Card-experience-2",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "selectable": false,
+            "parentCardId": "Card-wampa-2"
+          },
+          {
+            "id": "8752877738",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Shield",
+            "power": 0,
+            "hp": 0,
+            "type": "tokenUpgrade",
+            "uuid": "Card-shield-2",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "selectable": false,
+            "parentCardId": "Card-wampa-2"
+          },
+          {
+            "id": "4317911650",
+            "setId": {
+              "set": "SOR",
+              "number": 95
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "command",
+              "heroism"
+            ],
+            "zone": "groundArena",
+            "name": "Battlefield Marine",
+            "power": 3,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card-battlefield-marine-2",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": true,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "6514927936",
+            "setId": {
+              "set": "SOR",
+              "number": 9
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "heroism",
+              "command"
+            ],
+            "zone": "groundArena",
+            "name": "Leia Organa",
+            "power": 3,
+            "hp": 6,
+            "type": "nonTokenLeaderUnit",
+            "uuid": "Card-leia-organa#alliance-general-2",
+            "printedType": "leader",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false,
+            "epicDeployActionSpent": true
+          }
+        ],
+        "spaceArena": [
+          {
+            "id": "5562575456",
+            "setId": {
+              "set": "SOR",
+              "number": 225
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "villainy"
+            ],
+            "zone": "spaceArena",
+            "name": "TIE/ln Fighter",
+            "power": 2,
+            "hp": 1,
+            "type": "basicUnit",
+            "uuid": "Card-tieln-fighter-2",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          }
+        ],
+        "discard": [],
+        "credits": []
+      },
+      "disconnected": false,
+      "hasInitiative": false,
+      "availableResources": 3,
+      "leaders": [
+        {
+          "id": "6514927936",
+          "setId": {
+            "set": "SOR",
+            "number": 9
+          },
+          "controllerId": "222",
+          "ownerId": "222",
+          "aspects": [
+            "heroism",
+            "command"
+          ],
+          "zone": "groundArena",
+          "name": "Leia Organa",
+          "power": 3,
+          "hp": 6,
+          "type": "nonTokenLeaderUnit",
+          "uuid": "Card-leia-organa#alliance-general-2",
+          "printedType": "leader",
+          "isBlanked": false,
+          "selectable": false,
+          "exhausted": false,
+          "damage": 0,
+          "sentinel": false,
+          "cannotBeAttacked": false,
+          "isAttacker": false,
+          "isDefender": false,
+          "epicDeployActionSpent": true
+        }
+      ],
+      "base": {
+        "id": "5662039114",
+        "setId": {
+          "set": "SHD",
+          "number": 22
+        },
+        "controllerId": "222",
+        "ownerId": "222",
+        "aspects": [
+          "command"
+        ],
+        "zone": "base",
+        "name": "Nevarro City",
+        "hp": 30,
+        "type": "base",
+        "uuid": "Card-nevarro-city-2",
+        "printedType": "base",
+        "isBlanked": false,
+        "selectable": false,
+        "damage": 7,
+        "epicActionSpent": false,
+        "isDefender": false,
+        "upgrades": []
+      },
+      "id": "222",
+      "left": false,
+      "name": "player2",
+      "phase": "action",
+      "promptedActionWindows": {
+        "setup": true,
+        "action": true,
+        "regroup": true
+      },
+      "user": {
+        "blockList": [],
+        "settings": {
+          "optionSettings": {
+            "autoSingleTarget": false
+          }
+        },
+        "promptedActionWindows": {
+          "setup": true,
+          "action": true,
+          "regroup": true
+        },
+        "id": "222",
+        "username": "player2"
+      },
+      "promptState": {},
+      "isActionPhaseActivePlayer": false,
+      "aspects": [
+        "heroism",
+        "command",
+        "command"
+      ],
+      "forceToken": {
+        "active": false
+      },
+      "credits": [],
+      "mainTimeRemainingSeconds": 120,
+      "timeRemainingStatus": "NoAlert",
+      "timerIsRunning": false,
+      "numCardsInDeck": 8
+    }
+  },
+  "phase": "action",
+  "initiativeClaimed": false,
+  "clientUIProperties": {},
+  "spectators": [],
+  "started": true,
+  "format": "premier",
+  "winners": [],
+  "undoEnabled": false,
+  "ongoingEffects": [],
+  "newAnimations": [],
+  "animationOffset": 0,
+  "totalAnimations": 0,
+  "animationEpoch": 0,
+  "animationsTruncated": false
+}

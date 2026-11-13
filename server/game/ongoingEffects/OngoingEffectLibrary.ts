@@ -24,6 +24,7 @@ import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
+import type { IRegroupReadyLimitProperties } from '../core/ongoingEffect/effectImpl/RegroupReadyLimit';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { IPlayPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayPermission';
 import { PlayPermissionHelpers } from '../core/ongoingEffect/effectImpl/PlayPermission';
@@ -110,6 +111,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     cannotAttack: () => OngoingEffectBuilder.card.static(EffectName.CannotAttack),
     dealsCombatDamageFirst: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageFirst),
+    dealsCombatDamageLast: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageLast),
     cardCannot,
     playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
@@ -160,6 +162,7 @@ export = {
     loseAllAbilitiesExceptFromSource: () => OngoingEffectBuilder.card.static(EffectName.BlankExceptFromSourceCard),
     loseKeyword: (keywordOrKeywords: KeywordName | KeywordName[]) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keywordOrKeywords),
     loseAllKeywords: () => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, Object.values(KeywordName)),
+    loseAllWhenDefeatedAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseWhenDefeatedAbilities),
     overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
@@ -195,7 +198,7 @@ export = {
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
-    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
+    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyStartingHandSize, modifier),
     modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
         switch (typeof modifier) {
             case 'function':
@@ -318,6 +321,11 @@ export = {
     canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
     doubleDeckSearchCount: () => OngoingEffectBuilder.player.static(EffectName.DoubleDeckSearchCount, true),
     drawAdditionalCardsInRegroup: (amount: number) => OngoingEffectBuilder.player.static(EffectName.DrawAdditionalCardsInRegroup, amount),
+    limitReadyDuringRegroup: (properties: IRegroupReadyLimitProperties) =>
+        OngoingEffectBuilder.player.static(
+            EffectName.LimitReadyDuringRegroup,
+            (game) => new OngoingEffectValueWrapper(game, properties, 'limit readying during the regroup phase')
+        ),
     // playerCannot: (properties) =>
     //     OngoingEffectBuilder.player.static(
     //         EffectName.AbilityRestrictions,

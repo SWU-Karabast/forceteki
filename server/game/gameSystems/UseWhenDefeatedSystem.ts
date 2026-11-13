@@ -93,12 +93,12 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
                 return false;
             }
 
-            if (!card.canRegisterTriggeredAbilities() || !card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated)) {
+            if (!card.canRegisterTriggeredAbilities() || card.getWhenDefeatedAbilities().length === 0) {
                 return false;
             }
 
             if (mustChangeGameState !== GameStateChangeRequired.None) {
-                return card.getTriggeredAbilities().some((ability) => {
+                return card.getWhenDefeatedAbilities().some((ability) => {
                     const whenDefeatedEvent = new DefeatCardSystem({ target: card }).generateEvent(context, {}, true);
                     const abilityContext = ability.createContext(context.player, whenDefeatedEvent);
                     abilityContext.stage = Stage.PreTarget;
@@ -135,6 +135,6 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         event.onDefeatEvent = this.getOnDefeatEvent(resolvedAbilityEvent);
         event.resolvedAbility = (resolvedAbilityEvent as any)?.ability;
         event.whenDefeatedSource = card;
-        event.whenDefeatedAbilities = card.canRegisterTriggeredAbilities() ? card.getTriggeredAbilities().filter((ability) => ability.isWhenDefeated) : [];
+        event.whenDefeatedAbilities = card.canRegisterTriggeredAbilities() ? card.getWhenDefeatedAbilities() : [];
     }
 }
