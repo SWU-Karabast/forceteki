@@ -385,8 +385,9 @@
 - Internal name: `chandrilan-sponsor`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 044 - Populist Champion
 
@@ -435,8 +436,9 @@
 - Internal name: `jade-squadron-patrol`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 050 - Vigil - Securing the Future
 
@@ -504,16 +506,18 @@
 - Internal name: `lobot#cloud-city-coordinator`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Grit (This unit gets +1/+0 for each damage on him.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 058 - Lost Jedi
 
 - Internal name: `lost-jedi`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 059 - Senate Warden
 
@@ -528,8 +532,9 @@
 - Internal name: `defense-fleet-xwing`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 061 - Willrow Hood - On the Run
 
@@ -576,8 +581,9 @@
 - Internal name: `alderaanian-envoys`
 - Type: Unit
 - Text: Restore 3 (When this unit attacks, heal 3 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 067 - Umbaran Mobile Cannon
 
@@ -740,8 +746,9 @@
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 087 - Dedra Meero - With Verifiable Data
 
@@ -973,8 +980,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 114 - Kino Loy - You Answer to Me
 
@@ -1005,8 +1013,9 @@
 - Internal name: `consulars-cruiser`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 118 - Raxian Assembly
 
@@ -1038,8 +1047,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 122 - Vuutun Palaa - Droid Control Ship
 
@@ -1178,8 +1188,9 @@
 - Internal name: `enforcer-squadron`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 139 - Miraj Scintel - The Weak Deserve to Kneel
 
@@ -1244,8 +1255,9 @@
 - Internal name: `rebellious-functionary`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 147 - Chopper - War Hero
 
@@ -1360,8 +1372,9 @@
 - Internal name: `reckless-rebel`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 161 - Contraband Starhopper
 
@@ -1409,8 +1422,9 @@
 - Internal name: `republic-aurek-starfighter`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 167 - Coruscant Undercity Police
 
@@ -1468,8 +1482,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 174 - Saw Gerrera's U-Wing - Breaking the Rules
 
@@ -1686,8 +1701,9 @@
 - Internal name: `bravo-squadron-fighter`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 200 - Junior Senator
 
@@ -1806,8 +1822,9 @@
 - Internal name: `awing`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 214 - Skyhopper Canyon Runner
 
@@ -1838,8 +1855,9 @@
 - Internal name: `zenuas-shadow-fighter`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 218 - Cikatro Vizago - Business is What Matters
 
@@ -1881,8 +1899,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Raid 1 (This unit gets +1/+0 while attacking.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 223 - Duchess's Investigators
 
@@ -2014,8 +2033,9 @@
 - Internal name: `sith-assassin`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 239 - Viper Probe Droid
 
@@ -2112,8 +2132,9 @@
 - Internal name: `rebel-pathfinder`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 251 - Crait Veteran
 
@@ -2185,8 +2206,9 @@
 - Internal name: `asp-laborer`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 260 - Inspector's Shuttle
 
@@ -2210,8 +2232,9 @@
 - Internal name: `ando-commission`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 263 - Assassin Probe
 
@@ -2236,6 +2259,7 @@
 - Internal name: `spy`
 - Type: Token, Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 

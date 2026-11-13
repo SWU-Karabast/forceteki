@@ -24,16 +24,18 @@
 - Internal name: `chewbacca#rrruuuurrr`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 004 - Rogue Squadron Speeder
 
 - Internal name: `rogue-squadron-speeder`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 005 - I'll Cover For You
 
@@ -113,8 +115,9 @@
 - Internal name: `bright-hope#narrow-escape`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 015 - Tauntaun Mount
 
@@ -250,8 +253,9 @@
 - Internal name: `lambda-shuttle`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 059 - Target the Main Generator
 
@@ -322,16 +326,18 @@
 - Internal name: `eweb-gunner`
 - Type: Unit
 - Text: Raid 4 (This unit gets +4/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 070 - Blizzard Force AT-ST
 
 - Internal name: `blizzard-force-atst`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 072 - Avenger - Hunting the Rebels
 
@@ -370,16 +376,18 @@
 - Internal name: `surface-assault-bomber`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 079 - Death Squadron Star Destroyer
 
 - Internal name: `death-squadron-star-destroyer`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 082 - Admiral Ozzel - As Clumsy as He Is Stupid
 

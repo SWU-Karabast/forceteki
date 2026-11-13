@@ -47,21 +47,26 @@ const RULES = [
     ['ENEMY-UNIT', /\benemy (?:non-leader |ground |space |token )?units?\b|\beach enemy\b/i],
     ['COMPARE', /\b(?:more|fewer|less) [^.|]{0,40}than\b|\bthe most\b|\bfewest\b|\bhas the most\b|\bmost power\b/i],
     ['CONTROL', /take control|gain control|takes control|give control/i],
-    ['INITIATIVE', /initiative|blast counter|plan counter/i],
-    ['TWO-LEADER', /\bleaders?\b/i]
+    ['INITIATIVE', /initiative|blast counter|plan counter/i]
+    // TWO-LEADER is intentionally never suggested: a keyword hit on "leader" is almost always wrong,
+    // so the reviewer must select it by hand.
 ];
 
-function suggest(texts, type) {
-    const t = texts.join(' | ');
-    const out = [];
-    for (const [id, re] of RULES) {
-        if (id === 'TWO-LEADER' && type === 'Leader') {
-            continue;
-        }
-        if (re.test(t)) {
-            out.push(id);
-        }
-    }
+// Text in parentheses is reminder/helper text, not rules text, so it is ignored when suggesting tags
+// (it is still shown on the card). Nested parentheses are removed from the inside out.
+function stripParenthetical(text) {
+    let prev;
+    let out = text;
+    do {
+        prev = out;
+        out = out.replace(/\([^()]*\)/g, ' ');
+    } while (out !== prev);
+    return out.replace(/\s+/g, ' ').trim();
+}
+
+function suggest(texts) {
+    const t = texts.map(stripParenthetical).join(' | ');
+    const out = RULES.filter(([, re]) => re.test(t)).map(([id]) => id);
     return out.length ? out : ['NONE'];
 }
 
@@ -72,7 +77,7 @@ const KEYWORDS_ONLY = new RegExp(String.raw`^(?:(?:${KEYWORDS})[\s,]*)+$`, 'i');
 function isKeywordOnly(fields) {
     const texts = fields.filter(([l]) => l !== 'Rules').map(([, v]) => v);
     return texts.length > 0 && texts.every((t) => {
-        const stripped = t.replace(/\([^()]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+        const stripped = stripParenthetical(t);
         return stripped && KEYWORDS_ONLY.test(stripped);
     });
 }
@@ -126,7 +131,7 @@ function loadCards() {
             cards.push({
                 dir, set, num: m ? m[1] : '', name: m ? m[2] : lines[0], internalName, type, fields, status,
                 saved: { tags: parseTagsLine(get('Multiplayer tests')), note: get('Test notes') || '' },
-                suggested: noText ? ['NONE'] : suggest(fields.filter(([l]) => l !== 'Rules').map(([, v]) => v), type),
+                suggested: noText ? ['NONE'] : suggest(fields.filter(([l]) => l !== 'Rules').map(([, v]) => v)),
                 suggestedSource: noText ? 'no card text' : 'keyword scan'
             });
         }

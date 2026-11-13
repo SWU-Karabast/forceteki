@@ -457,8 +457,9 @@
 - Internal name: `mae#kill-the-dream`
 - Type: Unit
 - Text: Ambush Shielded Grit
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 056 - Yoda - Trickster in Exile
 
@@ -569,8 +570,9 @@
 - Internal name: `imperial-venator`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 070 - Dark Sanctum
 
@@ -617,16 +619,18 @@
 - Internal name: `wookiee-protector`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 076 - Yanna - Sanctuary Elder
 
 - Internal name: `yanna#sanctuary-elder`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on her.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 077 - Boss Nass - Otoh Gunga Boss
 
@@ -729,8 +733,9 @@
 - Internal name: `territorial-mudhorn`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 090 - Opee Sea Killer
 
@@ -865,8 +870,9 @@
 - Internal name: `secessionist-convert`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 107 - Stormtrooper Patrol
 
@@ -977,8 +983,9 @@
 - Internal name: `auzituck-avenger`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.) Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 121 - Hijacked AT-ST
 
@@ -1073,8 +1080,9 @@
 - Internal name: `tibidee-mate`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 133 - Wroshyr Rebel
 
@@ -1129,16 +1137,18 @@
 - Internal name: `flock-of-mynocks`
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 140 - Assault Frigate
 
 - Internal name: `assault-frigate`
 - Type: Unit
 - Text: Raid 4 (This unit gets +4/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 141 - Rex - Outserved His Purpose
 
@@ -1161,8 +1171,9 @@
 - Internal name: `banking-clan-warship`
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 144 - Howler Pack
 
@@ -1185,8 +1196,9 @@
 - Internal name: `outer-rim-garrison`
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 147 - Beast Lair
 
@@ -1273,8 +1285,9 @@
 - Internal name: `corpo-thugs`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 158 - Battle-Scarred Destroyer
 
@@ -1353,8 +1366,9 @@
 - Internal name: `dune-sea-nomads`
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 168 - Ezra Bridger - What Are You Afraid Of?
 
@@ -1417,8 +1431,9 @@
 - Internal name: `fennec-shand#a-ship-for-a-life`
 - Type: Unit
 - Text: Raid 2 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 176 - Village Troublemaker
 
@@ -1449,8 +1464,9 @@
 - Internal name: `feisty-blurrg`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 180 - Stormchaser
 
@@ -1465,8 +1481,9 @@
 - Internal name: `tusken-bantha-rider`
 - Type: Unit
 - Text: Raid 4 (This unit gets +4/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 182 - Arena Nexu - Starved for Prey
 
@@ -1481,8 +1498,9 @@
 - Internal name: `nightsister-prodigy`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 184 - Aggrocrab
 
@@ -1513,8 +1531,9 @@
 - Internal name: `dathomiri-rancor`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 188 - Giant Gorax
 
@@ -1601,8 +1620,9 @@
 - Internal name: `treacherous-pyke`
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 199 - Geonosian Picador
 
@@ -1625,8 +1645,9 @@
 - Internal name: `sandtrooper-squad`
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 202 - Inferno Squad - We Can Grieve Later
 
@@ -1721,8 +1742,9 @@
 - Internal name: `tribubble-bongo-sub`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.) Raid 3 (This unit gets +3/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 214 - Phee Genoa - Liberator of Ancient Wonders
 
@@ -1777,8 +1799,9 @@
 - Internal name: `clever-trapper`
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 221 - Teeka - You're in Luck
 
@@ -1809,8 +1832,9 @@
 - Internal name: `tusken-raider`
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 225 - Boba Fett - Family Found
 
@@ -1825,16 +1849,18 @@
 - Internal name: `gungan-battle-wagon`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 227 - Horizon Chaser
 
 - Internal name: `horizon-chaser`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 228 - Lakeside Shaaks
 
@@ -1849,8 +1875,9 @@
 - Internal name: `lurking-wampa`
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 230 - Raiding Party
 
@@ -1969,8 +1996,9 @@
 - Internal name: `trandoshan-collaborator`
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 246 - Pyke Sarisa
 
@@ -2041,8 +2069,9 @@
 - Internal name: `captain-tarpals#grand-army-captain`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to him.) Raid 2 (This unit gets +2/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 255 - C-3PO - Captivating Storyteller
 
@@ -2161,8 +2190,9 @@
 - Internal name: `friendly-eopie`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 270 - Wild Space Wanderer
 

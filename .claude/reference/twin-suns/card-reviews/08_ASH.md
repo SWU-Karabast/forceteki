@@ -266,8 +266,9 @@
 - Type: Unit
 - Text: Sentinel Shielded Overwhelm
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 030 - Marrok - Mysterious Warrior
 
@@ -431,8 +432,9 @@
 - Internal name: `imperial-armored-commando`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 049 - Shin Hati - Going Somewhere?
 
@@ -602,8 +604,9 @@
 - Internal name: `noti-nomad`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 070 - At Attin Safety Droid
 
@@ -659,8 +662,9 @@
 - Internal name: `remnant-official`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 077 - Ryder Azadi - Restored Governor
 
@@ -824,8 +828,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 097 - Moff Gideon - Remnant Commander
 
@@ -912,8 +917,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 107 - Clan Wren Loyalist
 
@@ -1007,8 +1013,9 @@
 - Internal name: `outland-protector`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 118 - 8D8 - Daimyo's Majordomo
 
@@ -1075,8 +1082,9 @@
 - Internal name: `survivors-langskib`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 127 - The Twins - We Don't Want War
 
@@ -1100,8 +1108,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 130 - Fang Fighter Squadron
 
@@ -1200,8 +1209,9 @@
 - Internal name: `tie-striker`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 142 - Mortar Trooper
 
@@ -1218,8 +1228,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 144 - Vane's Snub Fighter - Brash and Proud
 
@@ -1235,8 +1246,9 @@
 - Internal name: `praetorian-elite`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 146 - Justifier - Relentless
 
@@ -1389,8 +1401,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 165 - Clan Vizsla Soldier
 
@@ -1406,8 +1419,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 167 - Flarestar Attack Shuttle
 
@@ -1463,8 +1477,9 @@
 - Internal name: `shydopp-pirate-skiff`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 174 - StarFortress Heavy Bomber
 
@@ -1479,8 +1494,9 @@
 - Internal name: `wookiee-chieftain`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 176 - Imposing Scout Walker
 
@@ -1626,16 +1642,18 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, she may attack an enemy unit.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 193 - Emperor's Champion
 
 - Internal name: `emperors-champion`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 194 - Snub Fighter Squadron
 
@@ -1803,8 +1821,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 214 - Amnesty Officer
 
@@ -1902,8 +1921,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 226 - Qi'ra - Master of Teräs Käsi
 
@@ -2022,8 +2042,9 @@
 - Internal name: `imperial-loyalist`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 240 - Mandalorian Super Commandos
 
@@ -2064,8 +2085,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 245 - Eye of Sion - Delivered from Exile
 
@@ -2109,8 +2131,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 250 - Imperial Defector
 
@@ -2133,8 +2156,9 @@
 - Internal name: `n5-sentry-droid`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 253 - Yellow Aces Bomber
 
@@ -2167,8 +2191,9 @@
 - Internal name: `rebel-infiltrators`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 257 - Choose Your Path
 
@@ -2258,6 +2283,7 @@
 - Internal name: `mandalorian`
 - Type: Token, Unit
 - Text: Shielded (When you create this token, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 

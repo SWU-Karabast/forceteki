@@ -283,8 +283,9 @@
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
 - Rules: Any ability whose trigger starts with "When defeated…" or includes "When Defeated" is considered a "When Defeated" ability. Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 035 - Tam Ryvora - Searching For Purpose
 
@@ -300,8 +301,9 @@
 - Type: Unit
 - Text: Shielded
 - Rules: Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 037 - Banshee - Crippling Command
 
@@ -378,8 +380,9 @@
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
 - Rules: Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 046 - Paige Tico - Dropping the Hammer
 
@@ -488,8 +491,9 @@
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
 - Rules: Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 059 - Corporate Defense Shuttle
 
@@ -512,8 +516,9 @@
 - Internal name: `royal-security-fighter`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 062 - Silver Angel - Trace's Hope
 
@@ -536,16 +541,18 @@
 - Internal name: `omicron-strike-craft`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 065 - Outer Rim Outlaws
 
 - Internal name: `outer-rim-outlaws`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 066 - Trace Martez - Trusting Sister
 
@@ -568,8 +575,9 @@
 - Internal name: `perimeter-atrt`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 069 - Munificent Frigate
 
@@ -921,8 +929,9 @@
 - Internal name: `scouting-headhunter`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 111 - Seasoned Fleet Admiral
 
@@ -938,8 +947,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 113 - Homestead Militia
 
@@ -954,8 +964,9 @@
 - Internal name: `adept-arc170`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 115 - Clone Combat Squadron
 
@@ -988,8 +999,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.) Raid 1 (This unit gets +1/+0 while attacking.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 119 - Resupply Carrier
 
@@ -1391,16 +1403,18 @@
 - Internal name: `orbiting-kwing`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 167 - Occupier Siege Tank
 
 - Internal name: `occupier-siege-tank`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 168 - Insurgent Saboteurs
 
@@ -1543,8 +1557,9 @@
 - Internal name: `contracted-jumpmaster`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 185 - Hound's Tooth - Reliable and Deadly
 
@@ -1587,16 +1602,18 @@
 - Type: Unit
 - Text: Shielded
 - Rules: Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 190 - Techno Union Transport
 
 - Internal name: `techno-union-transport`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 191 - Invincible - Naval Adversary
 
@@ -1707,8 +1724,9 @@
 - Type: Unit
 - Text: Ambush
 - Rules: Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either. Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready. Units must be ready in order to attack. “Combat damage” is only the damage dealt during the “deal combat damage” step of an attack. If the Millennium Falcon piloted by Han deals combat damage first, and the defender is defeated by that damage, it does not deal combat damage back. If it survives and has Grit, it deals bonus damage from Grit when dealing combat damage back. (ERRATA) Templating update: “Defender” becomes “defending unit”.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 204 - Home One - On My Mark
 
@@ -1776,8 +1794,9 @@
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
 - Rules: Pilots are considered units while not in play. If you use a "play a unit" ability, you may only play a Pilot as a unit. If you use a "play an upgrade" ability, you may only play a Pilot as an upgrade. If you use a "play a card" ability, you may do either.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 212 - Republic Y-Wing
 
@@ -1802,8 +1821,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 215 - BoShek - Charismatic Smuggler
 
@@ -1888,8 +1908,9 @@
 - Internal name: `shadowed-hover-tank`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 225 - Corporate Light Cruiser
 
@@ -1897,8 +1918,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Raid 1 (This unit gets +1/+0 while attacking.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 226 - Radiant VII - Ambassadors' Arrival
 
@@ -2035,8 +2057,9 @@
 - Internal name: `rogueclass-starfighter`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 242 - Shuttle ST-149 - Under Krennic's Authority
 
@@ -2174,8 +2197,9 @@
 - Internal name: `corellian-freighter`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 259 - Retrofitted Airspeeder
 

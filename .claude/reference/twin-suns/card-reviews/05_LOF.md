@@ -288,8 +288,9 @@
 - Internal name: `magistrates-scout`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 033 - Nameless Terror
 
@@ -305,8 +306,9 @@
 - Internal name: `supremacy-tiesf`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 035 - Talzin's Assassin
 
@@ -529,8 +531,9 @@
 - Internal name: `secretive-sage`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 062 - Axe Woves - Accomplished Warrior
 
@@ -598,8 +601,9 @@
 - Internal name: `graceful-purrgil`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 070 - Anakin Skywalker - Champion of Mortis
 
@@ -691,8 +695,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 081 - Sith Legionnaire
 
@@ -760,8 +765,9 @@
 - Type: Unit
 - Text: Hidden Ambush Overwhelm Restore 1
 - Rules: Ambush is an ability that triggers at the same time as "When Played" abilities. If there is no enemy unit that can be attacked, the unit does not ready. If a unit has Hidden and Sentinel at the same time, it can be attacked. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 089 - Supremacy - Of Unimaginable Size
 
@@ -919,8 +925,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 108 - Malakili - Loving Rancor Keeper
 
@@ -937,16 +944,18 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 110 - Hive Defense Wing
 
 - Internal name: `hive-defense-wing`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 111 - Maz Kanata - The Light Guides
 
@@ -971,8 +980,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Restore 2 (When this unit attacks, heal 2 damage from your base.)
 - Rules: Ambush is an ability that triggers at the same time as "When Played" abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 114 - Kaadu
 
@@ -997,8 +1007,9 @@
 - Internal name: `relic-scavenger`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 117 - Sifo-Dyas - Commissioning An Army
 
@@ -1032,8 +1043,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 121 - The Purrgil King - Leading The Journey
 
@@ -1127,8 +1139,9 @@
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 132 - Grand Inquisitor - You're Right to Be Afraid
 
@@ -1168,8 +1181,9 @@
 - Internal name: `thralls-of-the-coven`
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 137 - Savage Opress - Imbued With Hate
 
@@ -1228,8 +1242,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 144 - Jedi Starfighter
 
@@ -1320,8 +1335,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 155 - DRK-1 Probe Droid
 
@@ -1345,8 +1361,9 @@
 - Internal name: `cartel-interceptor`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 158 - Hyena Bomber
 
@@ -1379,8 +1396,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 162 - Hunting Nexu
 
@@ -1405,8 +1423,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 165 - Asajj Ventress - Harden Your Heart
 
@@ -1533,8 +1552,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Raid 2 (This unit gets +2/+0 while attacking.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 180 - Deceptive Shade
 
@@ -1551,16 +1571,18 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 182 - Nihil Marauder
 
 - Internal name: `nihil-marauder`
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 183 - Shin Hati - Overeager Apprentice
 
@@ -1568,8 +1590,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Shielded (When you play this unit, give a Shield token to her.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 184 - Second Sister - Seeking the Holocron
 
@@ -1629,8 +1652,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Shielded (When you play this unit, give a Shield token to him.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 191 - BD-1 - Beep Boo Boo Bweep
 
@@ -1704,8 +1728,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, she may attack an enemy unit.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
 - Rules: Ambush is an ability that triggers at the same time as "When Played" abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 200 - Qui-Gon Jinn - The Negotiations Will Be Short
 
@@ -1783,8 +1808,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as "When Played" abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 209 - Tusken Tracker
 
@@ -1801,8 +1827,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: Ambush is an ability that triggers at the same time as "When Played" abilities. If there is no enemy unit that can be attacked, the unit does not ready. If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 211 - Dooku - It Is Too Late
 
@@ -1835,8 +1862,9 @@
 - Internal name: `sorcerers-of-tund`
 - Type: Unit
 - Text: Shielded (When you play this card, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 215 - Ascension Cable
 
@@ -1955,8 +1983,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Raid 1 (This unit gets +1/+0 while attacking.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 229 - Kylo Ren - I Know Your Story
 
@@ -1989,8 +2018,9 @@
 - Internal name: `sandtrooper-cavalry`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 233 - Scimitar - Sith Infiltrator
 
@@ -2097,8 +2127,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 246 - Grogu - Mysterious Child
 
@@ -2114,8 +2145,9 @@
 - Internal name: `gungan-warrior`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 248 - Jocasta Nu - The Gift of Knowledge
 
@@ -2147,8 +2179,9 @@
 - Internal name: `blue-squadron-assault-wing`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 252 - The Daughter - Embodiment of Light
 
@@ -2163,8 +2196,9 @@
 - Internal name: `longbeam-cruiser`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 254 - Porg
 
@@ -2197,8 +2231,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as "When Played" abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 258 - Peli Motto - I Should Charge You More
 

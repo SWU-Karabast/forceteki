@@ -350,8 +350,9 @@
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 039 - Latts Razzi - Deadly Whipmaster
 
@@ -385,8 +386,9 @@
 - Internal name: `ig88#programmed-to-kill`
 - Type: Unit
 - Text: Shielded
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 043 - Shadow Cloaking
 
@@ -443,16 +445,18 @@
 - Internal name: `bith-brute`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 050 - Honnah - OINK! SQUEE!
 
 - Internal name: `honnah#oink-squee`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.) Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 051 - Beilert Valance - Target: Vader
 
@@ -534,8 +538,9 @@
 - Internal name: `quarren-contractor`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 061 - Asajj Ventress - Reluctant Hunter
 
@@ -619,8 +624,9 @@
 - Internal name: `devaronian-doorbuster`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 071 - The Max Rebo Band - Jatz-Wailers
 
@@ -714,8 +720,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 082 - Urrr'k - Elite Sharpshooter
 
@@ -723,8 +730,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if she was played this phase.) Raid 4 (This unit gets +4/+0 while attacking.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 083 - Broken Horn - Vizago's Pride
 
@@ -793,8 +801,9 @@
 - Internal name: `toydarian-technician`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.) Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 091 - Val - It's Been a Ride, Babe
 
@@ -878,8 +887,9 @@
 - Internal name: `igv55-listener`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 101 - Lawbringer - Shadow Over Lothal
 
@@ -993,8 +1003,9 @@
 - Internal name: `alkenzi-patroller`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 115 - Rickety Quadjumper
 
@@ -1025,8 +1036,9 @@
 - Internal name: `droid-laser-turret`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 119 - Rogue One - At Any Cost
 
@@ -1041,8 +1053,9 @@
 - Internal name: `vigilant-scouts`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 121 - Canto Bight Security
 
@@ -1058,16 +1071,18 @@
 - Internal name: `shielded-hauler`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 123 - Syndicate Security
 
 - Internal name: `syndicate-security`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 124 - Industrious Team
 
@@ -1166,8 +1181,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 136 - Syndicate Spice Runner
 
@@ -1317,16 +1333,18 @@
 - Internal name: `follower-of-the-code`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 154 - Partisan Infantry
 
 - Internal name: `partisan-infantry`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 155 - Getaway Freighter
 
@@ -1377,8 +1395,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 161 - Partisan U-Wing
 
@@ -1394,8 +1413,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 163 - The Sarlacc of Carkoon - Horror of the Dune Sea
 
@@ -1478,8 +1498,9 @@
 - Internal name: `storm-raider`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 173 - BT-1 - Blastomech
 
@@ -1520,8 +1541,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 178 - Persecutor - Fire Over Scarif
 
@@ -1610,8 +1632,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 189 - Cavern Angels X-Wing
 
@@ -1626,8 +1649,9 @@
 - Internal name: `haxion-aggressor`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 191 - Arvel Skeen - Win and Walk Away
 
@@ -1677,8 +1701,9 @@
 - Internal name: `relentless-hunters`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 197 - Shifty Suspects
 
@@ -1701,8 +1726,9 @@
 - Internal name: `ohnaka-gang-bandits`
 - Type: Unit
 - Text: Raid 3 (This unit gets +3/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 200 - Salvaged Blaster
 
@@ -1786,8 +1812,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 210 - Salacious Crumb - Cackling Companion
 
@@ -1802,8 +1829,9 @@
 - Internal name: `black-sun-patroller`
 - Type: Unit
 - Text: Shielded (When you play this unit, give a Shield token to it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 212 - Malakili - Keeper of the Menagerie
 
@@ -1860,8 +1888,9 @@
 - Internal name: `artful-pickpocket`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 219 - Anakin's Podracer - So Wizard!
 
@@ -1878,8 +1907,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.) Raid 2 (This unit gets +2/+0 while attacking.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 221 - Lieutenant Gorn - I Deserve Worse
 
@@ -1894,8 +1924,9 @@
 - Internal name: `rebel-blockade-runner`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 223 - Rose Tico - Now It's Worth It
 
@@ -1961,8 +1992,9 @@
 - Internal name: `ohnaka-gang-starhopper`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 231 - Weequay Pirate
 
@@ -1994,8 +2026,9 @@
 - Internal name: `kage-elite`
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 235 - Lady Proxima - Where's the Money?
 
@@ -2035,8 +2068,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 240 - Milodon Rider
 
@@ -2127,16 +2161,18 @@
 - Internal name: `callous-bounty-hunter`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 251 - Night Wind Assailants
 
 - Internal name: `night-wind-assailants`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 252 - Fett's Firespray - In Pursuit
 
@@ -2160,8 +2196,9 @@
 - Internal name: `stalwart-fleet-trooper`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 255 - Circuit Challenger
 
@@ -2169,8 +2206,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. The unit does not have to be ready in order to attack.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 256 - Fire Across the Galaxy
 
@@ -2203,8 +2241,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 260 - Seasoned Tracker
 
@@ -2212,8 +2251,9 @@
 - Type: Unit
 - Text: Hidden (This unit can't be attacked if it was played this phase.)
 - Rules: If a unit has Hidden and Sentinel at the same time, it can be attacked.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 261 - Street Gang Recruiter
 
@@ -2237,8 +2277,9 @@
 - Internal name: `kessel-hulk`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 264 - From a Certain Point of View
 

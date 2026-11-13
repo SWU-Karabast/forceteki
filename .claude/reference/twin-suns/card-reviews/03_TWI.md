@@ -9,8 +9,8 @@
 - Text: Ignore the aspect penalty on Clone units you play.
 - Deployed: Ignore the aspect penalty on Clone units you play. Each friendly Clone unit gains: “When Defeated: Heal 2 damage from your base.”
 - Rules: If Nala Se is defeated simultaneously with other friendly units, all “When Defeated” abilities still trigger.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 002 - Nute Gunray - Vindictive Viceroy
 
@@ -19,8 +19,8 @@
 - Text: Action [Exhaust]: If 2 or more friendly units were defeated this phase, create a Battle Droid token.
 - Deployed: On Attack: Create a Battle Droid token.
 - Rules: Nute's leader ability still can be used as an action even if fewer than 2 friendly units were defeated this phase (but no Battle Droid token is created). (ERRATA) Templating update: "Aspect penalty" becomes "aspect penalties" when referring to multiple.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 003 - Obi-Wan Kenobi - Patient Mentor
 
@@ -29,8 +29,8 @@
 - Text: Action [Exhaust]: Heal 1 damage from a unit.
 - Deployed: Sentinel (Units in this arena can’t attack your non-Sentinel units or your base.) On Attack: Heal 1 damage from a unit. If you do, deal 1 damage to a different unit.
 - Rules: "A different unit" in Obi-Wan's unit side ability refers to a unit other than the one healed. Obi-Wan's unit side ability may be used to deal 1 damage to Obi-Wan.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 004 - Yoda - Sensing Darkness
 
@@ -39,8 +39,8 @@
 - Text: Action [Exhaust]: If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.
 - Deployed: Restore 2 When Deployed: You may discard a card from your deck. If you do, defeat an enemy non-leader unit that costs the same as or less than the discarded card.
 - Rules: Abilities that refer to a card's cost always refer to its printed cost, regardless of modifiers. Yoda's leader ability still can be used as an action even if no unit left play this phase (but you don't resolve any of the listed effects). Always discard from the top of a deck, unless an ability specifies otherwise.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT, COMPARE
+- Status: Reviewed
 
 ### 005 - Count Dooku - Face of the Confederacy
 
@@ -329,8 +329,9 @@
 - Internal name: `droideka-security`
 - Type: Unit
 - Text: Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.) Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 038 - Providence Destroyer
 
@@ -550,8 +551,9 @@
 - Internal name: `falchion-ion-tank`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 066 - Multi-Troop Transport
 
@@ -732,8 +734,9 @@
 - Internal name: `separatist-super-tank`
 - Type: Unit
 - Text: Exploit 3 (While playing this card, defeat up to 3 units you control. This card costs 2 resources less for each unit defeated this way.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 088 - Reprocess
 
@@ -783,8 +786,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 094 - Shaak Ti - Unity Wins Wars
 
@@ -907,8 +911,9 @@
 - Internal name: `ryloth-militia`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 109 - 501st Liberator
 
@@ -950,8 +955,9 @@
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.) Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 114 - Clone Commander Cody - Commanding the 212th
 
@@ -986,8 +992,9 @@
 - Type: Unit
 - Text: Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.) Ambush (When you play this unit, it may ready and attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 118 - Gor - Grievous's Pet
 
@@ -995,8 +1002,9 @@
 - Type: Unit
 - Text: Exploit 3 Sentinel Ambush Overwhelm
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 119 - Nameless Valor
 
@@ -1146,8 +1154,9 @@
 - Internal name: `squadron-of-vultures`
 - Type: Unit
 - Text: Exploit 3 (While playing this card, defeat up to 3 units you control. This card costs 2 resources less for each unit defeated this way.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 137 - Savage Opress - Monster
 
@@ -1188,8 +1197,9 @@
 - Internal name: `soldier-of-the-501st`
 - Type: Unit
 - Text: Raid 1 (This unit gets +1/+0 while attacking.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 142 - Anakin's Interceptor - Where the Fun Begins
 
@@ -1337,8 +1347,9 @@
 - Type: Unit
 - Text: Overwhelm (When attacking an enemy unit, deal excess damage to the opponent's base.)
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 160 - Vanguard Droid Bomber
 
@@ -1353,8 +1364,9 @@
 - Internal name: `bold-recon-commando`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 162 - Reckless Torrent
 
@@ -1525,8 +1537,9 @@
 - Internal name: `infiltrating-demolisher`
 - Type: Unit
 - Text: Exploit 1 (While playing this card, defeat up to 1 unit you control. This card costs 2 resources less for each unit defeated this way.) Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 183 - Rush Clovis - Banking Clan Scion
 
@@ -1736,8 +1749,9 @@
 - Internal name: `b1-security-team`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 208 - Favorable Delegate
 
@@ -1796,8 +1810,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may ready and attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 215 - Geonosis Patrol Fighter
 
@@ -1913,8 +1928,9 @@
 - Internal name: `droid-starfighter`
 - Type: Unit
 - Text: Saboteur (When this unit attacks, ignore Sentinel and defeat the defender's Shields.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 229 - Battle Droid Escort
 
@@ -1937,24 +1953,27 @@
 - Internal name: `dwarf-spider-droid`
 - Type: Unit
 - Text: Grit (This unit gets +1/+0 for each damage on it.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 232 - Patrolling AAT
 
 - Internal name: `patrolling-aat`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 233 - Hailfire Tank
 
 - Internal name: `hailfire-tank`
 - Type: Unit
 - Text: Exploit 2 (While playing this card, defeat up to 2 units you control. This card costs 2 resources less for each unit defeated this way.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 234 - The Invisible Hand - Imposing Flagship
 
@@ -2027,8 +2046,9 @@
 - Type: Unit
 - Text: Ambush (When you play this unit, it may ready and attack an enemy unit.)
 - Rules: Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 243 - Republic Commando
 
@@ -2043,16 +2063,18 @@
 - Internal name: `eta2-light-interceptor`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 245 - Armored Saber Tank
 
 - Internal name: `armored-saber-tank`
 - Type: Unit
 - Text: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Test notes: Keywords only (auto-marked)
+- Status: Finished
 
 ### 246 - Tranquility - Inspiring Flagship
 
