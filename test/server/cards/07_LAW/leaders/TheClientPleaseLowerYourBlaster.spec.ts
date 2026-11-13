@@ -245,13 +245,34 @@ describe('The Client, Please Lower Your Blaster', function() {
 
             // Ruling 2026-05-06: the controller of the ability that creates a token is responsible for
             // creating it, UNLESS the ability specifies another player's responsibility. So a token that
-            // an ability has the OPPONENT create (e.g. Vel Sartha: "An opponent creates a Credit token")
-            // does not count as The Client's controller having created a token this phase.
-            xit('does NOT trigger when an ability makes the opponent create the token (Vel Sartha)', function () {
-                pending('Not yet implemented');
-                // The Client's controller resolves an ability that says "An opponent creates a token"
-                // (e.g. Vel Sartha). Because the opponent is the one creating the token, The Client's
-                // "if you created a token this phase" condition is not met for its controller.
+            // an ability has the OPPONENT create (e.g. Jesse, Hard-Fighting Patriot: "An opponent creates
+            // 2 Battle Droid tokens") does not count as The Client's controller having created a token this phase.
+            it('does NOT trigger when an ability makes the opponent create the token (Jesse)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'the-client#please-lower-your-blaster', deployed: true },
+                        hand: ['jesse#hardfighting-patriot'],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+                const { context } = contextRef;
+
+                // Jesse's "when played" makes the opponent create 2 Battle Droid tokens
+                context.player1.clickCard(context.jesse);
+                const battleDroids = context.player2.findCardsByName('battle-droid');
+                expect(battleDroids.length).toBe(2);
+                expect(battleDroids).toAllBeInZone('groundArena', context.player2);
+
+                context.player2.claimInitiative();
+
+                // The Client's controller did not create a token this phase, so no trigger on attack
+                context.player1.clickCard(context.theClient);
+                context.player1.clickCard(context.p2Base);
+                expect(context.theClient.exhausted).toBeTrue();
+                expect(context.wampa.exhausted).toBeFalse();
             });
         });
     });

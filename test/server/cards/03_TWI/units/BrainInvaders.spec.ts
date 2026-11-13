@@ -671,12 +671,60 @@ describe('Brain Invaders', () => {
             // Ruling 2025-05-19: Brain Invaders cannot blank a currently-resolving ability. If JTL
             // Lando (Buying Time) uses his leader-side ability to play Brain Invaders, his ability has
             // already begun resolving, so it finishes in full and still gives the Shield token.
-            xit('does not prevent JTL Lando\'s leader ability from finishing (the Shield is still placed)', function () {
-                pending('Not yet implemented');
-                // JTL Lando (Buying Time) is undeployed (the Shield ability is on his leader side; the
-                // deployed side is a pilot upgrade), controlling both a ground and a space unit. He uses
-                // his leader-side action to play Brain Invaders from hand. Even though Brain Invaders
-                // blanks leaders on entry, Lando's already-resolving ability still gives a Shield token.
+            it('does not prevent JTL Lando\'s leader ability from finishing (the Shield is still placed)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lando-calrissian#buying-time',
+                        hand: ['brain-invaders'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Lando's leader-side action plays Brain Invaders from hand
+                context.player1.clickCard(context.landoCalrissian);
+                context.player1.clickPrompt('Play a unit from your hand. If you do and you control a ground unit and a space unit, give a Shield token to a unit');
+                context.player1.clickCard(context.brainInvaders);
+                expect(context.brainInvaders).toBeInZone('groundArena');
+
+                // Brain Invaders blanks Lando on entry, but his already-resolving ability still gives a Shield token
+                expect(context.landoCalrissian.isBlank()).toBeTrue();
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.brainInvaders]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            // Ruling 2025-05-19: same as above — Brain Invaders cannot blank a currently-resolving
+            // ability. Grievous's "Play 2 units" ability is still resolving when Brain Invaders enters
+            // play as the first unit, so the second unit can still be played.
+            it('does not prevent HMW Grievous\'s leader ability from finishing (the second unit is still played)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'general-grievous#separatist-warlord',
+                        hand: ['brain-invaders', 'battlefield-marine'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Grievous's leader-side action plays 2 units from hand, one at a time
+                context.player1.clickCard(context.generalGrievous);
+                context.player1.clickPrompt('Play 2 units from your hand');
+                context.player1.clickCard(context.brainInvaders);
+
+                // Brain Invaders blanks Grievous on entry, but his already-resolving ability still offers the second unit
+                expect(context.brainInvaders).toBeInZone('groundArena');
+                expect(context.generalGrievous.isBlank()).toBeTrue();
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                expect(context.generalGrievous.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
