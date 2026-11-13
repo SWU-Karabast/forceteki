@@ -3,7 +3,6 @@ import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
 import { Helpers } from '../utils/Helpers.js';
-import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
@@ -96,25 +95,23 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     public removeUnusedGameObjects() {
-        const removalUuids = new Set<string>();
-        const removalIndexes = new Set<number>();
+        this.retainReferencedGameObjects();
+    }
 
-        // Indexes in last to first for the purpose of removal.
-        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
-            const go = this.allGameObjects[i];
-
-            if (!go.hasRef) {
-                // If the GameObjectBase doesn't have a ref, it means it was never used in the game, so we can skip it.
-                removalIndexes.add(i);
-                removalUuids.add(go.uuid);
+    /** Keep registration order while pruning transient objects and optionally collecting snapshot state. */
+    private retainReferencedGameObjects(snapshotStates?: Record<string, IGameObjectBaseState>): void {
+        let retainedCount = 0;
+        for (const go of this.allGameObjects) {
+            if (go.hasRef) {
+                this.allGameObjects[retainedCount++] = go;
+                if (snapshotStates) {
+                    snapshotStates[go.uuid] = go.getStateUnsafe();
+                }
+            } else {
+                this.gameObjectMapping.delete(go.uuid);
             }
         }
-
-        this.allGameObjects = this.allGameObjects.filter((_, index) => !removalIndexes.has(index));
-
-        for (const removeUuid of removalUuids) {
-            this.gameObjectMapping.delete(removeUuid);
-        }
+        this.allGameObjects.length = retainedCount;
     }
 
     /**
@@ -134,10 +131,11 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     public buildGameStateForSnapshot(): Buffer {
-        this.removeUnusedGameObjects();
+        const states: Record<string, IGameObjectBaseState> = {};
+        this.retainReferencedGameObjects(states);
 
-        // Return the state of all game objects that are still in the game.
-        return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => item.getStateUnsafe()));
+        // Serialization still owns the deep copy; live state must never be retained by a snapshot.
+        return v8.serialize(states);
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
