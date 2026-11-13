@@ -9,7 +9,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class EnfysNestNoMore extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'enfys-nest#no-more-id',
+            id: '6849688480',
             internalName: 'enfys-nest#no-more',
         };
     }

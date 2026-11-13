@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class PoeDameronHeroOfTheResistance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'poe-dameron#hero-of-the-resistance-id',
+            id: '9667531439',
             internalName: 'poe-dameron#hero-of-the-resistance',
         };
     }

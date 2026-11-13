@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class MaceWinduDroppingBy extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mace-windu#dropping-by-id',
+            id: '9809711307',
             internalName: 'mace-windu#dropping-by',
         };
     }

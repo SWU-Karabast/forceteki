@@ -839,6 +839,17 @@ the profiler and the log format). They were added as areas 4, 5 and 13, and the 
 renumbered. Smaller items went into existing areas: lobby settings into core's remaining step c, SWUBase card metrics into
 stats, and the profanity filter into accounts and settings.
 
+### Merged with `main` (2026-11-13)
+
+`main` @ `6f8005d96` was merged into the game-timer branch. Its six conflicts came from #3152, the squash of core's steps d
+and e, whose commits the branch also carried; the branch's later versions were kept, and `TestClient` kept `main`'s new
+deck methods beside the game driver. `main` also brought specs written outside the plan, which were then evaluated against the suite's rules: #3168's
+sign-in specs and #3112's chat specs are in line (the client-contract guard in protocol surface now lists #3168's sign-in
+responses, and the accounts area a missing chat case); #3134's specs of saving and renaming a deck, adding a cosmetic,
+and the real `DynamoDBService` are sound but need headers, a shared fixture, a move, a typed client method, and to run
+against the fake as well. None was changed; the decks, cosmetics and database-layer areas say what each needs, and the
+fragility register lists their couplings. The counts were brought up to date. 868 → 945 non-game specs.
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)

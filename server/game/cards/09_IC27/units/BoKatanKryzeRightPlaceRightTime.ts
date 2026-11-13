@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BoKatanKryzeRightPlaceRightTime extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bokatan-kryze#right-place-right-time-id',
+            id: '0828881322',
             internalName: 'bokatan-kryze#right-place-right-time',
         };
     }

@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class VigilantDefense extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'vigilant-defense-id',
+            id: '1949461850',
             internalName: 'vigilant-defense',
         };
     }

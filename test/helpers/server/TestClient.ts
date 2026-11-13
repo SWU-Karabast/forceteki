@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import type { Response as SupertestResponse } from 'supertest';
 
 import type { PlayerTimeRemainingStatus } from '../../../server/game/core/actionTimer/IActionTimer';
@@ -281,6 +282,25 @@ export class TestClient {
     public async savePreferencesAsync(preferences: Record<string, unknown>): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.put('/api/user/preferences')).send({
             preferences,
+            ...this.identityFields(),
+        });
+    }
+
+    /**
+     * Saves a deck to the caller's account with the body the real client's `saveDeckToServer` sends: a deck
+     * entity carrying a client-made id and the caller's id, wrapped around the deck itself.
+     */
+    public async saveDeckAsync(deck: Record<string, unknown>): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.post('/api/save-deck')).send({
+            deck: { id: randomUUID(), userId: this.id, deck },
+            ...this.identityFields(),
+        });
+    }
+
+    /** Renames one of the caller's decks, as the real client's `updateDeckName` does. */
+    public async renameDeckAsync(deckId: string, newName: string): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.put(`/api/get-deck/${deckId}/rename`)).send({
+            newName,
             ...this.identityFields(),
         });
     }

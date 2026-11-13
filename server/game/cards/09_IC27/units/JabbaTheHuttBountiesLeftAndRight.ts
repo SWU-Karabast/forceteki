@@ -6,7 +6,7 @@ import { AbilityType, RelativePlayer, WildcardCardType, WildcardZoneName } from 
 export default class JabbaTheHuttBountiesLeftAndRight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jabba-the-hutt#bounties-left-and-right-id',
+            id: '1252725992',
             internalName: 'jabba-the-hutt#bounties-left-and-right',
         };
     }

@@ -6,7 +6,7 @@ import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 export default class TheGhostWhaleWatching extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-ghost#whale-watching-id',
+            id: '6105987112',
             internalName: 'the-ghost#whale-watching',
         };
     }

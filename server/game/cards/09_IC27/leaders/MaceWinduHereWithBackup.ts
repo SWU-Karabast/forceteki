@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class MaceWinduHereWithBackup extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mace-windu#here-with-backup-id',
+            id: '5193918770',
             internalName: 'mace-windu#here-with-backup',
         };
     }

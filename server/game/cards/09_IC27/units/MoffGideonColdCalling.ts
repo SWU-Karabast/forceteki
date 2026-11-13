@@ -10,7 +10,7 @@ export default class MoffGideonColdCalling extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'moff-gideon#cold-calling-id',
+            id: '2284519061',
             internalName: 'moff-gideon#cold-calling',
         };
     }

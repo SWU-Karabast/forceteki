@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DevastatorLordVadersFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'devastator#lord-vaders-flagship-id',
+            id: '7201656838',
             internalName: 'devastator#lord-vaders-flagship',
         };
     }

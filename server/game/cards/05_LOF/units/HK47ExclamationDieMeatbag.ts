@@ -19,7 +19,9 @@ export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
             when: {
                 onCardDefeated: (event, context) => {
                     const defeated = cardStates.getLastKnownProperties(event.cardRef);
-                    return defeated.isUnitCard() && defeated.controller !== context.player;
+                    return defeated.isUnitCard() &&
+                      defeated.isInPlay() &&
+                      defeated.controller !== context.player;
                 }
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({

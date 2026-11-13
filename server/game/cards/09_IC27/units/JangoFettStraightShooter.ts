@@ -6,7 +6,7 @@ import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class JangoFettStraightShooter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jango-fett#straight-shooter-id',
+            id: '1635708242',
             internalName: 'jango-fett#straight-shooter',
         };
     }

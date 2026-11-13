@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class CloneCommanderCodyLoyaltoTheRepublic extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'clone-commander-cody#loyal-to-the-republic-id',
+            id: '6942187067',
             internalName: 'clone-commander-cody#loyal-to-the-republic',
         };
     }

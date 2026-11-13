@@ -1,7 +1,7 @@
 # Game Node Test Suite
 
 Status: **in progress.** Phases 0–2.5 and the account-auth guards are merged to `main` and CI-gated (PRs #2934, #2961,
-#2950, #3021, #3117 and #3129). The remaining work is split by topic area (core server logic, game timers, stats and so on),
+#2950, #3021, #3117, #3129 and #3152). The remaining work is split by topic area (core server logic, game timers, stats and so on),
 each taken through the same five steps, from planning to an independent review. The core area, which gates the lobby /
 queue / connection refactor, is finished apart from four checklist rows held for security fixes. Game timers are done, apart from the client part of
 open finding #11.
@@ -23,11 +23,12 @@ register* · *CI structure* · *Open findings*.
 The connection layer (`GameServer`, `Lobby`, `QueueHandler`) has a working integration harness and a CI-gated suite. A spec
 starts a real `GameServer` in-process on a virtual clock, drives it through the same HTTP calls and socket handshake as
 `forceteki-client` (`TestClient`), and asserts on what the client receives and on what the fakes for the outside world
-(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-09 on `ammayberry1/gameserver-timer-tests` with the game-timer area done (Node 26.13):
+(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-13 on `ammayberry1/gameserver-timer-tests`, with the game-timer area done and `main` @ `6f8005d96`
+merged in (Node 26.13):
 
-- **868 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 3.0 s serial, and clean in three runs under
+- **945 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 3.0 s serial, and clean in three runs under
   `--parallel=4 --random=true`.
-- 9,246 game specs, so **10,114 in total**. The two configs partition the suite exactly (counted by loading each config with
+- 9,429 game specs, so **10,374 in total**. The two configs partition the suite exactly (counted by loading each config with
   every spec filtered out, so no spec body runs and the card suites are not executed). For reference, the figures were
   677 / 9,012 / 9,689 on 2026-11-01 and 404 / 8,971 / 9,375 before #3021: widening the non-game globs moved 28 specs
   (`DiscordDispatcher`, `usernameBlockMigration`, `DynamoDBInterfaceSchemas`) out of the game group, #3111 added most of
@@ -39,16 +40,17 @@ starts a real `GameServer` in-process on a virtual clock, drives it through the 
 where a socket is routed, lobbies and their life, the queue and matchmaking, reconnects and grace windows in a lobby and in
 a game, spectators, and shutdown; the action timer during a game (see [Game timers](#2-game-timers---done)); the
 anonymous-versus-logged-in rules (chat, reports, best-of-three and spectator gating);
-the command allowlist; stats-site token flows at handler level; and authentication and authorisation for logged-in accounts
+the command allowlist; stats-site token flows at handler level; saving and renaming a deck, and adding a cosmetic (specs from other work, still to be
+brought into line with the suite: see those areas); and authentication and authorisation for logged-in accounts
 (credential verification, account creation and login, account resolution and the server's profile cache, roles, service
 secrets, and a manifest that forces every HTTP route to declare who may call it). *Not covered:* the game-mode
 legal/illegal matrix (production does not validate it yet), stats payloads, the best-of-three and rematch flows,
-spectator flows beyond the connection, decks, and most moderation and account routes beyond who may call them. The
+spectator flows beyond the connection, most deck routes, and most moderation and account routes beyond who may call them. The
 [Roadmap](#roadmap) says where to begin.
 
 ### Core merges
 
-The work landed on `main` as six squash merges, so the branch commits named in the history document no longer exist as
+The work landed on `main` as seven squash merges, so the branch commits named in the history document no longer exist as
 separate commits.
 
 | PR | Commit | Merged | What it landed |
@@ -59,6 +61,7 @@ separate commits.
 | #3021 | `8ffb6130f0b126e681bfa40b08ff271ecb93c462` | 2026-10-17 | **Part 3.** The account-auth guards and suite guardrails: the fake DynamoDB and the scheduler seam on the DB-backed caches, harness options (`database`, `env`, `recordRoutes`), the auth specs and route-auth manifest, the spec-partition guard (`validate-specs`), helper hygiene, the `test/server/gamenode/` regrouping, the `as any` lint rule, "Writing a server spec" in `CLAUDE.md`, and the independent-review fixes. 58 files. |
 | #3117 | `c6c71e058f6434956ef76960180f2ffb720a5004` | 2026-11-05 | **Part 4.** The follow-up to #3111: the harness database on by default, account time on the virtual clock (an optional clock on `UserFactory`), `harness.databaseTaskCount`, a de-duplication spec whose requests really overlap, socket identity read from `lobbystate`, open finding #10, the legacy-moderation specs removed, and this document and `CLAUDE.md` brought up to date. 25 files. |
 | #3129 | `0746a81cbde9f9bb0c8e04d732436c31ca8ba454` | 2026-11-06 | **Part 5.** The core area's steps a to c: the scenario builders (`openLobbyAsync`, `createLobbyWithGuestAsync`, `startLiveGameAsync`, typed `TestClient` commands, chat accessors), the refactor-gate scenarios, the coupling clean-up (`hasNoPlaceAsync`), the readiness check, `FakeIoSocket`'s serialised emits, and the plan split by topic area. Core's steps d and e followed on `ammayberry1/gameserver-lobby-tests-6`. |
+| #3152 | `1a48579af0342991f307816c132537460b7e239b` | 2026-11-09 | **Part 6.** The core area's steps d and e: the fixes for open findings #6, #12, #13 and #14 with their specs, the dead code the coverage runs found, and the independent review's follow-up (`QueueConnections` and `TestScheduler` as their own files). The game-timer area followed on `ammayberry1/gameserver-timer-tests`. |
 
 **Also on `main`, from other contributors.** Before #3021: #2994 (disable reporting), #3001 (matchmaking preference and
 `SchedulerTaskScope`), #3011 (username moderation) and #3014 (command allowlists, anonymous-identity hardening, chat and report
@@ -217,7 +220,7 @@ sparsely documented, and it is the part we most want to restructure.
 When this project started we could not safely restructure it, because **there was no test coverage of
 any of it**: the card suite (~8,700 specs at the time) constructs a `Game` directly with a stub
 router and never touches `Lobby` or `GameServer`. That is no longer true — the connection layer now
-has its own 868-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
+has its own 945-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
 absent on stats, spectating, timers and decks), which the plan below tracks.
 
 This project builds the test suite first, so the refactor that follows has a safety net. The suite is
@@ -583,9 +586,11 @@ backward-compat spec for omitted fields the way the preference work does (`defau
   allowlists. This audit was done by hand on 2026-10-15 and found no gap (14 lobby + 8 game commands, including
   `reportScreenResolution` / `retransmitGameMessages`, which the FE sends as raw `emit('lobby', …)`, and `resetActionTimer`,
   which `onGameMessage` special-cases before the allowlist). For sign-in, it lists the HTTP sequence the FE runs and the
-  responses it branches on (`get-user`, a 401 with `code: 'ACCOUNT_NOT_FOUND'`, then `create-user` and `get-user` again) and
-  the handshake fields it sends (`auth.token`; `query.user` only when anonymous). #3111 and forceteki-client #875 changed
-  all three together and `TestClient` was updated by hand, so nothing would have flagged a half-made change. The manifest
+  responses it branches on (`get-user`, a 401 with `code: 'ACCOUNT_NOT_FOUND'`, then `create-user` and `get-user` again,
+  and since #3168 the 401 codes `EMAIL_NOT_VERIFIED` and `SIGN_IN_AGAIN`) and the handshake fields it sends (`auth.token`,
+  whose claims now include `emailVerified`; `query.user` only when anonymous). #3111 and forceteki-client #875 changed all
+  three together and `TestClient` was updated by hand, as #3168 and forceteki-client #892 did again with `AuthTokens`, so
+  nothing would have flagged a half-made change. The manifest
   needs a refresh step whenever the FE changes either surface; note that in the FE PR template.
 - **Positive coverage:** 2 of the 22 allowlisted commands are asserted as accepted. Add one routed-and-effective
   assertion per command (a parameterised spec over the exported sets, using typed `TestClient` commands — I-6),
@@ -612,14 +617,19 @@ How undo works through the server, as opposed to the engine's rules for which ro
 
 ### 5. The database layer — step a
 
-Every server spec runs over `FakeDynamoDbService`, which re-implements each `DynamoDBService` method rather than wrapping
-it. So nothing exercises the real service's item construction, keys, conditional writes, queries or paging, and nothing
-would notice the fake drifting from it. On the real side only `DynamoDBInterfaceSchemas` has specs.
+Server specs run over `FakeDynamoDbService`, which re-implements each `DynamoDBService` method rather than wrapping it.
+#3134 made a start on the real side: `DynamoDBService.spec.ts` checks how the service builds the items it writes, and how
+it reads decks, against a document client that records each command it is sent. The rest is this area's: the other reads,
+queries and paging, conditional writes beyond those, and whether the fake still matches the real service.
+
+- **Bringing `DynamoDBService.spec.ts` into line.** It was written before this area was planned, as a unit spec of the
+  real service alone. The contract suite should take it over: its expectations run against the fake as well, so the two
+  cannot drift; and its assertions on the exact commands sent (update expressions, placeholder names) are a coupling the
+  fragility register lists until step a decides which of them are the contract.
 
 - **A contract suite:** one set of specs per service method, run against both the fake and the real `DynamoDBService`, as
-  the socket.io drift guard does for the transport. Step a decides how the real one runs: with its document client
-  replaced by a stub that answers from in-memory tables and records each command (no network), or against DynamoDB Local
-  in CI.
+  the socket.io drift guard does for the transport. Step a decides how the real one runs: on #3134's recording document
+  client, extended to answer from in-memory tables (no network), or against DynamoDB Local in CI.
 - **Migrations:** the scripts in `scripts/migration` rewrite production data, and only `usernameBlockMigration` has a
   spec. Each gets one over the same set-up: what it changes, what it leaves alone, and that running it again changes
   nothing.
@@ -629,11 +639,21 @@ would notice the fake drifting from it. On the real side only `DynamoDBInterface
 
 ### 6. Decks — step a
 
-- **Deck tables in the fake DB** for `DeckService`. Until they exist, the deck routes' signed-in path answers 500 in the
-  suite. The stats area needs them too.
+- **The rest of the fake's deck tables** for `DeckService`. #3134 added the ones saving and renaming a deck use
+  (`saveDeckAsync`, `getDeckByLinkAsync`, `updateDeckNameAsync`); the other deck routes' signed-in paths still answer 500
+  in the suite. The stats area needs them too.
 - **I-3, the deck-fetcher seam** (see the backlog), which unblocks deck-link resolution.
-- **Deck management.** Save / rename / delete / favourite routes, deck-link resolution across the supported
-  sources, and validation failures surfaced to the client. Needs I-1 and I-3.
+- **Bringing #3134's deck specs into line.** `SaveDeck` and `RenameDeck` (in `account/`) cover saving a deck (what is
+  stored, a name cut to 200 characters, a second save of the same link, malformed decks) and renaming one, through
+  `TestClient.saveDeckAsync` and `renameDeckAsync`. They were written before this area was planned. To fit the suite:
+  - a header on each file saying what it covers (and, once this area has a definition of done, which rows);
+  - one shared saved-deck fixture, like `CosmeticFixtures`, instead of the three copies of `sampleDeck` (the third is in
+    `DynamoDBService.spec.ts`);
+  - a note on the save spec that posts a raw body, as `RenameDeck` has, that no real client sends it;
+  - the spy on the fake's `saveDeckAsync` in the fragility register (listed now);
+  - the layout decision: keep them in `account/`, as `CLAUDE.md` says for a user's decks, or give this area a directory.
+  Renaming another user's deck is not covered.
+- **Deck management.** *Left,* beyond saving and renaming: reading, deleting and favouriting decks, deck-link resolution across the supported sources, and validation failures surfaced to the client. Needs I-1 and I-3.
 - **Deck gates.** `change-deck` legality and the start-time deck-size check. (The identity gate on `change-deck`
   is covered by `AnonymousIdentity`; `TestClient.changeDeckAsync` already exists.)
 - The deck checks found by core's coverage run: `change-deck` refusing a deck that cannot be resolved or applied, and the
@@ -650,7 +670,7 @@ would notice the fake drifting from it. On the real side only `DynamoDBInterface
 - SWUBase card metrics: the per-card play and attack statistics sent with each result (`GameStatisticsTracker`,
   `SwuBaseHandler.buildCardMetricsForPlayer`).
 
-Deck tables in the fake DB come first (the deck routes' signed-in path answers 500 in the suite until they exist).
+The fake's remaining deck tables come first (the decks area adds them).
 
 ### 8. Reports and moderation — step a
 
@@ -691,8 +711,10 @@ Deck tables in the fake DB come first (the deck routes' signed-in path answers 5
   a signed-in caller, `swustats/decks`, and failure responses from the site. Handler-level coverage exists (Phase 2.5).
 - **User settings and preferences.** *Done:* `PUT /api/user/preferences` (it acts on the authenticated caller, and a supplied
   target is ignored, since #2655), anonymous rejection and persistence, through the fake DB and, for development without
-  DynamoDB, the in-memory store (`GameServerUserApi`, `DevelopmentUsers`); `muteChat` as it affects chat. *Left:* the other
-  per-account game options (card image locale, timer visibility) and welcome / undo / timer popup acknowledgement.
+  DynamoDB, the in-memory store (`GameServerUserApi`, `DevelopmentUsers`); `muteChat` as it affects chat, which since #3112
+  no longer applies in a private lobby (`ChatPermissions`, in line with the suite). *Left:* the other per-account game
+  options (card image locale, timer visibility), welcome / undo / timer popup acknowledgement, and `muteChat` in a private
+  lobby's game (`ChatPermissions` covers the game case in a quick match only).
 - **Legacy profile moderation** is dead code for this area's step d. The database no longer holds any, and the code that still
   reads it (`processModerationAsync`, the expiry check in `resolveUserFromIdentityAsync`, and `setModerationSeenAsync` with
   its `set-moderation-seen` route, which then also leaves the route manifest) has had no specs since #3117.
@@ -700,8 +722,15 @@ Deck tables in the fake DB come first (the deck routes' signed-in path answers 5
 
 ### 11. Cosmetics — step a
 
-- **Cosmetics.** Entitlement checks and moderator/admin-gated management endpoints (five routes, none
-  referenced). Needs I-1.
+- **Cosmetics.** Entitlement checks and moderator/admin-gated management endpoints: five routes. `POST /api/cosmetics` has
+  specs from #3134 (`CosmeticCreation`: only a new cosmetic, of a cosmetic's own fields, with an image the upload route
+  stored); the other four have none. Needs I-1.
+- **Bringing `CosmeticCreation` into line.** It was written before this area was planned. To fit the suite:
+  - it sits in `auth/authorization/`, but is about what a cosmetic must be rather than who may add one
+    (`RoleAuthorization` covers that), so it moves to this area's directory;
+  - it posts through raw `requestAsync`, where the suite gives each request the real client sends a typed `TestClient`
+    method (here, the cosmetics admin page's);
+  - its fault injection on the fake (`getCosmeticsAsync` rejecting) goes in the fragility register (listed now).
 
 ### 12. Resilience — step a
 
@@ -830,6 +859,9 @@ list exists so none is mistaken for a stable contract when the refactor starts.
 | `ActionTimerPauses` and `TimedGames`: the undo request | Raises the request with the client's quick undo (`TestClient.quickUndoAsync`) at the first action, which needs the opponent's approval because it would undo the setup; depends on the snapshot rules for when a quick undo needs approval, and on where it lands: the setup's resource step, which waits on both players (the undo specs expect both timers there, or the requester back on the main time it had) | make the request another way if those rules change; the spec checks the opponent was asked before anything else |
 | `ActionTimer` (*running out*): how the draw cases are built | The margin and same-moment cases rely on the mulligan waiting on both players, so both timers start together after the initiative choice | rebuild the cases if that changes; each spec checks it reached the mulligan |
 | `ByoyomiTimer` (unit spec) | Builds the timer directly on a `TestScheduler`, through the narrow `IActionTimerPlayer` / `IActionTimerGame` types, to pin what no game without cards reaches | keep it while those types stay narrow; a card-driven wire spec could replace it |
+| `SaveDeck`: `spyOn(harness.db, 'saveDeckAsync').and.callThrough()` | Checks what the server hands the database through the fake's method name | the decks area's alignment; keep it if the contract suite names that method |
+| `CosmeticCreation`: `spyOn(harness.db, 'getCosmeticsAsync').and.rejectWith(...)` | Forces the cosmetics list's re-read to fail after a save; depends on the route re-reading through that method | the cosmetics area's alignment |
+| `DynamoDBService.spec.ts`: the exact commands sent | Asserts update expressions and placeholder names (`#field0`, `:value0`) as well as keys and items | the database layer's step a, which decides what is the contract |
 | `TestGameServer`, `TestClient` and `FakeIoSocket`: `GameServer`'s `protected` constructor, `lobbies`, `httpServer`, `authenticateSocketAsync` and `handleSocketConnectionAsync` | The harness itself is the main consumer of these members (see *What the harness depends on in production* in the Handoff) | re-wire the three helpers to whatever replaces them; the behaviour specs should not change |
 
 *Retired by the account-auth PR:* `ChatPermissions`'s legacy-mute and chat-disabled fixtures no longer seed their state
@@ -842,13 +874,13 @@ mid-shutdown `pendingTaskCount` assertion counts from `harness.databaseTaskCount
 The suite is partitioned by a single property: **does the spec drive a `Game` through the
 `integration()` harness?** That is what determines whether the undo suite is meaningful for it.
 
-| Group | Config | Contents | Specs (2026-11-09) |
+| Group | Config | Contents | Specs (2026-11-13) |
 |---|---|---|---|
-| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,246 |
-| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 868 |
-| Everything | `jasmine.json` (what CI runs) | | 10,114 |
+| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,429 |
+| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 945 |
+| Everything | `jasmine.json` (what CI runs) | | 10,374 |
 
-The two configs partition the suite exactly: 9,246 + 868 = 10,114, no spec lost or double-run. (Counted
+The two configs partition the suite exactly: 9,429 + 945 = 10,374, no spec lost or double-run. (Counted
 by loading each config's specs through Jasmine's API with every spec filtered out, so no spec body executed and
 the card suite was not run.)
 
@@ -962,7 +994,7 @@ out still counted as on the clock, and #20, the last player to pass started the 
 fresh turn time, fixed in the game-timer area's step e (2026-11-09).
 
 *Also noticed, not findings:* three responses spell the success field `succeess` (`toggle-welcome-message`, and
-`change-username`'s two success paths; the FE never reads it, so correcting it is free); and the three deck routes'
-signed-in path currently answers 500 in the suite because the fake has no deck tables yet. A player under the matchmaking
+`change-username`'s two success paths; the FE never reads it, so correcting it is free); and the deck routes
+other than saving and renaming answer 500 on their signed-in path in the suite, because the fake lacks their methods yet. A player under the matchmaking
 penalty is refused with 403 `User is already in a lobby`, which only describes the stale-lobby refusal it shares a check with.
 

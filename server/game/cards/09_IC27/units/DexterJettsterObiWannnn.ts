@@ -6,7 +6,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DexterJettsterObiWannnn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dexter-jettster#obiwannnn-id',
+            id: '6667477538',
             internalName: 'dexter-jettster#obiwannnn',
         };
     }
