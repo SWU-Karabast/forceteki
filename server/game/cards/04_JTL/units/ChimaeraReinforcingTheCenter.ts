@@ -24,7 +24,7 @@ export default class ChimaeraReinforcingTheCenter extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
-                cardCondition: (card, context) => card !== context.source && card.canRegisterTriggeredAbilities() && card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
+                cardCondition: (card, context) => card !== context.source && card.canRegisterTriggeredAbilities() && card.getWhenDefeatedAbilities().length > 0,
                 immediateEffect: AbilityHelper.immediateEffects.useWhenDefeatedAbility()
             }
         });

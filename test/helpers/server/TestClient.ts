@@ -319,9 +319,14 @@ export class TestClient {
 
     /**
      * Whether the server has this user down for nothing - no lobby seat, spectator seat or queue entry - found out
-     * the way a client would: a socket connecting with no lobby link is refused with the server's catch-all error,
-     * where a user it still has down for something is routed there or told something else. Connects a new socket
-     * to find out, so use it at the end of a spec.
+     * the way a client would: a socket connecting with no lobby link is refused with the server's catch-all error
+     * (`Connection error, please try again`), where a user it still has down for something is routed there or told
+     * something else.
+     *
+     * It connects a new socket to find out, which replaces this client's current one and, for a user who does have a
+     * place, takes it up: seats them in their lobby, or puts their queue entry back in play. So use it as a spec's last
+     * check. It also answers true for an anonymous client presenting a logged-in user's id, whom the server refuses
+     * with the same error.
      */
     public async hasNoPlaceAsync(): Promise<boolean> {
         await this.connectAsync();
@@ -484,6 +489,7 @@ export class TestClient {
         await this.sendGameMessageAsync('resetActionTimer');
     }
 
+    /** `requeue`: puts this player back in the queue after a quick match ends (`EndGameOptions`, `LobbyConcededPopup`). */
     public async requeueAsync(): Promise<void> {
         await this.socket.simulateClientEmit('requeue');
     }
@@ -528,16 +534,16 @@ export class TestClient {
     }
 
     /**
-     * The id of the lobby this client is in, read from the connection link in its latest `lobbystate`
-     * - the `lobbyId` query parameter a real client hands to someone joining by link.
+     * The id of the lobby this client is in, from its latest `lobbystate`: the `lobbyId` in the connection link a real
+     * client hands to someone joining by link, or, for a quick lobby (which has no link), the lobby state's own id.
      */
     public get lobbyId(): string {
-        const connectionLink = this.lobbyState?.connectionLink;
-        if (!connectionLink) {
-            throw new Error(`TestClient: user ${this.id} has not received a lobby connection link yet - connect to a lobby first`);
+        const lobbyState = this.lobbyState;
+        if (!lobbyState) {
+            throw new Error(`TestClient: user ${this.id} has not received a lobby state yet - connect to a lobby first`);
         }
 
-        return new URL(connectionLink).searchParams.get('lobbyId');
+        return lobbyState.connectionLink ? new URL(lobbyState.connectionLink).searchParams.get('lobbyId') : lobbyState.id;
     }
 
     /** The most recent matching status supplied as the second queueHeartbeat argument. */

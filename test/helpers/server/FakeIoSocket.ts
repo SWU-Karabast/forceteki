@@ -36,7 +36,6 @@ export class FakeIoSocket implements IRawGameSocket {
 
     private _connected = true;
     private readonly inboundListeners = new Map<string, ((...args: any[]) => void)[]>();
-    private readonly joinedRooms = new Set<string>();
     private readonly _emittedEvents: IFakeEmittedEvent[] = [];
     private pendingDisconnectDispatch: Promise<void> | null = null;
 
@@ -86,14 +85,6 @@ export class FakeIoSocket implements IRawGameSocket {
 
     public eventNames(): (string | symbol)[] {
         return Array.from(this.inboundListeners.keys()).filter((event) => this.inboundListeners.get(event).length > 0);
-    }
-
-    public join(room: string): any {
-        this.joinedRooms.add(room);
-    }
-
-    public leave(room: string): any {
-        this.joinedRooms.delete(room);
     }
 
     public disconnect(_close?: boolean): this {

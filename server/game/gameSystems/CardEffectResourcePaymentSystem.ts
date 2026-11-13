@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { GameStateChangeRequired } from '../core/Constants';
+import type { Aspect, GameStateChangeRequired } from '../core/Constants';
 import { EventName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -11,6 +11,9 @@ import { TextHelper } from '../core/utils/TextHelper';
 
 export interface ICardEffectResourcePaymentProperties extends IPlayerTargetSystemProperties {
     amount: number;
+
+    /** Aspect icons on the payment. The paying player incurs an aspect penalty for each one they lack. */
+    aspects?: Aspect[];
 }
 
 export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ICardEffectResourcePaymentProperties> {
@@ -22,12 +25,13 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const cost = TextHelper.resourceCost(properties.amount, properties.aspects);
 
         if (Helpers.asArray(properties.target).length === 1 && Helpers.asArray(properties.target)[0] === context.player) {
-            return ['pay {0}', [TextHelper.resource(properties.amount)]];
+            return ['pay {0}', [cost]];
         }
 
-        return ['make {0} pay {1}', [this.getTargetMessage(properties.target, context), TextHelper.resource(properties.amount)]];
+        return ['make {0} pay {1}', [this.getTargetMessage(properties.target, context), cost]];
     }
 
     public override canAffectInternal(
@@ -44,7 +48,8 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
 
         const payment = new CardEffectResourcePayment(
             properties.amount,
-            (_) => target as Player
+            (_) => target as Player,
+            properties.aspects
         );
 
         if (!payment.canPay(context)) {
@@ -65,7 +70,8 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
         for (const target of targetsArray) {
             const payment = new CardEffectResourcePayment(
                 properties.amount,
-                (_) => target
+                (_) => target,
+                properties.aspects
             );
 
             // TODO: In the future we may be able to handle cancellation gracefully

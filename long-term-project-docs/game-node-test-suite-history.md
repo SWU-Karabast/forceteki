@@ -633,6 +633,33 @@ Before step 3, the assertions steps 1 and 2 had made against the server's own st
 
 ### Step 3 — readiness check (2026-11-06)
 
+The run as the plan recorded it at the time:
+
+**Coverage run, 2026-11-06** (the end of core's step c; `main` @ `c6c71e058` with core's work so far applied). Command, over a fresh
+build: `npx --yes c8@latest --reporter=json --reporter=text-summary --report-dir=<dir> npm run jasmine-nongame`. The JSON
+report maps back to the `.ts` sources. Statement lines covered: `GameServer.ts` 2,656 of 3,526, `Lobby.ts` 1,836 of 2,703,
+`QueueHandler.ts` 504 of 520, and all 197 of `MatchmakingRules.ts`. Every uncovered line in the paths above was then
+sorted:
+
+- *Gaps, now covered:* a spectator leaving, by a manual disconnect or by staying away past the grace window, and kept
+  inside it (rows D7, D8); a spectator listed in the players' lobby state and kept up to date as the game goes on (C8);
+  `spectate-game` refusing a player still active in a lobby (B3); `join-lobby` refusing a full lobby (B8); and a player
+  whose lobby closed before their socket arrived, who gets a 404 from `change-deck` and may start somewhere else (B7, B9).
+- *Gaps that wait on a fix:* rows C21 (held, V-4) and C22 (open finding #12).
+- *Outside the refactor's paths*, left to their areas: deck checks in `change-deck`, `create-lobby` and `enter-queue` and
+  at game start (decks); the card-pool and other configuration checks, and a game message sent before any game (protocol
+  surface); best-of-three, rematch and sideboarding flows, stats, error handling and reports (their own areas).
+- *Defensive catch blocks and logging*, waived as a class: route catch-alls that hand an unexpected error to Express,
+  `try` / `catch` blocks that log a fault and carry on (matchmaking a pair, requeueing, a disconnect, a game message), and
+  the slow-command logs. None runs without a fault in production code; fault-injection specs for the ones that matter
+  belong with the resilience suite.
+- *Unreachable:* candidates for core's dead-code list in its step d, under *Topic areas*.
+
+**Result: not yet met.** Every row is covered or waived except C1 and C11 (held, V-2), L2 (held, V-3), C21 (held, V-4) and
+C22 (open finding #12). The refactor waits on those production fixes, each landing with its spec, or on the maintainers
+waiving a row; then the run is repeated.
+
+
 The coverage run the *Refactor readiness* checklist describes, on `main` @ `c6c71e058` with steps 1 and 2 (and the
 clean-up above) applied. `c8` was fetched by `npx`; its JSON report mapped back to the `.ts` sources, and a throwaway
 script listed each file's uncovered statement lines by method.
@@ -659,6 +686,70 @@ step c items, apart from deck checks (decks); the dead-code pass (old step 8) to
 inactivity kick to game timers, legacy moderation to accounts); housekeeping (old step 9) to *Suite infrastructure*, with
 the I-7 time helpers moving to game timers; and the old *Future test suites* entries to their areas. Game timers were moved
 up to follow core. Production fixes now belong to each area's step d; security fixes stay separate, in dedicated commits.
+
+### Core step d — resolve what it found (2026-11-06)
+
+On branch `ammayberry1/gameserver-lobby-tests-6`, after #3129 merged steps a to c. Production changes, each made with the
+spec that was waiting on it and checked by running those specs against the code before the change (all four failed):
+
+- *Open finding #12*: `Lobby.sendLobbyStateToSpectator` sends through the `Socket` wrapper, so a spectator admitted
+  between the games of a rematch receives `lobbystate` (`SpectatorConnections`; checklist row C22).
+- *Open finding #6*: `GameServer.cleanupInvalidTokens`, `QueueHandler.cleanupPreviousMatchEntries` and
+  `QueueHandler.sendHeartbeat` no longer catch their own errors. All three run only on the scheduler, whose guard logs a
+  failure under the task's own message, so each failure is still logged once at error level (now with its stack) and the
+  harness now sees it. The message text changed, though: `QueueHandler: Error sending heartbeat: ...` became the
+  scheduler's `GameServer: error sending queue heartbeat` or `QueueHandler: error announcing expanded matchmaking
+  preferences`, and the match-entry cleanup's error moved from the message into its metadata, which matters to anyone
+  filtering logs on the old text. The preference
+  announcement still schedules the next one if a heartbeat throws (`try` / `finally`). The hourly cleanup prunes
+  expired SWUBase tokens as well as SWUStats ones (`GameServerScheduling`).
+- *Open finding #13*, found during the step: `Lobby.addSpectator` listed a spectator under their id as the username; it
+  now uses their username. forceteki-client does not read the field, so the change shows only on the wire and in server
+  logs (`SpectatorConnections`).
+- *Dead code removed:* the commented-out anonymous-join block in `onConnectionAsync`, the `requeue` registration in
+  `setupQueueSocketAsync` (with the parameter only it used), and the `Socket` wrapper's `joinChannel` and
+  `leaveChannel`. The other candidates the coverage run listed are checks that reject or repair a state other code
+  maintains, and were kept as a safety net; the plan lists them.
+
+The coverage run, repeated, is recorded under *Refactor readiness* in the plan. 823 non-game specs (819 → 823).
+
+### Core step e — independent review (2026-11-06)
+
+A separate agent (Claude Opus 5.5 at extra-high effort) reviewed the core area's plan and changes, read-only, with its own
+probes and mutation runs. It confirmed the #12 and #13 fixes and their specs, that the removed `requeue` registration was
+dead, that most rows are pinned (it broke the code under each), that `FakeIoSocket`'s JSON copies match socket.io, and that
+the only `as any` is the documented one. Everything else it raised was fixed on the same branch:
+
+- *Two specs depended on open finding #1's behaviour* (`GameServerLobbyApi`'s lobby-name and listing specs expected a lobby
+  whose owner had never connected to be listed). They now connect the owner, through a new `lobbyName` option on
+  `openLobbyAsync`.
+- *Open finding #14, fixed:* `canUserJoinNewLobby` returned early for a player who had joined a lobby but never connected,
+  skipping both the eviction and the queue check, so that player could `enter-queue` (200) and still have their socket
+  seated in the old lobby, leaving the queue entry behind. That case now falls through to the eviction; a
+  `LobbyLifecycle` spec covers it, and fails with the early return put back.
+- *Unpinned behaviour, now pinned:* a queued player who leaves on purpose is taken out of the queue (`QueueConnections`);
+  and a failing heartbeat is reported by the scheduler while the next preference announcement still arrives
+  (`QueueHandler` unit spec; it fails with either the `finally` dropped or an inner catch re-added).
+- *A null token blocked the hourly cleanup:* a failed refresh stores `null` in a token map, and `isTokenValid(null)` threw on
+  every cleanup. `validTokensOnly` drops such entries (`GameServerScheduling`).
+- *Open finding #15, recorded:* `hasOngoingGame()` means "a game has ever started", which rows C6 and C22 depend on.
+- *More dead code removed:* `IRawGameSocket.join` / `leave` and the fake socket's room set (nothing joins rooms since the
+  channel helpers went), a commented-out `handshake` block, a stale doc comment on the token cleanup, `createLobby`'s branch
+  for a removed string-id feature and its out-of-date doc comment, a log message's impossible ternary, and the
+  `connectedUser` emit, which forceteki-client never listens for. `Lobby.addSpectator`'s listener check joined the kept
+  defensive checks.
+- *Layout:* `GameServerMatchmaking`'s *search lifecycle* block became `matchmaking/QueueConnections.spec.ts` (its helpers
+  moved to `test/helpers/server/QueueClients.ts`) and its top-level describe became "GameServer matchmaking";
+  `InGameConnections`' lobby-only reconnect spec moved into `LobbyConnectionManagement`, beside the grace-window spec, which
+  now checks the 20 s boundary exactly; the `TestScheduler` specs moved to `harness/TestScheduler.spec.ts`.
+- *Harness:* `TestClient.lobbyId` works for quick lobbies (the lobby state's id, as they have no link);
+  `startQuickGameAsync` returns the lobby id; the check that no timer outlives a harness now runs without a database too;
+  `hasNoPlaceAsync`, `databaseTaskCount` and `requeueAsync` are documented properly.
+- *Documents:* the plan's status line, merges table, *State*, hazards and checklist captions; spec headers in
+  `LobbyConnectionManagement`, `GameServerLobbyApi`, `SpectatorConnections`, `LobbyLifecycle` and `InGameConnections`;
+  five fragility-register rows; this record's wording on logging; and a `CLAUDE.md` bullet on asserting on the wire.
+
+It also raised a security item, held privately. 823 → 827 non-game specs.
 
 ## The account-auth PR
 
@@ -1241,3 +1332,37 @@ The numbers are the plan's *Open findings* numbers.
    missing `provider`, `providerId` or `name`, is now refused before anything is written, and the OAuth link is
    written last so a failed creation can be retried. Covered in `CredentialVerification`. Whether an account with no
    email should instead be accepted remains a product decision.
+
+6. **Three scheduled callbacks swallowed their own errors — fixed in core's step d (2026-11-06)** (`cleanupInvalidTokens`,
+   `QueueHandler.cleanupPreviousMatchEntries`, `QueueHandler.sendHeartbeat`; re-read after #3001's heavy
+   `QueueHandler` changes, and again on 2026-11-01 after #3031, which only added logging), so the scheduler's guard — and
+   therefore `assertNoScheduledErrors()` — cannot see
+   them. These are defensive at the method level and reachable from non-timer callers, so removing the inner
+   catches is a behaviour change rather than a simplification; revisit when those paths get direct coverage.
+   Related observation: the hourly cleanup only prunes `swuStatsTokenMapping`; `swuBaseTokenMapping` is never
+   pruned (entries are replaced on next use, so the impact is a few small objects per linked user, but the
+   existing cleanup spec cannot reveal it because it only exercises the SWUStats map).
+   *Fixed:* all three turned out to run only on the scheduler (the other caller of `sendHeartbeat` is the scheduler's own
+   preference announcement), so the inner catches went, and the cleanup prunes both maps. Each failure is still logged
+   once at error level, now under the scheduler's message for the task, with the error in the metadata. Covered in
+   `GameServerScheduling` and, for the announcement, the `QueueHandler` unit spec.
+
+12. **A spectator admitted between the games of a rematch is never sent the lobby — fixed in core's step d (2026-11-06).** After a
+    rematch is accepted the lobby has no game, so `Lobby.addSpectator` sends the spectator the lobby state through
+    `sendLobbyStateToSpectator`, which calls the raw socket.io socket's `send` (`socket.socket.send('lobbystate', …)`) rather
+    than the wrapper's. socket.io's `send` emits a `message` event carrying the arguments, so the client, which listens for
+    `lobbystate`, receives nothing; under the fake transport, whose `IRawGameSocket` has no `send`, the call throws. The fix
+    is the wrapper's `socket.send(...)`, which `sendGameStateToSpectator` already uses. Found by the step 3 coverage run.
+    *Fixed* with that change; covered in `SpectatorConnections`.
+
+13. **A spectator was listed under their id rather than their username — fixed (2026-11-06).** `Lobby.addSpectator` stored
+    `user.getId()` as the spectator's username, so the lobby state's `spectators` list (and the server's logs) showed the id.
+    forceteki-client does not read that field. Found and fixed in core's step d; covered in `SpectatorConnections`.
+
+14. **A player who joined a lobby but never connected kept their place in it on entering the queue — fixed in core's step
+    e (2026-11-06).** `GameServer.canUserJoinNewLobby` returned `true` at once for a user mapped to a lobby they had never
+    connected to, skipping both the eviction from that lobby and the check for an earlier queue entry. Such a player could
+    enter the queue (200) while the old lobby still held them, so their socket was seated in the old lobby when it
+    connected and the queue entry was left behind. The never-active case now falls through to the eviction like a stale
+    one.
+    Found by core's independent review; covered in `LobbyLifecycle`.

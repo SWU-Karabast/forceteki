@@ -3,8 +3,7 @@ import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { CardTypeFilter } from '../Constants';
-import type { EntryType } from '../Constants';
-import { WildcardCardType } from '../Constants';
+import { EntryType, WildcardCardType } from '../Constants';
 import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import { OngoingEffectValueWrapperBase } from '../ongoingEffect/effectImpl/OngoingEffectValueWrapper';
@@ -18,11 +17,11 @@ export interface IUnitsEnterPlayReadyForPlayerProperties {
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
 
     /**
-     * Which entry paths the matcher applies to.
+     * Which entry paths the matcher applies to. Defaults to every entry type.
      *
      * Only units matching the entry type(s) will be made to enter play ready.
      */
-    entryType: EntryType | Set<EntryType>;
+    entryType?: EntryType | Set<EntryType>;
 
     /** Additional predicate the entering card must satisfy. */
     match?: (card: IUnitCard, context: AbilityContext) => boolean;
@@ -49,9 +48,11 @@ export class UnitsEnterPlayReadyForPlayer extends OngoingEffectValueWrapperBase<
         super(game, null);
 
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Unit;
-        this.entryTypes = properties.entryType instanceof Set
-            ? properties.entryType
-            : new Set([properties.entryType]);
+        this.entryTypes = properties.entryType == null
+            ? new Set(Object.values(EntryType))
+            : properties.entryType instanceof Set
+                ? properties.entryType
+                : new Set([properties.entryType]);
         this.match = properties.match;
         this.limit = properties.limit;
     }

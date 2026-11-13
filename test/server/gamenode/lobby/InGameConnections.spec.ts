@@ -3,24 +3,12 @@ import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelp
 const disconnectGraceMs = 20_000;
 
 /**
- * A player's connection coming and going while they hold a seat: in a lobby before the game, and during a game.
- * The refactor-readiness checklist's rows C13 (for an in-game player), D3 and D4. A player who drops and does
- * not come back is removed when the grace window ends (`LobbyConnectionManagement` covers that in a lobby).
+ * A player's connection coming and going during a game: a drop and a return, a drop that outlasts the grace window, and
+ * a second tab. The refactor-readiness checklist's rows C13 (for an in-game player) and D4. The same in a lobby before
+ * the game is in `LobbyConnectionManagement`.
  */
 describe('In-game connections', function () {
     serverIntegration(function (contextRef) {
-        it('keeps the seat of a player who drops from a lobby and reconnects inside the grace window', async function () {
-            const { harness } = contextRef;
-            const { owner, guest } = await harness.createLobbyWithGuestAsync();
-
-            await guest.disconnectTransportAsync();
-            await harness.clock.advanceAsync(disconnectGraceMs / 2);
-            await guest.connectAsync();
-            await harness.clock.advanceAsync(disconnectGraceMs);
-
-            expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id, guest.id]);
-        });
-
         describe('during a game', function () {
             it('sends a player who drops and comes back the lobby and the game again', async function () {
                 const { harness } = contextRef;
@@ -60,7 +48,8 @@ describe('In-game connections', function () {
                 expect(owner.gameState).toBeDefined();
             });
 
-            // No spec for the inactivity kick: it is a dead feature, to be removed (open finding #11, roadmap step 8).
+            // No spec for the inactivity kick: it is a dead feature, to be removed (open finding #11, in the game-timer
+            // area's step d).
             // TODO (open finding #11): if the action timer is made to read player activity again, add specs that
             // `resetActionTimer` and other game messages hold it off.
         });

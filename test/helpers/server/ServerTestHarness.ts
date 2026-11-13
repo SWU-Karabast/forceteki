@@ -63,6 +63,9 @@ export interface ILobbyOptions {
 
     /** The owner's deck. Default {@link DecklistFixtures.validDecklist}. */
     deck?: ISwuDbFormatDecklist;
+
+    /** The lobby's name. Default {@link ServerTestHarness.uniqueLobbyName}. */
+    lobbyName?: string;
 }
 
 /** What {@link ServerTestHarness.startLiveGameAsync} can be asked for beyond {@link ILobbyOptions}. */
@@ -217,9 +220,10 @@ export class ServerTestHarness {
     }
 
     /**
-     * Tasks on {@link clock} that belong to the database-backed services' refresh timers. They outlive
-     * the server's own shutdown until the harness stops them, so a spec that checks what the server
-     * left scheduled part-way through a shutdown expects this many rather than 0.
+     * Tasks on {@link clock} that belong to the database-backed services' refresh timers, counted once, when the
+     * harness started (each service keeps one timer, so the count does not change). They outlive the server's own
+     * shutdown until the harness stops them, so a spec that checks what the server left scheduled part-way through a
+     * shutdown expects this many rather than 0.
      */
     public get databaseTaskCount(): number {
         return this.server.databaseTaskCount;
@@ -283,7 +287,7 @@ export class ServerTestHarness {
     /**
      * Takes two clients through a quick match: both enter the queue, connect their sockets and wait out
      * the quick-lobby countdown, leaving a started game. Each side is either a client already made
-     * with {@link createClient} or the options to make one with.
+     * with {@link createClient} or the options to make one with. Returns them with the quick lobby's id.
      *
      * Throws, rather than failing an expectation, if either side is refused by the queue or no game
      * starts, so the cause shows up in the spec that asked for the game.
@@ -292,7 +296,7 @@ export class ServerTestHarness {
         first: ITestClientOptions | TestClient = {},
         second: ITestClientOptions | TestClient = {},
         config: Readonly<IQueueFormatKey> = premierBestOfOne
-    ): Promise<{ first: TestClient; second: TestClient }> {
+    ): Promise<{ first: TestClient; second: TestClient; lobbyId: string }> {
         const clients = [first, second].map((side) => (side instanceof TestClient ? side : this.createClient(side)));
 
         for (const client of clients) {
@@ -312,7 +316,7 @@ export class ServerTestHarness {
             }
         }
 
-        return { first: clients[0], second: clients[1] };
+        return { first: clients[0], second: clients[1], lobbyId: clients[0].lobbyId };
     }
 
     /**
@@ -330,7 +334,7 @@ export class ServerTestHarness {
         const client = owner instanceof TestClient ? owner : this.createClient(owner);
 
         const response = await client.createLobbyAsync({
-            lobbyName: this.uniqueLobbyName(),
+            lobbyName: options.lobbyName ?? this.uniqueLobbyName(),
             deck: options.deck ?? this.decklists.validDecklist(),
             isPrivate: options.isPrivate ?? false,
             ...(options.config ?? premierBestOfOne),
@@ -429,9 +433,9 @@ export class ServerTestHarness {
         // background work was failing on every tick
         this.assertNoScheduledErrors();
 
-        // the database-backed services keep refresh timers on this clock; a task still pending here
-        // means one of them was not stopped, and would leak into whatever runs next
-        if (this.server.testDatabase && this.clock.pendingTaskCount !== 0) {
+        // the server, its lobbies and the database-backed services all keep timers on this clock; a task still
+        // pending here means one of them was not stopped, and would leak into whatever runs next
+        if (this.clock.pendingTaskCount !== 0) {
             throw new Error(`ServerTestHarness: ${this.clock.pendingTaskCount} scheduled task(s) were still pending after shutdown`);
         }
     }
