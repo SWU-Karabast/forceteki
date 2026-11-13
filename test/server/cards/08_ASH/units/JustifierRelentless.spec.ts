@@ -269,5 +269,46 @@ describe('Justifier, Relentless', function() {
             context.player1.clickCard(context.wampa);
             expect(context.wampa).toHaveExactUpgradeNames(['advantage']);
         });
+
+        it('Justifier\'s ability should not throw or give an Advantage token when the damage is prevented (Lurking TIE Phantom)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['justifier#relentless'],
+                    spaceArena: ['system-patrol-craft']
+                },
+                player2: {
+                    spaceArena: ['lurking-tie-phantom']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.justifier);
+            context.player1.clickCard(context.lurkingTiePhantom);
+
+            expect(context.lurkingTiePhantom.damage).toBe(0);
+            expect(context.justifier).toHaveExactUpgradeNames([]);
+            expect(context.systemPatrolCraft).toHaveExactUpgradeNames([]);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Justifier\'s ability should not throw or give an Advantage token when the damage is reduced to 0 (Numa, Still Fighting)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['justifier#relentless']
+                },
+                player2: {
+                    groundArena: ['numa#still-fighting']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.justifier);
+            context.player1.clickCard(context.numa);
+
+            expect(context.numa.damage).toBe(0);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
