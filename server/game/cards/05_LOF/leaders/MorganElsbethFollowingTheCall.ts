@@ -1,6 +1,6 @@
 import type { IAbilityHelper } from '../../../../../server/game/AbilityHelper';
 import { LeaderUnitCard } from '../../../../../server/game/core/card/LeaderUnitCard';
-import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../../../server/game/core/Constants';
+import { RelativePlayer, WildcardCardType, ZoneName } from '../../../../../server/game/core/Constants';
 import { CostAdjustType } from '../../../../../server/game/core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../../../server/game/core/stateWatcher/StateWatcherRegistrar';
 import { Helpers } from '../../../../../server/game/core/utils/Helpers';
@@ -36,8 +36,6 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
                 playFromHand: {
                     activePromptTitle: `Play a unit from you hand that shares a ${TextHelper.Keyword} with the chosen unit`,
                     dependsOn: 'friendlyUnit',
-                    // TODO remove cardTypeFilter but fix Choose nothing button before
-                    cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card, context) => {

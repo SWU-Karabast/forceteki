@@ -15,7 +15,7 @@ describe('Reckless Landing', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.recklessLanding);
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Choose a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelBlockadeRunner]);
                 context.player1.clickCard(context.rebelBlockadeRunner);
                 expect(context.rebelBlockadeRunner.damage).toBe(4);
@@ -51,7 +51,7 @@ describe('Reckless Landing', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.recklessLanding);
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Choose a unit');
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.sorcerersOfTund);
                 expect(context.sorcerersOfTund.damage).toBe(4);
@@ -72,7 +72,7 @@ describe('Reckless Landing', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.recklessLanding);
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Choose a unit');
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.bokatanKryze);
                 expect(context.bokatanKryze).toBeInZone('discard');

@@ -46,8 +46,6 @@ export default class DrydenVosINeverAskTwice extends LeaderUnitCard {
             cost: [AbilityHelper.costs.discardCardFromOwnHand()],
             cannotTargetFirst: true,
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({

@@ -1,6 +1,6 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type { EventName, MetaEventName } from '../Constants';
+import type { CardTypeFilter, EventName, MetaEventName } from '../Constants';
 import { GameStateChangeRequired } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
@@ -199,6 +199,26 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     /** Whether this system reveals cards. Overridden by {@link RevealSystem}; used to decide when to mask hidden information. */
     public isReveal(): boolean {
         return false;
+    }
+
+    /**
+     * Whether this system can reject some candidate cards as targets (e.g. a `playAsType` restriction or
+     * playability requirements in {@link PlayCardSystem}). Used by target resolvers to determine whether the
+     * player must be able to choose nothing when selecting from a zone hidden from the opponent, so that
+     * declining does not reveal hidden information (SWU Comp Rules 2.0 1.17.4).
+     */
+    public isTargetSelective(_context: TContext): boolean {
+        return false;
+    }
+
+    /**
+     * The card type filter this system implicitly applies to its target selection (e.g. `playAsType` in
+     * {@link PlayCardSystem}). Used by target resolvers to describe the selection in prompts (e.g. "a unit")
+     * when the resolver does not define its own `cardTypeFilter`. `null` means the selection is not restricted
+     * to a specific card type.
+     */
+    public getTargetTypeFilter(_context: TContext): CardTypeFilter | CardTypeFilter[] | null {
+        return null;
     }
 
     /**

@@ -13,6 +13,12 @@ export interface IBaseCardSelectorProperties<TContext> {
     cardCondition?: (card: Card, context: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context: TContext) => boolean;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+
+    /**
+     * Optional type filter used only to describe the selection in prompt titles (e.g. "a unit"), e.g. the
+     * `playAsType` restriction of a play effect. Has no effect on which cards can be targeted.
+     */
+    promptCardTypeFilter?: CardTypeFilter | CardTypeFilter[] | ((context: TContext) => CardTypeFilter | CardTypeFilter[] | null);
     optional?: boolean;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     capturedByFilter?: Card | Card[] | ((context: TContext) => Card | Card[]);
@@ -25,6 +31,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
     public cardCondition: (card: Card, context: TContext) => boolean;
     public multiSelectCardCondition?: (card: Card, selectedCards: Card[], context: TContext) => boolean;
     public cardTypeFilter: CardTypeFilter[];
+    public promptCardTypeFilter?: CardTypeFilter | CardTypeFilter[] | ((context: TContext) => CardTypeFilter | CardTypeFilter[] | null);
     public optional: boolean;
     public zoneFilter: ZoneFilter[];
     public capturedByFilter?: Card | Card[] | ((context: TContext) => Card | Card[]);
@@ -118,6 +125,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
         this.checkTarget = !!properties.checkTarget;
         this.appendToDefaultTitle = properties.appendToDefaultTitle;
         this.cardTypeFilter = properties.cardTypeFilter ? Helpers.asArray(properties.cardTypeFilter) : [WildcardCardType.Any];
+        this.promptCardTypeFilter = properties.promptCardTypeFilter;
     }
 
     public get hasAnyCardFilter() {
@@ -270,6 +278,22 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
 
     public defaultPromptString(context: TContext) {
         return 'Choose cards';
+    }
+
+    /**
+     * The card type filter used to describe the selection in prompt titles (e.g. "a unit").
+     * May be provided by the immediate effect's implicit filter (e.g. `playAsType`); falls back to the actual filter.
+     */
+    protected cardTypeFilterForDescription(context: TContext): CardTypeFilter[] {
+        try {
+            const promptCardTypeFilter = typeof this.promptCardTypeFilter === 'function'
+                ? this.promptCardTypeFilter(context)
+                : this.promptCardTypeFilter;
+            return promptCardTypeFilter ? Helpers.asArray(promptCardTypeFilter) : this.cardTypeFilter;
+        } catch (err) {
+            context.game.reportError(err);
+            return this.cardTypeFilter;
+        }
     }
 
     public automaticFireOnSelect(context: TContext, selectedCards: Card[] = []) {
