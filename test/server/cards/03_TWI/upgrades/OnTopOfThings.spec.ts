@@ -9,6 +9,7 @@ describe('On Top of Things', function() {
                         groundArena: ['battlefield-marine', 'wampa'],
                     },
                     player2: {
+                        hand: ['confiscate'],
                         groundArena: ['atst']
                     }
                 });
@@ -40,11 +41,23 @@ describe('On Top of Things', function() {
             // Ruling 2025-05-19 (CR 7.7.3B): "Attached unit can't be attacked this phase" is a When
             // Played ability that creates a lasting effect locked onto the unit at resolution. It
             // persists for the phase even if the On Top of Things upgrade is later defeated.
-            xit('keeps protecting the unit for the phase even after the On Top of Things upgrade is defeated', function () {
-                pending('Not yet implemented');
-                // Play On Top of Things on a friendly unit, then the opponent defeats the upgrade (e.g.
-                // Confiscate). The "can't be attacked this phase" lasting effect still protects that unit
-                // for the rest of the phase, so the opponent still cannot attack it.
+            it('keeps protecting the unit for the phase even after the On Top of Things upgrade is defeated', function () {
+                const { context } = contextRef;
+
+                // Play On Top of Things on Wampa, applying "can't be attacked this phase"
+                context.player1.clickCard(context.onTopOfThings);
+                context.player1.clickCard(context.wampa);
+
+                // Player2 defeats On Top of Things with Confiscate
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.onTopOfThings);
+                expect(context.onTopOfThings).toBeInZone('discard');
+
+                // The lasting effect still protects Wampa for the rest of the phase
+                context.player1.passAction();
+                context.player2.clickCard(context.atst);
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });
