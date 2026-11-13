@@ -251,11 +251,35 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
             // constant ability (like SOR Admiral Piett). It grants the chosen keyword to friendly
             // Vehicles already in play AND to friendly Vehicles played after his ability triggers, for
             // as long as Yularen remains in play.
-            xit('grants the chosen keyword to a friendly Vehicle played after Yularen\'s ability triggers', function () {
-                pending('Not yet implemented');
-                // Play Yularen and choose a keyword. Then play another friendly Vehicle unit later that
-                // phase. The later-played Vehicle should also gain the chosen keyword while Yularen is in
-                // play (constant-ability behavior, per the errata).
+            it('grants the chosen keyword to a friendly Vehicle played after Yularen\'s ability triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['admiral-yularen#fleet-coordinator', 'alliance-xwing', 'the-armorer#secrecy-is-our-survival'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        leader: 'sabine-wren#bargaining-on-belief'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Shielded');
+                expect(context.concordDawnInterceptors).not.toHaveExactUpgradeNames(['shield']);
+                context.player2.passAction();
+
+                // Alliance X-Wing is played after Yularen's ability and still gains Shielded,
+                // so its own Shielded trigger gives it a Shield token
+                context.player1.clickCard(context.allianceXwing);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['shield']);
+                context.player2.passAction();
+
+                // The Armorer gives a Shield token to each friendly unit with Shielded: this hits
+                // every Vehicle, including the later-played X-Wing (which now has 2 Shields)
+                context.player1.clickCard(context.theArmorer);
+                context.player1.clickPrompt('Shielded'); // resolve her Shielded trigger first
+                expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['shield']);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['shield', 'shield']);
             });
         });
     });
