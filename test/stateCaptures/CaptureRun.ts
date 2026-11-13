@@ -75,6 +75,19 @@ export class CaptureRun {
         const produced: unknown = JSON.parse(producedText);
 
         const differences: string[] = [];
+
+        // a copy of a card renumbered by another copy appearing before it is one line, not a removal
+        // and an addition; the committed side takes the new names so nothing else shows the rename
+        const renames = CaptureRun.renumberedCards(committed, produced);
+        for (const [before, after] of renames) {
+            differences.push(`${before} → ${after} (renumbered)`);
+        }
+        if (renames.size > 0) {
+            committed = JSON.parse(committedText.replace(/"Card-[^"]+-\d+"/g, (quoted) => {
+                const id = quoted.slice(1, -1);
+                return JSON.stringify(renames.get(id) ?? id);
+            }));
+        }
         const show = (value: unknown) => {
             if (value === undefined) {
                 return '(absent)';
@@ -127,6 +140,49 @@ export class CaptureRun {
             return [...differences.slice(0, CaptureRun.MaxDifferencesShown), `... and ${hidden} more`];
         }
         return differences;
+    }
+
+    /**
+     * Copies of a card that kept their place but changed name, as committed name → produced name.
+     * Copies are numbered in order of appearance (`StateCapture`'s `nameCards`), so a copy added
+     * before them renumbers them. A copy is matched by its card and the list it is first found in.
+     */
+    private static renumberedCards(committed: unknown, produced: unknown): Map<string, string> {
+        const copiesByPlace = (value: unknown) => {
+            const places = new Map<string, string[]>();
+            const seen = new Set<string>();
+            const visit = (child: unknown, path: string) => {
+                if (Array.isArray(child)) {
+                    child.forEach((item) => visit(item, path));
+                } else if (child && typeof child === 'object') {
+                    const uuid = (child as Record<string, unknown>).uuid;
+                    const card = typeof uuid === 'string' ? (/^Card-(.+)-\d+$/).exec(uuid)?.[1] : undefined;
+                    if (card && !seen.has(uuid as string)) {
+                        seen.add(uuid as string);
+                        const place = `${card} ${path}`;
+                        places.set(place, [...(places.get(place) ?? []), uuid as string]);
+                    }
+                    for (const [key, grandchild] of Object.entries(child)) {
+                        visit(grandchild, `${path}.${key}`);
+                    }
+                }
+            };
+            visit(value, '');
+            return places;
+        };
+
+        const before = copiesByPlace(committed);
+        const after = copiesByPlace(produced);
+        const renames = new Map<string, string>();
+        for (const [place, beforeIds] of before) {
+            beforeIds.forEach((id, i) => {
+                const renamed = after.get(place)?.[i];
+                if (renamed && renamed !== id) {
+                    renames.set(id, renamed);
+                }
+            });
+        }
+        return renames;
     }
 
     /**
