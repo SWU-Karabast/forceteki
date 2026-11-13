@@ -14,7 +14,7 @@ export const secureSessionCookieName = '__Secure-next-auth.session-token';
  *
  * They are the ones the FE's NextAuth `jwt` callback puts in the token (`forceteki-client`,
  * `src/app/_utils/auth.ts`): at sign-in it sets `id` (`<provider>_<providerId>`), `provider`,
- * `providerId`, `name` and `email`. The game node identifies the account from `provider` and
+ * `providerId`, `name`, `email` and `emailVerified`. The game node identifies the account from `provider` and
  * `providerId` alone; any other claim, such as a `userId`, plays no part in who a request is.
  *
  * If the FE changes what it puts in the token, this is what needs to change with it.
@@ -25,6 +25,9 @@ export interface ISessionClaims {
     providerId?: string;
     name?: string;
     email?: string;
+
+    /** Whether the provider had verified `email` at sign-in. Sessions issued before the FE recorded it lack it. */
+    emailVerified?: boolean;
     picture?: string;
     sub?: string;
     userId?: string;
@@ -40,6 +43,9 @@ export interface ISignInIdentity {
     provider: string;
     providerId: string;
     email: string;
+
+    /** Whether the provider has verified the email. Defaults to true, as for nearly every real sign-in. */
+    emailVerified?: boolean;
 }
 
 export interface IMintOptions {
@@ -72,6 +78,7 @@ export function signInClaims(identity: ISignInIdentity): ISessionClaims {
         sub: identity.providerId,
         name: identity.username,
         email: identity.email,
+        emailVerified: identity.emailVerified ?? true,
     };
 }
 
