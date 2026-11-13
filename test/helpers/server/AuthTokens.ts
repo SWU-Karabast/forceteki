@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 
+import type { ITokenIdentity } from '../../../server/utils/user/UserFactory';
 import { testNextAuthSecret } from './ServerTestEnv';
 
 /**
@@ -19,15 +20,8 @@ export const secureSessionCookieName = '__Secure-next-auth.session-token';
  *
  * If the FE changes what it puts in the token, this is what needs to change with it.
  */
-export interface ISessionClaims {
+export interface ISessionClaims extends Partial<ITokenIdentity> {
     id?: string;
-    provider?: string;
-    providerId?: string;
-    name?: string;
-    email?: string;
-
-    /** Whether the provider had verified `email` at sign-in. Sessions issued before the FE recorded it lack it. */
-    emailVerified?: boolean;
     picture?: string;
     sub?: string;
     userId?: string;

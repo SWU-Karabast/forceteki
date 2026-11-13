@@ -123,4 +123,52 @@ describe('TestScheduler', function () {
             expect(clock.pendingTaskCount).toBe(0);
         });
     });
+
+    describe('advancing to a deadline', function () {
+        it('checks 1 ms before the deadline, then once it is reached', async function () {
+            let fired = false;
+            clock.setTimeout(() => (fired = true), 20_000);
+            const seen: { check: string; fired: boolean; atMs: number }[] = [];
+            const startMs = clock.now();
+
+            await clock.advanceToDeadlineAsync(20_000, {
+                justBefore: () => {
+                    seen.push({ check: 'justBefore', fired, atMs: clock.now() - startMs });
+                },
+                atDeadline: () => {
+                    seen.push({ check: 'atDeadline', fired, atMs: clock.now() - startMs });
+                },
+            });
+
+            expect(seen).toEqual([
+                { check: 'justBefore', fired: false, atMs: 19_999 },
+                { check: 'atDeadline', fired: true, atMs: 20_000 },
+            ]);
+        });
+
+        it('waits for an async check before moving on', async function () {
+            const order: string[] = [];
+            const startMs = clock.now();
+
+            await clock.advanceToDeadlineAsync(10, {
+                justBefore: async () => {
+                    await Promise.resolve();
+                    order.push(`justBefore at ${clock.now() - startMs}`);
+                },
+                atDeadline: () => {
+                    order.push('atDeadline');
+                },
+            });
+
+            expect(order).withContext('the clock does not move on while the check is still running')
+                .toEqual(['justBefore at 9', 'atDeadline']);
+        });
+
+        it('refuses a deadline with no millisecond before it', async function () {
+            const noChecks = { justBefore: () => undefined, atDeadline: () => undefined };
+
+            await expectAsync(clock.advanceToDeadlineAsync(0, noChecks)).toBeRejectedWithError(/at least 1 away/);
+            await expectAsync(clock.advanceToDeadlineAsync(1.5, noChecks)).toBeRejectedWithError(/whole number/);
+        });
+    });
 });

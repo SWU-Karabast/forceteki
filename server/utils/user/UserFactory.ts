@@ -57,7 +57,7 @@ const developmentTestUsers: Record<DevelopmentTestProviderId, { id: string; user
 
 
 /** The signed-in identity a session token vouches for. */
-interface ITokenIdentity {
+export interface ITokenIdentity {
     provider: string;
     providerId: string;
     email?: string;

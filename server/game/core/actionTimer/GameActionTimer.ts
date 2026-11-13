@@ -1,29 +1,24 @@
-import { logger } from '../../../logger';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { IActionTimer } from './IActionTimer';
+
+/** What an action timer uses of its player: the name its errors are logged under. */
+export type IActionTimerPlayer = Pick<Player, 'name'>;
+
+/** What an action timer uses of its game: the clock it runs on, and the id its errors are logged under. */
+export type IActionTimerGame = Pick<Game, 'scheduler' | 'id'>;
 import { SimpleActionTimer } from './SimpleActionTimer';
 
 /**
- * Action timer for in-game player actions. Extends SimpleActionTimer with
- * Game/Player-specific safety checks to prevent accidentally kicking players.
+ * Action timer for in-game player actions: a SimpleActionTimer on the game's scheduler that calls `onTimeout` when it
+ * runs out. A player's messages do not affect it; only the prompts that start, stop and pause it do.
  */
 export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
-    private readonly game: Game;
-    private readonly player: Player;
-
-    /** Safety check method to ensure that game state still matches when the timer was created */
-    private readonly checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean;
-
-    private lastPlayerActionId: number | null = null;
-    private activeUiPromptId: string | null = null;
-
     public constructor(
         timeLimitSeconds: number,
-        player: Player,
-        game: Game,
-        onTimeout: () => void,
-        checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean
+        player: IActionTimerPlayer,
+        game: IActionTimerGame,
+        onTimeout: () => void
     ) {
         super(
             timeLimitSeconds,
@@ -31,69 +26,7 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
             { message: `Error in action timer handler for player ${player.name}`, metadata: { gameId: game.id } }
         );
 
-        this.player = player;
-        this.game = game;
-        this.checkLiveStatus = checkLiveStatus;
-
         // Add timeout handler at 0 seconds remaining
         this.onSpecificTimeHandlers.push({ fireOnRemainingTimeMs: 0, handler: onTimeout });
-    }
-
-    /**
-     * Restarts the timer if it's currently running.
-     */
-    public restartIfRunning(): void {
-        if (!this.isRunning) {
-            return;
-        }
-
-        this.start(this.timerOverrideValueSeconds);
-    }
-
-    public override start(overrideTimeLimitSeconds?: number): void {
-        super.start(overrideTimeLimitSeconds);
-        this.updateActionTrackingInfo();
-    }
-
-    public override resume(): void {
-        super.resume();
-        this.updateActionTrackingInfo();
-    }
-
-    public override stop(): void {
-        super.stop();
-        this.resetActionTrackingInfo();
-    }
-
-    public override pause(): void {
-        super.pause();
-        this.resetActionTrackingInfo();
-    }
-
-    private updateActionTrackingInfo(): void {
-        this.activeUiPromptId = this.game.getCurrentOpenPrompt()?.uuid;
-
-        // Just log an error to avoid breaking the game
-        if (!this.activeUiPromptId) {
-            logger.error(`Attempting to start action timer for player ${this.player.id} when there is no active prompt`);
-        }
-
-        this.lastPlayerActionId = this.player.lastActionId;
-    }
-
-    private resetActionTrackingInfo(): void {
-        this.lastPlayerActionId = null;
-        this.activeUiPromptId = null;
-    }
-
-    /**
-     * Safety check to ensure the player being timed is still active for the prompt
-     * and hasn't issued any new game messages. This prevents accidentally booting
-     * a player because their turn timer didn't get cleared for some reason.
-     */
-    // TODO: Evaluate if we still need this or not. It's causing issues for the timer on the select initiative prompt in the setup phase, which is currently being skipped because of this check.
-    protected override shouldFireHandler(): boolean {
-        // return this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId);
-        return true;
     }
 }

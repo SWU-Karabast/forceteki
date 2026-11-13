@@ -95,7 +95,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     private _promptState: PlayerPromptState;
     public opponent: Player;
     private playableZones: PlayableZone[];
-    private _lastActionId = 0;
 
     public activeForPreviousPrompt = false;
     private _rejectedOpponentUndoRequests = 0;
@@ -176,10 +175,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.optionSettings.autoSingleTarget;
     }
 
-    public get lastActionId() {
-        return this._lastActionId;
-    }
-
     public get promptState() {
         return this._promptState;
     }
@@ -219,7 +214,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 this,
                 this.game,
                 () => this.game.onGameTimerExpired(this),
-                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
                 () => this.game.sendTimerUpdatedGameStateToPlayers(),
                 (status) => this.onMainTimerWarning(status)
             );
@@ -257,19 +251,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return true;
     }
 
-    public incrementActionId() {
-        this._lastActionId++;
-    }
-
     public setLobbyUser(lobbyUser: User): void {
         Contract.assertIsNullLike(this._lobbyUser, 'lobbyUser is already set');
         this._lobbyUser = lobbyUser;
-    }
-
-    private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
-        return this.game.getCurrentOpenPrompt().uuid === promptUuid &&
-          playerActionId === this._lastActionId &&
-          !this.game.isEnded;
     }
 
     /**

@@ -1,6 +1,7 @@
+import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { FakeDynamoDbService } from '../../../helpers/server/FakeDynamoDbService';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
-import { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
+import { initiativeChooserOf, ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import { premierBestOfOne, premierBestOfThree } from '../../../helpers/server/MatchConfigs';
 
 const moderatorId = 'moderator-1';
@@ -231,6 +232,54 @@ describe('ServerTestHarness', function () {
 
                 expect(owner.gameState.winners).toEqual([owner.username]);
                 expect(guest.gameState.winners).toEqual([owner.username]);
+            });
+        });
+    });
+
+    describe('playing a game', function () {
+        serverIntegration(function (contextRef) {
+            it('plays a lobby game through setup to its first action, which the player with the initiative takes', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync();
+
+                const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
+
+                expect([active, waiting]).toEqual(jasmine.arrayWithExactContents([owner, guest]));
+                expect(active.prompt.promptType).toBe(PromptType.ActionWindow);
+                expect(active.prompt.buttons.map((button) => button.text)).toContain('Pass');
+                expect(waiting.prompt.buttons).toEqual([]);
+                expect(active.hand.length).withContext('six drawn, two resourced')
+                    .toBe(4);
+                expect(waiting.hand.length).toBe(4);
+            });
+
+            it('plays a quick-match game through setup as well', async function () {
+                const { harness } = contextRef;
+                const { first, second } = await harness.startQuickGameAsync();
+
+                const { active } = await harness.playThroughSetupAsync(first, second);
+
+                expect(active.prompt.promptType).toBe(PromptType.ActionWindow);
+            });
+
+            it('names the buttons a prompt has when asked to click one it does not', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync();
+                const { active } = await harness.playThroughSetupAsync(owner, guest);
+
+                await expectAsync(active.clickButtonAsync('Keep')).toBeRejectedWithError(/no enabled 'Keep' button.*"Pass"/);
+            });
+
+            it('refuses to click a disabled button, naming it as disabled', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync();
+                await initiativeChooserOf(owner, guest).chooser.clickButtonAsync('Yourself');
+                await owner.clickButtonAsync('Keep');
+                await guest.clickButtonAsync('Keep');
+
+                // the resource step's button is disabled until two cards are chosen
+                await expectAsync(owner.clickButtonAsync('Confirm Resources'))
+                    .toBeRejectedWithError(/no enabled 'Confirm Resources' button.*Confirm Resources \(disabled\)/);
             });
         });
     });

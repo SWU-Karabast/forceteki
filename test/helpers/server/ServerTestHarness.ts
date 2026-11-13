@@ -1,3 +1,5 @@
+import { PromptType } from '../../../server/game/core/gameSteps/PromptInterfaces';
+import type { IUser } from '../../../server/Settings';
 import path from 'path';
 import request from 'supertest';
 import type { Response as SupertestResponse } from 'supertest';
@@ -83,13 +85,33 @@ export interface ILobbyWithGuest {
 }
 
 /**
+ * The two players of a game that has just started: the one its first prompt waits on, choosing the initiative (the
+ * winner of the flip), and the other. Throws if neither has that choice.
+ */
+export function initiativeChooserOf(player1: TestClient, player2: TestClient): { chooser: TestClient; other: TestClient } {
+    const chooser = [player1, player2].find((player) => player.prompt.promptType === PromptType.Initiative);
+    if (!chooser) {
+        throw new Error(`neither user ${player1.id} nor user ${player2.id} has the initiative choice`);
+    }
+
+    return { chooser, other: chooser === player1 ? player2 : player1 };
+}
+
+/** The two players of a game at its first action, from {@link ServerTestHarness.playThroughSetupAsync}. */
+export interface IPlayersAtFirstAction {
+
+    /** The player taking the first action: the one who won the flip and took the initiative. */
+    active: TestClient;
+
+    /** The other player, waiting for the first action. */
+    waiting: TestClient;
+}
+
+/**
  * Identity a test client presents to the API. Mirrors the payload the real client builds in
  * `getUserPayload`, which is a bare `{ id, username }` object for anonymous users.
  */
-export interface ITestUserPayload {
-    id: string;
-    username: string;
-}
+export type ITestUserPayload = Pick<IUser, 'id' | 'username'>;
 
 /**
  * The card data and deck validator are expensive to build (the validator reads every card), so they
@@ -414,6 +436,34 @@ export class ServerTestHarness {
         }
 
         return lobby;
+    }
+
+    /**
+     * Plays a game that has just started ({@link startLiveGameAsync}, {@link startQuickGameAsync}) through its setup phase
+     * the way two players would: whoever won the flip takes the initiative, both keep their hands, and each puts the
+     * first two cards of their hand into their resources. Returns once the first action is up.
+     *
+     * Throws, rather than failing an expectation, if a prompt is not the one expected.
+     */
+    public async playThroughSetupAsync(player1: TestClient, player2: TestClient): Promise<IPlayersAtFirstAction> {
+        const { chooser: active, other: waiting } = initiativeChooserOf(player1, player2);
+
+        await active.clickButtonAsync('Yourself');
+        for (const player of [active, waiting]) {
+            await player.clickButtonAsync('Keep');
+        }
+        for (const player of [active, waiting]) {
+            for (const card of player.hand.slice(0, 2)) {
+                await player.clickCardAsync(card.uuid);
+            }
+            await player.clickButtonAsync('Confirm Resources');
+        }
+
+        if (active.prompt.promptType !== PromptType.ActionWindow) {
+            throw new Error(`playThroughSetupAsync: user ${active.id} was not given the first action; their prompt is '${active.prompt.menuTitle}'`);
+        }
+
+        return { active, waiting };
     }
 
     public async shutdownAsync(): Promise<void> {
