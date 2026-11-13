@@ -1,0 +1,26 @@
+=== Round 1 ===
+Step 1
+1. Player 1 plays Battlefield Marine.
+Step 2
+1. Player 2 plays Bodhi Rook, Imperial Defector.
+   a. Player 2's Bodhi Rook, Imperial Defector triggers.
+      a. Player 2 looks at New Tactics and Rebel Assault.
+      b. Player 1 discards Rebel Assault.
+Step 3
+1. Player 1 passes.
+Step 4
+1. Player 2 plays Trust Yourself on Bodhi Rook, Imperial Defector.
+   a. Player 2 searches their deck with Trust Yourself, seeing Spark of Rebellion, Cantina Bouncer and Strafing Gunship, taking Strafing Gunship.
+   b. Player 2 draws Strafing Gunship.
+Step 5
+1. Player 1 plays New Tactics on Bodhi Rook, Imperial Defector.
+   a. Player 2 chooses: Top of the deck.
+   b. Shield is defeated by New Tactics.
+Step 6
+1. Player 2 passes.
+Step 7
+1. Player 1 passes.
+2. The regroup phase begins.
+   a. Player 1 draws Swoop Racer and Gamorrean Guards.
+   b. Player 2 draws Bodhi Rook, Imperial Defector and Smuggling Compartment.
+   c. (step 8) Player 1 resources Swoop Racer.
