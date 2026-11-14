@@ -54,6 +54,9 @@ export class AbilityResolver extends BaseStepWithPipeline {
     /** Set when an optional trigger's Trigger/Pass choice was already made inline; see {@link PreResolvedOptional}. */
     private readonly preResolvedOptional?: PreResolvedOptionalChoice;
 
+    /** Set once the ability's custom confirmation text was shown in the optional trigger prompt */
+    private customConfirmationShown = false;
+
     public constructor(
         game: Game,
         context: AbilityContext,
@@ -226,6 +229,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
     }
 
     private checkCustomConfirmation() {
+        if (this.customConfirmationShown) {
+            return;
+        }
+
         this.context.ability.promptCustomConfirmation(
             this.context,
             () => {
@@ -484,10 +491,19 @@ export class AbilityResolver extends BaseStepWithPipeline {
         ) {
             this.passAbilityHandler.hasBeenShown = true;
 
+            // the player is already asked whether to use the ability, so show the confirmation text there
+            // instead of asking a second time
+            let warningText: string = null;
+            if (this.passAbilityHandler.playerChoosing === this.context.player && this.context.ability.customConfirmation) {
+                warningText = this.context.ability.customConfirmation(this.context);
+                this.customConfirmationShown = true;
+            }
+
             this.game.promptWithOptionalTrigger(this.passAbilityHandler.playerChoosing, {
                 sourceCard: getTriggerSourceCardSummary(this.context.source),
                 abilityText: this.getAbilityPromptTitle(this.context),
                 passButtonText: this.passAbilityHandler.buttonText,
+                warningText,
                 onTrigger: () => undefined,
                 onPass: () => this.passAbilityHandler.handler()
             });
