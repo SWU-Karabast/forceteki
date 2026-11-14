@@ -2,7 +2,8 @@
 
 **Status:** living document. Updated as the design progresses. Last reviewed for handoff on
 2026-11-01 against `main` at `445792e61`. Updated on 2026-11-05 by the new feature owner: D-36 decided, and
-D-37 to D-39 decided from the behavior-delta audit (register §G.2).
+D-37 to D-39 decided from the behavior-delta audit (register §G.2). Re-checked on 2026-11-13 after
+merging `main` into the branch (register §I).
 
 Companion to [lki-redesign-special-cases.md](./lki-redesign-special-cases.md), which analyses specific
 code sites needing special handling, and [lki-migration-register.md](./lki-migration-register.md), the
@@ -71,9 +72,9 @@ These are the conventions the work so far followed. Keep to them so that the evi
   2026-10-23). Design rationale about cost stays qualitative.
 - **`file:line` anchors drift.** They were checked by reading the line each one points at, against
   `445792e61`. The linked file and the quoted content are the authority, not the number.
-- **Gates for an LKI PR:** `npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, and
-  the full suite in normal and undo mode. CI runs `npm run test-parallel` and
-  `npm run test-parallel-undo`. Locally, run `npm test` and `npm run test-undo` serially: parallel mode
+- **Gates for an LKI PR:** `npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`,
+  `npm run capture-states -- --check`, and the full suite in normal and undo mode. CI runs
+  `npm run test-parallel` and `npm run test-parallel-undo`. Locally, run `npm test` and `npm run test-undo` serially: parallel mode
   may name only the failing suite. In undo mode each test runs twice with a rollback between.
 - **Fast loop:** `npm run test-fast build/test/scenarios/lki/LkiOptIn.spec.js`. The path must be the
   compiled `build/test/...spec.js` file (see `CLAUDE.md`).
@@ -87,7 +88,8 @@ These are the conventions the work so far followed. Keep to them so that the evi
   `build/`, or the stale file, when a failing spec has no `.ts` source (register §H).
 - **Card data is generated and gitignored.** A fresh checkout or worktree, or a change to
   `card-data-version.txt` or `scripts/mockdata.js`, needs `npm run get-cards`. Without it every spec fails
-  with "Card data hash mismatch".
+  with "Card data hash mismatch". `npm run check-card-data` says whether the card data is current, without
+  a download. Run it after switching branches or pulling.
 - **Fast builds never refresh `build/test/json`.** They copy the card data into `build/` only when that
   folder is missing, so after `npm run get-cards` the copy is stale, and the mock-card import spec fails
   with "Card data for … not found". Delete `build/test/json` and run `npx cpy ./test/json/ ./build/`, or
@@ -484,7 +486,7 @@ the worked example. Under physical-card equality a stale reference would still m
 card and effects would incorrectly reattach.
 
 **Already the de facto behavior.** 75 sites hand-roll `entry.card === X && entry.inPlayId ===
-X.inPlayId` (§3.17), and [Attack.ts:17](../server/game/core/attack/Attack.ts) maintains a
+X.inPlayId` (§3.17), and [Attack.ts:22](../server/game/core/attack/Attack.ts) maintains a
 `Map<IAttackableCard, number>` purely to do identity checking:
 
 ```ts
@@ -1199,6 +1201,14 @@ the other meaning. The guard becomes `hasInPlayStats()`, with `asInPlayStats()` 
 `zoneName` keeps `Card`'s present meaning too. The one location shape that wants last known information
 is setting a `zoneFilter` from a card's zone ("in the same arena"), and that is what `arena` is for. A
 lint rule from step 3.4 can point there.
+
+One data point runs the other way. #3167 (2026-11-13) added `defeated.isInPlay()` to HK-47 on a properties
+object, meaning "was it in play when it was defeated?", D-31's sense. So a developer working with
+properties objects read the name as the moment. The choice still stands, because of how each mistake
+fails. Someone who wants the moment and gets "now" finds the ability failing on its main path, which its
+own spec catches. Someone who wants "now" and gets the moment finds it misbehaving only when the card left
+play mid-resolution, which few specs exercise. That is the Poe case. The guard's documentation has to make
+`hasInPlayStats()` easy to find.
 
 **The trade.** D-31's single rule ("every member answers about one moment") was simpler to state. D-37
 gives it up for a split the code base already makes informally: `lastKnownInformation.arena` beside
@@ -2149,8 +2159,10 @@ field at a time, and question 4 is settled.
    recorded view can reach through its reference. Add `arena`.
 4. **The renames (D-36, D-37).** The in-play guard `isInPlay()` / `asInPlay()` becomes
    `hasInPlayStats()` / `asInPlayStats()`, and `isUnitCard()` / `asUnitCard()` become `isUnit()` /
-   `asUnit()`. Five migrated cards and the two LKI specs use the old names. Asajj Ventress and Ravager
-   read `zoneName` for "the same arena", so they move to `arena`.
+   `asUnit()`. Five migrated cards and the two LKI specs use the old names. One use is newer than the
+   decision: #3167 added `defeated.isInPlay()` to HK-47's trigger condition, meaning "was the defeated
+   card in play when it was defeated?", so it is a guard and becomes `hasInPlayStats()` with the rest.
+   Asajj Ventress and Ravager read `zoneName` for "the same arena", so they move to `arena`.
 5. **No tombstones (D-39).** `LkiRegistry` stops keeping them, and `getProperties` reads a current
    identity live when it has no record. The orphan throw stays. Three specs assert the tombstone's message.
    Two read a card that is still the same identity in the discard pile, so they change to assert the
@@ -2335,7 +2347,7 @@ tracks:
 
 | Section | Contents |
 |---|---|
-| A | 28 presence reads of a departed card. Covered by D-37, and listed so step 3.1 can be checked against them |
+| A | 29 presence reads of a departed card. Covered by D-37, and listed so step 3.1 can be checked against them |
 | B | Known bugs (Dengar's `lki.card` hop, `UseWhenDefeatedSystem:75`, watcher identity/Set issues, the record-key collision, the resource path that writes no record), **B.1** the wrong-copy findings re-evaluated (one confirmed: Maul), **B.2** event-relative reads still on the transitional overload |
 | C | Type corrections (`TargetedCostAdjuster.selectedTargets`) |
 | D | Code to delete (redundant damage-event LKI, `defendersLastKnownInformation`, the `addLastKnownInformation` flag), the helper collapse, the incomplete flush boundary |

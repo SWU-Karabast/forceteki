@@ -96,7 +96,7 @@ card's state when it left".
 **Why this is not just theoretical.** The attack flow already captures LKI at attack declaration,
 for a card that is typically *still in play*:
 
-[AttackFlow.ts:54-63](../server/game/core/attack/AttackFlow.ts) — `declareAttack()`
+[AttackFlow.ts:62-71](../server/game/core/attack/AttackFlow.ts) — `declareAttack()`
 
 ```ts
 // Capture the attacker and defender's LKI on the event itself, before any "On Attack" / "On Defense"
@@ -123,8 +123,8 @@ these triggers resolve — which "current-or-last-known" handles correctly.
 
 The other two attack-flow capture sites are plain LKI and are fully covered:
 
-- [AttackFlow.ts:86-89](../server/game/core/attack/AttackFlow.ts) — `OnAttackDamageResolved`
-- [AttackFlow.ts:105-108](../server/game/core/attack/AttackFlow.ts) — `OnAttackEnd`, read by
+- [AttackFlow.ts:94-97](../server/game/core/attack/AttackFlow.ts) — `OnAttackDamageResolved`
+- [AttackFlow.ts:113-116](../server/game/core/attack/AttackFlow.ts) — `OnAttackEnd`, read by
   [WhistlingBirds.ts:38](../server/game/cards/08_ASH/upgrades/WhistlingBirds.ts) whose comment is
   explicitly about the attacker having *been defeated*
 
@@ -1326,7 +1326,7 @@ same action where the value differs. If one appears, extend D-38 to cards taken 
 **What.** Card code asks "is it still in play?", "is it in my discard pile?", "is it still attached?" about
 a card that has just left play. The answer the card text wants is the present one.
 
-**Where.** Register §A, 28 sites. The ruling on Darth Maul's Lightsaber (2025-09-29) says so explicitly:
+**Where.** Register §A, 29 sites. The ruling on Darth Maul's Lightsaber (2025-09-29) says so explicitly:
 an upgrade defeated before its When Played resolves is attached to nothing.
 
 **Why it is a special case.** D-31 made location a characteristic of the moment a properties object

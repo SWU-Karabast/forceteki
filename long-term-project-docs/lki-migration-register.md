@@ -26,7 +26,9 @@ that way and the behavior-delta audit (§G.2) checks it.
 Every file and line anchor in this document was checked by reading the line it points at, against `main`
 at `445792e61` on 2026-11-01 (§I). The anchors added on 2026-11-05 (§A, §B, §E, §F.1 and §G.2) were checked
 the same way against `78124942f`, which is `445792e61` plus a commit that changed only documents and
-comments. They drift: the linked file and the quoted content are the authority.
+comments. On 2026-11-13 every anchor was re-checked against `0e8206ce1`, the merge of `main` into this
+branch, and the drifted ones were moved (§I). They drift: the linked file and the quoted content are the
+authority.
 
 ---
 
@@ -40,11 +42,12 @@ reads the present on every properties object, recorded ones included, so each ke
 needs no decision. Several are workarounds for a separate rules problem, an ability that goes on
 resolving after its source left play, which is tracked as future work.
 
-The first seven were the whole section before the audit. The audit (§G.2) found the other twenty-one. The
-first four of those had been filed in SC-12 as fizzle hacks for the identity check that D-34 dropped.
-Seventeen were not in this register. Ten of those are not mentioned in any of the three documents, and
-the other seven appear only in other roles: §3.21's accessor guards, the SC-11 fallbacks, or the record
-fields in §B.
+The first seven were the whole section before the audit. The audit (§G.2) found the other twenty-one on
+2026-11-05, and one more, on a card added since, when it was re-run on 2026-11-13. The first four of the
+twenty-one had been filed in SC-12 as fizzle hacks for the identity check that D-34 dropped. Seventeen
+were not in this register. Ten of those are not mentioned in any of the three documents, and the other
+seven appear only in other roles: §3.21's accessor guards, the SC-11 fallbacks, or the record fields in
+§B.
 
 Status `pending` means step 3.1 has not been built. Each row is checked by re-running the audit after it
 is: the site must still read the present.
@@ -79,6 +82,7 @@ is: the site must still read the present.
 | [LattsRazziDeadlyWhipmaster.ts:34](../server/game/cards/07_LAW/units/LattsRazziDeadlyWhipmaster.ts) | `thenContext.source.isInPlay()`, the guard of an SC-11 fallback | audit; SC-12 | pending |
 | [TheGreatProgenitorFirstOfTheDrengir.ts:44](../server/game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts) | `context.source.isInPlay()`, the guard of an SC-11 fallback | audit; SC-12 | pending |
 | [SandoAquaMonster.ts:61](../server/game/cards/09_HMW/units/SandoAquaMonster.ts) | `context.source.isInPlay()`, the guard of a three-way fallback (§E) | audit | pending |
+| [AsajjVentressBaldAndBeautiful.ts:27](../server/game/cards/09_IC27/leaders/AsajjVentressBaldAndBeautiful.ts) | `thenCondition` reading `context.target?.isInPlay()`, "if the attacker survived" | audit, 2026-11-13 | pending |
 
 The SC-11 fallbacks at the end keep working as written, because their guard reads the present. Each can
 also collapse to a single read of the record once its card opts in, which is the simplification §E
@@ -129,7 +133,7 @@ check was not built (D-34).
 | Site | Finding | Status |
 |---|---|---|
 | `server/game/gameSystems/` (all) | No identity check of any kind (`inPlayId`, `identityId`, `getIdentity`). That is not by itself a defect: a check on events would fizzle 23 follow-through events that are correct today (D-34, SC-21). No change planned. | done |
-| [Attack.ts:171](../server/game/core/attack/Attack.ts) | The only identity guard in the engine: captures `attackerInPlayId` and a `targetInPlayMap`, then re-checks before applying damage. **It stays.** The plan was to delete it once a generic check landed, and that check is not being built. | done |
+| [Attack.ts:224](../server/game/core/attack/Attack.ts) | The only identity guard in the engine: captures `attackerInPlayId` and a `targetInPlayMap`, then re-checks before applying damage. **It stays.** The plan was to delete it once a generic check landed, and that check is not being built. Since #3133 an attacker can be replaced mid-attack (`Attack.replaceAttacker`), and the guard re-binds `attackerInPlayId` to the new attacker. | done |
 | [Commandeer.ts](../server/game/cards/04_JTL/events/Commandeer.ts) | **Correct today.** The engine removes a default-duration delayed effect when its target leaves play (`removeLastingEffects`, #689), so a unit bounced and replayed before regroup is not returned a second time. Pinned by the "leaves play and returns before the regroup phase" spec in [Commandeer.spec.ts](../test/server/cards/04_JTL/events/Commandeer.spec.ts). Mutation-checked: disabling the target-based removal fails it. | done |
 | [MaulMasterOfTheShadowCollective.ts:39](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts) | **Confirmed bug.** The "return control" effect is a `WhileSourceInPlay` delayed effect, and `removeLastingEffects` ([OngoingEffectEngine.ts:428](../server/game/core/ongoingEffect/OngoingEffectEngine.ts)) exempts those from the cleanup above. If the stolen unit is bounced and replayed and a different effect then takes control of the new copy, Maul leaving play acts on that new copy. Reproduced by a pending spec in [MaulMasterOfTheShadowCollective.spec.ts](../test/server/cards/07_LAW/units/MaulMasterOfTheShadowCollective.spec.ts) that asserts the correct behavior. **Pre-existing:** that spec fails identically on `20f9e3ebe`, the commit before the LKI merge (#2931) — the exemption itself dates to #689 (Feb 2025), and Maul's card and the `WhenSourceLeavesPlayDelayedEffectSystem` it uses arrived in #2237 (Feb 2026). **Candidate fix, not applied:** drop the exemption. In a trial run without it the spec passed and the full suite stayed green. DJ shares the exemption, so it needs a spec of its own first. | **deferred** — decision 2026-10-23: "We'll do the fix later" |
 | [DjBlatantThief.ts:22](../server/game/cards/02_SHD/units/DjBlatantThief.ts) | Same exemption, with a closure-captured `target` for a resource. #2955 guards the crash case — the stolen card is no longer a resource — with an `isResource()` check, which is a zone check rather than an identity check. Whether a replacement copy that is a resource again slips through is **unverified**, and #689's commit message already says DJ "will probably need some additional tests". **Migrate by hand:** the inline comment shows it deliberately wants *live* `exhausted` state at fire time, so a blanket rewrite to recorded reads would break it. | pending |
@@ -156,7 +160,7 @@ Superlaser Technician, and Commandeer with Tobias and Chewbacca.
 | [LastKnownInformation.ts:162](../server/game/core/event/LastKnownInformation.ts) | `event.defendersLastKnownInformation` is built but consumed nowhere. | pending |
 | `CardTargetSystem.generateEvent`'s `addLastKnownInformation` flag | Exactly two call sites, both in `UseWhenDefeatedSystem` (lines 75, 102). It routes to `addLastKnownInformationNow`, the synchronous variant for synthetic events that never enter a window, which goes with it. Disappears under D-22's universal minting (SC-1). | pending |
 | [`addLastKnownInformationToEvent`](../server/game/core/event/LastKnownInformation.ts) | The **non-recording** variant, split out in phase 1 to stop damage events writing records. Its only caller is `DamageSystem`'s attachment above, so it dies with it — leaving `addDepartureRecordToEvent` as the single helper. | pending |
-| [`addAttackLastKnownInformationToEvent`](../server/game/core/event/LastKnownInformation.ts) | `defendersLastKnownInformation` has no consumers at all. `attackerLastKnownInformation` has three — [WhistlingBirds](../server/game/cards/08_ASH/upgrades/WhistlingBirds.ts), [KachirhoMilitia](../server/game/cards/08_ASH/units/KachirhoMilitia.ts), [KraganGorrWarbirdCaptain](../server/game/cards/02_SHD/units/KraganGorrWarbirdCaptain.ts) — all reading only `arena` or `controller`, which the registry serves from the attacker's bound reference. | pending |
+| [`addAttackLastKnownInformationToEvent`](../server/game/core/event/LastKnownInformation.ts) | `defendersLastKnownInformation` has no consumers at all. `attackerLastKnownInformation` has three — [WhistlingBirds](../server/game/cards/08_ASH/upgrades/WhistlingBirds.ts), [KachirhoMilitia](../server/game/cards/08_ASH/units/KachirhoMilitia.ts), [KraganGorrWarbirdCaptain](../server/game/cards/02_SHD/units/KraganGorrWarbirdCaptain.ts) — all reading only `arena` or `controller`, which the registry serves from the attacker's bound reference. Since #3133 an attacker can be replaced mid-attack (`Attack.replaceAttacker`, used by Asajj Ventress, Death From Above), so the attacker at declaration can differ from the attacker at damage and at the end of the attack. Bind the reference when each event is captured, as the legacy struct is captured, never once for the whole attack. | pending |
 | `GameEvent.setLastKnownInformation` | The only place `event.cardRef` is set, and it takes the reference together with the legacy struct. Phase 2 binds the reference where an event's `card` is assigned, so this setter stops binding it, and the method goes with the struct in phase 4. | pending |
 
 ### D.1 The two-helper split is temporary
@@ -231,9 +235,9 @@ rather than assumed.
 
 | Site | Expected outcome |
 |---|---|
-| [TriggeredAbility.ts:205-206](../server/game/core/ability/TriggeredAbility.ts) | The `if (context.event.card === context.source && context.event.lastKnownInformation)` special case dissolves: reading `controller` through the properties object returns the footprint value automatically. Note this is a high-traffic engine-side ref-vs-`Card` comparison (D-8 constraint 3). |
+| [TriggeredAbility.ts:222-223](../server/game/core/ability/TriggeredAbility.ts) | The `if (context.event.card === context.source && context.event.lastKnownInformation)` special case dissolves: reading `controller` through the properties object returns the footprint value automatically. Note this is a high-traffic engine-side ref-vs-`Card` comparison (D-8 constraint 3). |
 | [UseWhenDefeatedSystem.ts:67-75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | The manual event regeneration for an in-play source becomes unnecessary — no footprint exists for an in-play card, so the getter returns a live accessor that reads current stats by construction. Pinned by `LastKnownInformation.spec.ts`. |
-| [Attack.ts:17,45,50](../server/game/core/attack/Attack.ts) | `targetInPlayMap` and `attackerInPlayId` are a hand-rolled `(card, identity)` pair. The guard itself stays (§B.1), but it can hold `CardRef`s instead of pairs once references are interned (D-11). |
+| [Attack.ts:22,52,57](../server/game/core/attack/Attack.ts) | `targetInPlayMap` and `attackerInPlayId` are a hand-rolled `(card, identity)` pair. The guard itself stays (§B.1), but it can hold `CardRef`s instead of pairs once references are interned (D-11). |
 | The 7 SC-11 hand-rolled live/frozen fallbacks | Collapse to a plain property read. Two are done (`CalculatedLethality`, `AsajjVentressIWorkAlone`); five remain (SC-11). The audit (§G.2) found an eighth: [SandoAquaMonster.ts:60-64](../server/game/cards/09_HMW/units/SandoAquaMonster.ts), whose `sourcePower` is the same three-way fallback through the left-play watcher that Ravager had (SC-19). |
 | The ~75 hand-rolled `(card, inPlayId)` comparisons | Collapse to a single `===`. 75 is the phase-0 count; 87 lines mention `inPlayId` today, which includes declarations, so it is not a like-for-like figure. Twelve card files hand-roll it, one line each. |
 | The 6 hand-rolled zone-gated accessor ternaries | Identity becomes readable without throwing. Five remain (three state watchers and two in `LastKnownInformation.ts`); `MonMothmaClingingToHope` had the sixth and was migrated in phase 1. |
@@ -353,6 +357,20 @@ card files.
 
 "Before" means the design as D-21 and D-31 left it, with every card opted in. In 67 card files it would
 throw or give a wrong answer.
+
+**Re-run, 2026-11-13, after merging `main` (`0e8206ce1`).** 9,430 game specs and 0 failures; 5,784 reads
+at 241 sites in 123 card files. Before D-37 to D-39: 57 throwing sites in 42 files, 31 presence answers
+that change in 27 files, the same 2 candidate answers, 69 card files in all. Under D-37 to D-39 the same
+five answers change, with the verdicts below. The new sites are all on cards `main` added since, and each
+falls in a class the decisions already cover:
+
+- [ObiWanKenobiISenseATrap.ts:40](../server/game/cards/09_IC27/units/ObiWanKenobiISenseATrap.ts): a
+  discard-pile selector candidate that left play in an earlier action (D-38).
+- [CloneCommanderCodyLoyaltoTheRepublic.ts:20-21](../server/game/cards/09_IC27/units/CloneCommanderCodyLoyaltoTheRepublic.ts):
+  a trigger on a unit entering play, read under the identity the unit had before it entered, which had
+  left play in an earlier action (D-39).
+- [AsajjVentressBaldAndBeautiful.ts:27](../server/game/cards/09_IC27/leaders/AsajjVentressBaldAndBeautiful.ts):
+  a presence read, now in §A (D-37).
 
 **Where it would have thrown** (55 sites in 41 files). Every one reads a card that left play in an earlier
 action and kept its identity, so the card was picked up again, legitimately, from the zone it went to:
@@ -543,3 +561,35 @@ comments, so the code measured is the code on `main`.
 - **Changed in this pass:** §A (covered by D-37, with 21 sites added), §B (two rows: the record-key
   collision and the resource path), §E (Sando Aqua Monster's fallback), §F.1 (Darth Maul's Lightsaber, and
   a note on Clone), and §G.2 (new).
+
+**2026-11-13 — branch `ammayberry1/lki-refactor-3` after merging `main` (`0e8206ce1`).** 99 commits had
+landed on `main` since `445792e61`.
+
+- **The merge.** It had one conflict, in `package.json`'s scripts, resolved by keeping both sides. On a
+  clean build the merged tree passes 10,341 specs in normal mode and 9,241 in undo mode, with 0 failures.
+  `eslint --quiet`, `validate-cards`, `validate-specs`, CI's new `capture-states -- --check` gate and
+  `npm run lki-audit -- --self-check` all pass.
+- **The last-known-information machinery did not move.** `core/lki/`, `LastKnownInformation.ts`,
+  `GameEvent.ts` and the phases that flush are unchanged.
+- **Engine changes near it:**
+  - #3113 fixed `EventWindow`'s event sort. Its one-argument comparator had left the order events
+    resolve in effectively arbitrary. Records are committed in that loop, one event at a time, and no
+    spec changed result.
+  - #3133 added `Attack.replaceAttacker`. The identity guard re-binds to the new attacker (§B.1), and the
+    attack's last known information has to be bound per event (§D).
+  - `TriggeredAbility.isActiveForEvents` now marks a trigger as missed when its ability is inactive on
+    the first pass, so the second pass cannot revive it. That settles the activity half of SC-10's
+    double evaluation. Trigger conditions that read live state are unchanged.
+  - #3167 added `defeated.isInPlay()` to HK-47's trigger condition, a guard use in D-31's sense. Step 3.1
+    renames it with the others.
+- **The audit, re-run** (§G.2): no new exception, and three new sites, each in a class the decisions
+  cover. §A gains Asajj Ventress, Bald and Beautiful.
+- **Sizing.** Card `.ts` files went from 2,084 to 2,148, and files with selector callbacks from 654 to
+  672. Files reading `lastKnownInformation`, counted as the documents count them (any case), went from 49
+  to 50. The new one, Qi'ra, Survivor, reads `lastKnownInformation.upgrades`, a phase-4 target. Files
+  using the getter: still 7. No guidance for card implementers mentions last known information yet
+  (step 3.4).
+- **Anchors.** Every `file:line` anchor in the three documents was compared with its line at
+  `445792e61`. Twenty-six lines had drifted, all in `Attack.ts`, `AttackFlow.ts` and
+  `TriggeredAbility.ts`, and each anchor now points at the line holding the quoted content. A cosmetic
+  change at `InPlayCard.ts:92` needed no move. §6's history quotes are left as they were.
