@@ -206,7 +206,8 @@ describe('Jyn Erso, Her Father\'s Revenge', function() {
                     // Choose nothing
                     context.player1.clickDone();
 
-                    // Nothing is readied and no Saboteur is granted (Jyn keeps her printed Saboteur)
+                    // Nothing is readied, including Jyn herself, and no Saboteur is granted (Jyn keeps her printed Saboteur)
+                    expect(context.jynErsoHerFathersRevenge.exhausted).toBeTrue();
                     expect(context.battlefieldMarine.exhausted).toBeTrue();
                     expect(context.wampa.exhausted).toBeTrue();
                     expect(context.yoda.exhausted).toBeTrue();
@@ -291,6 +292,34 @@ describe('Jyn Erso, Her Father\'s Revenge', function() {
                     expect(context.cloneTrooper.exhausted).toBeTrue();
                     expect(context.lukeSkywalker.hasSomeKeyword('saboteur')).toBeTrue();
                     expect(context.spy.hasSomeKeyword('saboteur')).toBeTrue();
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+
+            describe('with no unit costing 7 or less', function() {
+                beforeEach(async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['jyn-erso#her-fathers-revenge'], // cost 8
+                            groundArena: [{ card: 'blizzard-assault-atat', exhausted: true }] // cost 8
+                        },
+                        player2: {
+                            groundArena: [{ card: 'bokatan-kryze#alone', exhausted: true }] // cost 9
+                        }
+                    });
+                });
+
+                it('should not ready anything, including Jyn herself', function() {
+                    const { context } = contextRef;
+
+                    // Play Jyn, no unit fits under the cap, so the ability does nothing
+                    context.player1.clickCard(context.jynErsoHerFathersRevenge);
+
+                    expect(context.jynErsoHerFathersRevenge.exhausted).toBeTrue();
+                    expect(context.blizzardAssaultAtat.exhausted).toBeTrue();
+                    expect(context.blizzardAssaultAtat.hasSomeKeyword('saboteur')).toBeFalse();
+                    expect(context.bokatanKryze.exhausted).toBeTrue();
                     expect(context.player2).toBeActivePlayer();
                 });
             });
