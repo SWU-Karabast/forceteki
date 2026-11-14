@@ -4,8 +4,11 @@ describe('General Grievous, Four-Armed Menace', function() {
         const healChoice = 'Heal 3 damage from your base';
         const drawChoice = 'Draw a card';
 
+        // an option already chosen this phase is still shown, as a disabled button with this badge
+        const alreadyChosen = (choice: string) => `(Already chosen) ${choice}`;
+
         describe('when you play an upgrade on him', function() {
-            it('offers each option only if it has not been chosen yet this phase', async function () {
+            it('shows each option already chosen this phase as unavailable', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -33,26 +36,28 @@ describe('General Grievous, Four-Armed Menace', function() {
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 
-                // Play second upgrade, experience is no longer offered, choose heal
+                // Play second upgrade, experience is shown but can't be chosen, choose heal
                 context.player1.clickCard(context.devotion);
                 expect(context.player1).toHavePrompt('Attach Devotion to a unit');
                 context.player1.clickCard(context.generalGrievous);
 
                 expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
-                expect(context.player1).toHaveExactPromptButtons([healChoice, drawChoice]);
+                expect(context.player1).toHaveExactPromptButtons([alreadyChosen(experienceChoice), healChoice, drawChoice]);
+                expect(context.player1).toHaveDisabledPromptButton(alreadyChosen(experienceChoice));
                 context.player1.clickPrompt(healChoice);
 
                 expect(context.p1Base.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 
-                // Play third upgrade, only draw is offered
+                // Play third upgrade, only draw can be chosen
                 context.player1.clickCard(context.electrostaff);
                 expect(context.player1).toHavePrompt('Attach Electrostaff to a unit');
                 context.player1.clickCard(context.generalGrievous);
 
                 expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
-                expect(context.player1).toHaveExactPromptButtons([drawChoice]);
+                expect(context.player1).toHaveExactPromptButtons([alreadyChosen(experienceChoice), alreadyChosen(healChoice), drawChoice]);
+                expect(context.player1).toHaveDisabledPromptButtons([alreadyChosen(experienceChoice), alreadyChosen(healChoice)]);
                 context.player1.clickPrompt(drawChoice);
 
                 expect(context.player1.handSize).toBe(2);
@@ -174,15 +179,54 @@ describe('General Grievous, Four-Armed Menace', function() {
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 
-                // Heal is no longer offered
+                // Heal can't be chosen again
                 context.player1.clickCard(context.devotion);
                 context.player1.clickCard(context.generalGrievous);
 
                 expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
-                expect(context.player1).toHaveExactPromptButtons([experienceChoice, drawChoice]);
+                expect(context.player1).toHaveExactPromptButtons([experienceChoice, alreadyChosen(healChoice), drawChoice]);
                 context.player1.clickPrompt(drawChoice);
 
                 expect(context.player1.handSize).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('ignores a click on an option already chosen this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['general-grievous#fourarmed-menace'],
+                        hand: ['entrenched', 'devotion']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.generalGrievous);
+                context.player1.clickPrompt(drawChoice);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.generalGrievous);
+                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice, alreadyChosen(drawChoice)]);
+
+                // send the click directly, the way a client would, even though the button is disabled
+                const drawButton = context.player1.currentPrompt().buttons
+                    .find((button) => button.text === alreadyChosen(drawChoice));
+                expect(context.game.menuButton(context.player1.player.id, drawButton.arg, drawButton.uuid, undefined)).toBe(false);
+                context.game.continue();
+
+                // the card drawn by the first choice, and no more
+                expect(context.player1.handSize).toBe(1);
+                expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
+                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice, alreadyChosen(drawChoice)]);
+                context.player1.clickPrompt(experienceChoice);
+
+                expect(context.generalGrievous).toHaveExactUpgradeNames(['entrenched', 'devotion', 'experience']);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -310,7 +354,7 @@ describe('General Grievous, Four-Armed Menace', function() {
                 context.player1.clickCard(p1Grievous);
 
                 expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
-                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice]);
+                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice, alreadyChosen(drawChoice)]);
                 context.player1.clickPrompt(experienceChoice);
 
                 expect(p1Grievous).toHaveExactUpgradeNames([
@@ -356,7 +400,7 @@ describe('General Grievous, Four-Armed Menace', function() {
 
                 // The options are tracked on the card, not per player, so Draw a card has already been chosen
                 expect(context.player2).toHavePrompt('Choose an effect for General Grievous');
-                expect(context.player2).toHaveExactPromptButtons([experienceChoice, healChoice]);
+                expect(context.player2).toHaveExactPromptButtons([experienceChoice, healChoice, alreadyChosen(drawChoice)]);
                 context.player2.clickPrompt(healChoice);
 
                 expect(context.p2Base.damage).toBe(2);
