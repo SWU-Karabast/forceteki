@@ -5,6 +5,7 @@ import type { Player } from '../../Player';
 import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
+import type { ISerializedCardState } from '../../../Interfaces';
 import { EffectName } from '../../Constants';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
@@ -130,8 +131,12 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             return { ...super.getSummary(activePlayer, overrideHidden), damage: this._damage };
         }
 
-        public override getCardState(): any {
-            return { ...super.getCardState(), damage: this._damage };
+        protected override buildSerializedCardState(): ISerializedCardState {
+            const state = super.buildSerializedCardState();
+            if (this._damage) {
+                state.damage = this._damage;
+            }
+            return state;
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {
