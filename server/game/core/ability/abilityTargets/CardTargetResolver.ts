@@ -99,6 +99,18 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.hasEnoughTargets(context);
     }
 
+    public override getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
+        // If the player chose no cards, the effect has nothing to act on. Without this check an aggregate effect
+        // (e.g. simultaneous) would see an empty target list and let its inner systems fall back to their own
+        // default target, which is the source card (Jyn Erso readying herself when choosing nothing).
+        const chosenTargets = context.targets[this.name];
+        if (Array.isArray(chosenTargets) && chosenTargets.length === 0) {
+            return [];
+        }
+
+        return super.getGameSystems(context);
+    }
+
     /**
      * True when this resolver reveals cards from a zone hidden from the opponent but the choosing player has no card
      * that can be revealed. Used to decide when a triggered reveal ability should show a masking pause instead of
