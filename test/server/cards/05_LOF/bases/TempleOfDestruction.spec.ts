@@ -139,4 +139,29 @@ describe('Temple of Destruction\'s ability', function() {
             expect(context.player1.hasTheForce).toBe(false);
         });
     });
+
+    integration(function (contextRef) {
+        it('should give the Force when all combat damage goes to the base through Overwhelm because the defender was defeated first', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'temple-of-destruction',
+                    groundArena: [{ card: 'emperor-palpatine#master-of-the-dark-side', upgrades: ['fallen-lightsaber'] }]
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Fallen Lightsaber defeats the defender before combat damage, so all 9 damage is Overwhelm damage to the base
+            context.player1.clickCard(context.emperorPalpatine);
+            context.player1.clickCard(context.deathStarStormtrooper);
+
+            expect(context.p2Base.damage).toBe(9);
+            expect(context.player1.hasTheForce).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });
