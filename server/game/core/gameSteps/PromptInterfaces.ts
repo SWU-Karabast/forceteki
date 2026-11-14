@@ -85,6 +85,12 @@ export interface IActionSelectionButton extends IButtonWithSourceCard {
 /** A card button for one of a modal ability's options in the modal-effect selection prompt. */
 export interface IModalEffectSelectionButton extends IButtonWithSourceCard {
     hasLegalEffects: boolean;
+
+    /**
+     * Present (with `disabled: true`) when the option can't be chosen right now, e.g. because it was already chosen.
+     * The client shows it as the button's badge.
+     */
+    unavailableReason?: string;
 }
 
 /**

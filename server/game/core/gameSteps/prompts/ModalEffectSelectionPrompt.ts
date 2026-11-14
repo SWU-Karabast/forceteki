@@ -13,6 +13,12 @@ export interface IModalEffectSelectionChoice {
     hasLegalEffects: () => boolean;
 
     handler: () => void;
+
+    /**
+     * Set when the option is shown but can't be chosen, e.g. "Already chosen". The option is rendered as a disabled
+     * button with this text as its badge, and clicks on it are rejected.
+     */
+    unavailableReason?: string;
 }
 
 export interface IModalEffectSelectionPromptProperties {
@@ -77,16 +83,35 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
 
     private makeChoiceButton(choice: IModalEffectSelectionChoice, index: number): IModalEffectSelectionButton {
         const hasLegalEffects = choice.hasLegalEffects();
-
-        // Keep the "(No effect)" prefix for tests so it's easy to tell which options have no effect
-        const noEffectPrefix = process.env.NODE_ENV === 'test' && !hasLegalEffects ? '(No effect) ' : '';
-
-        return {
-            text: `${noEffectPrefix}${choice.title}`,
+        const button: IModalEffectSelectionButton = {
+            text: `${this.getTestPrefix(choice, hasLegalEffects)}${choice.title}`,
             arg: index.toString(),
             sourceCard: this.properties.sourceCard,
             hasLegalEffects
         };
+
+        if (choice.unavailableReason) {
+            button.disabled = true;
+            button.unavailableReason = choice.unavailableReason;
+        }
+
+        return button;
+    }
+
+    /**
+     * In tests, prefix the option with its badge, e.g. "(No effect) " or "(Already chosen) ", so specs can tell the
+     * options apart by text. An unavailable option shows only its unavailable reason, as the client does.
+     */
+    private getTestPrefix(choice: IModalEffectSelectionChoice, hasLegalEffects: boolean): string {
+        if (process.env.NODE_ENV !== 'test') {
+            return '';
+        }
+
+        if (choice.unavailableReason) {
+            return `(${choice.unavailableReason}) `;
+        }
+
+        return hasLegalEffects ? '' : '(No effect) ';
     }
 
     public override waitingPrompt(): IPlayerPromptStateProperties {
@@ -103,7 +128,7 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
         }
 
         const choice = this.properties.choices[Number(arg)];
-        if (!choice) {
+        if (!choice || choice.unavailableReason) {
             return false;
         }
 

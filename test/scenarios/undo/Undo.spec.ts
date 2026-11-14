@@ -2081,12 +2081,12 @@ describe('Undo', function() {
                 expect(context.devotion).toBeInZone('hand');
                 expect(context.player1).toBeActivePlayer();
 
-                // Heal was chosen in the rolled back action so it is offered again, but draw is still used up
+                // Heal was chosen in the rolled back action so it can be chosen again, but draw is still used up
                 context.player1.clickCard(context.devotion);
                 context.player1.clickCard(context.generalGrievous);
 
                 expect(context.player1).toHavePrompt(effectPrompt);
-                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice]);
+                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice, '(Already chosen) Draw a card']);
                 context.player1.clickPrompt(healChoice);
 
                 expect(context.p1Base.damage).toBe(2);
