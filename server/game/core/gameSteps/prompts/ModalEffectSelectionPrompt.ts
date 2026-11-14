@@ -2,7 +2,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { PromptType } from '../PromptInterfaces';
-import type { IButton, IModalEffectSelectionButton, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import type { IButton, IModalEffectSelectionButton, ITriggerWindowSourceCard, ModalEffectUnavailableReason } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /** A single selectable option in the {@link ModalEffectSelectionPrompt}. */
@@ -18,7 +18,7 @@ export interface IModalEffectSelectionChoice {
      * Set when the option is shown but can't be chosen, e.g. "Already chosen". The option is rendered as a disabled
      * button with this text as its badge, and clicks on it are rejected.
      */
-    unavailableReason?: string;
+    unavailableReason?: ModalEffectUnavailableReason;
 }
 
 export interface IModalEffectSelectionPromptProperties {

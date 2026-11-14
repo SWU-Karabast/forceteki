@@ -82,6 +82,14 @@ export interface IActionSelectionButton extends IButtonWithSourceCard {
     gained: boolean;
 }
 
+/**
+ * Why a modal ability's option can't be chosen. Each value is the text the client shows verbatim as the option's
+ * badge, so keep the values human-readable: the wording can then change without a client release.
+ */
+export enum ModalEffectUnavailableReason {
+    AlreadyChosen = 'Already chosen',
+}
+
 /** A card button for one of a modal ability's options in the modal-effect selection prompt. */
 export interface IModalEffectSelectionButton extends IButtonWithSourceCard {
     hasLegalEffects: boolean;
@@ -90,7 +98,7 @@ export interface IModalEffectSelectionButton extends IButtonWithSourceCard {
      * Present (with `disabled: true`) when the option can't be chosen right now, e.g. because it was already chosen.
      * The client shows it as the button's badge.
      */
-    unavailableReason?: string;
+    unavailableReason?: ModalEffectUnavailableReason;
 }
 
 /**

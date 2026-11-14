@@ -8,6 +8,7 @@ import { getTriggerSourceCardSummary } from '../core/gameSteps/abilityWindow/Tri
 import type { Player } from '../core/Player';
 import type { MsgArg } from '../core/chat/GameChat';
 import type { PerChoiceLimit } from '../core/ability/AbilityLimit';
+import { ModalEffectUnavailableReason } from '../core/gameSteps/PromptInterfaces';
 
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountOfChoices: number;
@@ -208,11 +209,11 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         chosenLabels: ReadonlySet<string>,
         label: string,
         context: TContext
-    ): string | undefined {
+    ): ModalEffectUnavailableReason | undefined {
         const chosenInThisPrompt = !properties.canChooseSameOptionMoreThanOnce && chosenLabels.has(label);
         const atChoiceLimit = !this.isChoiceWithinLimit(properties, choiceIds, label, context);
 
-        return chosenInThisPrompt || atChoiceLimit ? 'Already chosen' : undefined;
+        return chosenInThisPrompt || atChoiceLimit ? ModalEffectUnavailableReason.AlreadyChosen : undefined;
     }
 
     private getEffectsToChooseText(properties: IPlayModalCardProperties, amountOfRemainingChoices: number): string {
