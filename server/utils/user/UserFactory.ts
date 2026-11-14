@@ -62,6 +62,12 @@ interface ITokenIdentity {
     providerId: string;
     email?: string;
     name?: string;
+
+    /**
+     * Whether the sign-in provider had verified the email when the user signed in, as the FE recorded it in the
+     * token. Undefined when the token carries no such claim: sessions issued before the FE started recording it.
+     */
+    emailVerified?: boolean;
 }
 
 /** A valid session token whose identity has no account on this server yet. */
@@ -70,6 +76,42 @@ export class AccountNotFoundError extends Error {
         super(message);
         this.name = 'AccountNotFoundError';
     }
+}
+
+/**
+ * A sign-in whose provider has not verified the email address it gave. Accounts are found and linked by email, so
+ * such a sign-in is refused, and nothing is linked or created for it.
+ */
+export class EmailNotVerifiedError extends Error {
+    public constructor(message = 'The email address of this sign-in is not verified') {
+        super(message);
+        this.name = 'EmailNotVerifiedError';
+    }
+}
+
+/** A valid session token that does not say whether its email is verified. Signing in again issues one that does. */
+export class SignInAgainError extends Error {
+    public constructor(message = 'This session predates email verification; sign in again') {
+        super(message);
+        this.name = 'SignInAgainError';
+    }
+}
+
+/**
+ * The `code` the API answers with when it refuses a valid session token for one of these reasons, for the FE to act
+ * on, or undefined for any other error.
+ */
+export function signInRefusalCode(error: unknown): 'ACCOUNT_NOT_FOUND' | 'EMAIL_NOT_VERIFIED' | 'SIGN_IN_AGAIN' | undefined {
+    if (error instanceof AccountNotFoundError) {
+        return 'ACCOUNT_NOT_FOUND';
+    }
+    if (error instanceof EmailNotVerifiedError) {
+        return 'EMAIL_NOT_VERIFIED';
+    }
+    if (error instanceof SignInAgainError) {
+        return 'SIGN_IN_AGAIN';
+    }
+    return undefined;
 }
 
 /**
@@ -104,7 +146,8 @@ export class UserFactory {
             const identity = this.verifyTokenIdentity(token);
             return await this.resolveUserFromIdentityAsync(identity);
         } catch (error) {
-            if (!(error instanceof AccountNotFoundError)) {
+            // a refusal the client is told the reason for is expected, not a server error
+            if (signInRefusalCode(error) === undefined) {
                 logger.error('Error resolving user from token:', { error: { message: error.message, stack: error.stack } });
             }
             throw error;
@@ -116,7 +159,8 @@ export class UserFactory {
      * to call repeatedly: an identity that already has an account just gets that account back.
      *
      * An identity with no link but a known email is attached to the account with that email, which is
-     * how one account is reached from more than one sign-in provider.
+     * how one account is reached from more than one sign-in provider. Only a sign-in whose provider has
+     * verified the email gets this far.
      */
     public async createUserFromTokenAsync(token: string): Promise<AuthenticatedUser> {
         try {
@@ -169,7 +213,7 @@ export class UserFactory {
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
         const decoded = jwt.verify(token, secret) as Record<string, unknown>;
-        const { provider, providerId, email, name } = decoded ?? {};
+        const { provider, providerId, email, name, emailVerified } = decoded ?? {};
         if (typeof provider !== 'string' || !provider || typeof providerId !== 'string' || !providerId) {
             throw new Error('Session token does not identify a sign-in provider account');
         }
@@ -184,7 +228,28 @@ export class UserFactory {
             providerId,
             email: typeof email === 'string' ? email : undefined,
             name: typeof name === 'string' ? name : undefined,
+            emailVerified: typeof emailVerified === 'boolean' ? emailVerified : undefined,
         };
+    }
+
+    /**
+     * Refuses a sign-in whose email is not verified, or whose token predates the FE recording that. Every way an
+     * identity reaches an account (each request, each socket, account creation and linking by email) passes
+     * through this. The local development test users are exempt: they have no provider, and
+     * {@link verifyTokenIdentity} only accepts them in development.
+     * @throws SignInAgainError if the token does not say whether the email is verified
+     * @throws EmailNotVerifiedError if it says the email is not verified
+     */
+    private assertEmailVerified(identity: ITokenIdentity): void {
+        if (identity.provider === 'dev-user') {
+            return;
+        }
+        if (identity.emailVerified === undefined) {
+            throw new SignInAgainError();
+        }
+        if (!identity.emailVerified) {
+            throw new EmailNotVerifiedError();
+        }
     }
 
     private async requireDbServiceAsync() {
@@ -194,6 +259,9 @@ export class UserFactory {
     }
 
     private async resolveUserFromIdentityAsync(identity: ITokenIdentity): Promise<AuthenticatedUser> {
+        // before anything is looked up, so a refused sign-in learns nothing and nothing is created for it
+        this.assertEmailVerified(identity);
+
         const dbService = await this.requireDbServiceAsync();
 
         // the test accounts are seeded at startup, but a server that was not started through GameServer.create
@@ -646,6 +714,10 @@ export class UserFactory {
                 throw error;
             }
         }
+
+        // resolving checked this already; checked again here because linking by email and creating an account
+        // under an email are only safe for a verified one, whatever the code above does
+        this.assertEmailVerified(identity);
 
         const dbService = await this.requireDbServiceAsync();
         const { provider, providerId, email, name } = identity;

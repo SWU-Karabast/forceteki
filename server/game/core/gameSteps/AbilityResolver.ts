@@ -8,6 +8,7 @@ import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js'
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { Player } from '../Player.js';
 import { Helpers } from '../utils/Helpers.js';
+import { Contract } from '../utils/Contract.js';
 import { getTriggerSourceCardSummary } from './abilityWindow/TriggerWindowBase.js';
 
 export interface IPassAbilityHandler {
@@ -197,8 +198,31 @@ export class AbilityResolver extends BaseStepWithPipeline {
         this.checkTargetResultCancelState();
 
         if (!this.cancelled && this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
-            this.checkForPass();
+            if (this.context.ability.immediateEffect?.canShowAbilityPassOption(this.context, this.passAbilityHandler.playerChoosing)) {
+                this.handPassOptionToImmediateEffect();
+            } else {
+                this.checkForPass();
+            }
         }
+    }
+
+    /**
+     * Lets the immediate effect show the Pass option in its own prompt instead of the "You may trigger this ability"
+     * prompt. Passing there resolves the ability without effect rather than cancelling it.
+     */
+    private handPassOptionToImmediateEffect() {
+        const ability = this.context.ability;
+        Contract.assertFalse(
+            ability.isCardAbilityStep() && !!(ability.properties?.then || ability.properties?.ifYouDo || ability.properties?.ifYouDoNot),
+            `Ability '${ability}' passes from its immediate effect's prompt, which does not support then / ifYouDo / ifYouDoNot`
+        );
+
+        this.passAbilityHandler.hasBeenShown = true;
+        this.context.abilityPassOption = {
+            buttonText: this.passAbilityHandler.buttonText,
+            player: this.passAbilityHandler.playerChoosing,
+            shown: false
+        };
     }
 
     private checkCustomConfirmation() {

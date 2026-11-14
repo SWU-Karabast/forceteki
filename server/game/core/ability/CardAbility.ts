@@ -32,6 +32,10 @@ export abstract class CardAbility extends CardAbilityStep {
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
+    public override get stepIdentifier(): string {
+        return this.abilityIdentifier;
+    }
+
     private zoneOrDefault(card, zone): ZoneFilter | ZoneFilter[] {
         if (zone != null) {
             return zone;

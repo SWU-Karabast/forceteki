@@ -298,6 +298,15 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return true;
     }
 
+    /**
+     * Whether this system, as an optional ability's immediate effect, can show the ability's Pass option in its
+     * own prompt for `passingPlayer`. If so, the ability skips the "You may trigger this ability" prompt and the
+     * system finds the option on {@link AbilityContext.abilityPassOption} when it resolves.
+     */
+    public canShowAbilityPassOption(context: TContext, passingPlayer: Player): boolean {
+        return false;
+    }
+
     public isOptional(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         return this.generatePropertiesFromContext(context, additionalProperties).optional ?? false;
     }

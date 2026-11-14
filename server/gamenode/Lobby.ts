@@ -259,6 +259,16 @@ export class Lobby {
         return this.winHistory.gamesToWinMode;
     }
 
+    /** A finished game releases a Bo1 player; a Bo3 player must finish the whole set. */
+    public get isMatchComplete(): boolean {
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree) {
+            return !!this.winHistory.setEndResult || this.isBo3SetComplete();
+        }
+
+        // Use the current game state so undoing a win makes the match active again.
+        return this.game?.isEnded ?? false;
+    }
+
     public get queueFormatKey(): IQueueFormatKey {
         return { format: this.format, cardPool: this.cardPool, gamesToWinMode: this.gamesToWinMode };
     }

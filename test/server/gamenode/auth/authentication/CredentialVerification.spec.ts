@@ -139,6 +139,57 @@ describe('Credential verification', function () {
         });
     });
 
+    // Sessions issued before the FE recorded whether the email is verified: the owner is asked to sign in again,
+    // which issues a token that says.
+    describe('a validly signed token that does not say whether its email is verified', function () {
+        serverIntegration(function (contextRef) {
+            const signInAgain = { success: false, message: 'Authentication failed', code: 'SIGN_IN_AGAIN' };
+
+            it('is refused on the API for an account it is linked to', async function () {
+                const { harness } = contextRef;
+                const account = harness.db.seedAccount();
+
+                const response = await getUserAsync(harness, mintSessionToken(withoutClaim(signInClaims(account), 'emailVerified')));
+
+                expect(response.status).toBe(401);
+                expect(response.body).toEqual(signInAgain);
+                expect(harness.db.loggedInUserIds).toEqual([]);
+            });
+
+            it('is refused when creating an account, and nothing is stored', async function () {
+                const { harness } = contextRef;
+
+                const response = await createUserAsync(harness, mintSessionToken(withoutClaim(signInClaims(newcomer), 'emailVerified')));
+
+                expect(response.status).toBe(401);
+                expect(response.body).toEqual(signInAgain);
+                expectNothingStored(harness);
+            });
+
+            it('is refused on a socket', async function () {
+                const { harness } = contextRef;
+                const account = harness.db.seedAccount();
+
+                const result = await harness.createClient().attemptConnectAsync({ token: mintSessionToken(withoutClaim(signInClaims(account), 'emailVerified')) });
+
+                expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
+            });
+        });
+    });
+
+    describe('a token whose email the provider has not verified', function () {
+        serverIntegration(function (contextRef) {
+            it('is refused on a socket, even for an account it is linked to', async function () {
+                const { harness } = contextRef;
+                const account = harness.db.seedAccount();
+
+                const result = await harness.createClient().attemptConnectAsync({ token: mintSessionToken(signInClaims({ ...account, emailVerified: false })) });
+
+                expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
+            });
+        });
+    });
+
     describe('the session cookie', function () {
         serverIntegration(function (contextRef) {
             it(`is read from ${sessionCookieName}`, async function () {
@@ -457,6 +508,16 @@ describe('Credential verification', function () {
 
                     expect(response.status).toBe(200);
                     expect(response.body.user).toEqual(jasmine.objectContaining({ id: 'exe66', username: 'Order66' }));
+                });
+
+                it('signs a dev-user session in whether or not it says its email is verified, as it has no provider', async function () {
+                    const { harness } = contextRef;
+
+                    const withoutClaimResponse = await getUserAsync(harness, mintSessionToken(withoutClaim(signInClaims(devIdentity), 'emailVerified')));
+                    const unverifiedResponse = await getUserAsync(harness, mintSessionToken(signInClaims({ ...devIdentity, emailVerified: false })));
+
+                    expect(withoutClaimResponse.status).toBe(200);
+                    expect(unverifiedResponse.status).toBe(200);
                 });
 
                 it('signs a dev-user session in to its test account on a socket', async function () {
