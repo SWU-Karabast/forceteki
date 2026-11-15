@@ -678,6 +678,7 @@ describe('Brain Invaders', () => {
                         leader: 'lando-calrissian#buying-time',
                         hand: ['brain-invaders'],
                         groundArena: ['battlefield-marine'],
+                        spaceArena: ['awing'],
                     },
                 });
 
@@ -691,7 +692,7 @@ describe('Brain Invaders', () => {
 
                 // Brain Invaders blanks Lando on entry, but his already-resolving ability still gives a Shield token
                 expect(context.landoCalrissian.isBlank()).toBeTrue();
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.brainInvaders]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.brainInvaders, context.awing]);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
                 expect(context.player2).toBeActivePlayer();
