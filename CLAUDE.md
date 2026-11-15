@@ -134,6 +134,7 @@ Server specs live in `test/server/gamenode/<area>/`, grouped by what they are ab
 - `auth/authorization/` — what a known caller may do: the route manifest, roles, anonymous-versus-logged-in limits, chat permissions.
 - `lobby/` — creating and joining lobbies, where a socket is routed, spectators, the lobby lifecycle, in-game connections, reports, the socket command allowlist, test game setups.
 - `matchmaking/` — queues, matchmaking and the quick-lobby countdown.
+- `moderation/` — the mod tools end to end: player reports from filing to closing, mod actions issued from a ticket, the report retention cleanup.
 - `account/` — a logged-in user's own data routes (preferences now; decks, settings and cosmetics as they get specs).
 - `harness/` — specs of the test tooling itself (the harness, the fake DB, the socket.io drift guard, the scheduler), not of the server.
 
