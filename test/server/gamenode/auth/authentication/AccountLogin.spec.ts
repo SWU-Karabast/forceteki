@@ -186,6 +186,74 @@ describe('Account login', function () {
         });
     });
 
+    describe('a sign-in whose email the provider has not verified', function () {
+        serverIntegration(function (contextRef) {
+            const emailNotVerified = { success: false, message: 'Authentication failed', code: 'EMAIL_NOT_VERIFIED' };
+
+            function expectNoIdentityLinks(harness: ServerTestHarness, identity: ISignInIdentity): void {
+                expect(harness.db.oauthLinks.has(`${identity.provider}_${identity.providerId}`)).withContext('identity link')
+                    .toBeFalse();
+            }
+
+            for (const provider of ['discord', 'google']) {
+                const unverified: ISignInIdentity = { username: 'Unverified', provider, providerId: '808', email: 'unverified@example.test', emailVerified: false };
+
+                it(`is refused for a new ${provider} identity, and no account is created for it`, async function () {
+                    const { harness } = contextRef;
+                    const cookie = sessionCookie(mintSessionToken(signInClaims(unverified)));
+
+                    const synced = await signInAsync(harness, unverified);
+                    const created = await harness.requestAsync('post', '/api/create-user', { cookie });
+
+                    expect(synced.status).toBe(401);
+                    expect(synced.body).toEqual(emailNotVerified);
+                    expect(created.status).toBe(401);
+                    expect(created.body).toEqual(emailNotVerified);
+                    expect(harness.db.profiles.size).toBe(0);
+                    expect(harness.db.emailLinks.size).toBe(0);
+                    expectNoIdentityLinks(harness, unverified);
+                });
+
+                it(`does not link a ${provider} identity to the account that has its email`, async function () {
+                    const { harness } = contextRef;
+                    const account = harness.db.seedAccount({ provider: 'other', providerId: '1', email: unverified.email });
+                    const cookie = sessionCookie(mintSessionToken(signInClaims(unverified)));
+
+                    const created = await harness.requestAsync('post', '/api/create-user', { cookie });
+
+                    expect(created.status).toBe(401);
+                    expect(created.body).toEqual(emailNotVerified);
+                    expectNoIdentityLinks(harness, unverified);
+                    expect(harness.db.emailLinks.get(unverified.email)).toBe(account.id);
+                    expect(harness.db.profiles.size).toBe(1);
+                });
+
+                it(`is refused for a ${provider} identity already linked to an account`, async function () {
+                    const { harness } = contextRef;
+                    const account = harness.db.seedAccount({ provider, providerId: '909' });
+
+                    const response = await signInAsync(harness, { ...account, emailVerified: false });
+
+                    expect(response.status).toBe(401);
+                    expect(response.body).toEqual(emailNotVerified);
+                    expect(harness.db.loggedInUserIds).toEqual([]);
+                });
+            }
+
+            it('signs in once the provider has verified the email', async function () {
+                const { harness } = contextRef;
+                const identity: ISignInIdentity = { username: 'Later', provider: 'discord', providerId: '707', email: 'later@example.test' };
+
+                const refused = await signInAsync(harness, { ...identity, emailVerified: false });
+                const accepted = await signInAsync(harness, identity);
+
+                expect(refused.status).toBe(401);
+                expect(accepted.status).toBe(200);
+                expect(harness.db.oauthLinks.get('discord_707')).toBe(accepted.body.user.id);
+            });
+        });
+    });
+
     describe('an identity linked to an account whose profile no longer exists', function () {
         serverIntegration(function (contextRef) {
             const identity: ISignInIdentity = { username: 'Orphan', provider: 'discord', providerId: '555', email: 'orphan@example.test' };

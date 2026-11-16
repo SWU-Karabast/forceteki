@@ -141,6 +141,12 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
     { method: 'post', path: '/api/mod/submit-action', access: 'moderator', unauthenticated: refused },
     { method: 'post', path: '/api/mod/cancel-action', access: 'moderator', unauthenticated: refused },
 
+    // player report tickets
+    { method: 'get', path: '/api/mod/reports', access: 'moderator', unauthenticated: refused },
+    { method: 'get', path: '/api/mod/reports/open-count', access: 'moderator', unauthenticated: refused },
+    { method: 'get', path: '/api/mod/reports/:reportId', access: 'moderator', unauthenticated: refused },
+    { method: 'put', path: '/api/mod/reports/:reportId', access: 'moderator', unauthenticated: refused },
+
     { method: 'get', path: '/api/server-settings', access: 'public', unauthenticated: served(200) },
     { method: 'post', path: '/api/mod/server-settings', access: 'admin', unauthenticated: refused },
 

@@ -48,23 +48,25 @@ export class GameChat {
      * Returns only player chat messages, excluding game log messages and alerts.
      */
     public getPlayerChatMessages(): ISerializedMessage[] {
-        return this.messages.filter((messageEntry) => {
-            const message = messageEntry.message;
+        return this.messages.filter((messageEntry) => GameChat.isPlayerChatMessage(messageEntry));
+    }
 
-            // Exclude alert messages
-            if (typeof message === 'object' && message !== null && 'alert' in message) {
-                return false;
-            }
+    /**
+     * Returns the game log and alerts, without player chat messages.
+     */
+    public getGameLogMessages(): ISerializedMessage[] {
+        return this.messages.filter((messageEntry) => !GameChat.isPlayerChatMessage(messageEntry));
+    }
 
-            // Include only messages whose first element is a playerChat marker
-            if (Array.isArray(message) && message.length > 0) {
-                const firstElement = message[0];
-                if (typeof firstElement === 'object' && firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat') {
-                    return true;
-                }
-            }
+    /** A message is player chat if its first element is a playerChat marker; alerts never are */
+    private static isPlayerChatMessage(messageEntry: ISerializedMessage): boolean {
+        const message = messageEntry.message;
+        if (!Array.isArray(message) || message.length === 0) {
             return false;
-        });
+        }
+
+        const firstElement = message[0];
+        return typeof firstElement === 'object' && !!firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat';
     }
 
     private formatMessage(format: string, args: MsgArg[]): string | string[] {

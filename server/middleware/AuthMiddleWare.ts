@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
-import { AccountNotFoundError } from '../utils/user/UserFactory';
+import { signInRefusalCode } from '../utils/user/UserFactory';
 import { logger } from '../logger';
 import { type ServerRole } from '../services/DynamoDBInterfaces';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
@@ -84,9 +84,10 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
 
             return next();
         } catch (error) {
-            if (error instanceof AccountNotFoundError) {
-                logger.info(`Auth ${routeName ?? req.path}: valid session with no account`);
-                return res.status(401).json({ success: false, message: 'Authentication failed', code: 'ACCOUNT_NOT_FOUND' });
+            const code = signInRefusalCode(error);
+            if (code) {
+                logger.info(`Auth ${routeName ?? req.path}: valid session refused (${code})`);
+                return res.status(401).json({ success: false, message: 'Authentication failed', code });
             }
             logger.error('Error with authentication: ', { error: { message: error.message, stack: error.stack } });
             return res.status(401).json({ success: false, message: 'Authentication failed' });

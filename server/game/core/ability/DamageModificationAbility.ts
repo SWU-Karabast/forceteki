@@ -8,6 +8,7 @@ import type { Game } from '../Game';
 import { GameSystem } from '../gameSystem/GameSystem';
 import { AggregateSystem } from '../gameSystem/AggregateSystem';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
+import { DelayedEffectSystem } from '../../gameSystems/DelayedEffectSystem';
 import { IndirectDamageToPlayerSystem } from '../../gameSystems/IndirectDamageToPlayerSystem';
 import { DistributeDamageSystem } from '../../gameSystems/DistributeDamageSystem';
 import { DistributeIndirectDamageToCardsSystem } from '../../gameSystems/DistributeIndirectDamageToCardsSystem';
@@ -79,6 +80,12 @@ export default class DamageModificationAbility extends ReplacementAbilityBase {
 
     private systemDealsDamage(system: GameSystem<AbilityContext>, context: AbilityContext): boolean {
         if (system == null) {
+            return false;
+        }
+
+        // A delayed effect deals no damage while this ability resolves. When it later fires it initiates its own
+        // ability, which is checked then. Its properties may also depend on targets not yet chosen, so don't evaluate them.
+        if (system instanceof DelayedEffectSystem) {
             return false;
         }
 
