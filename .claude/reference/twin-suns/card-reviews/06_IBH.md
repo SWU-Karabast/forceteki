@@ -8,8 +8,8 @@
 - Type: Leader
 - Text: Action [1 resource, Exhaust]: Heal 1 damage from a friendly unit.
 - Deployed: On Attack: Heal 1 damage from a friendly unit and 1 damage from another friendly unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 002 - Echo Caverns
 
@@ -42,16 +42,16 @@
 - Internal name: `ill-cover-for-you`
 - Type: Event
 - Text: Deal 1 damage to an enemy unit and 1 damage to another enemy unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 006 - Rebellion Y-Wing
 
 - Internal name: `rebellion-ywing`
 - Type: Unit
 - Text: On Attack: Deal 1 damage to a base.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ANY, OPP-BASE
+- Status: Reviewed
 
 ### 007 - Echo Coordinator
 
@@ -74,8 +74,8 @@
 - Internal name: `ive-found-them`
 - Type: Event
 - Text: Reveal the top 3 cards of your deck. Draw a unit revealed this way, then discard the other revealed cards.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 010 - Han Solo - Scruffy-Looking Nerf Herder
 
@@ -83,16 +83,16 @@
 - Type: Unit
 - Text: Raid 2 (This unit gets +2/+0 while attacking.) On Attack:The defender gets –2/–0 for this attack.
 - Rules: (ERRATA) Templating update: “Defender” becomes “defending unit”.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 011 - R2-D2 - Known to Make Mistakes
 
 - Internal name: `r2d2#known-to-make-mistakes`
 - Type: Unit
 - Text: On Attack: If you control a Command unit, exhaust an enemy ground unit that costs 4 or less.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 012 - Evacuation Escort
 
@@ -107,8 +107,8 @@
 - Internal name: `recovery`
 - Type: Event
 - Text: Heal 5 damage from a unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 014 - Bright Hope - Narrow Escape
 
@@ -124,48 +124,48 @@
 - Internal name: `tauntaun-mount`
 - Type: Unit
 - Text: When Defeated: Heal 2 damage from your base.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 016 - Ion Cannon
 
 - Internal name: `ion-cannon`
 - Type: Unit
 - Text: Action [Exhaust]: Deal 3 damage to a space unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 018 - Go for the Legs
 
 - Internal name: `go-for-the-legs`
 - Type: Event
 - Text: Exhaust an enemy ground unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 019 - C-3PO - Oh Dear, Oh Dear
 
 - Internal name: `c3po#oh-dear-oh-dear`
 - Type: Unit
 - Text: When Played: If you control a Cunning unit, draw a card.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 020 - Luke Skywalker - Do You Read Me?
 
 - Internal name: `luke-skywalker#do-you-read-me`
 - Type: Unit
 - Text: Restore 2 (When this unit attacks, heal 2 damage from your base.) When Played: You may deal 3 damage to a ground unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 021 - Improvised Detonation
 
 - Internal name: `improvised-detonation`
 - Type: Event
 - Text: Attack with a unit. It gets +2/+0 for this attack. (You can only attack with a ready friendly unit.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 022 - GR-75 Medium Transport
 
@@ -180,16 +180,16 @@
 - Internal name: `general-rieekan#stalwart-tactician`
 - Type: Unit
 - Text: Action [Exhaust]: Attack with another Heroism unit. It gets +2/+0 for this attack. (You can only attack with a ready friendly unit.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 031 - Millennium Falcon - Bucket of Bolts
 
 - Internal name: `millennium-falcon#bucket-of-bolts`
 - Type: Unit
 - Text: When Played: If your base has more damage on it than an enemy base, ready this unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OPP-BASE, COMPARE
+- Status: Reviewed
 
 ### 037 - Hoth Trooper
 
@@ -204,8 +204,8 @@
 - Internal name: `watch-this`
 - Type: Event
 - Text: Return a non-leader unit that costs 6 or less to its owner's hand. Exhaust each other enemy unit in the same arena.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 053 - Darth Vader - Don't Fail Me Again
 
@@ -213,8 +213,8 @@
 - Type: Leader
 - Text: Action [1 resource, Exhaust]: Deal 1 damage to a base.
 - Deployed: On Attack: Deal 2 damage to a base.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ANY, OPP-BASE
+- Status: Reviewed
 
 ### 054 - Forward Command Post
 
@@ -262,32 +262,32 @@
 - Internal name: `target-the-main-generator`
 - Type: Event
 - Text: Deal 2 damage to a base.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ANY, OPP-BASE
+- Status: Reviewed
 
 ### 060 - Admiral Piett - In Command Now
 
 - Internal name: `admiral-piett#in-command-now`
 - Type: Unit
 - Text: On Attack: If you control a Aggression unit, draw a card.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 061 - We're In Trouble
 
 - Internal name: `were-in-trouble`
 - Type: Event
 - Text: Deal 3 damage to a unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 062 - Imperial Deck Officer
 
 - Internal name: `imperial-deck-officer`
 - Type: Unit
 - Text: Action [Exhaust]: Heal 2 damage from a Villainy unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 063 - Snowtrooper
 
@@ -302,24 +302,24 @@
 - Internal name: `hoth-lieutenant`
 - Type: Unit
 - Text: When Played: You may attack with another unit. It gets +2/+0 for this attack. (You can only attack with a ready friendly unit.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 066 - Too Strong for Blasters
 
 - Internal name: `too-strong-for-blasters`
 - Type: Event
 - Text: Heal 2 damage from a unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 068 - General Veers - Leading the Assault
 
 - Internal name: `general-veers#leading-the-assault`
 - Type: Unit
 - Text: When Played: If you control a Vigilance unit, deal 2 damage to an enemy base and heal 2 damage from your base.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OPP-BASE
+- Status: Reviewed
 
 ### 069 - E-Web Gunner
 
@@ -344,16 +344,16 @@
 - Internal name: `avenger#hunting-the-rebels`
 - Type: Unit
 - Text: When Played: Deal 1 damage to each other unit (including friendly units).
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 074 - I Want Proof, Not Leads
 
 - Internal name: `i-want-proof-not-leads`
 - Type: Event
 - Text: Draw 2 cards, then discard a card from your hand.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 075 - Scouting TIE Fighter
 
@@ -394,30 +394,30 @@
 - Internal name: `admiral-ozzel#as-clumsy-as-he-is-stupid`
 - Type: Unit
 - Text: When Defeated: Each opponent discards a card from their hand.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OPP-EACH, OPP-ZONE
+- Status: Reviewed
 
 ### 095 - You Have Failed Me
 
 - Internal name: `you-have-failed-me`
 - Type: Event
 - Text: Defeat a friendly unit. If you do, ready a friendly unit with 5 or less power.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 099 - Blizzard One - Veers at the Helm
 
 - Internal name: `blizzard-one#veers-at-the-helm`
 - Type: Unit
 - Text: When Played: You may defeat a non-leader ground unit with 3 or less remaining HP.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 104 - The Desolation of Hoth
 
 - Internal name: `the-desolation-of-hoth`
 - Type: Event
 - Text: Defeat up to 2 enemy units that each cost 3 or less.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 

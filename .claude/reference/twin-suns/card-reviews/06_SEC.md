@@ -9,8 +9,9 @@
 - Text: Action [1 resource, Exhaust]: Search the top 5 cards of your deck for a card with Plot, reveal it, and draw it. (Put the other cards on the bottom of your deck in a random order.)
 - Deployed: When Deployed: The next card you play using Plot this phase costs 3 resources less.
 - Rules: The cost discount from Palpatine's “When Deployed” ability remains active even if he is defeated before you play a card using Plot. After searching, put any cards not chosen on the bottom of your deck in a random order.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OTHER
+- Test notes: Ensure reveals are shown to all players
+- Status: Reviewed
 
 ### 002 - Jabba the Hutt - Wonderful Human Being
 
@@ -19,8 +20,8 @@
 - Text: Action [1 resource, Exhaust]: A friendly damaged unit deals 1 damage to an enemy unit. If the friendly unit has 3 or more damage on it, it deals 2 damage instead.
 - Deployed: When another friendly unit is dealt damage and survives: You may have that unit deal that much damage to an enemy unit. Use this ability only once each round.
 - Rules: Jabba's ability triggers when a friendly unit is dealt combat damage or non-combat damage.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 003 - Lama Su - We Modified Their Genetics
 
@@ -29,8 +30,8 @@
 - Text: Action [Exhaust]: Play an upgrade from your hand on a friendly non-Vehicle unit. It costs 1 resource less. If you do, deal 1 damage to that unit.
 - Deployed: When this unit completes an attack (and survives): You may play an upgrade from your discard pile on a friendly non-Vehicle unit. It costs 1 resource less.
 - Rules: When using Lama Su's leader ability, the damage is dealt to the unit before any triggered abilities resolve from playing the upgrade. A unit must survive an attack to trigger its “when this unit completes an attack” abilities. When Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 004 - Leia Organa - Of A Secret Bloodline
 
@@ -39,8 +40,9 @@
 - Text: Action [1 resource, Exhaust]: Disclose Vigilance, Command, Aggression, Cunning, or Heroism (reveal a card from your hand with this aspect icon). If you do, give an Experience token to a unit that doesn't share an aspect with the disclosed card.
 - Deployed: On Attack: You may disclose Vigilance, Command, Aggression, Cunning, or Heroism. If you do, give an Experience token to a unit that doesn't share an aspect with the disclosed card.
 - Rules: Leia's ability can only give an Experience token to a unit that shares no aspects with the disclosed card, regardless of which aspect was disclosed. You may use Leia's "On Attack" ability to give an Experience token to herself if the disclosed card doesn't share an aspect with her. This occurs before combat damage is dealt.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OTHER
+- Test notes: Ensure Disclose goes to all players
+- Status: Reviewed
 
 ### 005 - Satine Kryze - Standing on Principles
 
@@ -49,8 +51,8 @@
 - Text: Action [Exhaust]: Heal up to 2 damage from a unit. If you do, deal that much damage to your base.
 - Deployed: Restore 4
 - Rules: You can use Satine's leader ability and choose to heal 0 damage from a unit, but if you do, you are not considered to have healed any damage.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 006 - Colonel Yularen - This Is Why We Plan
 
@@ -59,8 +61,8 @@
 - Text: Action [Exhaust]: Attack with a unit. Then, you may attack with another unit that costs less than it.
 - Deployed: When this unit completes an attack (and survives): You may attack with another unit that costs 4 or less.
 - Rules: Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers. If you use Yularen’s leader ability, you must attack with a unit, if able. Units must be ready in order to attack. Fully resolve the first attack, including all triggers, before beginning the second attack. A unit must survive an attack to trigger its “when this unit completes an attack” abilities. When Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 007 - Dryden Vos - I Never Ask Twice
 
@@ -69,8 +71,8 @@
 - Text: Action [Exhaust, discard a card that costs 6 or more from your hand]: Play a unit that costs 5 or less from your hand (paying its cost). It gains Ambush for this phase.
 - Deployed: Overwhelm Action [discard a card from your hand]: Play a unit from your hand (paying its cost). It gains Ambush for this phase.
 - Rules: Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers. Abilities that let you play a card require you to pay that card’s cost unless specified otherwise. Ambush is an ability that triggers at the same time as “When Played” abilities. If there is no enemy unit that can be attacked, the unit does not ready. Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 008 - Bail Organa - Doing Everything He Can
 
@@ -79,8 +81,8 @@
 - Text: Action [1 resource, Exhaust]: If a friendly unit was defeated this phase, return a friendly resource to its owner's hand. If you do, put the top card of your deck into play as a resource.
 - Deployed: When you play a card from your resources: Heal 1 damage from your base.
 - Rules: Bail’s leader ability still can be used as an action even if no friendly units were defeated this phase (but no resource is returned). Bail does not use an Epic Action to deploy, so he may deploy multiple times in a game. Bail still deploys ready, even though his deploy action requires you to exhaust him. Bail's unit ability triggers when you play a card using Smuggle or Plot.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 009 - Mon Mothma - Forming a Coalition
 
@@ -88,8 +90,8 @@
 - Type: Leader
 - Text: Ignore the aspect penalties on non-Villainy Official units you play.
 - Deployed: Ignore the aspect penalties on non‑Villainy Official units you play. Each other friendly Official unit gets +0/+1.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 010 - Dedra Meero - Not Wasting Time
 
@@ -98,8 +100,8 @@
 - Text: Action [1 resource, Exhaust]: Choose an enemy unit. Its controller may deal 2 damage to it. If they don't, draw a card.
 - Deployed: While you have more cards in hand than an opponent, this unit gains Raid 2. (She gets +2/+0 while attacking.)
 - Rules: When using Dedra's leader ability, if the chosen unit's controller chooses to deal 2 damage to it, you don't draw a card, even if that damage is prevented. If there are multiple opponents, the controlling player chooses which one will be “an opponent.”
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OPP-CHOOSE, ENEMY-UNIT, COMPARE
+- Status: Reviewed
 
 ### 011 - Governor Pryce - Tyrant of Lothal
 
@@ -107,8 +109,9 @@
 - Type: Leader
 - Text: Action [1 resource, Exhaust]: Ready a token unit.
 - Deployed: This unit gets +1/+0 for each ready friendly token unit. On Attack: Create a Spy token.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OTHER
+- Test notes: Ensure frontside can target any player's unit
+- Status: Reviewed
 
 ### 012 - Cassian Andor - Climb!
 
@@ -117,8 +120,8 @@
 - Text: Friendly units that have damaged an opponent's base this phase can't be attacked (unless they have Sentinel).
 - Deployed: Overwhelm While you have the initiative, this unit isn't defeated by having no remaining HP and can't be defeated by enemy card abilities.
 - Rules: Shields prevent all damage from a unit with Overwhelm. There is no excess damage since the defender is not defeated. If the defender is defeated during an attack before combat damage is dealt, all combat damage is considered excess damage for Overwhelm. Cassian's leader ability applies to all units that have dealt combat or non-combat damage to an opponent's base. If one of those units gains Sentinel, it can be attacked. Cassian can be assigned more damage than his remaining HP. While you have the initiative, he can't be defeated directly by card abilities that “defeat a unit” or by having 0 remaining HP. While you have the initiative, if Cassian is attacked by a unit with Overwhelm, there is no excess damage if he is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OPP-CHOOSE, OPP-BASE, INITIATIVE
+- Status: Reviewed
 
 ### 013 - Luthen Rael - Don't You Want to Fight For Real?
 
@@ -127,8 +130,8 @@
 - Text: When a friendly unit is defeated while attacking: You may exhaust this leader. If you do, deal 1 damage to a unit or base.
 - Deployed: When a friendly unit is defeated while attacking: You may deal 2 damage to a unit or base.
 - Rules: Luthen's ability resolves during the same window as any "When Defeated" abilities on the friendly unit. It is not considered a "When Defeated" ability.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 014 - Sly Moore - Cipher in the Dark
 
@@ -137,8 +140,8 @@
 - Text: Action [1 resource, Exhaust]: If there are 4 or more exhausted units in play, create a Spy token.
 - Deployed: On Attack: You may deal 2 damage to an exhausted unit.
 - Rules: Sly’s leader ability still can be used as an action even if fewer than 4 exhausted units are in play (but no Spy token is created).
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 015 - C-3PO - Human-Cyborg Relations
 
@@ -147,8 +150,8 @@
 - Text: Action [1 resource, Exhaust]: If you control an exhausted unit, exhaust a unit.
 - Deployed: On Attack: If you control another exhausted unit, you may exhaust a unit.
 - Rules: C-3PO’s leader ability still can be used as an action even if you don't control an exhausted unit (but no unit gets exhausted).
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 016 - Padmé Amidala - What Do You Have to Hide?
 
@@ -157,8 +160,8 @@
 - Text: When you reveal or discard 1 or more cards from your hand: You may exhaust this leader. If you do, deal 1 damage to a unit.
 - Deployed: When you reveal or discard 1 or more cards from your hand: You may deal 1 damage to a unit.
 - Rules: If another player's ability discards a card from your hand, you are still considered to discard that card, and Padme's ability still triggers. Only effects that explicitly reveal cards from your hand can trigger Padme's ability. Padme's ability does not trigger if you show an opponent a card for game state purposes.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 017 - Sabé - Queen's Shadow
 
@@ -167,8 +170,8 @@
 - Text: When a friendly unit deals combat damage to a base: You may exhaust this leader. If you do, look at the top 2 cards of the defending player's deck. Discard 1 of those cards. (Put the other back on top.)
 - Deployed: Raid 1 When this unit deals combat damage to a base: Look at the defending player's hand. You may discard a card from it. If you do, that player draws a card.
 - Rules: “Combat damage” is only the damage dealt during the “deal combat damage” step of an attack. When Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ANY, OPP-BASE
+- Status: Reviewed
 
 ### 018 - DJ - Need a Lift?
 
@@ -177,8 +180,8 @@
 - Text: Action [Exhaust]: Choose a friendly unit. If you do, play a unit from your hand. It costs 1 resource less. The chosen unit captures it. (When Played abilities resolve after the unit is captured.)
 - Deployed: Saboteur Friendly units that are rescued enter play ready.
 - Rules: When using DJ's leader ability, any abilities that trigger from playing the unit, including that unit's "When Played" abilities, still trigger. The played unit is captured before any of triggered abilities resolve.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 019 - Rix Road
 
@@ -249,8 +252,8 @@
 - Internal name: `the-chancellors-shuttle#grim-harbinger`
 - Type: Unit
 - Text: Restore 1 When Defeated: If you control Chancellor Palpatine (as a leader or unit), you may give an Experience token to a unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 028 - Trayus Acolyte
 
@@ -265,8 +268,8 @@
 - Internal name: `zam-wesell#inconspicuous-assassin`
 - Type: Unit
 - Text: While this unit is upgraded, she gains Grit. (She gets +1/+0 for each damage on her.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 030 - Death Trooper
 
@@ -274,24 +277,24 @@
 - Type: Unit
 - Text: When Played: Deal 2 damage to a friendly ground unit and 2 damage to an enemy ground unit.
 - Rules: If Death Trooper is the only friendly unit in play, it must be chosen by its “When Played” ability.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 031 - Nute Gunray - Escaping Justice
 
 - Internal name: `nute-gunray#escaping-justice`
 - Type: Unit
 - Text: Grit When Played/On Attack: You may give another friendly Official unit Sentinel for this phase.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 032 - Kylo Ren's Command Shuttle - Icon of Authority
 
 - Internal name: `kylo-rens-command-shuttle#icon-of-authority`
 - Type: Unit
 - Text: Each friendly ground unit with Sentinel gets +0/+2.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 033 - Sly Moore - Witness to Power
 
@@ -299,16 +302,16 @@
 - Type: Unit
 - Text: When Played: For this phase, each enemy unit gets –2/–0 while it's attacking a base. Plot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)
 - Rules: (ERRATA) When Played: For this phase, while a base is being attacked by an enemy unit, the attacker gets -2/-0.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ANY, OPP-BASE, ENEMY-UNIT
+- Status: Reviewed
 
 ### 034 - Cad Bane - Impressed Now?
 
 - Internal name: `cad-bane#impressed-now`
 - Type: Unit
 - Text: When Played: You may defeat a unit with 2 or less remaining HP. Plot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 035 - Darth Sion - Lord of Pain
 
@@ -316,16 +319,16 @@
 - Type: Unit
 - Text: When Played: Give an Experience token to this unit for each enemy unit that was defeated this phase. When Defeated: If this unit had 7 or more power, return him to his owner's hand.
 - Rules: Darth Sion's "When Defeated" ability references his power when he was defeated, which includes temporary modifiers. Darth Sion's "When Defeated" ability only returns him to hand if he is in the discard pile when it resolves.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 036 - Dogmatic Shock Squad
 
 - Internal name: `dogmatic-shock-squad`
 - Type: Unit
 - Text: Sentinel (Enemy units in this arena must attack a Sentinel when they attack you.) Plot (When you deploy a leader, you may play this card from your resources, paying its cost. Replace it with the top card of your deck.)
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 037 - Cantwell Arrestor Cruiser
 
@@ -333,8 +336,8 @@
 - Type: Unit
 - Text: When Played: You may disclose VigilanceVigilanceVillainy (reveal cards from your hand with these aspect icons among them). If you do, exhaust an enemy unit. That unit can't ready while this unit is in play.
 - Rules: Until Cantwell Arrestor Cruiser leaves play, the chosen unit can't ready. This effect is not changed if an opponent takes control of Cantwell Arrestor Cruiser. If Cantwell Arrestor Cruiser is captured and then rescued, its "When Played" effect does not resume.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 038 - Condemn
 
@@ -342,8 +345,8 @@
 - Type: Upgrade
 - Text: While attached unit is attacking, it gains: “On Attack: The defending player may disclose VigilanceVillainy. If they do, this unit gets –6/–0 for this attack” and loses all other abilities.
 - Rules: The attached unit can't gain abilities while attacking.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 039 - Creditor's Claim
 
@@ -351,16 +354,16 @@
 - Type: Upgrade
 - Text: Attached unit gains: “When Defeated: You may defeat a unit with 3 or less remaining HP.”
 - Rules: Because the attached unit gains the ability, the "You" in Creditor's Claim's "When Defeated" ability refers to the controller of the attached unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 040 - Emergency Powers
 
 - Internal name: `emergency-powers`
 - Type: Event
 - Text: Choose a non-leader unit and pay any number of resources. For each resource paid this way, give an Experience token to the chosen unit.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 041 - Populist Advisor
 
