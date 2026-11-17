@@ -175,7 +175,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
                     preEnterPlayContext.costs = { ...context.costs };
 
-                    context.game.resolveAbility(preEnterPlayContext);
+                    // The card hasn't changed zones yet, so it can still be controlled by another player (e.g. played
+                    // from an opponent's resources by Tear This Ship Apart). Like an event's ability (see PlayEventAction),
+                    // it resolves for the player putting it into play, so the card's current controller doesn't matter.
+                    context.game.resolveAbility(preEnterPlayContext, ['player']);
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {
