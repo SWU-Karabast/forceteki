@@ -183,6 +183,8 @@ which reads `test/gameSetups/<filename>` using the same setup schema as `setupTe
   - `state-ref-array-requires-istatearray` — see State tracking above.
   - `no-event-generated-tokens` — read `resolvedEvents[...]?.generatedTokens`, not `events[...].generatedTokens`, so replaced token-creation events resolve correctly.
 - Style is enforced, not advisory: 4-space indent, single quotes, `curly: all`, `eqeqeq`, explicit member accessibility on every TS member, `import type` for type-only imports, `override` required.
+- **Don't duplicate logic.** As far as is reasonable, avoid repeating the same logic across files or classes; it becomes a maintenance problem when one copy is changed and the others are not. Before writing something new, look for an existing helper, base class or `GameSystem` that already does it, and when you would otherwise copy logic, pull it into a shared place (a helper, a base class, a `common/` module) instead.
+- **Prefer enums for bounded string values.** When a parameter, property or option takes one of a fixed set of string values, define an `enum` for it where that makes sense (engine-wide ones live in `server/game/core/Constants.ts`). A string union type is acceptable but less preferred; avoid a bare `string`.
 - `legacy_jigoku/` (ported L5R reference code) is referenced by `docs/`, tsconfig and eslint ignores but no longer exists in the repo — ignore those pointers.
 
 ## Claude tooling (`.claude/`)
