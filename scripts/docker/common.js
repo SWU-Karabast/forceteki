@@ -10,7 +10,9 @@ const repoRoot = path.join(__dirname, '../..');
 
 const imageTag = 'karabast-server:local';
 
-// Matches what forceteki-infra builds for ECS (Platform.LINUX_AMD64)
+// The platform the ECS tasks run on. Keep in sync with `platform` on the DockerImageAsset in
+// forceteki-infra's lib/karabast-main-stack.ts and lib/karabast-dev-stack.ts, so local builds and the
+// prod test check the same architecture that gets deployed.
 const imagePlatform = 'linux/amd64';
 
 // `container_name` of the dynamodb-local service in docker-compose.yml
