@@ -65,12 +65,39 @@ describe('Targeting Computer', function () {
         // Defeated" ability. So Targeting Computer's "assign indirect damage" ability does NOT apply
         // when the attached unit is defeated and resolves a When-Defeated indirect-damage ability —
         // the controller cannot assign that indirect damage via Targeting Computer.
-        xit('does not let you assign indirect damage from a When Defeated ability (it is not active from the discard)', function () {
-            pending('Not yet implemented');
-            // A unit has Targeting Computer attached and a "When Defeated: deal indirect damage" ability
-            // (e.g. Droid Missile Platform / General Krell-granted). The unit is defeated and its When
-            // Defeated indirect damage resolves. Targeting Computer's assign-indirect-damage ability is
-            // not active from the discard, so the controller does not get to assign that indirect damage.
+        it('does not let you assign indirect damage from a When Defeated ability (it is not active from the discard)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['rivals-fall'],
+                    spaceArena: [{ card: 'droid-missile-platform', upgrades: ['targeting-computer'] }],
+                },
+                player2: {
+                    groundArena: ['pyke-sentinel'],
+                    spaceArena: ['inferno-four#unforgetting'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Defeat the platform; its When Defeated ability deals 3 indirect damage to a chosen player
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.droidMissilePlatform);
+            context.player1.clickPrompt('Deal indirect damage to opponent');
+
+            // Targeting Computer is in the discard, so its assign-indirect-damage ability is inactive:
+            // the opponent (the damaged player) assigns the indirect damage, not the controller
+            expect(context.player2).toBeAbleToSelectExactly([context.pykeSentinel, context.infernoFour, context.p2Base]);
+
+            context.player2.setDistributeIndirectDamagePromptState(new Map([
+                [context.pykeSentinel, 1],
+                [context.p2Base, 2],
+            ]));
+
+            expect(context.infernoFour.damage).toBe(0);
+            expect(context.pykeSentinel.damage).toBe(1);
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('should give the attached unit a gained constant ability for units like Rex that count abilities', async function () {
