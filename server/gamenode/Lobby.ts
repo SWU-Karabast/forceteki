@@ -520,10 +520,6 @@ export class Lobby {
 
         const now = this.scheduler.currentDate();
         this.userLastActivity.set(id, now);
-
-        if (this.game) {
-            this.game.onPlayerAction(id);
-        }
     }
 
     public hasPlayer(id: string) {
@@ -875,7 +871,7 @@ export class Lobby {
 
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
-        this.game = null;
+        this.replaceGame(null);
         if (this.matchmakingType === MatchmakingType.Quick) {
             this.matchmakingType = MatchmakingType.PublicLobby;
         }
@@ -1313,6 +1309,17 @@ export class Lobby {
         this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, this.scheduler.now());
     }
 
+    /**
+     * Makes `game` the lobby's game (or leaves it with none), disposing of the one it had, so that nothing the old game
+     * scheduled can act on the lobby afterwards.
+     */
+    private replaceGame(game: Game | null): void {
+        if (this.game && this.game !== game) {
+            this.game.dispose();
+        }
+        this.game = game;
+    }
+
     public cleanLobby(): void {
         this.clearBo3TransitionTimer();
         this.bo3LobbyReadyTimer?.stop();
@@ -1324,7 +1331,7 @@ export class Lobby {
             this.matchingCountdownTask = undefined;
         }
 
-        this.game = null;
+        this.replaceGame(null);
         this.users = [];
         this.spectators = [];
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
@@ -1362,7 +1369,7 @@ export class Lobby {
             legalCardTitles
         );
 
-        this.game = game;
+        this.replaceGame(game);
 
         for (const player of this.game.getPlayers()) {
             const userWrapper = this.getUser(player.user.id);
@@ -1388,7 +1395,7 @@ export class Lobby {
             this.statsUpdateStatus.clear();
 
             const game = new Game(this.buildGameSettings(), { router: this });
-            this.game = game;
+            this.replaceGame(game);
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
 
@@ -1609,26 +1616,14 @@ export class Lobby {
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
             scheduler: this.scheduler,
-            userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
             onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
-                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                ? (losingPlayerId: string, game: Game) => {
+                    if (game === this.game) {
+                        this.concedeBo3ByUserId(losingPlayerId);
+                    }
+                }
                 : undefined,
         };
-    }
-
-    private userTimeoutDisconnect(userId: string) {
-        const socket = this.users.find((u) => u.id === userId)?.socket;
-
-        Contract.assertNotNullLike(socket, `Unable to find socket for user ${userId} in lobby ${this.id} while attempting to disconnect`);
-
-        socket.socket.data.forceDisconnect = true;
-
-        socket.send('inactiveDisconnect');
-        socket.disconnect();
-
-        this.server.handleIntentionalDisconnect(userId, false, this);
-
-        logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
 
     private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
@@ -1715,7 +1710,8 @@ export class Lobby {
 
             this.updateUserLastActivity(socket.user.getId());
 
-            // this command is a no-op since we reset the timer just above
+            // A player's messages do not affect their action timer. Clients still send this when a report dialog opens, so
+            // it is accepted and ignored until they stop.
             if (command === 'resetActionTimer') {
                 return;
             }
@@ -2188,7 +2184,12 @@ export class Lobby {
         socket.send('lobbystate', this.getLobbyState());
     }
 
-    public handleGameEnd(): void {
+    public handleGameEnd(game: Game): void {
+        // only the lobby's current game decides its results
+        if (game !== this.game) {
+            return;
+        }
+
         // Record winner based on game mode
         this.recordGameResult(this.gamesToWinMode);
 
@@ -2312,7 +2313,7 @@ export class Lobby {
         this.winHistory.currentGameNumber++;
 
         // Reset for next game (winner was already recorded in handleGameEnd)
-        this.game = null;
+        this.replaceGame(null);
         this.bo3NextGameConfirmedBy?.clear();
 
         // Clear the 'ready' state for all users

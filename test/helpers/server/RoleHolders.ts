@@ -1,3 +1,4 @@
+import type { ServerRole } from '../../../server/services/DynamoDBInterfaces';
 import type { ISeededAccount } from './FakeDynamoDbService';
 import type { DatabaseSeeder } from './TestGameServer';
 
@@ -6,7 +7,8 @@ import type { DatabaseSeeder } from './TestGameServer';
  * one it is named for. The server's checks are not a ladder - `admin` satisfies every check, but
  * `moderator` and `developer` do not imply each other.
  */
-export type RoleHolder = 'nobody' | 'contributor' | 'developer' | 'moderator' | 'admin';
+// each of the server's roles (`ServerRole`), and holding none
+export type RoleHolder = 'nobody' | `${ServerRole}`;
 
 export const roleHolders: readonly RoleHolder[] = ['nobody', 'contributor', 'developer', 'moderator', 'admin'];
 

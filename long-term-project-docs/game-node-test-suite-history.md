@@ -751,6 +751,105 @@ the only `as any` is the documented one. Everything else it raised was fixed on 
 
 It also raised a security item, held privately. 823 → 827 non-game specs.
 
+### Game timers — steps a to c (2026-11-08 to 2026-11-09)
+
+On branch `ammayberry1/gameserver-timer-tests`, cut from core's last branch before it merged.
+
+- *a (2026-11-08):* read the timer code and the local security documents, and wrote the area's plan and its definition of
+  done (rows T1 to T15). Two throwaway probes found open findings #16 (a run-out main timer reported 120 s, so two players
+  running out together was not a draw) and #17 (two errors logged as each timed game started). The owner decided the open
+  half of #11 (a player's messages do not affect the timer, so the activity check and `resetActionTimer` go) and the draw
+  rule (#16).
+- *b (2026-11-09):* the game driver on `TestClient` (`prompt`, `hand`, `clickButtonAsync`, `timerOf`),
+  `ServerTestHarness.playThroughSetupAsync`, I-7's `TestScheduler.advanceToDeadlineAsync`, `ActionTimerLimits` (the
+  limits written out, not imported), and the `timers/` area. No production seam was needed. 827 → 835 non-game specs.
+- *c (2026-11-09):* `ActionTimer`, `ActionTimerPauses` and `TimedGames`, each spec checked against a deliberate break of
+  what it pins; `TestClient.quickUndoAsync` for the undo specs. The coverage run found no unlisted gap. The step found
+  open finding #18 (a game that had ended started its timers again), and the owner set its rule: the timers pick back up
+  after an undo past the end. Checking that rule turned up a security item, held privately. 835 → 854.
+
+### Game timers step d — resolve what it found (2026-11-09)
+
+Production changes, each its own commit with the specs that were waiting on it, each spec run against the code before its
+change (and failing):
+
+- *Open finding #16*, the draw rule: `Game.onGameTimerExpired` reads the opponent's timer before stopping it, and calls
+  it a draw only if it is counting down (running, or running out at that same instant:
+  `SimpleActionTimer.isRunningOrRunningOut`) with no more than `ByoyomiTimer.TimeoutDrawMarginSeconds` until timeout,
+  counting turn and main time to the millisecond (`msUntilTimeout`, from `SimpleActionTimer.timeRemainingMs`). A main
+  timer that has run out reports 0 rather than 120. Five specs in `ActionTimer` (*running out*) failed under the old rule.
+- *Open finding #18*: `UiPrompt.startPlayerActionTimer` starts no timer while the game has ended. Whether it has ended is
+  game state, so after an undo past the end the next prompt starts the timers again. `ByoyomiTimer.pause` no longer marks
+  a timer that is not running as paused, which would otherwise leave a timer stopped at the end unable to start after such
+  an undo. Two specs in `TimedGames`, one failing without each half.
+- *Open finding #11*, the server's part, and #17 with it: gone are `Lobby.userTimeoutDisconnect` (with the
+  `inactiveDisconnect` emit), the `userTimeoutDisconnect` game option and its contract check (and the engine harness's
+  stub for it in `GameFlowWrapper`), the `forceDisconnect` socket flag and `onSocketDisconnected`'s check for it,
+  `GameActionTimer`'s live-status check and its prompt and action tracking (whose error log at each timed game's start
+  was #17), the `checkLiveStatus` parameter of `ByoyomiTimer`, `Player.checkPlayerTimeoutConditions`, `lastActionId`
+  and `incrementActionId`, `Game.onPlayerAction` and the lobby's call to it, and `SimpleActionTimer`'s
+  `shouldFireHandler` hook. `updateUserLastActivity` still records the time of a player's last message, which the 60 s
+  stale-lobby rule reads. The client's part of #11 remains open.
+- *Two security items,* by the owner's decision, each its own neutrally worded commit.
+- *Dead code removed:* `Game.restartAllActionTimers` and the `restartIfRunning` methods; `timeRemainingSeconds` on
+  `IActionTimer`, `ByoyomiTimer` and `NoopActionTimer`; and `totalTimeRemainingSeconds`.
+
+The full suite and the undo run pass. The coverage run, repeated, is recorded in the plan. 854 → 861 non-game specs.
+
+### Game timers step e — independent review (2026-11-09)
+
+A separate agent (Claude Opus 5.5 at extra-high effort) reviewed the area's plan and changes, read-only, with its own
+probes and mutation runs: each of step d's seven patches, in order and on its own, and the client change. It confirmed
+the step d fixes for the cases they were written for, that same-instant expiries give the same result in either order,
+that the 3,000 / 3,001 ms margins are exact, that the removed members have no remaining references, that no spec reads
+anything but the wire or asserts wrong behaviour, and that nothing drives an unfixed security item. Fifteen mutations
+each failed the specs meant to catch them. What it raised, all addressed on the same branch:
+
+- *Open finding #19, fixed:* a stopped timer whose main time had run out still counted as on the clock (`ByoyomiTimer.stop`
+  kept the main-time flag), so after an undo past a timeout, a waiting player who had run out got a draw where the rule
+  gives them the win. `stop()` now resets the flag, and the two doc comments that said otherwise are corrected
+  (`TimedGames`).
+- *Open finding #20, fixed by the owner's decision:* the last player to pass carried their running timer into the regroup
+  phase's resource step, with no fresh turn time. The regroup phase now stops both players' timers before that step
+  (`ActionTimer`). That leaves no game without cards in which an opponent is still in their turn time when the other runs
+  out, so the draw rule's turn-time part moved from a wire spec to a unit spec of `ByoyomiTimer`, through a
+  behaviour-neutral seam (`IActionTimerPlayer`, `IActionTimerGame`: what an action timer uses of its player and game).
+- *Open finding #21, recorded* for the best-of-three area: `Game.finishedAt` survives an undo past the end.
+- *A game the lobby is done with starts no timers* (`Game.isDisposed`, checked in `UiPrompt.startPlayerActionTimer`): one
+  disposed while still setting up could otherwise start them afterwards. No spec, for the same reason as the fix it
+  extends.
+- *Unpinned behaviour, now pinned:* every action starting with full turn time (row T2); a click the prompt does not take
+  (T12); a single timeout alert when both players run out together; the requester's whole timer after an allowed undo;
+  the clock helper awaiting an async check; and `clickButtonAsync` refusing a disabled button.
+- *Layout:* `TimedGames` in three blocks (which games are timed, the end of a game, reconnects and spectators);
+  `ActionTimerPauses`' messages spec in its own block; one `initiativeChooserOf` helper in `ServerTestHarness` instead of
+  two and their inline copies.
+- *Documents:* the spec counts (9,246 game specs, not the 9,193 carried forward since 2026-11-06), stale passages, two
+  fragility-register rows, the coverage record, and wording in this history and the plan. `CLAUDE.md`'s `timers/` bullet.
+- *The client:* a stale "bug report" comment on the player-report handler.
+
+It also flagged wording that could point at unfixed security items, which was changed. 861 → 868 non-game specs.
+
+### Topic areas added (2026-11-09)
+
+A sweep of the server code outside the rules engine, comparing each module and route with the plan's areas, found three
+that no area covered: undo in live games (the policy each lobby runs, through the server), the database layer (the real
+`DynamoDBService`, which no spec constructs, and the data migrations), and operations (startup and configuration, metrics,
+the profiler and the log format). They were added as areas 4, 5 and 13, and the areas after protocol surface were
+renumbered. Smaller items went into existing areas: lobby settings into core's remaining step c, SWUBase card metrics into
+stats, and the profanity filter into accounts and settings.
+
+### Merged with `main` (2026-11-13)
+
+`main` @ `6f8005d96` was merged into the game-timer branch. Its six conflicts came from #3152, the squash of core's steps d
+and e, whose commits the branch also carried; the branch's later versions were kept, and `TestClient` kept `main`'s new
+deck methods beside the game driver. `main` also brought specs written outside the plan, which were then evaluated against the suite's rules: #3168's
+sign-in specs and #3112's chat specs are in line (the client-contract guard in protocol surface now lists #3168's sign-in
+responses, and the accounts area a missing chat case); #3134's specs of saving and renaming a deck, adding a cosmetic,
+and the real `DynamoDBService` are sound but need headers, a shared fixture, a move, a typed client method, and to run
+against the fake as well. None was changed; the decks, cosmetics and database-layer areas say what each needs, and the
+fragility register lists their couplings. The counts were brought up to date. 868 → 945 non-game specs.
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)
@@ -1366,3 +1465,53 @@ The numbers are the plan's *Open findings* numbers.
     connected and the queue entry was left behind. The never-active case now falls through to the eviction like a stale
     one.
     Found by core's independent review; covered in `LobbyLifecycle`.
+
+16. **A timeout's draw does not follow the intended rule — fixed in the game-timer area's step d (2026-11-09).** The rule, as the owner set it:
+    when a player's main time runs out, the game is a draw if the opponent's timer is running and the opponent is 3 s or
+    less from running out too, counting turn and main time; otherwise the opponent wins. `Game.onGameTimerExpired` instead
+    stops the opponent's timer and then calls it a draw if what is left is under 3 s, which differs in three ways:
+    - it counts an opponent whose timer is not running (a waiting opponent with under 3 s of main time draws);
+    - having stopped the timer first, it reads the opponent's main time alone and loses their turn time;
+    - `ByoyomiTimer.mainTimeRemainingSeconds` falls back to `MainTimeLimitSeconds` when the main timer's
+      `timeRemainingSeconds` is `null`, which it is once it has run out (the main timer is started, and paused, when it
+      is built). So when
+      both players run out at the same moment (both idle at a prompt that waits on both, such as the mulligan or a
+      resource prompt, whose timers start together), the first expiry finds the opponent with 120 s rather than none,
+      and the opponent is declared the winner instead of a draw; and the final game state shows a timed-out player with
+      120 s of main time.
+
+    The last was established by a probe (both players idle at the mulligan: at 140 s the first-listed player lost, and
+    both showed 120 s), since deleted. Real timers schedule both expiries in the same tick, so the same is expected in
+    production. *Fixed* as the owner set the rule; covered in `ActionTimer` (rows T7 and T8).
+
+17. **Every timed game logs two errors as it starts — fixed in the game-timer area's step d (2026-11-09).** The `ByoyomiTimer` constructor primes its
+    main timer by starting and pausing it before any prompt exists, and `GameActionTimer.start` logs "Attempting to start
+    action timer for player … when there is no active prompt" at error level, once per player. Prompt-driven starts log
+    nothing. The tracking that logs it serves only the activity check #11 found commented out. Established by a probe (a
+    logger spy across a timed game's start, initiative choice and mulligan: two errors, both at construction), since
+    deleted. *Fixed* by removing that tracking with the server's part of #11.
+
+18. **A game that has ended starts its timers again — fixed in the game-timer area's step d (2026-11-09).**
+    `Game.endGame` stops both players' timers, but players may play on after the end, and the next prompt starts the
+    timer again: `UiPrompt.setPrompt` starts any stopped timer for a player it waits on. After a concession that is at
+    once, since `Lobby.onGameMessage` continues the game after every command. The guards in `Game` keep the timer from
+    ending the game again, or from sending the state when the turn time runs out, but the client is shown a running
+    timer, and at 30 s and 10 s of main time the chat gets the warnings, with a state push each. Intended (row T11): no
+    timer while the game has ended, and if an undo takes the game back before its end, the timers pick back up (the
+    owner, 2026-11-09). Established by a probe (a concession at the
+    first action, then idling: the winner's timer running at once, and both warnings in the chat at 110 s and 130 s),
+    since deleted. *Fixed* as intended; the second part needed `ByoyomiTimer.pause` to stop marking a timer that is not
+    running as paused. Covered in `TimedGames` (row T11).
+
+19. **A stopped timer whose main time had run out still counted as on the clock — fixed in the game-timer area's step e
+    (2026-11-09).** `ByoyomiTimer.stop` left the main-time flag set, and a main timer that has run out keeps its end time,
+    so `isCountingDown` stayed true for a player who was waiting. After an undo past a game a player had lost on time,
+    the game going on with them waiting, the opponent running out was a draw where the rule gives the waiting player the
+    win. Found by the independent review (a probe). *Fixed:* `stop()` resets the flag; covered in `TimedGames` and the
+    `ByoyomiTimer` unit spec.
+
+20. **The last player to pass started the regroup phase's resource step without fresh turn time — fixed in the game-timer
+    area's step e (2026-11-09).** Consecutive prompts for a player who stays active share their turn time, and the last
+    player to pass stayed active into the resource step, so their timer ran on from their last action. The owner's rule:
+    both players' turn timers restart at that step. Raised by the independent review. *Fixed:* the regroup phase stops
+    both timers before the resource step (main time kept); covered in `ActionTimer` (row T2).
