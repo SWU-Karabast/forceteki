@@ -1,27 +1,26 @@
-import { ZoneName } from '../Constants';
 import type { Card } from '../card/Card';
 import { CardRef } from './CardRef';
 import type { ICardProperties } from './CardPropertiesInterfaces';
-import type { IRecordedCardState } from './RecordedCardProperties';
-import { RecordedCardProperties, RecordedUnitProperties } from './RecordedCardProperties';
-import { LiveCardProperties, LiveUnitProperties } from './LiveCardProperties';
+import type { IRecordedCardState } from './CardRecord';
+import { buildCardRecord } from './CardRecord';
+import { RecordedCardProperties, RecordedUnitProperties, RecordedUpgradeProperties } from './RecordedCardProperties';
+import { LiveCardProperties, LiveUnitProperties, LiveUpgradeProperties } from './LiveCardProperties';
 import { Contract } from '../utils/Contract';
-import { EnumHelpers } from '../utils/EnumHelpers';
 
 /**
  * Serves card properties, resolving each read against the moment the caller's reference names.
  *
- * Three structures with three different lifetimes (D-29):
+ * Two structures with two different lifetimes (D-29):
  *
- * | Structure   | Flushed at action boundary | Cleared on rollback |
- * |-------------|----------------------------|---------------------|
- * | records  | yes                        | yes                 |
- * | tombstones  | no                         | yes                 |
- * | intern map  | no                         | no                  |
+ * | Structure  | Flushed at action boundary | Cleared on rollback |
+ * |------------|----------------------------|---------------------|
+ * | records    | yes                        | yes                 |
+ * | intern map | no                         | no                  |
  *
- * records are scoped to an action because last known information only matters between a trigger
- * and its resolution, and no ability resolution spans an action boundary. Retaining them longer
- * would silently serve stale data to code that should not be asking (D-20).
+ * Records are scoped to an action because last known information only matters between a trigger
+ * and its resolution, and no ability resolution spans an action boundary (D-20). After the flush a
+ * card that is still the same identity reads as it is now (D-39): a card that left play for the
+ * discard pile keeps its identity, and card code legitimately reads it there afterwards.
  *
  * The intern map holds identity only, which is timeline-independent, so it survives both.
  */
@@ -31,12 +30,6 @@ export class LkiRegistry {
 
     /** Records not yet committed, grouped by the event that wrote them; see {@link commitPending} (D-30). */
     private readonly pending = new Map<number, Map<string, IRecordedCardState>>();
-
-    /**
-     * Card identities whose record has been flushed. Lets a stale read throw instead of falling
-     * through to live state, which would be silently wrong (D-21, SC-15).
-     */
-    private readonly tombstones = new Set<string>();
 
     /** Returns the canonical reference for a card's current identity. */
     public getIdentity(card: Card): CardRef {
@@ -57,27 +50,19 @@ export class LkiRegistry {
     }
 
     /**
-     * Returns a properties view for the reference: recorded values if the identity has a
-     * record, otherwise a live pass-through.
+     * Returns a properties view for the reference: the recorded characteristics if the identity has a
+     * record, otherwise a live pass-through. Presence reads the live card either way (D-37).
      */
     public getProperties(ref: CardRef): ICardProperties {
         const record = this.records.get(ref.key);
         if (record) {
-            return record.isUnit
-                ? new RecordedUnitProperties(ref, record)
-                : new RecordedCardProperties(ref, record);
+            return LkiRegistry.recordedView(ref, record);
         }
-
-        Contract.assertFalse(
-            this.tombstones.has(ref.key),
-            `The record for ${ref} was flushed at an action boundary, so its last known information ` +
-            'is no longer available. Long-lived holders must store recorded values rather than holding a reference.'
-        );
 
         Contract.assertTrue(
             ref.isCurrent,
             `${ref} names an identity that no longer exists and has no record, so nothing can be ` +
-            'read from it.'
+            'read from it. Long-lived holders must store the values they need rather than a reference.'
         );
 
         return this.getLiveProperties(ref);
@@ -86,14 +71,30 @@ export class LkiRegistry {
     /**
      * Returns a live pass-through view of the card the reference names, as it is right now.
      *
-     * Deliberately ignores records, tombstones and identity, so it can never fail the way
-     * {@link getProperties} does and reads exactly what reading the card directly would. This is
-     * what a card that has not opted in to last known information receives
-     * (see `Card.usesLkiRegistry`).
+     * Deliberately ignores records and identity, so it can never fail the way {@link getProperties}
+     * does and reads exactly what reading the card directly would. This is what a card that has not
+     * opted in to last known information receives (see `Card.usesLkiRegistry`), and what any card
+     * gets when it asks for the present (`ICardStateGetter.getCurrentProperties`).
      */
     public getLiveProperties(ref: CardRef): ICardProperties {
         const card = ref.getCardForEngine();
-        return card.isUnit() ? new LiveUnitProperties(ref, card) : new LiveCardProperties(ref, card);
+        if (card.isUnit()) {
+            return new LiveUnitProperties(ref, card);
+        }
+        if (card.isUpgrade()) {
+            return new LiveUpgradeProperties(ref, card);
+        }
+        return new LiveCardProperties(ref, card);
+    }
+
+    private static recordedView(ref: CardRef, record: IRecordedCardState): ICardProperties {
+        if (record.checks.isUnit) {
+            return new RecordedUnitProperties(ref, record);
+        }
+        if (record.checks.isUpgrade) {
+            return new RecordedUpgradeProperties(ref, record);
+        }
+        return new RecordedCardProperties(ref, record);
     }
 
     /**
@@ -123,8 +124,7 @@ export class LkiRegistry {
     /**
      * Resolves a reference to the live card, for engine use.
      *
-     * Returns `null` when the reference no longer names the card's current identity, which is how
-     * an effect targeting a card that has since left and re-entered play fizzles (D-6).
+     * Returns `null` when the reference no longer names the card's current identity.
      */
     public deref(ref: CardRef): Card | null {
         return ref.isCurrent ? ref.getCardForEngine() : null;
@@ -145,7 +145,7 @@ export class LkiRegistry {
             this.pending.set(eventId, forEvent);
         }
 
-        forEvent.set(CardRef.buildKey(card, card.identityId), LkiRegistry.buildRecord(card));
+        forEvent.set(CardRef.buildKey(card, card.identityId), buildCardRecord(card, (related) => this.getIdentity(related)));
     }
 
     /**
@@ -154,6 +154,11 @@ export class LkiRegistry {
      * Called immediately before the event's handler runs. Events that were replaced or cancelled
      * never reach this point, so they leave no record behind — without this a unit that survived
      * a replaced defeat would answer with frozen characteristics for the rest of the action (D-30).
+     *
+     * An identity keeps the first record it gets within an action. A unit that leaves play for the
+     * discard pile and then moves into a hidden zone in the same action is recorded twice under the
+     * same identity, once for each move, and the triggers of its departure need the first: the unit
+     * as it left play, not as it sat in the discard pile.
      */
     public commitPending(eventId: number): void {
         const forEvent = this.pending.get(eventId);
@@ -162,7 +167,9 @@ export class LkiRegistry {
         }
 
         for (const [key, record] of forEvent) {
-            this.records.set(key, record);
+            if (!this.records.has(key)) {
+                this.records.set(key, record);
+            }
         }
         this.pending.delete(eventId);
     }
@@ -192,11 +199,8 @@ export class LkiRegistry {
         return this.pending.size;
     }
 
-    /** Flushes records at an action boundary, leaving a tombstone for each (D-20, D-21). */
+    /** Flushes records at an action boundary (D-20). */
     public flushRecords(): void {
-        for (const key of this.records.keys()) {
-            this.tombstones.add(key);
-        }
         this.records.clear();
         this.pending.clear();
     }
@@ -206,9 +210,7 @@ export class LkiRegistry {
      *
      * Rollback restores tracked state but not the registry, and mid-action rollback is a first-class
      * path, so without this a record written in an abandoned timeline would be served for a
-     * re-created identity. Tombstones are cleared too: they record that an identity departed,
-     * which is equally timeline-dependent, and a surviving tombstone would turn reads of a perfectly
-     * live card into errors (D-29).
+     * re-created identity (D-29).
      *
      * The intern map is left alone — a `(card, identityId)` pair means the same thing in any
      * timeline.
@@ -216,48 +218,5 @@ export class LkiRegistry {
     public clearForRollback(): void {
         this.records.clear();
         this.pending.clear();
-        this.tombstones.clear();
-    }
-
-    private static buildRecord(card: Card): IRecordedCardState {
-        const wasInPlay = EnumHelpers.isArena(card.zoneName) ||
-          (card.zoneName === ZoneName.Base && card.isUpgrade());
-
-        const base = {
-            title: card.title,
-            type: card.type,
-            controller: card.controller,
-            // Copy the set: the card rebuilds its own on each read, but the record must not hand
-            // out a collection that a caller could mutate for every other reader (D-17).
-            traits: new Set(card.traits),
-            cost: card.hasCost() ? card.cost : null,
-            zoneName: card.zoneName,
-            wasInPlay
-        };
-
-        if (!card.isUnit()) {
-            return { ...base, isUnit: false };
-        }
-
-        if (!wasInPlay) {
-            return {
-                ...base,
-                isUnit: true,
-                printedPower: card.getPrintedPower(),
-                printedHp: card.getPrintedHp()
-            };
-        }
-
-        return {
-            ...base,
-            isUnit: true,
-            printedPower: card.getPrintedPower(),
-            printedHp: card.getPrintedHp(),
-            power: card.getPower(),
-            hp: card.getHp(),
-            damage: card.damage,
-            exhausted: card.exhausted,
-            upgrades: card.isAttached() ? [] : card.upgrades.map((upgrade) => card.game.lkiRegistry.getIdentity(upgrade))
-        };
     }
 }

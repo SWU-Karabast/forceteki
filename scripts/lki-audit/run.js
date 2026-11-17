@@ -116,7 +116,7 @@ function runJasmine(specs) {
     return { failures: summary ? Number(summary[2]) : NaN, status: result.status };
 }
 
-function selfCheck(sites, report, failures) {
+function selfCheck(sites, report, failures, getterCheck) {
     const checks = SELF_CHECK_EXPECTATIONS.map((expected) => {
         const found = sites.some((site) => site.file.endsWith(`/${expected.card}.ts`) && site.property === expected.property &&
           site.state === expected.state && (!expected.differs || site.differs > 0));
@@ -124,6 +124,10 @@ function selfCheck(sites, report, failures) {
     });
     checks.push({ ok: report.auditErrors === 0, text: `no audit errors (found ${report.auditErrors})` });
     checks.push({ ok: failures === 0, text: `no spec failures (found ${failures})` });
+    checks.push({
+        ok: getterCheck.checked > 0 && getterCheck.disagreements.length === 0,
+        text: `the built getter answers as the rules say at every site (${getterCheck.checked} checked, ${getterCheck.disagreements.length} disagree)`
+    });
     for (const check of checks) {
         console.log(`[lki-audit] ${check.ok ? 'PASS' : 'FAIL'} ${check.text}`);
     }
@@ -137,16 +141,20 @@ function main() {
 
     preflight();
     const { failures } = runJasmine(specs);
-    const { report, sites, text } = analyze(REPORT, ROOT, ANALYSIS);
+    const { report, sites, text, getterCheck } = analyze(REPORT, ROOT, ANALYSIS);
 
     if (isSelfCheck) {
-        process.exit(selfCheck(sites, report, failures) ? 0 : 1);
+        process.exit(selfCheck(sites, report, failures, getterCheck) ? 0 : 1);
     }
 
     console.log(text.split('\n## A.')[0]);
+    console.log(`[lki-audit] the built getter against the rules: ${getterCheck.checked} sites checked, ${getterCheck.disagreements.length} disagree (section H)`);
     console.log(`\n[lki-audit] full classification: ${path.relative(ROOT, ANALYSIS)}`);
     if (failures !== 0) {
         fail('Specs failed, so this run cannot be trusted: the audit only observes. See the jasmine log.');
+    }
+    if (getterCheck.disagreements.length > 0) {
+        fail('The built getter disagrees with the rules at some sites. See section H of the classification.');
     }
 }
 

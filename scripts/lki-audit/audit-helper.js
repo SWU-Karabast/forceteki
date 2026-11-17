@@ -5,9 +5,10 @@
  * For every read, from card code (`server/game/cards/**`), of a card that has left play during the
  * current action, it records the member read, the live value returned, and what last known
  * information would have answered: a snapshot taken at the moment the registry writes its record.
- * It also records reads of a card whose current identity has been tombstoned, and of a card whose
- * record belongs to an earlier identity (it left play, then moved into a hidden zone or re-entered
- * play).
+ * It also records reads of a card whose record for its current identity was flushed at an earlier action
+ * boundary, which D-21's tombstones made throw (the registry no longer keeps tombstones, so the helper
+ * tracks these itself), and of a card whose record belongs to an earlier identity (it left play, then
+ * moved into a hidden zone or re-entered play).
  *
  * It instruments `Card` members, so it measures card code that reads cards directly. Once card code
  * reads through the card state getter, point it at the properties classes instead.
@@ -90,15 +91,32 @@ function normalize(value) {
         return `player:${value.name ?? value.id}`;
     }
     if (ctor === 'CardRef') {
-        return `ref:${value.key}`;
+        // Compared with the live card a `Card` member returns, so a reference normalizes the same way.
+        const card = value.getCardForEngine();
+        return `card:${card.internalName}@${card.uuid}`;
     }
     if (ctor && (/Zone$/).test(ctor)) {
         return `zone:${value.name}${value.owner ? '@' + (value.owner.name ?? value.owner.id) : ''}`;
     }
-    if (ctor && (/Keyword/).test(ctor) && typeof value.name === 'string') {
+    if (typeof value.name === 'string' && ((ctor && (/Keyword/).test(ctor)) || (ctor === 'Object' && 'value' in value))) {
         return `kw:${value.name}`;
     }
     return `<${ctor || 'object'}>`;
+}
+
+/**
+ * Whether two normalized results agree. A member with no value is `undefined` on a `Card` and `null` on
+ * a properties object (the `cost` of a base, for example), a known difference the sweep accounts for.
+ */
+function sameResult(a, b) {
+    const nullish = (result) => result.ok === null || result.ok === '<undefined>';
+    if (a.ok !== undefined && b.ok !== undefined && nullish(a) && nullish(b)) {
+        return true;
+    }
+    if (a.threw !== undefined && b.threw !== undefined) {
+        return true;
+    }
+    return JSON.stringify(a) === JSON.stringify(b);
 }
 
 function asList(value) {
@@ -205,8 +223,10 @@ registryProto.commitPending = function (eventId) {
                     byIdentity = new Map();
                     audit.committed.set(entry.uuid, byIdentity);
                 }
-                // Same semantics as the registry: the last commit for an identity wins.
-                byIdentity.set(entry.identityId, entry);
+                // Same semantics as the registry: an identity keeps the first record it gets.
+                if (!byIdentity.has(entry.identityId)) {
+                    byIdentity.set(entry.identityId, entry);
+                }
             }
             audit.pending.delete(eventId);
         }
@@ -340,6 +360,31 @@ function subjectState(card) {
     return null;
 }
 
+/** `Card` members the properties object exposes under another name, or not at all. */
+const PROPERTIES_MEMBER = {
+    getPower: 'power', getHp: 'hp', getPrintedPower: 'printedPower', getPrintedHp: 'printedHp', getType: 'type',
+    inPlayId: null, mostRecentInPlayId: null, captureZone: null
+};
+
+/**
+ * Asks the built card state getter the question card code just asked the card, through the read named
+ * by `read` (`getLastKnownProperties` or `getCurrentProperties`), so the answer can be checked against
+ * the one the rules give.
+ */
+function askGetter(card, read, name, args) {
+    const member = name in PROPERTIES_MEMBER ? PROPERTIES_MEMBER[name] : name;
+    if (member === null) {
+        return { unavailable: true };
+    }
+    try {
+        const properties = card.game.cardStates[read](card);
+        const value = properties[member];
+        return { ok: normalize(typeof value === 'function' ? value.apply(properties, args) : value) };
+    } catch (error) {
+        return { threw: String((error && error.message) || error).slice(0, 160) };
+    }
+}
+
 function recordHit(card, name, args, hit, live, threw) {
     const cardFrame = hit.callSites[0];
     const position = toSourcePosition(cardFrame.getFileName(), cardFrame.getLineNumber(), cardFrame.getColumnNumber());
@@ -362,15 +407,31 @@ function recordHit(card, name, args, hit, live, threw) {
     const differs = !lkiValue.unavailable && JSON.stringify(lkiValue) !== JSON.stringify(liveValue);
     const argText = ARG_METHODS.includes(name) ? `(${JSON.stringify(normalize(args[0]))})` : '';
 
+    // What the built getter answers, both ways it can be asked.
+    const lastKnownAnswer = askGetter(card, 'getLastKnownProperties', name, args);
+    const currentAnswer = askGetter(card, 'getCurrentProperties', name, args);
+
     const key = `${position.file}:${position.line}:${position.column}|${name}|${hit.subject.state}`;
     let site = sites.get(key);
     if (!site) {
         site = {
             file: position.file, line: position.line, column: position.column, property: name,
             state: hit.subject.state, cardFn, invokedBy: {}, count: 0, differs: 0, same: 0,
-            lkiUnavailable: 0, liveThrew: 0, examples: [], subjects: {}, args: {}
+            lkiUnavailable: 0, liveThrew: 0, examples: [], subjects: {}, args: {},
+            getter: { lastKnownMatchesLive: 0, lastKnownMatchesLki: 0, currentMatchesLive: 0, notOnSurface: 0, mismatches: [] }
         };
         sites.set(key, site);
+    }
+
+    if (lastKnownAnswer.unavailable) {
+        site.getter.notOnSurface++;
+    } else {
+        site.getter.lastKnownMatchesLive += sameResult(lastKnownAnswer, liveValue) ? 1 : 0;
+        site.getter.lastKnownMatchesLki += !lkiValue.unavailable && sameResult(lastKnownAnswer, lkiValue) ? 1 : 0;
+        site.getter.currentMatchesLive += sameResult(currentAnswer, liveValue) ? 1 : 0;
+        if (site.getter.mismatches.length < 3 && (!sameResult(lastKnownAnswer, liveValue) || !sameResult(currentAnswer, liveValue))) {
+            site.getter.mismatches.push({ spec: currentSpec, live: liveValue, lki: lkiValue, lastKnown: lastKnownAnswer, current: currentAnswer });
+        }
     }
 
     site.count++;

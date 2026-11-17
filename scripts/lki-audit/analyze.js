@@ -153,7 +153,50 @@ function render(report, sites) {
         'The card left play and has since become a new copy. Check that the text is about the card where it is now.');
     section('F. Identity reads', sites.filter((s) => s.category === 'identity'));
     lines.push('', `## G. Same answer either way: ${sites.filter((s) => s.before === 'same' && s.under === 'same').length} sites`, '');
+
+    const check = checkGetter(sites);
+    lines.push('', `## H. The built getter against the rules — ${check.checked} sites checked, ${check.disagreements.length} disagree`, '');
+    lines.push('At each read, the audit also asks the built getter the same question: `getCurrentProperties` for a selector candidate (D-38), and `getLastKnownProperties` otherwise. A candidate, presence, a tombstoned identity and a card that has become a new copy must get the live answer; a characteristic of a card that left play during the action must get the recorded one.', '');
+    for (const { site, expected, example } of check.disagreements) {
+        lines.push(`- \`${site.file.replace(/^server\/game\/cards\//, '')}:${site.line}\` \`${site.receiver}.${site.property}\` — ${site.state}, expected ${expected}`);
+        if (example) {
+            lines.push(`  - live ${JSON.stringify(example.live).slice(0, 70)}; last known ${JSON.stringify(example.lki).slice(0, 70)}; getter ${JSON.stringify(example.lastKnown).slice(0, 70)}; present ${JSON.stringify(example.current).slice(0, 70)}`);
+        }
+    }
     return lines.join('\n');
+}
+
+/** What the rules say the getter must answer at a site, and whether it did at every read there. */
+function checkGetter(sites) {
+    let checked = 0;
+    const disagreements = [];
+    for (const site of sites) {
+        const getter = site.getter;
+        if (!getter || site.category === 'identity') {
+            continue;
+        }
+        const asked = site.count - getter.notOnSurface;
+        if (asked === 0) {
+            continue;
+        }
+        checked++;
+        let expected;
+        let agrees;
+        if (site.candidate) {
+            expected = 'the live answer from getCurrentProperties';
+            agrees = getter.currentMatchesLive === asked;
+        } else if (site.category === 'presence' || site.state !== 'recorded') {
+            expected = 'the live answer';
+            agrees = getter.lastKnownMatchesLive === asked;
+        } else {
+            expected = 'the recorded answer';
+            agrees = getter.lastKnownMatchesLki === asked - site.lkiUnavailable;
+        }
+        if (!agrees) {
+            disagreements.push({ site, expected, example: getter.mismatches[0] });
+        }
+    }
+    return { checked, disagreements };
 }
 
 function analyze(reportPath, root, outPath) {
@@ -163,10 +206,10 @@ function analyze(reportPath, root, outPath) {
     if (outPath) {
         fs.writeFileSync(outPath, text);
     }
-    return { report, sites, text };
+    return { report, sites, text, getterCheck: checkGetter(sites) };
 }
 
-module.exports = { analyze, classify };
+module.exports = { analyze, classify, checkGetter };
 
 if (require.main === module) {
     const root = process.cwd();

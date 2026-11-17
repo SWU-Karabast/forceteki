@@ -89,7 +89,9 @@ export interface ICardWithExhaustProperty extends Card {
     ready();
 }
 
-export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICardCanChangeControllers {}
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICardCanChangeControllers {
+    getNumericKeywordTotal(keywordName: NumericKeywordName): number | null;
+}
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];

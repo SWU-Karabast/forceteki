@@ -20,8 +20,8 @@ Status values: `pending` · `in-progress` · `done` · `deferred`.
 
 **Since 2026-11-05, §A needs no per-site decisions.** D-37 replaced D-31, so a presence question (is it
 in play, is it attached, where is it now) reads the present on every properties object, and those sites
-keep today's behavior once their card opts in. §A still lists them, because step 3.1 has to keep them
-that way and the behavior-delta audit (§G.2) checks it.
+keep today's behavior once their card opts in. §A still lists them as the evidence that step 3.1 keeps
+them that way, which the behavior-delta audit (§G.2) confirmed on 2026-11-16.
 
 Every file and line anchor in this document was checked by reading the line it points at, against `main`
 at `445792e61` on 2026-11-01 (§I). The anchors added on 2026-11-05 (§A, §B, §E, §F.1 and §G.2) were checked
@@ -49,40 +49,42 @@ were not in this register. Ten of those are not mentioned in any of the three do
 seven appear only in other roles: §3.21's accessor guards, the SC-11 fallbacks, or the record fields in
 §B.
 
-Status `pending` means step 3.1 has not been built. Each row is checked by re-running the audit after it
-is: the site must still read the present.
+Every row is `done`. Step 3.1 was built on 2026-11-16, and the audit, re-run with its getter check
+(§G.2), confirmed that the built getter answers 27 of these sites from the present. The suite never
+reaches the other two, Rey Skywalker and Millennium Falcon, with the card having left play. They read
+`context.source.isInPlay()`, the same member as Poe Dameron's row, which the audit did check.
 
 | Site | Read | Source | Status |
 |---|---|---|---|
-| [PoeDameronOneHellOfAPilot.ts:24](../server/game/cards/04_JTL/units/PoeDameronOneHellOfAPilot.ts) | `thenCondition: context.source.isInPlay()`, "did Poe survive to be attached?" The canonical example; `PoeDameronOneHellOfAPilot.spec.ts:88` covers the defeated case | before the audit | pending |
-| [UnrefusableOffer.ts:33](../server/game/cards/02_SHD/upgrades/UnrefusableOffer.ts) | `ifYouDoCondition: context.source.isInPlay()`. Line 23 also asks whether it is in the discard pile or captivity | before the audit | pending |
-| [ReySkywalker.ts:24](../server/game/cards/07_LAW/units/ReySkywalker.ts) | `context.source.isInPlay() && …`. No spec reaches it with Rey having left play | before the audit | pending |
-| [MillenniumFalconLandosPride.ts:26](../server/game/cards/02_SHD/units/MillenniumFalconLandosPride.ts) | constant-ability `condition` reading `context.source.isInPlay()`. No spec reaches it with the Falcon having left play | before the audit | pending |
-| [SneakAttack.ts:31](../server/game/cards/01_SOR/events/SneakAttack.ts) | `ifYouDoCondition: context.events[0].card.isInPlay()` | before the audit | pending |
-| [LuthenRaelDontYouWantToFightForReal.ts:23,44](../server/game/cards/06_SEC/leaders/LuthenRaelDontYouWantToFightForReal.ts) | `when` reading `event.card.isInPlay() && isAttacking()`; also pinned by `LastKnownInformation.spec.ts` | before the audit | pending |
-| [PunishingOne.ts:19](../server/game/cards/02_SHD/units/PunishingOne.ts) | `when` reading `event.card.isInPlay() && isUpgraded()`; also pinned by `LastKnownInformation.spec.ts` | before the audit | pending |
-| [Bothan5NewRepublicPrisonShip.ts:29](../server/game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts) | `context.event.card.zone === context.player.discardZone` | audit; SC-12 | pending |
-| [DisplayPiece.ts:24](../server/game/cards/07_LAW/events/DisplayPiece.ts) | `ifYouDoContext.target.zoneName === ZoneName.Discard` | audit; SC-12 | pending |
-| [OldDakaOldestAndWisest.ts:33](../server/game/cards/05_LOF/units/OldDakaOldestAndWisest.ts) | `this.getTarget(thenContext)?.zone === context.player.discardZone` | audit; SC-12 | pending |
-| [OneMustDestroyToCreate.ts:29](../server/game/cards/08_ASH/events/OneMustDestroyToCreate.ts) | `this.getTarget(thenContext)?.zone === context.player.discardZone` | audit; SC-12 | pending |
-| [SuperlaserTechnician.ts:19](../server/game/cards/01_SOR/units/SuperlaserTechnician.ts) | `context.source.zoneName === ZoneName.Discard`, in its own When Defeated | audit | pending |
-| [ExpendableMercenary.ts:19](../server/game/cards/07_LAW/units/ExpendableMercenary.ts) | `context.source.zoneName === ZoneName.Discard`, in its own When Defeated | audit | pending |
-| [EnterprisingLackeys.ts:26](../server/game/cards/02_SHD/units/EnterprisingLackeys.ts) | `context.source.zoneName === ZoneName.Discard`, in its own When Defeated | audit | pending |
-| [YodaTricksterInExile.ts:23](../server/game/cards/09_HMW/units/YodaTricksterInExile.ts) | `context.source.zone === context.player.discardZone`, in its own When Defeated | audit | pending |
-| [BladeOfTalzinAGiftOfShadows.ts:23](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) | `context.source.zoneName === ZoneName.Discard` | audit | pending |
-| [GeneralGrievousScuttlingToSafety.ts:18](../server/game/cards/06_SEC/units/GeneralGrievousScuttlingToSafety.ts) | `context.source.zoneName === ZoneName.GroundArena`, "is he still there to be returned to hand" | audit | pending |
-| [SawGerreraBringDownTheEmpire.ts:32](../server/game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts) | `context.target.zoneName` is an arena, "if this unit survived" | audit | pending |
-| [KillSwitch.ts:17](../server/game/cards/07_LAW/upgrades/KillSwitch.ts) | `context.source.isInPlay() ? context.source.parentCard : null` | audit; §3.21 | pending |
-| [PerilousPosition.ts:17](../server/game/cards/03_TWI/upgrades/PerilousPosition.ts) | `context.source.isInPlay() ? context.source.parentCard : null` | audit; §3.21 | pending |
-| [GravCharge.ts:22](../server/game/cards/08_ASH/upgrades/GravCharge.ts) | `context.source.isAttached() ? context.source.parentCard : null` | audit | pending |
-| [HanSoloHasHisMoments.ts:24](../server/game/cards/04_JTL/units/HanSoloHasHisMoments.ts) | `context.source.isAttached() ? context.source.parentCard : null` | audit | pending |
-| [MaceWinduVaapadFormMaster.ts:26](../server/game/cards/03_TWI/leaders/MaceWinduVaapadFormMaster.ts) | `ifYouDoCondition` reading `context.target.isInPlay()` before its damage | audit; §3.21 | pending |
-| [MirajScintelTheWeakDeserveToKneel.ts:31](../server/game/cards/06_SEC/units/MirajScintelTheWeakDeserveToKneel.ts) | `x.isInPlay()` for each target of an attack | audit; §3.21 | pending |
-| [DoubleCross.ts:61](../server/game/cards/07_LAW/events/DoubleCross.ts) | `lowerCostUnit?.isInPlay()` in its `then` | audit | pending |
-| [LattsRazziDeadlyWhipmaster.ts:34](../server/game/cards/07_LAW/units/LattsRazziDeadlyWhipmaster.ts) | `thenContext.source.isInPlay()`, the guard of an SC-11 fallback | audit; SC-12 | pending |
-| [TheGreatProgenitorFirstOfTheDrengir.ts:44](../server/game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts) | `context.source.isInPlay()`, the guard of an SC-11 fallback | audit; SC-12 | pending |
-| [SandoAquaMonster.ts:61](../server/game/cards/09_HMW/units/SandoAquaMonster.ts) | `context.source.isInPlay()`, the guard of a three-way fallback (§E) | audit | pending |
-| [AsajjVentressBaldAndBeautiful.ts:27](../server/game/cards/09_IC27/leaders/AsajjVentressBaldAndBeautiful.ts) | `thenCondition` reading `context.target?.isInPlay()`, "if the attacker survived" | audit, 2026-11-13 | pending |
+| [PoeDameronOneHellOfAPilot.ts:24](../server/game/cards/04_JTL/units/PoeDameronOneHellOfAPilot.ts) | `thenCondition: context.source.isInPlay()`, "did Poe survive to be attached?" The canonical example; `PoeDameronOneHellOfAPilot.spec.ts:88` covers the defeated case | before the audit | done |
+| [UnrefusableOffer.ts:33](../server/game/cards/02_SHD/upgrades/UnrefusableOffer.ts) | `ifYouDoCondition: context.source.isInPlay()`. Line 23 also asks whether it is in the discard pile or captivity | before the audit | done |
+| [ReySkywalker.ts:24](../server/game/cards/07_LAW/units/ReySkywalker.ts) | `context.source.isInPlay() && …`. No spec reaches it with Rey having left play | before the audit | done |
+| [MillenniumFalconLandosPride.ts:26](../server/game/cards/02_SHD/units/MillenniumFalconLandosPride.ts) | constant-ability `condition` reading `context.source.isInPlay()`. No spec reaches it with the Falcon having left play | before the audit | done |
+| [SneakAttack.ts:31](../server/game/cards/01_SOR/events/SneakAttack.ts) | `ifYouDoCondition: context.events[0].card.isInPlay()` | before the audit | done |
+| [LuthenRaelDontYouWantToFightForReal.ts:23,44](../server/game/cards/06_SEC/leaders/LuthenRaelDontYouWantToFightForReal.ts) | `when` reading `event.card.isInPlay() && isAttacking()`; also pinned by `LastKnownInformation.spec.ts` | before the audit | done |
+| [PunishingOne.ts:19](../server/game/cards/02_SHD/units/PunishingOne.ts) | `when` reading `event.card.isInPlay() && isUpgraded()`; also pinned by `LastKnownInformation.spec.ts` | before the audit | done |
+| [Bothan5NewRepublicPrisonShip.ts:29](../server/game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts) | `context.event.card.zone === context.player.discardZone` | audit; SC-12 | done |
+| [DisplayPiece.ts:24](../server/game/cards/07_LAW/events/DisplayPiece.ts) | `ifYouDoContext.target.zoneName === ZoneName.Discard` | audit; SC-12 | done |
+| [OldDakaOldestAndWisest.ts:33](../server/game/cards/05_LOF/units/OldDakaOldestAndWisest.ts) | `this.getTarget(thenContext)?.zone === context.player.discardZone` | audit; SC-12 | done |
+| [OneMustDestroyToCreate.ts:29](../server/game/cards/08_ASH/events/OneMustDestroyToCreate.ts) | `this.getTarget(thenContext)?.zone === context.player.discardZone` | audit; SC-12 | done |
+| [SuperlaserTechnician.ts:19](../server/game/cards/01_SOR/units/SuperlaserTechnician.ts) | `context.source.zoneName === ZoneName.Discard`, in its own When Defeated | audit | done |
+| [ExpendableMercenary.ts:19](../server/game/cards/07_LAW/units/ExpendableMercenary.ts) | `context.source.zoneName === ZoneName.Discard`, in its own When Defeated | audit | done |
+| [EnterprisingLackeys.ts:26](../server/game/cards/02_SHD/units/EnterprisingLackeys.ts) | `context.source.zoneName === ZoneName.Discard`, in its own When Defeated | audit | done |
+| [YodaTricksterInExile.ts:23](../server/game/cards/09_HMW/units/YodaTricksterInExile.ts) | `context.source.zone === context.player.discardZone`, in its own When Defeated | audit | done |
+| [BladeOfTalzinAGiftOfShadows.ts:23](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) | `context.source.zoneName === ZoneName.Discard` | audit | done |
+| [GeneralGrievousScuttlingToSafety.ts:18](../server/game/cards/06_SEC/units/GeneralGrievousScuttlingToSafety.ts) | `context.source.zoneName === ZoneName.GroundArena`, "is he still there to be returned to hand" | audit | done |
+| [SawGerreraBringDownTheEmpire.ts:32](../server/game/cards/07_LAW/leaders/SawGerreraBringDownTheEmpire.ts) | `context.target.zoneName` is an arena, "if this unit survived" | audit | done |
+| [KillSwitch.ts:17](../server/game/cards/07_LAW/upgrades/KillSwitch.ts) | `context.source.isInPlay() ? context.source.parentCard : null` | audit; §3.21 | done |
+| [PerilousPosition.ts:17](../server/game/cards/03_TWI/upgrades/PerilousPosition.ts) | `context.source.isInPlay() ? context.source.parentCard : null` | audit; §3.21 | done |
+| [GravCharge.ts:22](../server/game/cards/08_ASH/upgrades/GravCharge.ts) | `context.source.isAttached() ? context.source.parentCard : null` | audit | done |
+| [HanSoloHasHisMoments.ts:24](../server/game/cards/04_JTL/units/HanSoloHasHisMoments.ts) | `context.source.isAttached() ? context.source.parentCard : null` | audit | done |
+| [MaceWinduVaapadFormMaster.ts:26](../server/game/cards/03_TWI/leaders/MaceWinduVaapadFormMaster.ts) | `ifYouDoCondition` reading `context.target.isInPlay()` before its damage | audit; §3.21 | done |
+| [MirajScintelTheWeakDeserveToKneel.ts:31](../server/game/cards/06_SEC/units/MirajScintelTheWeakDeserveToKneel.ts) | `x.isInPlay()` for each target of an attack | audit; §3.21 | done |
+| [DoubleCross.ts:61](../server/game/cards/07_LAW/events/DoubleCross.ts) | `lowerCostUnit?.isInPlay()` in its `then` | audit | done |
+| [LattsRazziDeadlyWhipmaster.ts:34](../server/game/cards/07_LAW/units/LattsRazziDeadlyWhipmaster.ts) | `thenContext.source.isInPlay()`, the guard of an SC-11 fallback | audit; SC-12 | done |
+| [TheGreatProgenitorFirstOfTheDrengir.ts:44](../server/game/cards/09_HMW/units/TheGreatProgenitorFirstOfTheDrengir.ts) | `context.source.isInPlay()`, the guard of an SC-11 fallback | audit; SC-12 | done |
+| [SandoAquaMonster.ts:61](../server/game/cards/09_HMW/units/SandoAquaMonster.ts) | `context.source.isInPlay()`, the guard of a three-way fallback (§E) | audit | done |
+| [AsajjVentressBaldAndBeautiful.ts:27](../server/game/cards/09_IC27/leaders/AsajjVentressBaldAndBeautiful.ts) | `thenCondition` reading `context.target?.isInPlay()`, "if the attacker survived" | audit, 2026-11-13 | done |
 
 The SC-11 fallbacks at the end keep working as written, because their guard reads the present. Each can
 also collapse to a single read of the record once its card opts in, which is the simplification §E
@@ -98,8 +100,8 @@ tracks.
 | [UseWhenDefeatedSystem.ts:75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | `generateEvent(event.context, whenDefeatedSource, true)` passes a `Card` in the `additionalProperties` slot. Line 102 passes `{}` correctly. Harmless today because `this.properties` is assigned last and wins. | pending |
 | [IStateWatcherLKIEntry](../server/game/core/stateWatcher/StateWatcher.ts) | `upgrades` is stored as `GameObjectId<IUpgradeCard>[]` with **no identity component**, so rehydration yields whatever identity the upgrade is at now rather than the captured one. `CardLeftPlayEntry` gets this right by storing `card` and `inPlayId` separately (D-23). | pending |
 | [CardsDefeatedThisPhaseWatcher.ts:134](../server/game/stateWatchers/CardsDefeatedThisPhaseWatcher.ts), [CardsLeftPlayThisPhaseWatcher.ts:112](../server/game/stateWatchers/CardsLeftPlayThisPhaseWatcher.ts) | Store the event's `traits` `Set` **instance** directly into tracked state, so multiple readers share a mutable collection (D-17). | pending |
-| [LkiRegistry.buildRecord](../server/game/core/lki/LkiRegistry.ts) | Records for upgrades hold only the base fields: no `parentCard` and no `parentCardController`. Five cards read both off the legacy struct and cannot opt in until the record carries them: [FinnThisIsARescue](../server/game/cards/02_SHD/leaders/FinnThisIsARescue.ts), [RoseTicoDedicatedToTheCause](../server/game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts), [SystemShock](../server/game/cards/04_JTL/events/SystemShock.ts), [Reforge](../server/game/cards/08_ASH/events/Reforge.ts) and [BladeOfTalzinAGiftOfShadows](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) (SC-2). Part of the surface work in plan D-36 and phase 4. | pending |
-| [LkiRegistry.commitPending](../server/game/core/lki/LkiRegistry.ts) | A card's leave-play record and its visible → hidden record (R4) share the key `(card, identityId)`, and a later commit replaces an earlier one. So a unit that is defeated and then moved from the discard pile into a hidden zone in the same action loses its leave-play record. Moff Gideon, Remnant Commander returning a unit defeated in the same wipe, or Yoda, Trickster in Exile moving himself to his deck, would do it. A trigger from the defeat that reads the record afterwards gets the discard pile's state: `wasInPlay` is false, so `asInPlay()` throws, and `controller` and `zoneName` are the discard pile's. SC-13's argument that keys cannot collide predates R4. Found by reading the code, not reproduced by a spec. Candidate fix: an identity keeps the first record it gets within an action. | pending |
+| [LkiRegistry.buildRecord](../server/game/core/lki/LkiRegistry.ts) | Records for upgrades hold only the base fields: no `parentCard` and no `parentCardController`. Five cards read both off the legacy struct and cannot opt in until the record carries them: [FinnThisIsARescue](../server/game/cards/02_SHD/leaders/FinnThisIsARescue.ts), [RoseTicoDedicatedToTheCause](../server/game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts), [SystemShock](../server/game/cards/04_JTL/events/SystemShock.ts), [Reforge](../server/game/cards/08_ASH/events/Reforge.ts) and [BladeOfTalzinAGiftOfShadows](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) (SC-2). Part of the surface work in plan D-36 and phase 4. **Fixed in step 3.1 (2026-11-16):** records are now built by [CardRecord.ts](../server/game/core/lki/CardRecord.ts), which records `parentCard`, `parentUnit` and `parentCardController` for an attached upgrade, pinned by a spec in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts). The five cards can opt in once they migrate (phase 4). | done |
+| [LkiRegistry.commitPending](../server/game/core/lki/LkiRegistry.ts) | A card's leave-play record and its visible → hidden record (R4) share the key `(card, identityId)`, and a later commit replaces an earlier one. So a unit that is defeated and then moved from the discard pile into a hidden zone in the same action loses its leave-play record. Moff Gideon, Remnant Commander returning a unit defeated in the same wipe, or Yoda, Trickster in Exile moving himself to his deck, would do it. A trigger from the defeat that reads the record afterwards gets the discard pile's state: `wasInPlay` is false, so `asInPlay()` throws, and `controller` and `zoneName` are the discard pile's. SC-13's argument that keys cannot collide predates R4. Found by reading the code, not reproduced by a spec. Candidate fix: an identity keeps the first record it gets within an action. **Fixed in step 3.1 (2026-11-16)** with that fix. The spec in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts) reproduces it: Moff Gideon returns a Death Star Stormtrooper to hand in the action that defeated it, and HK-47's trigger from the defeat must damage the base of the player who controlled the Stormtrooper in play. It fails if the later record replaces the earlier one. | done |
 | [ResourceCardSystem](../server/game/gameSystems/ResourceCardSystem.ts) | Writes no record when it moves a card from the discard pile to the resource zone, a visible → hidden move that changes the card's identity. When the card has no record already, as with a unit Spark of Hope resources after it was defeated in an earlier action, a reference bound while it sat in the discard pile is orphaned by the move. The departure assertion (§G.1) checks only moves out of play, so it cannot see this. | pending |
 
 ### B.2 Event-relative reads still using the transitional live-`Card` overload
@@ -116,7 +118,7 @@ Done in phase 1, where a bound reference already exists: `HelgaitDookuWasAVision
 | Site | Why it is still on the overload | Status |
 |---|---|---|
 | [CalculatedLethality.ts:47](../server/game/cards/02_SHD/events/CalculatedLethality.ts) | Reads `thenContext.target`, a `Card` handed to a helper. Needs the resolved defeat event's `cardRef`. Low risk today — the read happens in the `then` immediately after the defeat, so nothing can move the card in between. | pending |
-| [AsajjVentressIWorkAlone.ts:31,63](../server/game/cards/04_JTL/leaders/AsajjVentressIWorkAlone.ts) | Same shape via `ifYouDoContext.target`, twice. Same reasoning and same low risk. | pending |
+| [AsajjVentressIWorkAlone.ts:34,66](../server/game/cards/04_JTL/leaders/AsajjVentressIWorkAlone.ts) | Same shape via `ifYouDoContext.target`, twice, each handed to the `arenaOf` helper that reads it. Same reasoning and same low risk. | pending |
 | [RavagerFinalImperialCommand.ts:44,50](../server/game/cards/08_ASH/units/RavagerFinalImperialCommand.ts) | Triggers on `onCardPlayed`, which binds no `cardRef` — only events that record last known information do. The binding cannot simply be added where the event is created: `PlayUnitAction` builds the `PutIntoPlay` and `OnCardPlayed` events while the card is still in hand, and the `PutIntoPlay` handler then moves it into the arena, so an early binding names the identity from before the unit entered play. An earlier attempt to bind it at creation crashed the Ravager spec ("names an identity that no longer exists"). Phase 2 has to bind after the window's events resolve and before its triggers do (SC-14). | pending |
 
 ### B.1 Copy identity on the targeting path (SC-18, SC-20)
@@ -157,7 +159,7 @@ Superlaser Technician, and Commandeer with Tobias and Chewbacca.
 | Site | Reason | Status |
 |---|---|---|
 | [DamageSystem.ts:348-350](../server/game/gameSystems/DamageSystem.ts) | Attaches LKI to every non-base damage event. Sole consumer is [LetsCallItWar.ts:38-39](../server/game/cards/06_SEC/events/LetsCallItWar.ts), which reads only `arena` — correct from either the defeat footprint or a live accessor, so the producer is redundant (R11). | pending |
-| [LastKnownInformation.ts:162](../server/game/core/event/LastKnownInformation.ts) | `event.defendersLastKnownInformation` is built but consumed nowhere. | pending |
+| [LastKnownInformation.ts:161](../server/game/core/event/LastKnownInformation.ts) | `event.defendersLastKnownInformation` is built but consumed nowhere. | pending |
 | `CardTargetSystem.generateEvent`'s `addLastKnownInformation` flag | Exactly two call sites, both in `UseWhenDefeatedSystem` (lines 75, 102). It routes to `addLastKnownInformationNow`, the synchronous variant for synthetic events that never enter a window, which goes with it. Disappears under D-22's universal minting (SC-1). | pending |
 | [`addLastKnownInformationToEvent`](../server/game/core/event/LastKnownInformation.ts) | The **non-recording** variant, split out in phase 1 to stop damage events writing records. Its only caller is `DamageSystem`'s attachment above, so it dies with it — leaving `addDepartureRecordToEvent` as the single helper. | pending |
 | [`addAttackLastKnownInformationToEvent`](../server/game/core/event/LastKnownInformation.ts) | `defendersLastKnownInformation` has no consumers at all. `attackerLastKnownInformation` has three — [WhistlingBirds](../server/game/cards/08_ASH/upgrades/WhistlingBirds.ts), [KachirhoMilitia](../server/game/cards/08_ASH/units/KachirhoMilitia.ts), [KraganGorrWarbirdCaptain](../server/game/cards/02_SHD/units/KraganGorrWarbirdCaptain.ts) — all reading only `arena` or `controller`, which the registry serves from the attacker's bound reference. Since #3133 an attacker can be replaced mid-attack (`Attack.replaceAttacker`, used by Asajj Ventress, Death From Above), so the attacker at declaration can differ from the attacker at damage and at the end of the attack. Bind the reference when each event is captured, as the legacy struct is captured, never once for the whole attack. | pending |
@@ -337,7 +339,9 @@ and presence members of every card class. For each read, *from card code*, of a 
 during the current action, it records the member, the call site, the live value, and the value last
 known information would give. That last comes from a snapshot the helper takes at the moment the
 registry writes its record. It also records reads of a card whose current identity is tombstoned, and of
-a card whose record belongs to an earlier identity. [analyze.js](../scripts/lki-audit/analyze.js)
+a card whose record belongs to an earlier identity. Since step 3.1 the registry keeps no tombstones, so
+the helper tracks the identities it would have tombstoned itself, to keep measuring the design before
+D-39. [analyze.js](../scripts/lki-audit/analyze.js)
 classifies every site and writes `build/lki-audit/analysis.md`. The helper only observes, so the suite
 passes with it installed, and [run.js](../scripts/lki-audit/run.js) treats any spec failure as a failed
 run. It also refuses to run on a stale `build/` (see the plan's *Environment gotchas*).
@@ -371,6 +375,17 @@ falls in a class the decisions already cover:
   left play in an earlier action (D-39).
 - [AsajjVentressBaldAndBeautiful.ts:27](../server/game/cards/09_IC27/leaders/AsajjVentressBaldAndBeautiful.ts):
   a presence read, now in §A (D-37).
+
+**The getter check, 2026-11-16, with step 3.1 built.** The audit now also asks the built getter the same
+question at each read: `getCurrentProperties` for a selector candidate (D-38), and
+`getLastKnownProperties` otherwise. It checks the answer against the rules as the tables here give them:
+a candidate, a presence read, a card read after its record was flushed, and a card that has become a new
+copy must get the live answer, and a characteristic of a card that left play during the action must get
+the recorded one. Section H of `analysis.md` reports it, and `run.js` fails if any site disagrees. Result:
+9,435 game specs and 0 failures; 5,836 reads at 241 sites in 123 card files; **238 sites checked, 0
+disagree**. The other 3 read identity members (`inPlayId` and the like), which are not on the properties
+surface. The before-and-after counts are those of 2026-11-13. A mutation of the getter makes 11 sites
+disagree, and `--self-check` includes the getter check (7 sites, 0 disagree).
 
 **Where it would have thrown** (55 sites in 41 files). Every one reads a card that left play in an earlier
 action and kept its identity, so the card was picked up again, legitimately, from the zone it went to:
@@ -422,8 +437,9 @@ Abilities that refer back to a bounced card's old values already ask for them th
 
 **Members read on cards that left play during the action**, which sets what a record must hold (D-36):
 title, traits, `unique`, cost, `owner`, controller, aspects, keywords, and the type checks `isUnit`,
-`isLeader`, `isBase`, `isUpgrade` and `isForceToken`. Today's record holds the title, traits, cost,
-controller and type. The rest would have to be added.
+`isLeader`, `isBase`, `isUpgrade` and `isForceToken`. The record held the title, traits, cost,
+controller and type, and step 3.1 added the rest, with every other characteristic on the interface
+(2026-11-16).
 
 **Limits.**
 
@@ -593,3 +609,31 @@ landed on `main` since `445792e61`.
   `445792e61`. Twenty-six lines had drifted, all in `Attack.ts`, `AttackFlow.ts` and
   `TriggeredAbility.ts`, and each anchor now points at the line holding the quoted content. A cosmetic
   change at `InPlayCard.ts:92` needed no move. §6's history quotes are left as they were.
+
+**2026-11-16 — branch `ammayberry1/lki-refactor-3`, step 3.1 built on `d42b6e721`.**
+
+- **What was built:** D-36 to D-39 and the record-key collision fix, item by item as the plan's step 3.1
+  lists them. New: `core/lki/CardRecord.ts`, which builds records, and
+  [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts) (5 specs). Changed: the
+  properties interfaces and both variants, `LkiRegistry` (no tombstones, the first record wins),
+  `CardStateGetter` (`getCurrentProperties`), the six migrated cards that read properties, both older LKI
+  spec files, and the audit, which gained the getter check (§G.2).
+- **Specs that relied on tombstones.** Three asserted a tombstone's message and changed as the plan
+  said. Three more used a tombstone as evidence that a record was written (the visible → hidden,
+  Chewbacca and damage specs), and now check for the record when the flush runs instead.
+- **Gates:** 10,346 specs in normal mode (68 pending) and 9,246 in undo mode (75 pending), 0 failures.
+  The 5 extra specs over 2026-11-13 are the new file. `tsc`, `eslint --quiet`, `validate-cards`,
+  `validate-specs` and `capture-states -- --check` pass.
+- **Mutation checks**, each run and reverted, each failing the spec written for it: the last record
+  wins, `zoneName` read from the record, `getCurrentProperties` consulting records, the upgrade's parent
+  not recorded, `arena` read live, tombstones restored, no record for a visible → hidden move, a record
+  written at creation, a record for damage, and the getter check against a broken getter (11 sites
+  disagree).
+- **The audit** (§G.2): 9,435 game specs, 0 failures; 238 sites checked, none disagrees. `--self-check`
+  passes, getter check included. §A is `done`, and §B's two record rows are fixed.
+- **The D-38 spike:** both mechanisms on three cards, compiled and reverted. The results and the
+  recommendation are in the plan's step 3.1, item 6. A maintainer confirms the choice before step 3.2.
+- **Anchors.** The edits moved lines in Asajj Ventress, I Work Alone and in `LastKnownInformation.ts`,
+  and changed the content at Ravager's anchors. The anchors into every changed file were re-checked, and
+  the moved ones updated (§B.2, §D, SC-11). Two anchors in the plan's step 3.1, item 5, pointed at
+  tombstone assertions that no longer exist, so they now name the specs instead.

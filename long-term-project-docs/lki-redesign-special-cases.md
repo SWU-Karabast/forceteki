@@ -2,7 +2,8 @@
 
 **Status:** living document. Added to incrementally as the design progresses. Last reviewed for handoff on
 2026-11-01 against `main` at `445792e61`. Updated on 2026-11-05 with SC-22 and SC-23, and with status
-notes for the decisions D-37 to D-39.
+notes for the decisions D-37 to D-39. Updated on 2026-11-16 for step 3.1, which built D-36 to D-39 on the
+branch `ammayberry1/lki-refactor-3` (not merged).
 
 Companion to [lki-redesign-decisions-and-insights.md](./lki-redesign-decisions-and-insights.md),
 which tracks decisions made and insights about current engine behavior. That document opens with a
@@ -29,28 +30,28 @@ says where each one stands now.
 | Entry | Topic | Where it stands |
 |---|---|---|
 | SC-1 | Two LKI producers capture at different timepoints | Open until phase 4. Both still feed the legacy `event.lastKnownInformation` and go when it does (register §D). The registry itself is written at one point only, `preResolutionEffects` |
-| SC-2 | LKI fields used as live mutation targets | Open, phase 4. Needs `parentCard` recorded for upgrades, which it is not |
+| SC-2 | LKI fields used as live mutation targets | Open, phase 4. The record has held an upgrade's `parentCard` since step 3.1 |
 | SC-3 | Live-object hops through `lki.card` | Open, phase 4 (register §B) |
 | SC-4 | Shallow capture and the cyclic card graph | Resolved by design: `upgrades` are `CardRef`s, so nothing recurses (D-18, D-26) |
 | SC-5 | Window-batched capture preserves simultaneity | Built: records are staged at `preResolutionEffects` (D-30) |
 | SC-6 | Phase-scoped LKI in state watchers | Deferred: watchers keep their own extracts (D-16, D-20). See SC-19 |
 | SC-7 | Copy identity is zone-gated and overloaded | Built: `Card.identityId` is total. Open: real counters for event cards, bases and tokens (phase 4) |
-| SC-8 | One ability needs frozen and live views of a card | Resolved by D-37, which replaced D-31's resolution: characteristics read as last known, presence reads the present |
+| SC-8 | One ability needs frozen and live views of a card | Resolved by D-37, which replaced D-31's resolution: characteristics read as last known, presence reads the present. Built in step 3.1 |
 | SC-9 | Reference identity comparisons | Interning is built (D-8). Identity-aware equality takes effect once events carry references (phase 4) |
 | SC-10 | `when` conditions are evaluated twice | Characterized in phase 0.4. A per-card question in phase 4 |
 | SC-11 | Seven cards hand-roll the read-through fallback | Two migrated (CalculatedLethality, Asajj). Five remain (phase 4) |
 | SC-12 | Where cards read the current location | Inventory, superseded by register §A, which the audit completed. Under D-37 these reads keep working as written. Boga's predicate is gone (#2997) |
-| SC-13 | Several records for one card in one action | Built and tested (SC-16). One collision the argument missed: register §B |
+| SC-13 | Several records for one card in one action | Built and tested (SC-16). The one collision the argument missed (register §B) is fixed in step 3.1: an identity keeps its first record |
 | SC-14 | Reference binding time for enter-play events | Open: phase 2, item 2 |
-| SC-15 | How a reference becomes orphaned | Built: visible → hidden records (R4). Tombstones (D-21) were built and are dropped by D-39 |
+| SC-15 | How a reference becomes orphaned | Built: visible → hidden records (R4). Tombstones (D-21) were built, then removed in step 3.1 (D-39). The orphan throw stays |
 | SC-16 | Regression test for SC-13 | Built |
-| SC-17 | `power` versus `printedPower` | Built: the type-level split for units (D-27). D-37 renames the guard, because `isInPlay()` now means "now" |
+| SC-17 | `power` versus `printedPower` | Built: the type-level split for units (D-27). Step 3.1 renamed the guard `hasInPlayStats()` (D-37), because `isInPlay()` means "now" |
 | SC-18 | The targeting side is unguarded | Measured. `Attack`'s guard stays. Maul is a confirmed bug, fix deferred (register §B.1) |
 | SC-19 | State watchers as a back-channel for LKI | Ravager done; the rest are phase 4 |
 | SC-20 | Delayed effects cannot read properties later | Standing rule: hand-migrate in phase 4 |
 | SC-21 | Follow-through events outlive their subject's identity | Standing: the reason D-34 was decided |
-| SC-22 | A card read again, after it left play, in the zone it went to | Decided: D-38 and D-39, from the audit (register §G.2) |
-| SC-23 | Present-tense questions about a card that left play | Decided: D-37. Two exceptions remain (register §F.1) |
+| SC-22 | A card read again, after it left play, in the zone it went to | Built in step 3.1: D-39, and D-38's present-state read. How a selector receives its candidate is open (D-38) |
+| SC-23 | Present-tense questions about a card that left play | Built in step 3.1: D-37. Two exceptions remain (register §F.1) |
 
 ---
 
@@ -600,7 +601,7 @@ automatically.
 | File | Hand-rolled fallback |
 |---|---|
 | [CalculatedLethality.ts:22-25](../server/game/cards/02_SHD/events/CalculatedLethality.ts) | `target.isInPlay() ? target.upgrades.length : events[0].lastKnownInformation.upgrades.length` |
-| [AsajjVentressIWorkAlone.ts:26,58](../server/game/cards/04_JTL/leaders/AsajjVentressIWorkAlone.ts) | `lastKnownInformation?.arena ?? ifYouDoContext.target.zoneName` |
+| [AsajjVentressIWorkAlone.ts:29,61](../server/game/cards/04_JTL/leaders/AsajjVentressIWorkAlone.ts) | `lastKnownInformation?.arena ?? ifYouDoContext.target.zoneName` |
 | [QuiGonJinStudentOfTheLivingForce.ts:82](../server/game/cards/05_LOF/leaders/QuiGonJinStudentOfTheLivingForce.ts) | `?.lastKnownInformation?.cost ?? ifYouDoContext.target.cost` |
 | [PurrgilUltra.ts:31](../server/game/cards/08_ASH/units/PurrgilUltra.ts) | `?.lastKnownInformation?.cost ?? ifYouDoContext.target.cost` |
 | [LightspeedAssault.ts:39](../server/game/cards/04_JTL/events/LightspeedAssault.ts) | `lastKnownInformation?.power \|\| events[1].card.getPower()` |
@@ -728,7 +729,9 @@ key collide — leaving play twice requires entering play in between, which incr
 > **Correction (2026-11-05).** That holds for leave-play records, and R4 added a second kind. A unit that
 > leaves play for the discard pile and then moves from there into a hidden zone, in the same action, gets
 > a leave-play record and a visible → hidden record under the same key, and the second replaces the
-> first. Found by reading the code; register §B tracks it.
+> first. Found by reading the code; register §B tracks it. **Fixed in step 3.1 (2026-11-16):** an
+> identity keeps the first record it gets within an action, which is the leave-play record its triggers
+> need. A spec reproduces the case with Moff Gideon and HK-47.
 
 **Three invariants this imposes:**
 
@@ -836,11 +839,11 @@ its cost"* would throw under the original wording.
 
 ### SC-15 — How a handle becomes orphaned (case ④)
 
-> **Status (2026-11-05).** The tombstones proposed at the end of this entry were built (D-21), and D-39
-> drops them. A tombstone cannot tell a stale reference from a card that someone has legitimately picked
-> up again from the zone it went to, because interning makes the two the same reference, and the audit
-> found 55 reads of the second kind that it would have broken (SC-22). Case ④, an identity that no longer
-> exists and has no record, still throws.
+> **Status (2026-11-16).** The tombstones proposed at the end of this entry were built (D-21), and D-39
+> dropped them; step 3.1 removed them from the code. A tombstone cannot tell a stale reference from a
+> card that someone has legitimately picked up again from the zone it went to, because interning makes
+> the two the same reference, and the audit found 55 reads of the second kind that it would have broken
+> (SC-22). Case ④, an identity that no longer exists and has no record, still throws.
 
 Case ④ is "instance mismatch **and** no footprint". It arises from an asymmetry:
 
@@ -960,10 +963,10 @@ already past the flush. The scenario has to make the *game* observe the differen
 
 ### SC-17 — Zone-gated properties: `power` vs `printedPower`
 
-> **Status (2026-11-05).** The split stands, and D-37 renames its guard. On the properties object
-> `isInPlay()` now means "in play now", as it does on `Card`, because that is how card code uses it. The
-> guard that unlocks `power`, `hp`, `damage`, `exhausted` and `upgrades` becomes `hasInPlayStats()`,
-> with `asInPlayStats()` as the asserting form. The code and examples below use the old names.
+> **Status (2026-11-16).** The split stands, and step 3.1 renamed its guard (D-37). On the properties
+> object `isInPlay()` means "in play now", as it does on `Card`, because that is how card code uses it.
+> The guard that unlocks `power`, `hp`, `damage`, `exhausted` and `upgrades` is `hasInPlayStats()`, with
+> `asInPlayStats()` as the asserting form. The code and examples below use the old names.
 
 The throwing accessors are **not a defect to be smoothed over**. They encode a real semantic
 distinction that the design must preserve.
@@ -1203,6 +1206,12 @@ specifically: a watcher lookup used to answer a within-action question.
 
 ### SC-20 — Delayed effects cannot hold a reference and read properties later
 
+> **Status (2026-11-16).** Since step 3.1 built D-39, a flushed record leaves no tombstone. A delayed
+> effect that reads a `CardRef` at fire time gets the card as it is now if the card kept its identity,
+> and the orphan throw if it did not: never its last known information, and in the first case without
+> any error. So the rule below matters more than before: store the values eagerly. The orphan throw's
+> message says so, where the entry below mentions the tombstone's.
+
 **What.** A delayed effect is created now and fires later. A survey of all ~37 cards using
 `delayedCardEffect`, `delayedPlayerEffect` or `whenSourceLeavesPlayDelayedCardEffect` found that
 **every one of them spans at least one action boundary** — most fire at the start of the regroup
@@ -1319,6 +1328,10 @@ so reads of a card that left play in an earlier action read the present. Card co
 itself is covered by D-39 when the card left play in an earlier action. The audit found no case in the
 same action where the value differs. If one appears, extend D-38 to cards taken from a zone.
 
+**Status (2026-11-16).** Step 3.1 built D-39 and D-38's present-state read, `getCurrentProperties`. How a
+selector receives its candidate is open: the spike in the plan's step 3.1, item 6, recommends the engine
+passing it as a present-state properties object.
+
 ---
 
 ### SC-23 — Present-tense questions about a card that left play
@@ -1341,6 +1354,9 @@ the text means, both pending specs in register §F.1:
 - a trait-based defeat trigger for a Clone.
 
 Each card reads the present explicitly when it migrates.
+
+**Status (2026-11-16).** Built in step 3.1. The audit's getter check confirmed that the built getter
+answers each of register §A's sites the suite reaches from the present (register §G.2).
 
 ---
 

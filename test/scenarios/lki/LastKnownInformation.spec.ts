@@ -39,6 +39,44 @@ function probeStagedRecordsBeforeFlush(registry) {
     return probe;
 }
 
+interface IRecordProbe {
+    card: { identityId: number } | null;
+    identityId: number | null;
+    sawRecord: boolean;
+}
+
+const recordProbes = new WeakMap<object, IRecordProbe>();
+
+/**
+ * Starts watching whether `card`, in the identity it has now, has a record (committed or staged)
+ * when each flush happens, and returns the sample.
+ *
+ * For specs that check a card was never recorded. The flush at the end of the action clears any
+ * record, and leaves nothing behind (D-39), so a leak has to be caught as the flush happens.
+ * Installed once per registry for the same reason as {@link probeStagedRecordsBeforeFlush}.
+ */
+function probeRecordAtFlush(registry, card): IRecordProbe {
+    if (!recordProbes.has(registry)) {
+        const probe: IRecordProbe = { card: null, identityId: null, sawRecord: false };
+        const realFlush = registry.flushRecords.bind(registry);
+
+        registry.flushRecords = () => {
+            if (probe.card && registry.hasRecordFor(probe.card, probe.identityId)) {
+                probe.sawRecord = true;
+            }
+            realFlush();
+        };
+
+        recordProbes.set(registry, probe);
+    }
+
+    const probe = recordProbes.get(registry);
+    probe.card = card;
+    probe.identityId = card.identityId;
+    probe.sawRecord = false;
+    return probe;
+}
+
 describe('Last known information', function () {
     integration(function (contextRef) {
         describe('When a "When Defeated" ability is used while its source is still in play', function () {
@@ -249,6 +287,7 @@ describe('Last known information', function () {
 
                 const { context } = contextRef;
                 const registry = context.game.lkiRegistry;
+                const recordAtFlush = probeRecordAtFlush(registry, context.chewbacca);
 
                 // Chewbacca can't be defeated by enemy card abilities, so this defeat never
                 // resolves and he stays in play.
@@ -257,19 +296,14 @@ describe('Last known information', function () {
                 expect(context.chewbacca).toBeInZone('groundArena', context.player1);
 
                 // No record may be left behind for him. A record would make later readings of his
-                // characteristics report the abandoned defeat's values, and would leave a tombstone
-                // that turns reads after the next action boundary into errors.
-                const properties = registry.getProperties(registry.getIdentity(context.chewbacca));
-                expect(properties.asUnitCard().isInPlay()).toBe(true);
-                expect(properties.asUnitCard().asInPlay().power).toBe(context.chewbacca.getPower());
+                // characteristics report the abandoned defeat's values for the rest of the action.
+                // The action has ended by now, and its flush has cleared any record, so the probe
+                // looks as the flush happens.
+                expect(recordAtFlush.sawRecord).toBeFalse();
 
-                // The tombstone check is the sharper assertion: it survives the action boundary,
-                // where a leaked record would have been flushed and would then throw on read.
-                context.player1.passAction();
-                context.player2.passAction();
-
-                const afterActionBoundary = registry.getProperties(registry.getIdentity(context.chewbacca));
-                expect(afterActionBoundary.asUnitCard().asInPlay().power).toBe(context.chewbacca.getPower());
+                const properties = registry.getProperties(registry.getIdentity(context.chewbacca)).asUnit();
+                expect(properties.hasInPlayStats()).toBeTrue();
+                expect(properties.asInPlayStats().power).toBe(context.chewbacca.getPower());
             });
         });
 
@@ -291,6 +325,7 @@ describe('Last known information', function () {
 
                 // Capture a reference to Wampa while it is still sitting in the discard pile.
                 const beforeMove = registry.getIdentity(context.wampa);
+                const recordAtFlush = probeRecordAtFlush(registry, context.wampa);
 
                 context.player1.clickCard(context.renewedFriendship);
                 context.player1.clickCard(context.wampa);
@@ -301,11 +336,12 @@ describe('Last known information', function () {
                 expect(registry.getIdentity(context.wampa)).not.toBe(beforeMove);
                 expect(registry.deref(beforeMove)).toBeNull();
 
-                // Its state was recorded before the move, so the old reference does not become an
-                // orphan. Once the action ends that record is flushed and the tombstone left behind
-                // reports the reference as expired rather than letting it fall back to live state.
+                // Its state was recorded before the move, so the old reference stayed readable for the
+                // rest of the action. The flush has cleared that record by now, so the probe checks it as
+                // the flush happens. Afterwards the old reference names an identity that no longer exists.
+                expect(recordAtFlush.sawRecord).toBeTrue();
                 expect(() => registry.getProperties(beforeMove))
-                    .toThrowError(/was flushed at an action boundary/);
+                    .toThrowError(/names an identity that no longer exists/);
             });
         });
 
@@ -364,6 +400,7 @@ describe('Last known information', function () {
                 });
 
                 const { context } = contextRef;
+                const recordAtFlush = probeRecordAtFlush(context.game.lkiRegistry, context.helgait);
 
                 // Daring Raid deals 2 damage; Helgait is 6/4, so it survives.
                 context.player2.clickCard(context.daringRaid);
@@ -373,8 +410,10 @@ describe('Last known information', function () {
 
                 // Every non-base damage event captures last known information. If that capture also
                 // wrote a registry record, this still-live unit would answer with its pre-damage
-                // values for the rest of the action, and the action boundary would then tombstone
-                // its current identity — turning the read below into a hard crash.
+                // values for the rest of the action. The action has ended, so the probe looks at the
+                // flush that ended it.
+                expect(recordAtFlush.sawRecord).toBeFalse();
+
                 context.player1.clickCard(context.chimaera);
                 context.player1.clickCard(context.helgait);
 
@@ -388,7 +427,7 @@ describe('Last known information', function () {
         });
 
         describe('Record lifecycle', function () {
-            it('flushes the record at the action boundary and refuses stale reads afterwards', async function () {
+            it('flushes the record at the action boundary, and reads the card as it is now afterwards', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -408,11 +447,12 @@ describe('Last known information', function () {
                 expect(context.wampa).toBeInZone('discard');
 
                 // The action that caused the defeat has now ended, so the record has been flushed.
-                // The tombstone left behind turns a stale read into a loud error rather than a
-                // silent fall back to live state — which for a card in the discard pile would
-                // report the wrong zone and would throw outright for in-play-only characteristics.
-                expect(() => registry.getProperties(registry.getIdentity(context.wampa)))
-                    .toThrowError(/was flushed at an action boundary/);
+                // Wampa is still the same identity, in the discard pile, and card code reads it there
+                // as it is now (D-39): a unit in the discard pile has no in-play stats. The record
+                // would still answer with the ones it had in play.
+                const afterFlush = registry.getProperties(registry.getIdentity(context.wampa)).asUnit();
+                expect(afterFlush.hasInPlayStats()).toBeFalse();
+                expect(afterFlush.zoneName as string).toBe('discard');
             });
         });
 

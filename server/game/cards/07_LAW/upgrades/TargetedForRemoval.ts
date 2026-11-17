@@ -20,7 +20,7 @@ export default class TargetedForRemoval extends UpgradeCard {
                 // The attached unit's cost as of the moment it left play. Read through the
                 // event-bound reference so a unit that has since moved on still resolves to the
                 // identity this ability fired on (SC-13).
-                amount: cardStates.getLastKnownProperties(context.event.cardRef).asUnitCard().cost,
+                amount: cardStates.getLastKnownProperties(context.event.cardRef).asUnit().cost,
                 target: context.player.opponent
             }))
         });

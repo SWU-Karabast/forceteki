@@ -1,8 +1,11 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import type { Card } from '../../../core/card/Card';
+import type { Arena } from '../../../core/Constants';
 import { AbilityType, KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
+import { Contract } from '../../../core/utils/Contract';
 
 export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
     public override readonly usesLkiRegistry = true;
@@ -28,7 +31,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => {
                 // The arena the damaged unit was in. If the damage defeated it, this comes from its
                 // last known information rather than the discard pile it now sits in.
-                const friendlyArena = cardStates.getLastKnownProperties(ifYouDoContext.target).zoneName;
+                const friendlyArena = this.arenaOf(ifYouDoContext.target, cardStates);
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {
@@ -60,7 +63,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             ifYouDo: (ifYouDoContext) => {
-                const friendlyArena = cardStates.getLastKnownProperties(ifYouDoContext.target).zoneName;
+                const friendlyArena = this.arenaOf(ifYouDoContext.target, cardStates);
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {
@@ -72,5 +75,12 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 };
             }
         });
+    }
+
+    /** The arena the damaged friendly unit was in, which it had to be in to be damaged. */
+    private arenaOf(damagedUnit: Card, cardStates: ICardStateGetter): Arena {
+        const arena = cardStates.getLastKnownProperties(damagedUnit).arena;
+        Contract.assertNotNullLike(arena, `Expected ${damagedUnit.internalName} to have been in an arena`);
+        return arena;
     }
 }
