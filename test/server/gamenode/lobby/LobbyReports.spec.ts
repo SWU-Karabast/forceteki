@@ -40,6 +40,20 @@ describe('Lobby reports', function () {
             expect(sent.length).toBe(1);
         });
 
+        it('tells the game chat who sent a report, naming them as a player part rather than in the text', async function () {
+            const { harness } = contextRef;
+            const { first: reporter, second: opponent } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+            captureDiscordReports(harness, reporter);
+
+            await reporter.submitBugReportAsync('a real bug');
+
+            // a client finds a player part by id, so it can show a spectator the player's seat rather than their name
+            expect(opponent.gameChat).toContain(jasmine.objectContaining({
+                text: `${reporter.username} has submitted a bug report`,
+                playerIds: [reporter.id],
+            }));
+        });
+
         it('drops a bug report from an anonymous player', async function () {
             const { harness } = contextRef;
             const { first: reporter } = await harness.startQuickGameAsync({}, loggedIn);
