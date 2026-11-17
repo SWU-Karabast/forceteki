@@ -1,5 +1,6 @@
-// Shared helpers for building and running the production server image locally.
-// See "Production Docker Image" in the README.
+// Helpers shared by the docker-* npm scripts: building the production server image, starting DynamoDB
+// Local with the server's table, and the environment the server container runs with locally. See
+// DOCKER.md for how the image is built and tested.
 
 const { spawnSync } = require('child_process');
 const fs = require('fs');
@@ -10,9 +11,9 @@ const repoRoot = path.join(__dirname, '../..');
 
 const imageTag = 'karabast-server:local';
 
-// The platform the ECS tasks run on. Keep in sync with `platform` on the DockerImageAsset in
-// forceteki-infra's lib/karabast-main-stack.ts and lib/karabast-dev-stack.ts, so local builds and the
-// prod test check the same architecture that gets deployed.
+// The platform the deployed image is built for. Must match `platform` on the DockerImageAsset in
+// forceteki-infra's lib/karabast-main-stack.ts and lib/karabast-dev-stack.ts, so local builds and tests
+// use the same architecture as production.
 const imagePlatform = 'linux/amd64';
 
 // `container_name` of the dynamodb-local service in docker-compose.yml
@@ -51,9 +52,9 @@ function buildImage(extraArgs = []) {
 
 /**
  * Starts DynamoDB Local from docker-compose.yml and makes sure the server's table exists in it.
- * Production mode never creates the table, so this runs the image once in development mode inside
- * DynamoDB Local's network namespace, where the server's own `ensureLocalTableExistsAsync` reaches it
- * on localhost:8000.
+ * The server only creates its table in development mode, which always connects to localhost:8000.
+ * So this runs the image once in development mode on DynamoDB Local's own network, where
+ * localhost:8000 is DynamoDB Local.
  */
 function startLocalDynamoDb() {
     docker(['compose', 'up', '--detach', '--wait', 'dynamodb-local']);
@@ -75,8 +76,9 @@ function startLocalDynamoDb() {
 }
 
 /**
- * Environment for the server container. It runs in production mode, as in ECS, but against
- * DynamoDB Local, with placeholder values for every external service.
+ * Environment variables for the server container. It runs in production mode like the deployed server,
+ * but against DynamoDB Local and with placeholder values for every external service, so local runs
+ * never touch real data or services.
  */
 function buildServerEnv() {
     // NEXTAUTH_SECRET and INTRASERVICE_SECRET have to match forceteki-client's .env.local for signed-in
@@ -112,9 +114,9 @@ function buildServerEnv() {
 }
 
 /**
- * `docker run` arguments shared by the prod test and the interactive run: the DynamoDB Local network
- * and the server environment. Values are passed through the docker CLI's own environment (`-e NAME`)
- * so secrets read from .env don't appear on the command line.
+ * `docker run` arguments for starting the server container, used by prod-test-image.js and
+ * run-image.js: the DynamoDB Local network and the server environment. Values are passed through the
+ * docker CLI's own environment (`-e NAME`) so secrets read from .env don't appear on the command line.
  */
 function serverRunOptions() {
     const network = docker(

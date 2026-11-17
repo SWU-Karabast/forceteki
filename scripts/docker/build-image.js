@@ -1,7 +1,8 @@
-// Builds the production server image locally as karabast-server:local. CDK doesn't run this script: the
-// DockerImageAsset in forceteki-infra's stacks runs its own `docker build`. Both use this repo's Dockerfile
-// and .dockerignore, which define the image, and both build for the same platform (see common.js).
-// Extra arguments are passed to `docker build`, e.g. `npm run docker-build -- --no-cache`.
+// Builds the production server image from this repo's Dockerfile and tags it karabast-server:local, for
+// inspecting or running the image locally. Deploys build from the same Dockerfile, so the result matches
+// what runs in production. See DOCKER.md for details.
+//
+// Usage: npm run docker-build [-- <extra docker build arguments>], e.g. npm run docker-build -- --no-cache
 
 const { buildImage } = require('./common');
 

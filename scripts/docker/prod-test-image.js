@@ -1,5 +1,8 @@
-// Builds the production server image and checks that it is safe to deploy: it runs as a non-root user,
-// contains no dev-only packages, and starts up and answers /api/health against DynamoDB Local.
+// Builds the production server image and checks it before it gets deployed: it runs as a non-root
+// user, contains no dev-only packages, and the server starts in production mode and answers /api/health
+// (using DynamoDB Local, not real AWS). Exits non-zero if any check fails.
+//
+// Usage: npm run docker-prod-test. CI runs it on pull requests as the prod-image job. See DOCKER.md.
 
 const path = require('path');
 const { repoRoot, imageTag, docker, buildImage, startLocalDynamoDb, serverRunOptions } = require('./common');
