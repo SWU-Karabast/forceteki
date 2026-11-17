@@ -33,7 +33,8 @@
     "get-cards": "node ./scripts/fetchdata.js",
     "check-card-data": "node ./scripts/checkCardData.js",
     "validate-cards": "ts-node scripts/validateCards.ts",
-    "validate-specs": "ts-node scripts/validateSpecs.ts"
+    "validate-specs": "ts-node scripts/validateSpecs.ts",
+    "capture-states": "node scripts/captureStates.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.758.0",
