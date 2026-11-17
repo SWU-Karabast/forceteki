@@ -100,6 +100,8 @@ Card data is the one local input. The build copies `test/json/` and fails if it 
 
 Anything the server imports at runtime must be listed in `dependencies`. The `import-x/no-extraneous-dependencies` lint rule enforces this for `server/`.
 
+The `prod-image` job in the pull request checks builds the image and runs `npm run docker-prod-test` (below), so a broken Dockerfile or a server that can't start in production mode shows up on the PR rather than at deploy time.
+
 To change the Node version, update `.tool-versions`, `engines` in `package.json` and `NODE_VERSION` at the top of the `Dockerfile` together. The image build fails if the Dockerfile disagrees with `.tool-versions`.
 
 #### Testing the image locally
