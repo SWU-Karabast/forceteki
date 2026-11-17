@@ -14,8 +14,9 @@ import type { PhaseName, RelativePlayerFilter, Trait, StandardTriggeredAbilityTy
 import { KeywordName, RelativePlayer, ZoneName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, IOngoingCardEffectGenerator, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { IAbilityPropsWithType, IDamageModificationAbilityProps, IDamageModificationEffectAbilityPropsWithType, IOngoingCardEffectGenerator, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
+import { DamageModificationEffect } from '../core/ongoingEffect/effectImpl/DamageModificationEffect';
 import type { ICostAdjusterProperties, IDefeatResourcesCostAdjusterProperties, IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { ProvidedAspects } from '../core/ongoingEffect/effectImpl/ProvidedAspects';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
@@ -140,8 +141,19 @@ export = {
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+
+    /** The target gains a damage modification ability ("it gains: ..."), which it loses if it loses all abilities */
     gainDamageModificationAbility: (properties: IDamageModificationEffectAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+
+    /**
+     * For use in lasting effects only: modifies damage dealt to (or by) the target, as in "for this phase, prevent all
+     * damage that would be dealt to that unit". The target does not gain an ability, so
+     * this still applies if it loses all abilities. To add a damage modification ability,
+     * use the `gainDamageModificationAbility` effect instead.
+     */
+    modifyDamage: (properties: IDamageModificationAbilityProps) =>
+        OngoingEffectBuilder.card.static(EffectName.ModifyDamage, (game) => new DamageModificationEffect(game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
         switch (typeof keywordOrKeywordProperties) {

@@ -173,6 +173,14 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     gainAbilitySource?: Card;
 
     printedAbility?: boolean;
+
+    /**
+     * Set when this ability is how a lasting effect created by this card applies to the card the ability is on (e.g.
+     * "for this phase, prevent all damage that would be dealt to that unit"). The ability is not one of that card's
+     * abilities: it is held by the lasting effect rather than added to the card, so the card losing all abilities
+     * doesn't remove it and it can't be copied.
+     */
+    lastingEffectSource?: Card;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);

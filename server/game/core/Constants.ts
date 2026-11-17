@@ -131,6 +131,7 @@ export enum EffectName {
     LoseTrait = 'loseTrait',
     LoseWhenDefeatedAbilities = 'loseWhenDefeatedAbilities',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
+    ModifyDamage = 'modifyDamage',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',

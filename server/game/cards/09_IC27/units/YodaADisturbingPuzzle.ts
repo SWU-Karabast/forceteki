@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, DamageModificationType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { DamageModificationType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class YodaADisturbingPuzzle extends NonLeaderUnitCard {
@@ -20,9 +20,8 @@ export default class YodaADisturbingPuzzle extends NonLeaderUnitCard {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
+                    effect: AbilityHelper.ongoingEffects.modifyDamage({
                         title: 'Prevent all combat damage that would be dealt to and dealt by this unit',
-                        type: AbilityType.DamageModification,
                         modificationType: DamageModificationType.PreventAll,
                         damageOfType: DamageSourceType.Attack,
                         shouldCardHaveDamageModification: (card, context) =>
