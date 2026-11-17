@@ -139,7 +139,7 @@ describe('Action timer', function () {
                 });
             });
 
-            it('keeps the main time a player has spent for the rest of the game, giving each new turn its turn time again', async function () {
+            it('keeps the main time a player has spent across actions and phases, giving each new turn its turn time again', async function () {
                 const { harness } = contextRef;
                 const { active, waiting } = await startAtFirstActionAsync(harness);
                 await spendAsync(harness, 30);
@@ -161,7 +161,8 @@ describe('Action timer', function () {
                 expect([active, waiting].some((player) => player.prompt.promptType === PromptType.ActionWindow))
                     .withContext('the next round')
                     .toBeTrue();
-                expect(waiting.timerOf(active).mainTimeRemainingSeconds).toBe(90);
+                expect(waiting.timerOf(active).mainTimeRemainingSeconds).withContext('with the 10 s the end of the round gives back (`RoundEndMainTime`)')
+                    .toBe(100);
             });
         });
 

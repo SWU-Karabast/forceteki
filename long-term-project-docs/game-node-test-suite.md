@@ -474,7 +474,7 @@ each player's game state, the chat, and the winners.
 | T1 | which games have timers: quick-match and public-lobby games with `actionTimersEnabled` on; not a private lobby, nor with the setting off (no running timer, full main time) | covered (`TimedGames`) |
 | T2 | a player's turn time starts afresh when a prompt starts waiting on them, at each action, and for both players at the regroup phase's resource step (decided 2026-11-09); a player a prompt does not wait on has a stopped timer: the initiative choice (one player), the mulligan (both), an action, and a pass handing the timer over | covered (`ActionTimer`, *starting and stopping*) |
 | T3 | the turn time running out starts the main time, and the game state is sent at that moment | covered (`ActionTimer`) |
-| T4 | each new turn starts with full turn time; the main time keeps what is left, across actions, phases and rounds | covered (`ActionTimer`) |
+| T4 | each new turn starts with full turn time; the main time keeps what is left, across actions, phases and rounds (less the time each round's end gives back, row T16) | covered (`ActionTimer`) |
 | T5 | the warnings at 30 s and 10 s of main time: the status, the chat alert and a state push; the status clears once the player is no longer spending main time | covered (`ActionTimer`, *warnings*) |
 | T6 | the main time running out: the opponent wins, with the timeout alert, and both timers stop | covered (`ActionTimer`, *running out*), for a waiting opponent and for one whose timer is running |
 | T7 | the draw rule (decided 2026-11-08): when a player's main time runs out, the game is a draw if the opponent's timer is running and the opponent is 3 s or less from running out too, counting turn and main time; otherwise the opponent wins: a waiting opponent however little time they have, and a running one more than 3 s from timing out, counting their turn time | covered (`ActionTimer`, *running out*): a waiting opponent with 2 s of main time, and a running one either side of the 3 s margin. That the margin counts turn time is pinned in `ByoyomiTimer`'s unit spec, since without cards both timers always start together |
@@ -486,6 +486,7 @@ each player's game state, the chat, and the winners.
 | T13 | a reconnect does not reset the timer; a spectator is sent the same timer fields, as they stand when the spectator joins | covered (`TimedGames`) |
 | T14 | shutdown cancels a live game's timers | covered (`GameServerScheduling`, row L5) |
 | T15 | timers of a game the lobby is done with | fixed in step d (V-29), with no spec, by the owner's decision (2026-11-09) |
+| T16 | the end of every round gives each player 10 s of main time back, never past the full 2 min, sent as `mainTimeGrant` (`{ round, seconds }`, the seconds actually added) for the client to animate (decided 2026-11-17); an undo back before the end of a round keeps the time given, and playing through that end again gives no more; a game that has ended gives none, even if the players play on | covered (`RoundEndMainTime`, and `ByoyomiTimer` for the cap, once per round, and a grant to a main time that is counting down) |
 
 **Steps.**
 
