@@ -29,7 +29,10 @@ FROM deps AS build
 COPY tsconfig.json card-data-version.txt ./
 COPY scripts ./scripts
 COPY server ./server
-RUN npm run build && rm -f build/server/tsconfig.tsbuildinfo
+# tsc needs more than Node's default heap in a small Docker VM (about 2 GB in an 8 GB VM). Set the ceiling
+# explicitly so every machine, CI included, compiles under the same limit. Only on this step, so it doesn't
+# reach the runtime image, where the ECS task's NODE_OPTIONS sets the heap.
+RUN NODE_OPTIONS=--max-old-space-size=4096 npm run build && rm -f build/server/tsconfig.tsbuildinfo
 
 # Card data is the deployer's local `npm run get-cards` output. If it was produced by a different
 # fetchdata.js / mockdata.js / card-data-version.txt, fail here instead of crash-looping in ECS.
