@@ -3,7 +3,7 @@ import type { ValidateFunction } from 'ajv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from '../src/parse';
-import { apply } from '../src/apply';
+import { boardAt } from '../src/apply';
 import { serialize } from '../src/serialize';
 import { redact } from '../src/writer/redact';
 import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES, isFaceDownAttribute } from '../src/registry';
@@ -338,22 +338,31 @@ describe('conformance vectors', function () {
                         }
                     });
 
-                    it('has a board.json at its last step', function () {
-                        const board = JSON.parse(fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.board.json`), 'utf8'));
-                        const fn = validator('board');
-                        expect(fn(board)).toBe(true, JSON.stringify(fn.errors));
+                    it('has a boards.jsonl with the board at every step', function () {
+                        const text = fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.boards.jsonl`), 'utf8');
+                        expect(text.endsWith('\n')).toBe(true, 'boards.jsonl ends with LF');
+                        const boards = text.slice(0, -1).split('\n')
+                            .map((line) => JSON.parse(line));
                         const steps = jsonLines(parsed, 'RECORDS').filter((l) => l.value.t === 'step');
-                        expect(board.seq).toBe(steps[steps.length - 1].value.seq);
-                        for (const id of ['g', 'p1', 'p2']) {
-                            expect(board.entities[id]).toBeDefined();
-                        }
+                        expect(boards.length).toBe(steps.length, 'one board per step');
+                        const fn = validator('board');
+                        boards.forEach((board, k) => {
+                            expect(fn(board)).toBe(true, `line ${k + 1}: ${JSON.stringify(fn.errors)}`);
+                            expect(board.seq).toBe(k);
+                            for (const id of ['g', 'p1', 'p2']) {
+                                expect(board.entities[id]).toBeDefined();
+                            }
+                        });
                     });
 
-                    it('applies to its board.json', function () {
+                    it('applies to its boards.jsonl at every step', function () {
                         const file = parse(fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.swupgn`), 'utf8'));
-                        const want = fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.board.json`), 'utf8');
-                        const got = apply(file.records);
-                        expect(got).toEqual(JSON.parse(want));
+                        const lines = fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.boards.jsonl`), 'utf8').slice(0, -1)
+                            .split('\n');
+                        lines.forEach((line, k) => {
+                            expect(boardAt(file, k)).withContext(`step ${k}`)
+                                .toEqual(JSON.parse(line));
+                        });
                     });
 
                     if (profile !== 'full') {
@@ -370,7 +379,7 @@ describe('conformance vectors', function () {
                 const other = vector.identical.with;
                 for (const profile of vector.identical.profiles) {
                     it(`${profile} is byte-identical to ${other}.${profile}, file and board`, function () {
-                        for (const suffix of ['swupgn', 'board.json']) {
+                        for (const suffix of ['swupgn', 'boards.jsonl']) {
                             const mine = fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.${suffix}`), 'utf8');
                             const theirs = fs.readFileSync(path.join(vectorsDir, `${other}.${profile}.${suffix}`), 'utf8');
                             expect(mine === theirs).toBe(true, `${vector.name}.${profile}.${suffix} differs from ${other}.${profile}.${suffix}`);

@@ -8,13 +8,15 @@ Effect entities, a limited-use ability, two leaders on one seat, and the parts o
 
 | Step | What happens |
 |---|---|
-| 0 | P1 has two leaders (`LOF#003` Ahsoka Tano and `SOR#017` Han Solo) and the base Mystic Monastery (`LOF#022`). P2's base carries an extension attribute `x_examplewriter_art`; one resource of each seat carries `x_examplewriter_foil`. |
-| 1 | P1 uses Mystic Monastery ("no more than 3 times each game"): `force` becomes `true`, and the base's `abilityUses` records 1 use. An unknown extension record `x_examplewriter_hint` sits just before it. |
-| 2 | P2 plays Underworld Thug (`SHD#257`). |
-| 3 | P1 plays Sneak Attack (`SOR#219`) and through it Liberated Slaves (`SHD#200`, `full` 7), ready. A delayed effect (`full` 16, `duration` `delayed`) targets it. |
-| 5 | P1 uses Ahsoka Tano's action: she exhausts, the Force is used, and a "for this phase" effect (`full` 17) gives the Slaves Sentinel (`keywords`). |
-| 7 | P1 uses Mystic Monastery again: `abilityUses` now records 2 uses of 3. |
-| 9 | Both seats have passed (steps 4, 6, 8, 9). The phase effect ends: it is removed and the Slaves lose Sentinel. Regroup begins: the delayed effect triggers, defeats the Slaves and is removed. Each seat draws 2. |
+| 0 | Setup (`g.phase` `setup`). P1 has two leaders (`LOF#003` Ahsoka Tano and `SOR#017` Han Solo) and the base Mystic Monastery (`LOF#022`). P2's base carries an extension attribute `x_examplewriter_art`; one opening resource of each seat carries `x_examplewriter_foil`. Each deck is shuffled (a `shuffle` block per seat) and each seat draws its opening hand (a `draw` block per seat, sharing a `group`). |
+| 1 | The mulligan decision, made by both seats in one step (W-39): both keep, a `mulligan` block each with `amount` 0. |
+| 2 | The opening resources, chosen by both seats in one step, P1 (which has the initiative) first. A `resource` block each, sharing a `group` (W-65). The action phase begins: `g.phase` becomes `action` and `g.active` 1. |
+| 3 | P1 uses Mystic Monastery ("no more than 3 times each game"): `force` becomes `true`, and the base's `abilityUses` records 1 use. An unknown extension record `x_examplewriter_hint` sits just before it. |
+| 4 | P2 plays Underworld Thug (`SHD#257`). |
+| 5 | P1 plays Sneak Attack (`SOR#219`) and through it Liberated Slaves (`SHD#200`, `full` 7), ready. A delayed effect (`full` 16, `duration` `delayed`) targets it. |
+| 7 | P1 uses Ahsoka Tano's action: she exhausts, the Force is used, and a "for this phase" effect (`full` 17) gives the Slaves Sentinel (`keywords`). |
+| 9 | P1 uses Mystic Monastery again: `abilityUses` now records 2 uses of 3. |
+| 11 | Both seats have passed (steps 6, 8, 10, 11). The phase effect ends: it is removed and the Slaves lose Sentinel. Regroup begins: the delayed effect triggers, defeats the Slaves and is removed. Each seat draws 2. |
 
 The `full` file also has a `STORY` section, an `ANNOTATIONS` section, an unknown header tag `XExamplewriterTable` and an unknown section `X_EXAMPLEWRITER_STATS`.
 
@@ -38,7 +40,7 @@ Each line of `RECORDS` in `effects-and-uses.p1.swupgn`, with the step of SPEC §
 
 | Line | Record | Step | From `full` line |
 |---|---|---|---|
-| 44 | `{"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}` | R-07 set of a known entity (full g) | 61 |
+| 44 | `{"t":"set","e":"g","a":{"round":1,"phase":"setup","initiative":1,"initiativeTaken":false}}` | R-07 set of a known entity (full g) | 61 |
 | 45 | `{"t":"set","e":"p1","a":{"deckCount":25,"handCount":3,"credits":0,"force":false}}` | R-07 set of a known entity (full p1) | 62 |
 | 46 | `{"t":"set","e":"p2","a":{"deckCount":25,"handCount":3,"credits":0,"force":false}}` | R-07 set of a known entity (full p2) | 63 |
 | 47 | `{"t":"create","e":1,"zone":"base","owner":1,"card":"LOF#022","a":{"kind":"base","damage":0,"hp":25}}` | R-01 create, audience "all" holds viewer (full 1) | 64 |
@@ -46,78 +48,89 @@ Each line of `RECORDS` in `effects-and-uses.p1.swupgn`, with the step of SPEC §
 | 49 | `{"t":"create","e":3,"zone":"base","owner":1,"card":"SOR#017","a":{"kind":"leader","exhausted":false,"deploy…` | R-01 create, audience "all" holds viewer (full 3) | 66 |
 | 50 | `{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}` | R-01 create, audience "all" holds viewer (full 4); unregistered attribute `x_examplewriter_art` dropped (W-67) | 67 |
 | 51 | `{"t":"create","e":5,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deploy…` | R-01 create, audience "all" holds viewer (full 5) | 68 |
-| 52 | `{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#219","to":[1]}` | R-01 create, audience [1] holds viewer (full 6) | 69 |
-| 53 | `{"t":"create","e":7,"zone":"hand","owner":1,"card":"SHD#200","to":[1]}` | R-01 create, audience [1] holds viewer (full 7) | 70 |
-| 54 | `{"t":"create","e":8,"zone":"hand","owner":1,"card":"SOR#046","to":[1]}` | R-01 create, audience [1] holds viewer (full 8) | 71 |
-| 55 | `{"t":"create","e":9,"zone":"resource","owner":1,"card":"SOR#048","to":[1],"a":{"exhausted":false}}` | R-01 create, audience [1] holds viewer (full 12); unregistered attribute `x_examplewriter_foil` dropped (W-67) | 75 |
-| 56 | `{"t":"create","e":10,"zone":"resource","owner":1,"card":"SOR#050","to":[1],"a":{"exhausted":false}}` | R-01 create, audience [1] holds viewer (full 13) | 76 |
-| 57 | `{"t":"create","e":11,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}` | R-02 anonymous create (full 14) | 77 |
-| 58 | `{"t":"create","e":12,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}` | R-02 anonymous create (full 15) | 78 |
+| 52 | `{"t":"block","id":1,"kind":"shuffle","p":1,"amount":0}` | R-09 block 1 (shuffle), every reference kept | 69 |
+| 53 | `{"t":"block","id":2,"kind":"shuffle","p":2,"amount":0}` | R-09 block 2 (shuffle), every reference kept | 70 |
+| 54 | `{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#219","to":[1]}` | R-01 create, audience [1] holds viewer (full 6) | 71 |
+| 55 | `{"t":"create","e":7,"zone":"hand","owner":1,"card":"SHD#200","to":[1]}` | R-01 create, audience [1] holds viewer (full 7) | 72 |
+| 56 | `{"t":"create","e":8,"zone":"hand","owner":1,"card":"SOR#046","to":[1]}` | R-01 create, audience [1] holds viewer (full 8) | 73 |
+| 57 | `{"t":"block","id":3,"kind":"draw","p":1,"targets":[6,7,8],"amount":3,"group":2}` | R-09 block 3 (draw), every reference kept | 77 |
+| 58 | `{"t":"block","id":4,"kind":"draw","p":2,"amount":3,"group":2}` | R-09 block 4 (draw); targets element dropped (full 9 is unmaterialized); targets element dropped (full 10 is unmaterialized); targets element dropped (full 11 is unmaterialized); targets removed: no element left | 78 |
 | 59 | `{"t":"step","seq":0}` | R-10 step | 79 |
-| 60 | `{"t":"block","id":1,"kind":"ability","p":1,"src":1}` | R-09 block 1 (ability), every reference kept | 81 |
-| 61 | `{"t":"set","e":"p1","a":{"force":true}}` | R-07 set of a known entity (full p1) | 82 |
-| 62 | `{"t":"set","e":1,"a":{"abilityUses":[{"ability":"mystic-monastery/action","seat":1,"count":1,"per":"game","…` | R-07 set of a known entity (full 1) | 83 |
-| 63 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 84 |
-| 64 | `{"t":"step","seq":1}` | R-10 step | 85 |
-| 65 | `{"t":"create","e":13,"zone":"hand","owner":2,"card":"SHD#257","to":"all"}` | R-03 reveal of an unmaterialized entity: fresh known create (full 9) | 86 |
-| 66 | `{"t":"set","e":13,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":3}}` | R-07 set of a known entity (full 9) | 87 |
-| 67 | `{"t":"block","id":2,"kind":"play","p":2,"src":13}` | R-09 block 2 (play), every reference kept | 88 |
-| 68 | `{"t":"set","e":"p2","a":{"handCount":2}}` | R-07 set of a known entity (full p2) | 89 |
-| 69 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 90 |
-| 70 | `{"t":"step","seq":2}` | R-10 step | 91 |
-| 71 | `{"t":"reveal","e":6,"card":"SOR#219","to":"all"}` | R-03 reveal of a known entity (full 6) | 92 |
-| 72 | `{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}` | R-07 set of a known entity (full 6) | 93 |
-| 73 | `{"t":"block","id":3,"kind":"play","p":1,"src":6}` | R-09 block 3 (play), every reference kept | 94 |
-| 74 | `{"t":"reveal","e":7,"card":"SHD#200","to":"all"}` | R-03 reveal of a known entity (full 7) | 95 |
-| 75 | `{"t":"set","e":7,"zone":"ground","a":{"kind":"unit","exhausted":false,"damage":0,"power":3,"hp":5}}` | R-07 set of a known entity (full 7) | 96 |
-| 76 | `{"t":"block","id":4,"kind":"play","p":1,"src":7,"parent":3,"via":6}` | R-09 block 4 (play), every reference kept | 97 |
-| 77 | `{"t":"create","e":14,"owner":1,"to":"all","a":{"kind":"effect","src":6,"targets":[7],"duration":"delayed","…` | R-01 create, audience "all" holds viewer (full 16) | 98 |
-| 78 | `{"t":"set","e":"p1","a":{"handCount":1}}` | R-07 set of a known entity (full p1) | 99 |
-| 79 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 100 |
-| 80 | `{"t":"step","seq":3}` | R-10 step | 101 |
-| 81 | `{"t":"block","id":5,"kind":"pass","p":2}` | R-09 block 5 (pass), every reference kept | 102 |
-| 82 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 103 |
-| 83 | `{"t":"step","seq":4}` | R-10 step | 104 |
-| 84 | `{"t":"block","id":6,"kind":"ability","p":1,"src":2,"targets":[7]}` | R-09 block 6 (ability), every reference kept | 105 |
-| 85 | `{"t":"set","e":2,"a":{"exhausted":true}}` | R-07 set of a known entity (full 2) | 106 |
-| 86 | `{"t":"set","e":"p1","a":{"force":false}}` | R-07 set of a known entity (full p1) | 107 |
-| 87 | `{"t":"create","e":15,"owner":1,"to":"all","a":{"kind":"effect","src":2,"targets":[7],"duration":"phase","ab…` | R-01 create, audience "all" holds viewer (full 17) | 108 |
-| 88 | `{"t":"set","e":7,"a":{"keywords":["sentinel"]}}` | R-07 set of a known entity (full 7) | 109 |
-| 89 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 110 |
-| 90 | `{"t":"step","seq":5}` | R-10 step | 111 |
-| 91 | `{"t":"block","id":7,"kind":"pass","p":2}` | R-09 block 7 (pass), every reference kept | 112 |
-| 92 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 113 |
-| 93 | `{"t":"step","seq":6}` | R-10 step | 114 |
-| 94 | `{"t":"block","id":8,"kind":"ability","p":1,"src":1}` | R-09 block 8 (ability), every reference kept | 115 |
-| 95 | `{"t":"set","e":"p1","a":{"force":true}}` | R-07 set of a known entity (full p1) | 116 |
-| 96 | `{"t":"set","e":1,"a":{"abilityUses":[{"ability":"mystic-monastery/action","seat":1,"count":2,"per":"game","…` | R-07 set of a known entity (full 1) | 117 |
-| 97 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 118 |
-| 98 | `{"t":"step","seq":7}` | R-10 step | 119 |
-| 99 | `{"t":"block","id":9,"kind":"pass","p":2}` | R-09 block 9 (pass), every reference kept | 120 |
-| 100 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 121 |
-| 101 | `{"t":"step","seq":8}` | R-10 step | 122 |
-| 102 | `{"t":"block","id":10,"kind":"pass","p":1}` | R-09 block 10 (pass), every reference kept | 123 |
-| 103 | `{"t":"remove","e":15}` | R-08 remove (full 17) | 124 |
-| 104 | `{"t":"set","e":7,"a":{"keywords":null}}` | R-07 set of a known entity (full 7) | 125 |
-| 105 | `{"t":"block","id":11,"kind":"regroup"}` | R-09 block 11 (regroup), every reference kept | 126 |
-| 106 | `{"t":"block","id":12,"kind":"trigger","p":1,"src":6,"targets":[7],"parent":11}` | R-09 block 12 (trigger), every reference kept | 127 |
-| 107 | `{"t":"block","id":13,"kind":"defeat","p":1,"src":6,"targets":[7],"parent":12}` | R-09 block 13 (defeat), every reference kept | 128 |
-| 108 | `{"t":"set","e":7,"zone":"discard","a":{"exhausted":null,"damage":null,"power":null,"hp":null}}` | R-07 set of a known entity (full 7) | 129 |
-| 109 | `{"t":"remove","e":14}` | R-08 remove (full 16) | 130 |
-| 110 | `{"t":"create","e":16,"zone":"hand","owner":1,"card":"SOR#097","to":[1]}` | R-01 create, audience [1] holds viewer (full 18) | 131 |
-| 111 | `{"t":"create","e":17,"zone":"hand","owner":1,"card":"SOR#099","to":[1]}` | R-01 create, audience [1] holds viewer (full 19) | 132 |
-| 112 | `{"t":"block","id":14,"kind":"draw","p":1,"targets":[16,17],"amount":2,"parent":11,"group":1}` | R-09 block 14 (draw), every reference kept | 135 |
-| 113 | `{"t":"block","id":15,"kind":"draw","p":2,"amount":2,"parent":11,"group":1}` | R-09 block 15 (draw); targets element dropped (full 20 is unmaterialized); targets element dropped (full 21 is unmaterialized); targets removed: no element left | 136 |
-| 114 | `{"t":"set","e":"p1","a":{"deckCount":23,"handCount":3}}` | R-07 set of a known entity (full p1) | 137 |
-| 115 | `{"t":"set","e":"p2","a":{"deckCount":23,"handCount":4}}` | R-07 set of a known entity (full p2) | 138 |
-| 116 | `{"t":"set","e":"g","a":{"phase":"regroup","active":null}}` | R-07 set of a known entity (full g) | 139 |
-| 117 | `{"t":"step","seq":9}` | R-10 step | 140 |
+| 60 | `{"t":"block","id":5,"kind":"mulligan","p":1,"amount":0}` | R-09 block 5 (mulligan), every reference kept | 80 |
+| 61 | `{"t":"block","id":6,"kind":"mulligan","p":2,"amount":0}` | R-09 block 6 (mulligan), every reference kept | 81 |
+| 62 | `{"t":"step","seq":1}` | R-10 step | 82 |
+| 63 | `{"t":"create","e":9,"zone":"resource","owner":1,"card":"SOR#048","to":[1],"a":{"exhausted":false}}` | R-01 create, audience [1] holds viewer (full 12); unregistered attribute `x_examplewriter_foil` dropped (W-67) | 83 |
+| 64 | `{"t":"create","e":10,"zone":"resource","owner":1,"card":"SOR#050","to":[1],"a":{"exhausted":false}}` | R-01 create, audience [1] holds viewer (full 13) | 84 |
+| 65 | `{"t":"create","e":11,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}` | R-02 anonymous create (full 14) | 85 |
+| 66 | `{"t":"create","e":12,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}` | R-02 anonymous create (full 15) | 86 |
+| 67 | `{"t":"block","id":7,"kind":"resource","p":1,"targets":[9,10],"amount":2,"group":3}` | R-09 block 7 (resource), every reference kept | 87 |
+| 68 | `{"t":"block","id":8,"kind":"resource","p":2,"amount":2,"group":3}` | R-09 block 8 (resource); targets element dropped (full 14 is anonymous); targets element dropped (full 15 is anonymous); targets removed: no element left | 88 |
+| 69 | `{"t":"set","e":"g","a":{"phase":"action","active":1}}` | R-07 set of a known entity (full g) | 89 |
+| 70 | `{"t":"step","seq":2}` | R-10 step | 90 |
+| 71 | `{"t":"block","id":9,"kind":"ability","p":1,"src":1}` | R-09 block 9 (ability), every reference kept | 92 |
+| 72 | `{"t":"set","e":"p1","a":{"force":true}}` | R-07 set of a known entity (full p1) | 93 |
+| 73 | `{"t":"set","e":1,"a":{"abilityUses":[{"ability":"mystic-monastery/action","seat":1,"count":1,"per":"game","…` | R-07 set of a known entity (full 1) | 94 |
+| 74 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 95 |
+| 75 | `{"t":"step","seq":3}` | R-10 step | 96 |
+| 76 | `{"t":"create","e":13,"zone":"hand","owner":2,"card":"SHD#257","to":"all"}` | R-03 reveal of an unmaterialized entity: fresh known create (full 9) | 97 |
+| 77 | `{"t":"set","e":13,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":3}}` | R-07 set of a known entity (full 9) | 98 |
+| 78 | `{"t":"block","id":10,"kind":"play","p":2,"src":13}` | R-09 block 10 (play), every reference kept | 99 |
+| 79 | `{"t":"set","e":"p2","a":{"handCount":2}}` | R-07 set of a known entity (full p2) | 100 |
+| 80 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 101 |
+| 81 | `{"t":"step","seq":4}` | R-10 step | 102 |
+| 82 | `{"t":"reveal","e":6,"card":"SOR#219","to":"all"}` | R-03 reveal of a known entity (full 6) | 103 |
+| 83 | `{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}` | R-07 set of a known entity (full 6) | 104 |
+| 84 | `{"t":"block","id":11,"kind":"play","p":1,"src":6}` | R-09 block 11 (play), every reference kept | 105 |
+| 85 | `{"t":"reveal","e":7,"card":"SHD#200","to":"all"}` | R-03 reveal of a known entity (full 7) | 106 |
+| 86 | `{"t":"set","e":7,"zone":"ground","a":{"kind":"unit","exhausted":false,"damage":0,"power":3,"hp":5}}` | R-07 set of a known entity (full 7) | 107 |
+| 87 | `{"t":"block","id":12,"kind":"play","p":1,"src":7,"parent":11,"via":6}` | R-09 block 12 (play), every reference kept | 108 |
+| 88 | `{"t":"create","e":14,"owner":1,"to":"all","a":{"kind":"effect","src":6,"targets":[7],"duration":"delayed","…` | R-01 create, audience "all" holds viewer (full 16) | 109 |
+| 89 | `{"t":"set","e":"p1","a":{"handCount":1}}` | R-07 set of a known entity (full p1) | 110 |
+| 90 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 111 |
+| 91 | `{"t":"step","seq":5}` | R-10 step | 112 |
+| 92 | `{"t":"block","id":13,"kind":"pass","p":2}` | R-09 block 13 (pass), every reference kept | 113 |
+| 93 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 114 |
+| 94 | `{"t":"step","seq":6}` | R-10 step | 115 |
+| 95 | `{"t":"block","id":14,"kind":"ability","p":1,"src":2,"targets":[7]}` | R-09 block 14 (ability), every reference kept | 116 |
+| 96 | `{"t":"set","e":2,"a":{"exhausted":true}}` | R-07 set of a known entity (full 2) | 117 |
+| 97 | `{"t":"set","e":"p1","a":{"force":false}}` | R-07 set of a known entity (full p1) | 118 |
+| 98 | `{"t":"create","e":15,"owner":1,"to":"all","a":{"kind":"effect","src":2,"targets":[7],"duration":"phase","ab…` | R-01 create, audience "all" holds viewer (full 17) | 119 |
+| 99 | `{"t":"set","e":7,"a":{"keywords":["sentinel"]}}` | R-07 set of a known entity (full 7) | 120 |
+| 100 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 121 |
+| 101 | `{"t":"step","seq":7}` | R-10 step | 122 |
+| 102 | `{"t":"block","id":15,"kind":"pass","p":2}` | R-09 block 15 (pass), every reference kept | 123 |
+| 103 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 124 |
+| 104 | `{"t":"step","seq":8}` | R-10 step | 125 |
+| 105 | `{"t":"block","id":16,"kind":"ability","p":1,"src":1}` | R-09 block 16 (ability), every reference kept | 126 |
+| 106 | `{"t":"set","e":"p1","a":{"force":true}}` | R-07 set of a known entity (full p1) | 127 |
+| 107 | `{"t":"set","e":1,"a":{"abilityUses":[{"ability":"mystic-monastery/action","seat":1,"count":2,"per":"game","…` | R-07 set of a known entity (full 1) | 128 |
+| 108 | `{"t":"set","e":"g","a":{"active":2}}` | R-07 set of a known entity (full g) | 129 |
+| 109 | `{"t":"step","seq":9}` | R-10 step | 130 |
+| 110 | `{"t":"block","id":17,"kind":"pass","p":2}` | R-09 block 17 (pass), every reference kept | 131 |
+| 111 | `{"t":"set","e":"g","a":{"active":1}}` | R-07 set of a known entity (full g) | 132 |
+| 112 | `{"t":"step","seq":10}` | R-10 step | 133 |
+| 113 | `{"t":"block","id":18,"kind":"pass","p":1}` | R-09 block 18 (pass), every reference kept | 134 |
+| 114 | `{"t":"remove","e":15}` | R-08 remove (full 17) | 135 |
+| 115 | `{"t":"set","e":7,"a":{"keywords":null}}` | R-07 set of a known entity (full 7) | 136 |
+| 116 | `{"t":"block","id":19,"kind":"regroup"}` | R-09 block 19 (regroup), every reference kept | 137 |
+| 117 | `{"t":"block","id":20,"kind":"trigger","p":1,"src":6,"targets":[7],"parent":19}` | R-09 block 20 (trigger), every reference kept | 138 |
+| 118 | `{"t":"block","id":21,"kind":"defeat","p":1,"src":6,"targets":[7],"parent":20}` | R-09 block 21 (defeat), every reference kept | 139 |
+| 119 | `{"t":"set","e":7,"zone":"discard","a":{"exhausted":null,"damage":null,"power":null,"hp":null}}` | R-07 set of a known entity (full 7) | 140 |
+| 120 | `{"t":"remove","e":14}` | R-08 remove (full 16) | 141 |
+| 121 | `{"t":"create","e":16,"zone":"hand","owner":1,"card":"SOR#097","to":[1]}` | R-01 create, audience [1] holds viewer (full 18) | 142 |
+| 122 | `{"t":"create","e":17,"zone":"hand","owner":1,"card":"SOR#099","to":[1]}` | R-01 create, audience [1] holds viewer (full 19) | 143 |
+| 123 | `{"t":"block","id":22,"kind":"draw","p":1,"targets":[16,17],"amount":2,"parent":19,"group":1}` | R-09 block 22 (draw), every reference kept | 146 |
+| 124 | `{"t":"block","id":23,"kind":"draw","p":2,"amount":2,"parent":19,"group":1}` | R-09 block 23 (draw); targets element dropped (full 20 is unmaterialized); targets element dropped (full 21 is unmaterialized); targets removed: no element left | 147 |
+| 125 | `{"t":"set","e":"p1","a":{"deckCount":23,"handCount":3}}` | R-07 set of a known entity (full p1) | 148 |
+| 126 | `{"t":"set","e":"p2","a":{"deckCount":23,"handCount":4}}` | R-07 set of a known entity (full p2) | 149 |
+| 127 | `{"t":"set","e":"g","a":{"phase":"regroup","active":null}}` | R-07 set of a known entity (full g) | 150 |
+| 128 | `{"t":"step","seq":11}` | R-10 step | 151 |
 
 ## `full` records that emit nothing
 
-- `full` line 72: R-02 nothing: full 9 unmaterialized
-- `full` line 73: R-02 nothing: full 10 unmaterialized
-- `full` line 74: R-02 nothing: full 11 unmaterialized
-- `full` line 80: R-13 unknown record type x_examplewriter_hint not copied
-- `full` line 133: R-02 nothing: full 20 unmaterialized
-- `full` line 134: R-02 nothing: full 21 unmaterialized
+- `full` line 74: R-02 nothing: full 9 unmaterialized
+- `full` line 75: R-02 nothing: full 10 unmaterialized
+- `full` line 76: R-02 nothing: full 11 unmaterialized
+- `full` line 91: R-13 unknown record type x_examplewriter_hint not copied
+- `full` line 144: R-02 nothing: full 20 unmaterialized
+- `full` line 145: R-02 nothing: full 21 unmaterialized

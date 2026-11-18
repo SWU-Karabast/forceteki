@@ -118,11 +118,10 @@ export const attributes = [
         "on": [
             "unit",
             "leader",
-            "resource",
-            "upgrade"
+            "resource"
         ],
-        "meaning": "Ready or exhausted (upgrades that can exhaust).",
-        "cr": "1.16.1",
+        "meaning": "Exhausted (true) or ready (false). Upgrades are neither ready nor exhausted, so a card attached as an upgrade or a pilot never carries it.",
+        "cr": "1.5.4",
         "faceDown": true
     },
     {
@@ -164,7 +163,7 @@ export const attributes = [
         "on": [
             "unit"
         ],
-        "meaning": "Current keywords; numbered ones once with their sum (raid 2); cost and dash ones once per instance.",
+        "meaning": "Current keywords, sorted, each the keyword's name in lower case, stacked as CR 7.5.4 says: a keyword followed by a number once, with the numbers added (raid 2 for Raid 1 given twice); a keyword followed by a cost or by a dash and an ability once per instance, by name alone (smuggle, bounty); any other keyword once, however often it is given (sentinel).",
         "cr": "7.5.4"
     },
     {
@@ -175,7 +174,7 @@ export const attributes = [
             "unit",
             "upgrade"
         ],
-        "meaning": "Current traits, lower case.",
+        "meaning": "Current traits, sorted, each as printed in lower case with its spaces (bounty hunter).",
         "cr": "1.16.1"
     },
     {
@@ -284,7 +283,7 @@ export const attributes = [
         "on": [
             "card"
         ],
-        "meaning": "One entry per limited ability used at least once: {ability: string, seat, count, per: \"phase\"|\"round\"|\"game\", max}.",
+        "meaning": "One entry per limited ability used at least once: {ability: string, seat, count, per: \"phase\"|\"round\"|\"game\", max}. Its ability is opaque, as an effect's ability is.",
         "cr": "7.2.5, 1.16.3"
     },
     {
@@ -330,7 +329,7 @@ export const attributes = [
         "on": [
             "effect"
         ],
-        "meaning": "The writer's ability id (display only, never branched on)."
+        "meaning": "The writer's id for the ability: opaque, for display only, never branched on. Two writers, or two versions of one writer, may give one ability different ids."
     },
     {
         "name": "text",
