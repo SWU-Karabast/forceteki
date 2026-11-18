@@ -122,6 +122,8 @@ function selfCheck(sites, report, failures, getterCheck) {
           site.state === expected.state && (!expected.differs || site.differs > 0));
         return { ok: found, text: `${expected.card} .${expected.property} [${expected.state}] — ${expected.why}` };
     });
+    const boundReads = sites.reduce((sum, site) => sum + (site.optionC ? site.optionC.bound : 0), 0);
+    checks.push({ ok: boundReads > 0, text: `option (c) sees reads through a binding (found ${boundReads})` });
     checks.push({ ok: report.auditErrors === 0, text: `no audit errors (found ${report.auditErrors})` });
     checks.push({ ok: failures === 0, text: `no spec failures (found ${failures})` });
     checks.push({
@@ -141,14 +143,15 @@ function main() {
 
     preflight();
     const { failures } = runJasmine(specs);
-    const { report, sites, text, getterCheck } = analyze(REPORT, ROOT, ANALYSIS);
+    const { report, sites, text, getterCheck, optionC } = analyze(REPORT, ROOT, ANALYSIS);
 
     if (isSelfCheck) {
         process.exit(selfCheck(sites, report, failures, getterCheck) ? 0 : 1);
     }
 
     console.log(text.split('\n## A.')[0]);
-    console.log(`[lki-audit] the built getter against the rules: ${getterCheck.checked} sites checked, ${getterCheck.disagreements.length} disagree (section H)`);
+    console.log(`[lki-audit] the built getter against D-37 to D-39: ${getterCheck.checked} sites checked, ${getterCheck.disagreements.length} disagree (section H)`);
+    console.log(`[lki-audit] option (c) against the built getter: ${optionC.checked} sites checked; strict differs at ${optionC.strict.length}, lineage at ${optionC.lineage.length} (section I)`);
     console.log(`\n[lki-audit] full classification: ${path.relative(ROOT, ANALYSIS)}`);
     if (failures !== 0) {
         fail('Specs failed, so this run cannot be trusted: the audit only observes. See the jasmine log.');

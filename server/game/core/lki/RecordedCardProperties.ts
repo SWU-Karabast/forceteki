@@ -29,7 +29,9 @@ function asList<T>(items: T | T[] | Set<T>): T[] {
  * Properties backed by a record: characteristics as they were when the card left play (D-37).
  *
  * Presence — where the card is, whether it is in play, attached, attacking or defending — is never
- * recorded. It reads the live card through the reference, so it always answers about now.
+ * recorded. It reads the live card through the reference, so it always answers about now. If the card
+ * has since become a new copy, the copy this view describes no longer exists anywhere: it is not in
+ * play, attached, attacking, defending or a resource, whatever the new copy is doing (SWU 8.5.4).
  *
  * The record is immutable and shared between readers, but this view is not safe to retain, because
  * its presence reads go to the live card. Long-lived holders store the values they need (D-16).
@@ -40,9 +42,14 @@ export class RecordedCardProperties implements ICardProperties {
         protected readonly record: IRecordedCardState
     ) {}
 
-    /** The live card, for presence, which always answers about now. */
+    /** The physical card, wherever it is now, whichever copy of it that is. */
     protected get liveCard(): Card {
         return this.ref.getCardForEngine();
+    }
+
+    /** The live card while it is still the copy this view describes, otherwise `null`. */
+    protected get currentCopy(): Card | null {
+        return this.ref.isCurrent ? this.ref.getCardForEngine() : null;
     }
 
     // ----- characteristics
@@ -68,7 +75,8 @@ export class RecordedCardProperties implements ICardProperties {
     }
 
     public get traits(): ReadonlySet<Trait> {
-        return this.record.traits;
+        // A copy, because a Set cannot be frozen and the record is shared between readers (D-17).
+        return new Set(this.record.traits);
     }
 
     public get aspects(): readonly Aspect[] {
@@ -101,11 +109,11 @@ export class RecordedCardProperties implements ICardProperties {
     }
 
     public hasSomeTrait(traits: Trait | Trait[] | Set<Trait>): boolean {
-        return asList(traits).some((trait) => this.record.traits.has(trait));
+        return asList(traits).some((trait) => this.record.traits.includes(trait));
     }
 
     public hasEveryTrait(traits: Trait[] | Set<Trait>): boolean {
-        return asList(traits).every((trait) => this.record.traits.has(trait));
+        return asList(traits).every((trait) => this.record.traits.includes(trait));
     }
 
     public hasSomeAspect(aspects: Aspect | Aspect[] | Set<Aspect>): boolean {
@@ -121,7 +129,7 @@ export class RecordedCardProperties implements ICardProperties {
     }
 
     public getNumericKeywordTotal(keywordName: NumericKeywordName): number | null {
-        return this.record.numericKeywordTotals.get(keywordName) ?? null;
+        return this.record.numericKeywordTotals[keywordName] ?? null;
     }
 
     // ----- kind checks, as the card answered them when it was recorded
@@ -212,36 +220,42 @@ export class RecordedCardProperties implements ICardProperties {
 
     // ----- presence: the live card (D-37)
 
+    /** The zone the physical card is in now, which is the new copy's zone if it has become one. */
     public get zoneName(): ZoneName {
         return this.liveCard.zoneName;
     }
 
+    /** As {@link zoneName}. */
     public get zone(): Zone | null {
         return this.liveCard.zone;
     }
 
     public isInPlay(): boolean {
-        const card = this.liveCard;
-        return card.canBeInPlay() && card.isInPlay();
+        const card = this.currentCopy;
+        return card != null && card.canBeInPlay() && card.isInPlay();
     }
 
     public isAttached(): boolean {
-        const card = this.liveCard;
-        return card.canBeInPlay() && card.isAttached();
+        const card = this.currentCopy;
+        return card != null && card.canBeInPlay() && card.isAttached();
     }
 
     public isResource(): boolean {
-        return this.liveCard.isResource();
+        const card = this.currentCopy;
+        return card != null && card.isResource();
     }
 
+    // A card that has left play cannot be in an attack, and `Card` fails if asked outside an attackable
+    // zone, so these check the zone first: presence answers, whatever has happened to the card.
+
     public isDefending(): boolean {
-        const card = this.liveCard;
-        return card.canBeDamaged() && card.isDefending();
+        const card = this.currentCopy;
+        return card != null && card.canBeDamaged() && card.canHaveActiveAttack() && card.isDefending();
     }
 
     public get activeAttack(): Attack | null {
-        const card = this.liveCard;
-        return card.canBeDamaged() ? card.activeAttack : null;
+        const card = this.currentCopy;
+        return card != null && card.canBeDamaged() && card.canHaveActiveAttack() ? card.activeAttack : null;
     }
 
     // ----- members reached by narrowing with canBeExhausted(), canBeDamaged() or isBase()
@@ -329,8 +343,8 @@ export class RecordedUnitProperties extends RecordedCardProperties implements IU
     }
 
     public isAttacking(): boolean {
-        const card = this.liveCard;
-        return card.isUnit() && card.isAttacking();
+        const card = this.currentCopy;
+        return card != null && card.isUnit() && card.canHaveActiveAttack() && card.isAttacking();
     }
 
     public get power(): number {
@@ -415,6 +429,10 @@ export class RecordedUpgradeProperties extends RecordedCardProperties implements
     }
 
     public get parentUnit(): CardRef {
+        Contract.assertFalse(
+            this.record.parentCard != null && this.record.parentUnit == null,
+            `${this.ref} was attached to a base, not a unit, when it was recorded. Read parentCard instead.`
+        );
         return this.read('parentUnit');
     }
 

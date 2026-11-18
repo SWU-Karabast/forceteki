@@ -24,7 +24,9 @@ export interface ICardKeyword {
  *   On a recorded view these are last known information.
  * - **Presence** always answers about now, on every view: whether the card is in play (`isInPlay()`),
  *   where it is (`zoneName`, `zone`), whether it is attached, attacking or defending. A recorded view
- *   reads these from the live card.
+ *   reads these from the live card. If the card has since become a new copy, the copy a recorded view
+ *   describes is in no attack and not in play, whatever the new copy is doing; `zoneName` still says
+ *   where the physical card is.
  * - **`arena`** is the one location that is a characteristic: the arena the card is in, or was in
  *   when it left play. "In the same arena" means this.
  *
@@ -65,7 +67,11 @@ export interface ICardProperties {
     readonly keywords: readonly ICardKeyword[];
     readonly unique: boolean;
 
-    /** Resource cost, or `null` for cards that have no cost (bases, leaders, tokens). */
+    /**
+     * Resource cost, or `null` for cards that have no cost: bases, and leaders that never deploy as a
+     * unit. Mind the `null`: `null <= 3` is true, where reading `cost` from such a card is `undefined`.
+     * Ask {@link hasCost} first when the card might be one of these.
+     */
     readonly cost: number | null;
 
     /** Printed cost, or `null` for cards that have no cost. */
@@ -119,13 +125,17 @@ export interface ICardProperties {
 
     // ----- presence: always now (D-37)
 
-    /** The zone the card is in now. */
+    /** The zone the physical card is in now. */
     readonly zoneName: ZoneName;
 
-    /** The zone the card is in now. */
+    /** The zone the physical card is in now. */
     readonly zone: Zone | null;
 
-    /** Whether the card is in play now. */
+    /**
+     * Whether the card is in play now, as `Card.isInPlay()` answers it: in an arena, or attached to a
+     * base. A base, and a leader in the base zone, answer false here, although the rules count them as
+     * in play (SWU 4.9.1).
+     */
     isInPlay(): boolean;
 
     /** Whether the card is attached to another card now. */
@@ -146,16 +156,21 @@ export interface IDamageableProperties extends ICardProperties {
     readonly hp: number;
     readonly remainingHp: number;
 
-    /** Presence: whether the card is defending in an attack now. */
+    /**
+     * Presence: whether the card is defending in an attack now. A recorded view answers false once the
+     * card has left play; a live view, like `Card`, fails for a card outside the arenas and base zone.
+     */
     isDefending(): boolean;
 
-    /** Presence: the attack the card is part of now, if any. */
+    /** Presence: the attack the card is part of now, if any. Answers as {@link isDefending} does. */
     readonly activeAttack: Attack | null;
 }
 
 /** Characteristics of a base. */
 export interface IBaseProperties extends IDamageableProperties {
     readonly upgrades: readonly CardRef[];
+
+    /** References to the units the card is guarding; see {@link IUnitPropertiesInPlay.capturedUnits}. */
     readonly capturedUnits: readonly CardRef[];
     isUpgraded(): boolean;
 }
@@ -182,10 +197,13 @@ export interface IUnitProperties extends ICardProperties {
     /** Narrows to a unit with in-play stats at the represented moment, failing if it had none. */
     asInPlayStats(): IUnitPropertiesInPlay;
 
-    /** Presence: whether the unit is attacking now. */
+    /** Presence: whether the unit is attacking now. Answers as {@link isDefending} does. */
     isAttacking(): boolean;
 
-    /** Presence: whether the unit is defending now. */
+    /**
+     * Presence: whether the unit is defending now. A recorded view answers false once the unit has left
+     * play; a live view, like `Card`, fails for a unit outside the arenas.
+     */
     isDefending(): boolean;
 
     /** Presence: the attack the unit is part of now, if any. */
@@ -205,6 +223,12 @@ export interface IUnitPropertiesInPlay extends IUnitProperties, IExhaustableProp
     readonly remainingHp: number;
     readonly exhausted: boolean;
     readonly upgrades: readonly CardRef[];
+
+    /**
+     * References to the units the card is guarding. On a recorded view each names the identity the unit
+     * had in captivity, which its rescue replaces with a new one when the guard leaves play, so these
+     * are for counting and comparing; reading one through the getter fails as an orphaned reference.
+     */
     readonly capturedUnits: readonly CardRef[];
     isUpgraded(): boolean;
     hasShield(): boolean;

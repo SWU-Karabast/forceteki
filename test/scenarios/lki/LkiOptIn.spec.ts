@@ -159,8 +159,10 @@ describe('Last known information opt-in', function () {
                     .toThrowError(/names an identity that no longer exists/);
 
                 // ...whereas reading the card directly never cared which identity it was asked about.
+                // The view describes the card as it is now, so it names the identity it has now.
                 const live = cardStates.forCard(context.battlefieldMarine).getLastKnownProperties(whileInHand);
                 expect(live.zoneName as string).toBe('groundArena');
+                expect(live.ref).toBe(cardStates.getIdentity(context.wampa));
             });
 
             it('still gets the same canonical identity references as a card that has opted in', async function () {

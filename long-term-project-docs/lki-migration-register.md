@@ -100,7 +100,7 @@ tracks.
 | [UseWhenDefeatedSystem.ts:75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | `generateEvent(event.context, whenDefeatedSource, true)` passes a `Card` in the `additionalProperties` slot. Line 102 passes `{}` correctly. Harmless today because `this.properties` is assigned last and wins. | pending |
 | [IStateWatcherLKIEntry](../server/game/core/stateWatcher/StateWatcher.ts) | `upgrades` is stored as `GameObjectId<IUpgradeCard>[]` with **no identity component**, so rehydration yields whatever identity the upgrade is at now rather than the captured one. `CardLeftPlayEntry` gets this right by storing `card` and `inPlayId` separately (D-23). | pending |
 | [CardsDefeatedThisPhaseWatcher.ts:134](../server/game/stateWatchers/CardsDefeatedThisPhaseWatcher.ts), [CardsLeftPlayThisPhaseWatcher.ts:112](../server/game/stateWatchers/CardsLeftPlayThisPhaseWatcher.ts) | Store the event's `traits` `Set` **instance** directly into tracked state, so multiple readers share a mutable collection (D-17). | pending |
-| [LkiRegistry.buildRecord](../server/game/core/lki/LkiRegistry.ts) | Records for upgrades hold only the base fields: no `parentCard` and no `parentCardController`. Five cards read both off the legacy struct and cannot opt in until the record carries them: [FinnThisIsARescue](../server/game/cards/02_SHD/leaders/FinnThisIsARescue.ts), [RoseTicoDedicatedToTheCause](../server/game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts), [SystemShock](../server/game/cards/04_JTL/events/SystemShock.ts), [Reforge](../server/game/cards/08_ASH/events/Reforge.ts) and [BladeOfTalzinAGiftOfShadows](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) (SC-2). Part of the surface work in plan D-36 and phase 4. **Fixed in step 3.1 (2026-11-16):** records are now built by [CardRecord.ts](../server/game/core/lki/CardRecord.ts), which records `parentCard`, `parentUnit` and `parentCardController` for an attached upgrade, pinned by a spec in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts). The five cards can opt in once they migrate (phase 4). | done |
+| `LkiRegistry.buildRecord`, now [buildCardRecord](../server/game/core/lki/CardRecord.ts) | Records for upgrades hold only the base fields: no `parentCard` and no `parentCardController`. Five cards read both off the legacy struct and cannot opt in until the record carries them: [FinnThisIsARescue](../server/game/cards/02_SHD/leaders/FinnThisIsARescue.ts), [RoseTicoDedicatedToTheCause](../server/game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts), [SystemShock](../server/game/cards/04_JTL/events/SystemShock.ts), [Reforge](../server/game/cards/08_ASH/events/Reforge.ts) and [BladeOfTalzinAGiftOfShadows](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) (SC-2). Part of the surface work in plan D-36 and phase 4. **Fixed in step 3.1 (2026-11-16):** records are now built by [CardRecord.ts](../server/game/core/lki/CardRecord.ts), which records `parentCard`, `parentUnit` and `parentCardController` for an attached upgrade, pinned by a spec in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts). The five cards can opt in once they migrate (phase 4). | done |
 | [LkiRegistry.commitPending](../server/game/core/lki/LkiRegistry.ts) | A card's leave-play record and its visible → hidden record (R4) share the key `(card, identityId)`, and a later commit replaces an earlier one. So a unit that is defeated and then moved from the discard pile into a hidden zone in the same action loses its leave-play record. Moff Gideon, Remnant Commander returning a unit defeated in the same wipe, or Yoda, Trickster in Exile moving himself to his deck, would do it. A trigger from the defeat that reads the record afterwards gets the discard pile's state: `wasInPlay` is false, so `asInPlay()` throws, and `controller` and `zoneName` are the discard pile's. SC-13's argument that keys cannot collide predates R4. Found by reading the code, not reproduced by a spec. Candidate fix: an identity keeps the first record it gets within an action. **Fixed in step 3.1 (2026-11-16)** with that fix. The spec in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts) reproduces it: Moff Gideon returns a Death Star Stormtrooper to hand in the action that defeated it, and HK-47's trigger from the defeat must damage the base of the player who controlled the Stormtrooper in play. It fails if the later record replaces the earlier one. | done |
 | [ResourceCardSystem](../server/game/gameSystems/ResourceCardSystem.ts) | Writes no record when it moves a card from the discard pile to the resource zone, a visible → hidden move that changes the card's identity. When the card has no record already, as with a unit Spark of Hope resources after it was defeated in an earlier action, a reference bound while it sat in the discard pile is orphaned by the move. The departure assertion (§G.1) checks only moves out of play, so it cannot see this. | pending |
 
@@ -143,6 +143,23 @@ check was not built (D-34).
 The regression coverage that already exists for this family is
 [MoveBetweenZones.spec.ts](../test/scenarios/ability/MoveBetweenZones.spec.ts): Unrefusable Offer with
 Superlaser Technician, and Commandeer with Tobias and Chewbacca.
+
+### B.3 Reading a card in the zone it went to, in the action it left play
+
+Found by the review of 2026-11-17 with probe specs. D-37 answers a characteristic from the record for
+the rest of the action a card left play in. That is right for the departure's own triggers, and wrong
+for a read of the card where it is now, outside a selector, which D-38 does not reach. No card hits any
+of these yet, because none of the cards involved has opted in, and the suite does not exercise them
+(§G.2's audit cannot see them for that reason). Each row has a pending spec in
+[LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts) that asserts the right answer and
+fails today. The plan's step 3.1 proposes a fix for each, and measured the alternative that would fix
+all three at once, option (c): it changed 26 other answers in the suite and improved none.
+
+| Finding | Pending spec | What goes wrong | Proposed fix | Status |
+|---|---|---|---|---|
+| **F1.** A defeated leader unit's leader side keeps the unit's identity, though it enters play as a new copy (SWU 3.4.5, 8.7) | "A leader unit": reads the leader as the leader it has become | For the rest of the action, a read of the leader answers from the unit's record: a ready unit. [GroguCharmingCompanion.ts:35](../server/game/cards/08_ASH/leaders/GroguCharmingCompanion.ts) checks that its leader side is ready, so once it opts in it would offer to deploy again straight after its unit side was defeated | A new identity for the leader side, after checking what keys on identity (watchers comparing `mostRecentInPlayId`, `AbilityLimit`); the unit side's "When Defeated" then reads its own record through the event's reference. Or, narrower, the codemod reads `context.source` as the present inside `setupLeaderSideAbilities` | open |
+| **F2.** Card code that filters a zone itself reads a card that just went there from its record | "A pilot": reads a pilot taken from the discard pile as the unit he is there | A pilot defeated with his vehicle reads as an upgrade, not a unit; a stolen unit in its owner's discard pile reads its thief as controller. Exposed: zone helpers' `condition` callbacks and filters over a zone's cards, such as [TheEmperorsLegion.ts](../server/game/cards/01_SOR/events/TheEmperorsLegion.ts)'s | Extend D-38's present read to cards that card code takes from a zone, in the codemod | open |
+| **F3.** First record wins, so a reference bound to a later move of the same identity reads the departure's record | "When a unit leaves play and moves into a hidden zone": reads the card as it was in the discard pile through the reference of the move | The move's own `event.cardRef` answers as the unit was in the arena, with its old controller, where SWU 8.11 makes it the card in the discard pile. The legacy `event.lastKnownInformation` on the same event is right. No card reads it today; phase 4 moving move-event readers onto `event.cardRef` would expose it | A record per event, when phase 4 makes that move | open |
 
 ---
 
@@ -270,7 +287,7 @@ the default cannot recognize by itself. The audit (§G.2) found no other.
 | Site | Rule | Status |
 |---|---|---|
 | [TargetingComputer.spec.ts:68](../test/server/cards/04_JTL/upgrades/TargetingComputer.spec.ts) | A granted ability is not active from the discard pile while a When Defeated ability resolves (rulings 2025-03-25 and 2025-04-30), so Targeting Computer does not let its controller assign that indirect damage. | pending |
-| [Clone.spec.ts:2027](../test/server/cards/03_TWI/units/Clone.spec.ts) | A defeated Clone reverts completely (ruling 2024), so it is not eligible for effects based on traits it had only while it was a copy. Under D-37 a trait read on the defeated Clone returns the copied traits, so the trigger that implements this must read the present explicitly. | pending |
+| [Clone.spec.ts:2027](../test/server/cards/03_TWI/units/Clone.spec.ts) | A defeated Clone reverts completely (ruling 2024), so it is not eligible for effects based on traits it had only while it was a copy. Under D-37 a trait read on the defeated Clone returns the copied traits, so the trigger that implements this must read the present explicitly. The review of 2026-11-17 points out that the ruling reads as covering every trait-based defeat trigger, not only this one, and [Bothan5NewRepublicPrisonShip.ts](../server/game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts) already reads the defeated unit's traits from last known information. How this ruling and the Annihilator ruling (a defeated Clone keeps its copied name) fit together is an open rules question | pending |
 | [DarthMaulsLightsaber.spec.ts:273](../test/server/cards/05_LOF/upgrades/DarthMaulsLightsaber.spec.ts) | An ability whose source left play before it resolved, asking about the source's *current* attachment, gets the present answer. A Lightsaber defeated by the uniqueness rule is attached to nothing, so its When Played grants no attack (ruling 2025-09-29). The card reads `context.source.parentCard`, a characteristic that D-37 serves from the record, so it must read the present explicitly when it migrates. | pending |
 
 ---
@@ -378,14 +395,41 @@ falls in a class the decisions already cover:
 
 **The getter check, 2026-11-16, with step 3.1 built.** The audit now also asks the built getter the same
 question at each read: `getCurrentProperties` for a selector candidate (D-38), and
-`getLastKnownProperties` otherwise. It checks the answer against the rules as the tables here give them:
-a candidate, a presence read, a card read after its record was flushed, and a card that has become a new
-copy must get the live answer, and a characteristic of a card that left play during the action must get
-the recorded one. Section H of `analysis.md` reports it, and `run.js` fails if any site disagrees. Result:
-9,435 game specs and 0 failures; 5,836 reads at 241 sites in 123 card files; **238 sites checked, 0
-disagree**. The other 3 read identity members (`inPlayId` and the like), which are not on the properties
-surface. The before-and-after counts are those of 2026-11-13. A mutation of the getter makes 11 sites
-disagree, and `--self-check` includes the getter check (7 sites, 0 disagree).
+`getLastKnownProperties` otherwise. It checks the answer against D-37 to D-39, as the tables here apply
+them: a candidate, a presence read, a card read after its record was flushed, and a card that has become
+a new copy must get the live answer, and a characteristic of a card that left play during the action
+must get the recorded one. Section H of `analysis.md` reports it, and `run.js` fails if any site
+disagrees. Result: 9,435 game specs and 0 failures; 5,836 reads at 241 sites in 123 card files; **238
+sites checked, 0 disagree**. The other 3 read identity members (`inPlayId` and the like), which are not
+on the properties surface. The before-and-after counts are those of 2026-11-13. A mutation of the getter
+makes 11 sites disagree, and `--self-check` includes the getter check (7 sites, 0 disagree).
+
+What the check does not show (the review of 2026-11-17): it compares the getter with the design, not with
+the rules, so it cannot flag a site where D-37 itself is wrong (§B.3). Its last known answer comes from a
+snapshot taken in the same call that writes the record, so an error in timing or keying that both share
+is invisible. For a selector candidate it compares a pass-through with the card it passes through to.
+And it counts two failures as agreeing. It is a regression guard for D-37 to D-39 at the sites the
+suite reaches.
+
+**Option (c), 2026-11-18.** The review proposed deciding by when a reference was bound: a record answers
+only a reference bound before the record was written, and anything else reads the present. To measure
+it, the helper stamps every assignment of a context's `source` and `target` and an event's `card`, keeps
+every committed record with when it was committed, and answers each read under (c) too. A read counts
+as bound when its receiver is written as one of those members and card code reached the card through it
+just before, or through a local or helper in the same function. Variant "lineage" lets a copied context,
+or a then or ifYouDo step, inherit its parent's binding of the same card. Section I of `analysis.md`
+reports where (c) differs from the built getter. Result: 9,443 game specs and 0 failures; 127 sites
+that read a characteristic outside a selector checked; (c) differs at **26 sites in 17 card files**, the
+same 26 in both variants:
+
+| Reason | Sites | Cards | Verdict |
+|---|---:|---|---|
+| Orphaned: bound before the card changed identity without a record | 19 | 16 are bound before the card entered play: `onCardPlayed` triggers whose `event.card` was bound while the card was still in a hand or a discard pile (L3-37, Krayt Dragon, Tactical Droid Commander, Fighters for Freedom, Toro Calican, Obi-Wan Kenobi, Colonel Yularen, Luke Skywalker, Grogu, Boba Fett, Insurgent Camp), and the play of a card in Sneak Attack and Unrefusable Offer. 3 follow Superlaser Technician into the resource zone, which writes no record (§B: Unrefusable Offer, and Thrawn twice) | (c) would throw. It needs SC-14's binding after entering play, and a record for every identity change, before it can run |
+| Bound after the record | 4 | Grand Admiral Thrawn, How Unfortunate (twice) and Shadow Caster: a Clone's name in a prompt title; Boba Fett, Daimyo | (c) is wrong for the first three: the Annihilator ruling keeps a defeated Clone's copied name. No effect for Boba Fett |
+| Bound to an earlier copy | 3 | Baylan Skoll, Enigmatic Master (twice) and A New Adventure: a card returned to hand | (c) is wrong: it answers as the card was in play, and would let the wrong player play it |
+
+F1 to F3 (§B.3) never happen in the suite, so (c) changes 26 answers here and improves none. The plan's
+step 3.1 weighs it against the narrower fixes.
 
 **Where it would have thrown** (55 sites in 41 files). Every one reads a card that left play in an earlier
 action and kept its identity, so the card was picked up again, legitimately, from the zone it went to:
@@ -637,3 +681,47 @@ landed on `main` since `445792e61`.
   and changed the content at Ravager's anchors. The anchors into every changed file were re-checked, and
   the moved ones updated (§B.2, §D, SC-11). Two anchors in the plan's step 3.1, item 5, pointed at
   tombstone assertions that no longer exist, so they now name the specs instead.
+
+**2026-11-17 and 2026-11-18 — branch `ammayberry1/lki-refactor-3`, a review of step 3.1 (committed as
+`bf8d7cc96`), and its follow-up.**
+
+- **The review.** An independent reviewer read the branch against `main` and ran probe specs, which it
+  removed afterwards; it changed nothing in the working tree. Its findings and what became of them are
+  in the plan's step 3.1, under "The review".
+- **Fixed:**
+  - The attack-state presence reads of a recorded view no longer throw.
+  - Presence through a reference to an earlier copy answers about that copy.
+  - A live view names the card's current identity.
+  - Records hold frozen arrays and objects rather than a `Set` and a `Map`.
+  - The record swallows only the zone gate's failure, and a Fortify upgrade's `parentUnit` explains itself.
+  - Interface documentation corrected (`cost`, `isInPlay()`, `capturedUnits`, attack state on a live view).
+- **Specs:** five new ones in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts):
+  - every recorded characteristic, including a keyword another card gave;
+  - owner and controller where they differ;
+  - presence of an earlier copy;
+  - a pilot;
+  - a leader unit.
+
+  Also the attack-state reads in the first recorded-view spec, three pending specs for F1 to F3 (§B.3),
+  a flush count in `probeRecordAtFlush`, and the live view's identity in
+  [LkiOptIn.spec.ts](../test/scenarios/lki/LkiOptIn.spec.ts).
+- **Mutation checks** (fifteen runs), each failing the spec meant to catch it:
+  - the attack-state guard, twice;
+  - presence of an earlier copy;
+  - aspects, keywords, numeric keyword totals, exhausted, owner, an upgrade's parent and the kind checks
+    not recorded or recorded wrong;
+  - no flush at the action boundary, which the flush count now catches;
+  - the live view keeping the stale reference.
+
+  Each pending spec, switched on, fails as its finding describes.
+- **Gates:** `npm test` 10,354 specs (71 pending) and `npm run test-undo` 9,254 (78 pending), 0 failures:
+  8 specs more than on 2026-11-16, 3 of them pending. `eslint --quiet`, `validate-cards`,
+  `validate-specs` and `capture-states -- --check` pass.
+- **The audit**, extended to measure option (c) (§G.2): 9,443 game specs, 0 failures. The getter check is
+  unchanged at 238 sites and 0 disagreements; (c) differs at 26 sites, improving none. A new module,
+  [shared.js](../scripts/lki-audit/shared.js), holds the classification the helper and the analysis share.
+  `--self-check` passes, with a new check that (c)'s instrumentation sees reads through a binding.
+- **The spike's figures** were re-counted by one stated method (the plan's step 3.1): 822 selector
+  callbacks of eight kinds, not 775 of three.
+- **Environment.** `build/` held 14 compiled files from another branch (player reports, action timers),
+  built on 2026-11-17. The audit's preflight caught them; they were deleted.

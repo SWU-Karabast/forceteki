@@ -78,13 +78,17 @@ export class LkiRegistry {
      */
     public getLiveProperties(ref: CardRef): ICardProperties {
         const card = ref.getCardForEngine();
+
+        // A live view describes the card as it is now, so it names the identity the card has now, even
+        // when the caller's reference names an earlier one.
+        const current = ref.isCurrent ? ref : this.getIdentity(card);
         if (card.isUnit()) {
-            return new LiveUnitProperties(ref, card);
+            return new LiveUnitProperties(current, card);
         }
         if (card.isUpgrade()) {
-            return new LiveUpgradeProperties(ref, card);
+            return new LiveUpgradeProperties(current, card);
         }
-        return new LiveCardProperties(ref, card);
+        return new LiveCardProperties(current, card);
     }
 
     private static recordedView(ref: CardRef, record: IRecordedCardState): ICardProperties {

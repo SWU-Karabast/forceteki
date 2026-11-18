@@ -43,6 +43,9 @@ interface IRecordProbe {
     card: { identityId: number } | null;
     identityId: number | null;
     sawRecord: boolean;
+
+    /** How many flushes the probe has seen, so a spec can tell "no record" from "no flush happened". */
+    flushes: number;
 }
 
 const recordProbes = new WeakMap<object, IRecordProbe>();
@@ -52,15 +55,17 @@ const recordProbes = new WeakMap<object, IRecordProbe>();
  * when each flush happens, and returns the sample.
  *
  * For specs that check a card was never recorded. The flush at the end of the action clears any
- * record, and leaves nothing behind (D-39), so a leak has to be caught as the flush happens.
+ * record, and leaves nothing behind (D-39), so a leak has to be caught as the flush happens. Such a
+ * spec also checks that a flush happened, or it would pass without having looked.
  * Installed once per registry for the same reason as {@link probeStagedRecordsBeforeFlush}.
  */
 function probeRecordAtFlush(registry, card): IRecordProbe {
     if (!recordProbes.has(registry)) {
-        const probe: IRecordProbe = { card: null, identityId: null, sawRecord: false };
+        const probe: IRecordProbe = { card: null, identityId: null, sawRecord: false, flushes: 0 };
         const realFlush = registry.flushRecords.bind(registry);
 
         registry.flushRecords = () => {
+            probe.flushes++;
             if (probe.card && registry.hasRecordFor(probe.card, probe.identityId)) {
                 probe.sawRecord = true;
             }
@@ -74,6 +79,7 @@ function probeRecordAtFlush(registry, card): IRecordProbe {
     probe.card = card;
     probe.identityId = card.identityId;
     probe.sawRecord = false;
+    probe.flushes = 0;
     return probe;
 }
 
@@ -299,6 +305,7 @@ describe('Last known information', function () {
                 // characteristics report the abandoned defeat's values for the rest of the action.
                 // The action has ended by now, and its flush has cleared any record, so the probe
                 // looks as the flush happens.
+                expect(recordAtFlush.flushes).toBeGreaterThan(0);
                 expect(recordAtFlush.sawRecord).toBeFalse();
 
                 const properties = registry.getProperties(registry.getIdentity(context.chewbacca)).asUnit();
@@ -412,6 +419,7 @@ describe('Last known information', function () {
                 // wrote a registry record, this still-live unit would answer with its pre-damage
                 // values for the rest of the action. The action has ended, so the probe looks at the
                 // flush that ended it.
+                expect(recordAtFlush.flushes).toBeGreaterThan(0);
                 expect(recordAtFlush.sawRecord).toBeFalse();
 
                 context.player1.clickCard(context.chimaera);

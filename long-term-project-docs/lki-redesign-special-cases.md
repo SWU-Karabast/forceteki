@@ -3,7 +3,8 @@
 **Status:** living document. Added to incrementally as the design progresses. Last reviewed for handoff on
 2026-11-01 against `main` at `445792e61`. Updated on 2026-11-05 with SC-22 and SC-23, and with status
 notes for the decisions D-37 to D-39. Updated on 2026-11-16 for step 3.1, which built D-36 to D-39 on the
-branch `ammayberry1/lki-refactor-3` (not merged).
+branch `ammayberry1/lki-refactor-3` (not merged), and on 2026-11-18 for the review of step 3.1, whose
+three open findings are register §B.3.
 
 Companion to [lki-redesign-decisions-and-insights.md](./lki-redesign-decisions-and-insights.md),
 which tracks decisions made and insights about current engine behavior. That document opens with a
@@ -35,14 +36,14 @@ says where each one stands now.
 | SC-4 | Shallow capture and the cyclic card graph | Resolved by design: `upgrades` are `CardRef`s, so nothing recurses (D-18, D-26) |
 | SC-5 | Window-batched capture preserves simultaneity | Built: records are staged at `preResolutionEffects` (D-30) |
 | SC-6 | Phase-scoped LKI in state watchers | Deferred: watchers keep their own extracts (D-16, D-20). See SC-19 |
-| SC-7 | Copy identity is zone-gated and overloaded | Built: `Card.identityId` is total. Open: real counters for event cards, bases and tokens (phase 4) |
+| SC-7 | Copy identity is zone-gated and overloaded | Built: `Card.identityId` is total. Open: real counters for event cards, bases and tokens (phase 4), and a defeated leader unit's leader side, which keeps the unit's identity although SWU 8.7 makes it a new copy (F1, register §B.3) |
 | SC-8 | One ability needs frozen and live views of a card | Resolved by D-37, which replaced D-31's resolution: characteristics read as last known, presence reads the present. Built in step 3.1 |
 | SC-9 | Reference identity comparisons | Interning is built (D-8). Identity-aware equality takes effect once events carry references (phase 4) |
 | SC-10 | `when` conditions are evaluated twice | Characterized in phase 0.4. A per-card question in phase 4 |
 | SC-11 | Seven cards hand-roll the read-through fallback | Two migrated (CalculatedLethality, Asajj). Five remain (phase 4) |
 | SC-12 | Where cards read the current location | Inventory, superseded by register §A, which the audit completed. Under D-37 these reads keep working as written. Boga's predicate is gone (#2997) |
-| SC-13 | Several records for one card in one action | Built and tested (SC-16). The one collision the argument missed (register §B) is fixed in step 3.1: an identity keeps its first record |
-| SC-14 | Reference binding time for enter-play events | Open: phase 2, item 2 |
+| SC-13 | Several records for one card in one action | Built and tested (SC-16). The one collision the argument missed (register §B) is fixed in step 3.1: an identity keeps its first record. Open: a later move's own reference then reads the departure's record (F3, register §B.3) |
+| SC-14 | Reference binding time for enter-play events | Open: phase 2, item 2. Option (c) would depend on it: 16 of the 19 reads that throw under (c) are references bound before their card entered play (register §G.2) |
 | SC-15 | How a reference becomes orphaned | Built: visible → hidden records (R4). Tombstones (D-21) were built, then removed in step 3.1 (D-39). The orphan throw stays |
 | SC-16 | Regression test for SC-13 | Built |
 | SC-17 | `power` versus `printedPower` | Built: the type-level split for units (D-27). Step 3.1 renamed the guard `hasInPlayStats()` (D-37), because `isInPlay()` means "now" |
@@ -50,7 +51,7 @@ says where each one stands now.
 | SC-19 | State watchers as a back-channel for LKI | Ravager done; the rest are phase 4 |
 | SC-20 | Delayed effects cannot read properties later | Standing rule: hand-migrate in phase 4 |
 | SC-21 | Follow-through events outlive their subject's identity | Standing: the reason D-34 was decided |
-| SC-22 | A card read again, after it left play, in the zone it went to | Built in step 3.1: D-39, and D-38's present-state read. How a selector receives its candidate is open (D-38) |
+| SC-22 | A card read again, after it left play, in the zone it went to | Built in step 3.1: D-39, and D-38's present-state read. How a selector receives its candidate is open (D-38). Open: the same read in the action the card left play, outside a selector (F1, F2, register §B.3) |
 | SC-23 | Present-tense questions about a card that left play | Built in step 3.1: D-37. Two exceptions remain (register §F.1) |
 
 ---
@@ -1328,9 +1329,13 @@ so reads of a card that left play in an earlier action read the present. Card co
 itself is covered by D-39 when the card left play in an earlier action. The audit found no case in the
 same action where the value differs. If one appears, extend D-38 to cards taken from a zone.
 
-**Status (2026-11-16).** Step 3.1 built D-39 and D-38's present-state read, `getCurrentProperties`. How a
-selector receives its candidate is open: the spike in the plan's step 3.1, item 6, recommends the engine
-passing it as a present-state properties object.
+**Status (2026-11-18).** Step 3.1 built D-39 and D-38's present-state read, `getCurrentProperties`. How a
+selector receives its candidate is open; the plan's step 3.1 recommends the engine passing it as a
+present-state properties object. The review of 2026-11-17 showed that the case "if one appears" above
+can: within the action a card left play, a read of it outside a selector gets its record, so a pilot
+defeated with his vehicle is not a unit in the discard pile, and a defeated leader is still a ready unit
+(F1, F2, register §B.3). Both have pending specs. The plan recommends extending D-38 to cards that card
+code takes from a zone, and a new identity for a leader side entering play.
 
 ---
 

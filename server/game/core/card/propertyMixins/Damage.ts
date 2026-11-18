@@ -12,6 +12,9 @@ export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     setActiveAttack(attack: Attack);
     unsetActiveAttack();
     isDefending(): boolean;
+
+    /** Whether the card's zone allows it to take part in an attack, which `activeAttack` requires. */
+    canHaveActiveAttack(): boolean;
     get activeAttack(): Attack;
     get damage(): number;
     get remainingHp(): number;

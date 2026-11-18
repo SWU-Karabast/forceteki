@@ -13,6 +13,14 @@
  * It instruments `Card` members, so it measures card code that reads cards directly. Once card code
  * reads through the card state getter, point it at the properties classes instead.
  *
+ * It also measures option (c), the bind-time rule proposed in the 2026-11-17 review: a record answers
+ * only a reference bound before the record was written, and anything else reads the present. Each
+ * context's `source` and `target` and each event's `card` is stamped when assigned, every committed
+ * record is kept with the moment it was committed, and each read is answered under that rule as well.
+ * Two variants: "strict", where a reference is bound when the context object holding it was given it,
+ * and "lineage", where a copied context or a then/ifYouDo step's context inherits its parent's binding
+ * for the same card.
+ *
  * See long-term-project-docs/lki-migration-register.md §G.2.
  */
 'use strict';
@@ -20,6 +28,7 @@
 const path = require('path');
 const fs = require('fs');
 const nodeModule = require('module');
+const { PRESENCE, IDENTITY, receiverOf, receiverKind } = require('./shared');
 
 const ROOT = process.cwd();
 const OUT = process.env.LKI_AUDIT_OUT || path.join(ROOT, 'build', 'lki-audit', 'report.json');
@@ -27,6 +36,11 @@ const requireBuilt = (relativePath) => require(path.join(ROOT, 'build', relative
 
 const { LkiRegistry } = requireBuilt('server/game/core/lki/LkiRegistry.js');
 const cardIndex = requireBuilt('server/game/cards/Index.js');
+const { AbilityContext } = requireBuilt('server/game/core/ability/AbilityContext.js');
+const { TriggeredAbilityContext } = requireBuilt('server/game/core/ability/TriggeredAbilityContext.js');
+const { ReplacementEffectContext } = requireBuilt('server/game/core/ability/ReplacementEffectContext.js');
+const { CardAbilityStep } = requireBuilt('server/game/core/ability/CardAbilityStep.js');
+const { GameEvent } = requireBuilt('server/game/core/event/GameEvent.js');
 
 const GETTERS = [
     'title', 'subtitle', 'type', 'traits', 'aspects', 'keywords', 'cost', 'printedCost', 'unique',
@@ -61,10 +75,17 @@ function noteAuditError(error) {
 function getAudit(registry) {
     if (!registry.__lkiAudit) {
         // pending: eventId -> Map(key -> entry). committed and tombstoned are keyed by card uuid, then identity.
-        registry.__lkiAudit = { pending: new Map(), committed: new Map(), tombstoned: new Map() };
+        // history keeps every committed record, in commit order, for option (c): uuid -> identity -> [{ commitSeq, entry }].
+        registry.__lkiAudit = { pending: new Map(), committed: new Map(), tombstoned: new Map(), history: new Map() };
     }
     return registry.__lkiAudit;
 }
+
+/** Orders bindings and record commits, for option (c). */
+let seq = 0;
+
+/** Orders card-code accesses and reads, to tell how recently a card was reached through a binding. */
+let tick = 0;
 
 function normalize(value) {
     if (value === undefined) {
@@ -227,6 +248,19 @@ registryProto.commitPending = function (eventId) {
                 if (!byIdentity.has(entry.identityId)) {
                     byIdentity.set(entry.identityId, entry);
                 }
+
+                // Option (c) keeps every record, with when it was committed.
+                let historyByIdentity = audit.history.get(entry.uuid);
+                if (!historyByIdentity) {
+                    historyByIdentity = new Map();
+                    audit.history.set(entry.uuid, historyByIdentity);
+                }
+                let records = historyByIdentity.get(entry.identityId);
+                if (!records) {
+                    records = [];
+                    historyByIdentity.set(entry.identityId, records);
+                }
+                records.push({ commitSeq: ++seq, entry });
             }
             audit.pending.delete(eventId);
         }
@@ -263,6 +297,7 @@ registryProto.flushRecords = function () {
         }
         audit.committed.clear();
         audit.pending.clear();
+        audit.history.clear();
     } catch (error) {
         noteAuditError(error);
     }
@@ -275,6 +310,7 @@ registryProto.clearForRollback = function () {
         audit.committed.clear();
         audit.pending.clear();
         audit.tombstoned.clear();
+        audit.history.clear();
     } catch (error) {
         noteAuditError(error);
     }
@@ -332,6 +368,162 @@ function frameLabel(callSite) {
     return `${path.basename(file).replace(/\.js$/, '')}:${type && type !== 'Object' ? type + '.' : ''}${fn}`;
 }
 
+// ---- option (c): when each reference was bound
+
+/** The value of each tracked member, with when each card in it was bound: owner -> member -> slot. */
+const slots = new WeakMap();
+
+/** The context a context was copied from, or the context of the step that created a then/ifYouDo step. */
+const lineage = new WeakMap();
+
+/** The last time card code reached each card through a tracked member. */
+const lastAccess = new WeakMap();
+
+function isCardLike(value) {
+    return value != null && typeof value === 'object' && typeof value.uuid === 'string' && typeof value.identityId === 'number';
+}
+
+/** Card -> { boundAt, identityId } for a card or an array of cards; `null` for anything else. */
+function bindingsFor(value) {
+    const cards = Array.isArray(value) ? value.filter(isCardLike) : (isCardLike(value) ? [value] : []);
+    if (cards.length === 0) {
+        return null;
+    }
+    const boundAt = ++seq;
+    const bindings = new Map();
+    for (const card of cards) {
+        bindings.set(card, { boundAt, identityId: card.identityId });
+    }
+    return bindings;
+}
+
+/** The earliest binding of `card` to `member` along the owner's lineage, for the lineage variant. */
+function lineageBinding(owner, member, card, binding) {
+    let earliest = binding;
+    for (let ancestor = lineage.get(owner); ancestor; ancestor = lineage.get(ancestor)) {
+        const inherited = slots.get(ancestor)?.[member]?.bindings?.get(card);
+        if (inherited && inherited.identityId === binding.identityId && inherited.boundAt < earliest.boundAt) {
+            earliest = inherited;
+        }
+    }
+    return earliest;
+}
+
+function noteAccess(owner, member, via, slot, getterFn) {
+    try {
+        let audited = false;
+        for (const card of slot.bindings.keys()) {
+            if (subjectState(card)) {
+                audited = true;
+                break;
+            }
+        }
+        if (!audited) {
+            return;
+        }
+        const caller = rawCallSites(getterFn, 1)[0];
+        const file = caller && caller.getFileName();
+        if (!file || !file.includes(CARDS_DIR)) {
+            return;
+        }
+        const position = toSourcePosition(file, caller.getLineNumber(), caller.getColumnNumber());
+        const fn = caller.getFunctionName() || caller.getMethodName() || '<anonymous>';
+        const now = ++tick;
+        for (const [card, binding] of slot.bindings) {
+            lastAccess.set(card, {
+                via, file: position.file, fn, tick: now, identityId: binding.identityId,
+                boundAt: binding.boundAt, lineageBoundAt: lineageBinding(owner, member, card, binding).boundAt
+            });
+        }
+    } catch (error) {
+        noteAuditError(error);
+    }
+}
+
+/**
+ * Replaces a plain field, assigned in the constructor, with an accessor that stamps each assignment.
+ * The value is unchanged and stays on the same object, so nothing the engine compares is affected.
+ */
+function installTracked(prototype, member, via) {
+    const existing = Object.getOwnPropertyDescriptor(prototype, member);
+    if (existing) {
+        throw new Error(`[lki-audit] ${prototype.constructor.name}.${member} is already defined on the prototype`);
+    }
+
+    /** @this {object} the context or event whose member is being read */
+    const getter = function () {
+        const slot = slots.get(this)?.[member];
+        if (!slot) {
+            return undefined;
+        }
+        if (suppress === 0 && slot.bindings) {
+            noteAccess(this, member, via, slot, getter);
+        }
+        return slot.value;
+    };
+    Object.defineProperty(prototype, member, {
+        configurable: true,
+        enumerable: true,
+        get: getter,
+        set(value) {
+            let owned = slots.get(this);
+            if (!owned) {
+                owned = {};
+                slots.set(this, owned);
+            }
+            owned[member] = { value, bindings: bindingsFor(value) };
+        }
+    });
+}
+
+installTracked(AbilityContext.prototype, 'source', 'context.source');
+installTracked(AbilityContext.prototype, 'target', 'context.target');
+installTracked(GameEvent.prototype, 'card', 'event.card');
+
+for (const contextClass of [AbilityContext, TriggeredAbilityContext, ReplacementEffectContext]) {
+    if (!Object.prototype.hasOwnProperty.call(contextClass.prototype, 'copy')) {
+        continue;
+    }
+    const originalCopy = contextClass.prototype.copy;
+    contextClass.prototype.copy = function (...args) {
+        const copy = originalCopy.apply(this, args);
+        lineage.set(copy, this);
+        return copy;
+    };
+}
+
+const originalBuildSubStepContext = CardAbilityStep.prototype.buildSubAbilityStepContext;
+CardAbilityStep.prototype.buildSubAbilityStepContext = function (subAbilityStepProps, canBeTriggeredBy, parentContext) {
+    const context = originalBuildSubStepContext.call(this, subAbilityStepProps, canBeTriggeredBy, parentContext);
+    if (context && parentContext) {
+        lineage.set(context, parentContext);
+    }
+    return context;
+};
+
+/**
+ * What a read answers under option (c), for a reference bound at `boundAt` to identity `identityId`:
+ * the first record of that identity committed after it was bound; failing that, the card as it is now
+ * if the identity is still current; and otherwise nothing, as for an orphaned reference.
+ */
+function optionCAnswer(card, name, args, boundAt, identityId, liveValue) {
+    const records = card.game._lkiRegistry?.__lkiAudit?.history.get(card.uuid)?.get(identityId) || [];
+    const index = records.findIndex((record) => record.commitSeq > boundAt);
+    if (index !== -1) {
+        let reason = 'bound before the record';
+        if (identityId !== card.identityId) {
+            reason = 'bound to an earlier copy';
+        } else if (index > 0) {
+            reason = 'a later record than the first';
+        }
+        return { answer: lastKnownValue(records[index].entry.snap, name, args), reason };
+    }
+    if (identityId === card.identityId) {
+        return { answer: liveValue, reason: records.length > 0 ? 'bound after the record' : 'no record' };
+    }
+    return { answer: { threw: 'orphaned reference' }, reason: 'orphaned' };
+}
+
 // ---- the wrapper
 
 function subjectState(card) {
@@ -385,6 +577,84 @@ function askGetter(card, read, name, args) {
     }
 }
 
+const sourceLines = new Map();
+
+function sourceLine(file, line) {
+    try {
+        if (!sourceLines.has(file)) {
+            sourceLines.set(file, fs.readFileSync(path.join(ROOT, file), 'utf8').split(/\r?\n/));
+        }
+        return sourceLines.get(file)[line - 1] || '';
+    } catch {
+        return '';
+    }
+}
+
+/**
+ * Option (c) for one read: was the receiver reached through a binding, and what does the rule answer?
+ *
+ * A receiver written as a context's `source` or `target`, or an event's `card`, is bound if card code
+ * reached the card through that member just before. A plain identifier is bound if the card was
+ * reached through a binding earlier in the same function (a local holding `context.target`, say). Any
+ * other receiver is bound if a binding was reached immediately before (a helper that returns
+ * `context.target`). Everything else, a selector's candidate among it, is unbound and reads the present.
+ */
+function evaluateOptionC(card, name, args, position, cardFn, liveValue) {
+    const readTick = ++tick;
+    const kind = receiverKind(receiverOf(sourceLine(position.file, position.line), name, position.column));
+    const access = lastAccess.get(card);
+    const ticksAgo = access ? readTick - access.tick : null;
+
+    let bound = false;
+    if (access && access.file === position.file) {
+        if (kind === 'context.source' || kind === 'context.target' || kind === 'event.card') {
+            bound = access.via === kind && ticksAgo <= 3;
+        } else if (kind === 'identifier') {
+            bound = access.fn === cardFn;
+        } else {
+            bound = ticksAgo <= 2;
+        }
+    }
+
+    if (PRESENCE.has(name) || IDENTITY.has(name) || !bound) {
+        const reason = PRESENCE.has(name) || IDENTITY.has(name) ? 'presence or identity' : 'unbound';
+        return { kind, bound, strict: { answer: liveValue, reason }, lineage: { answer: liveValue, reason } };
+    }
+    return {
+        kind, bound, via: access.via,
+        strict: optionCAnswer(card, name, args, access.boundAt, access.identityId, liveValue),
+        lineage: optionCAnswer(card, name, args, access.lineageBoundAt, access.identityId, liveValue)
+    };
+}
+
+function accumulateOptionC(site, optionC, lastKnownAnswer, currentAnswer, liveValue) {
+    const stats = site.optionC;
+    stats.kinds[optionC.kind] = (stats.kinds[optionC.kind] || 0) + 1;
+    if (optionC.bound) {
+        stats.bound++;
+    }
+    let differs = false;
+    for (const variant of ['strict', 'lineage']) {
+        const { answer, reason } = optionC[variant];
+        const counts = stats[variant];
+        counts.reasons[reason] = (counts.reasons[reason] || 0) + 1;
+        if (answer.unavailable || lastKnownAnswer.unavailable) {
+            counts.unavailable++;
+            continue;
+        }
+        counts.matchesLastKnown += sameResult(answer, lastKnownAnswer) ? 1 : 0;
+        counts.matchesCurrent += !currentAnswer.unavailable && sameResult(answer, currentAnswer) ? 1 : 0;
+        counts.matchesLive += sameResult(answer, liveValue) ? 1 : 0;
+        differs = differs || !sameResult(answer, lastKnownAnswer);
+    }
+    if (differs && stats.examples.length < 4) {
+        stats.examples.push({
+            spec: currentSpec, kind: optionC.kind, via: optionC.via, live: liveValue, lastKnown: lastKnownAnswer,
+            current: currentAnswer, strict: optionC.strict, lineage: optionC.lineage
+        });
+    }
+}
+
 function recordHit(card, name, args, hit, live, threw) {
     const cardFrame = hit.callSites[0];
     const position = toSourcePosition(cardFrame.getFileName(), cardFrame.getLineNumber(), cardFrame.getColumnNumber());
@@ -411,17 +681,23 @@ function recordHit(card, name, args, hit, live, threw) {
     const lastKnownAnswer = askGetter(card, 'getLastKnownProperties', name, args);
     const currentAnswer = askGetter(card, 'getCurrentProperties', name, args);
 
+    // What option (c) answers, by how the receiver was reached.
+    const optionC = evaluateOptionC(card, name, args, position, cardFn, liveValue);
+
     const key = `${position.file}:${position.line}:${position.column}|${name}|${hit.subject.state}`;
     let site = sites.get(key);
     if (!site) {
+        const variantStats = () => ({ matchesLastKnown: 0, matchesCurrent: 0, matchesLive: 0, unavailable: 0, reasons: {} });
         site = {
             file: position.file, line: position.line, column: position.column, property: name,
             state: hit.subject.state, cardFn, invokedBy: {}, count: 0, differs: 0, same: 0,
             lkiUnavailable: 0, liveThrew: 0, examples: [], subjects: {}, args: {},
-            getter: { lastKnownMatchesLive: 0, lastKnownMatchesLki: 0, currentMatchesLive: 0, notOnSurface: 0, mismatches: [] }
+            getter: { lastKnownMatchesLive: 0, lastKnownMatchesLki: 0, currentMatchesLive: 0, notOnSurface: 0, mismatches: [] },
+            optionC: { kinds: {}, bound: 0, strict: variantStats(), lineage: variantStats(), examples: [] }
         };
         sites.set(key, site);
     }
+    accumulateOptionC(site, optionC, lastKnownAnswer, currentAnswer, liveValue);
 
     if (lastKnownAnswer.unavailable) {
         site.getter.notOnSurface++;

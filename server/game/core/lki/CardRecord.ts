@@ -32,10 +32,10 @@ export interface IRecordedCardState {
     readonly type: CardType;
     readonly controller: Player;
     readonly owner: Player;
-    readonly traits: ReadonlySet<Trait>;
+    readonly traits: readonly Trait[];
     readonly aspects: readonly Aspect[];
     readonly keywords: readonly ICardKeyword[];
-    readonly numericKeywordTotals: ReadonlyMap<NumericKeywordName, number>;
+    readonly numericKeywordTotals: Readonly<Partial<Record<NumericKeywordName, number>>>;
     readonly unique: boolean;
     readonly cost: number | null;
     readonly printedCost: number | null;
@@ -80,13 +80,18 @@ type Writable<T> = { -readonly [K in keyof T]: T[K] };
 /**
  * Reads a zone-gated member, returning `undefined` where the card's zone disables it.
  *
- * Only the engine's own zone assertions are swallowed. Anything else is a real failure and is rethrown.
+ * Only the zone gate's own failure is swallowed (see `Card.buildPropertyDisabledForZoneStr`). Anything
+ * else is a real failure and is rethrown.
  */
 function readIfEnabled<T>(read: () => T): T | undefined {
     try {
         return read();
     } catch (error) {
-        if (error instanceof Error && error.message.startsWith('Contract assertion failure')) {
+        if (
+            error instanceof Error &&
+            error.message.startsWith('Contract assertion failure') &&
+            error.message.includes('where the property does not apply')
+        ) {
             return undefined;
         }
         throw error;
@@ -100,20 +105,19 @@ function freezeKeywords(card: Card): readonly ICardKeyword[] {
     })));
 }
 
-function numericKeywordTotals(card: Card): ReadonlyMap<NumericKeywordName, number> {
-    const totals = new Map<NumericKeywordName, number>();
-    if (!card.canBeExhausted()) {
-        return totals;
-    }
-    for (const keyword of card.keywords) {
-        if (keyword.hasNumericValue() && !totals.has(keyword.name)) {
-            const total = card.getNumericKeywordTotal(keyword.name);
-            if (total != null) {
-                totals.set(keyword.name, total);
+function numericKeywordTotals(card: Card): Readonly<Partial<Record<NumericKeywordName, number>>> {
+    const totals: Partial<Record<NumericKeywordName, number>> = {};
+    if (card.canBeExhausted()) {
+        for (const keyword of card.keywords) {
+            if (keyword.hasNumericValue() && totals[keyword.name] === undefined) {
+                const total = card.getNumericKeywordTotal(keyword.name);
+                if (total != null) {
+                    totals[keyword.name] = total;
+                }
             }
         }
     }
-    return totals;
+    return Object.freeze(totals);
 }
 
 function readKindChecks(card: Card): Readonly<Record<RecordedKindCheck, boolean>> {
@@ -136,9 +140,9 @@ export function buildCardRecord(card: Card, getIdentity: (card: Card) => CardRef
         type: card.type,
         controller: card.controller,
         owner: card.owner,
-        // Copy the collections: the record must not hand out anything a caller could mutate for every
-        // other reader (D-17).
-        traits: new Set(card.traits),
+        // Copy the collections into frozen arrays: the record must not hand out anything a caller could
+        // mutate for every other reader (D-17), and a Set or Map cannot be frozen.
+        traits: Object.freeze([...card.traits]),
         aspects: Object.freeze([...card.aspects]),
         keywords: freezeKeywords(card),
         numericKeywordTotals: numericKeywordTotals(card),

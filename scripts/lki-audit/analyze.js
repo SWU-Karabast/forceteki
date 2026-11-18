@@ -15,9 +15,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const { PRESENCE, IDENTITY, receiverOf } = require('./shared');
 
-const PRESENCE = new Set(['isInPlay', 'zoneName', 'zone', 'isAttacking', 'isDefending', 'activeAttack', 'isAttached', 'captureZone']);
-const IDENTITY = new Set(['inPlayId', 'mostRecentInPlayId']);
 const SELECTOR_PATH = /checkCardCondition|cardConditionsAreSatisfied|CardSelector|matchTarget|checkMatch|attackerCondition|targetCondition/i;
 const SELECTOR_FN = /^(cardCondition|matchTarget|attackerCondition|targetCondition)$/;
 
@@ -37,22 +36,6 @@ function readSourceLine(root, cache, file, line) {
     } catch {
         return '';
     }
-}
-
-/** The expression the member was read from, for example `context.source` or `card`. */
-function receiverOf(text, property, column) {
-    const needle = `.${property}`;
-    let best = -1;
-    for (let at = text.indexOf(needle); at !== -1; at = text.indexOf(needle, at + 1)) {
-        if (best === -1 || Math.abs(at - (column - 1)) < Math.abs(best - (column - 1))) {
-            best = at;
-        }
-    }
-    if (best === -1) {
-        return '?';
-    }
-    const match = (/([\w$]+(?:\??\.[\w$]+|\[[^\]]*\]|\([^)]*\))*)\??$/).exec(text.slice(0, best));
-    return match ? match[1] : '?';
 }
 
 function isSelectorCandidate(site) {
@@ -163,7 +146,53 @@ function render(report, sites) {
             lines.push(`  - live ${JSON.stringify(example.live).slice(0, 70)}; last known ${JSON.stringify(example.lki).slice(0, 70)}; getter ${JSON.stringify(example.lastKnown).slice(0, 70)}; present ${JSON.stringify(example.current).slice(0, 70)}`);
         }
     }
+
+    const optionC = checkOptionC(sites);
+    lines.push('', `## I. Option (c), the bind-time rule, against D-37 to D-39 — ${optionC.checked} sites checked`, '');
+    lines.push('Under option (c) a record answers only a reference bound before the record was written, and anything else reads the present; presence and selector candidates read the present under both. "Strict" binds a reference when the context object holding it was given it; "lineage" lets a copied context or a then/ifYouDo step inherit its parent\'s binding of the same card. Each site below answers differently from the built getter in at least one read.', '');
+    for (const variant of ['strict', 'lineage']) {
+        lines.push(`- ${variant}: ${optionC[variant].length} sites differ, in ${fileSet(optionC[variant].map((entry) => entry.site)).size} card files. By reason: ${Object.entries(optionC.byReason[variant]).map(([reason, n]) => `${reason} ${n}`)
+            .join(', ') || 'none'}.`);
+    }
+    for (const variant of ['strict', 'lineage']) {
+        lines.push('', `### I.${variant === 'strict' ? '1' : '2'} ${variant} — ${optionC[variant].length} sites`, '');
+        for (const { site, example, reason } of optionC[variant]) {
+            lines.push(`- \`${site.file.replace(/^server\/game\/cards\//, '')}:${site.line}\` \`${site.receiver}.${site.property}\` — ${reason}; ${site.optionC.kinds ? Object.keys(site.optionC.kinds).join('/') : ''} receiver, in \`${site.cardFn}\`; ${site.count} reads`);
+            lines.push(`  - source: \`${site.text.slice(0, 150)}\``);
+            if (example) {
+                lines.push(`  - live ${JSON.stringify(example.live).slice(0, 60)}; built getter ${JSON.stringify(example.lastKnown).slice(0, 60)}; option (c) ${JSON.stringify(example[variant].answer).slice(0, 60)}`);
+                lines.push(`  - spec: ${example.spec.slice(0, 150)}`);
+            }
+        }
+    }
     return lines.join('\n');
+}
+
+/**
+ * Where option (c) answers differently from the built getter. Presence and selector candidates read
+ * the present under both rules, so only the remaining characteristic reads can differ.
+ */
+function checkOptionC(sites) {
+    const result = { checked: 0, strict: [], lineage: [], byReason: { strict: {}, lineage: {} } };
+    for (const site of sites) {
+        const stats = site.optionC;
+        if (!stats || site.category !== 'characteristic' || site.candidate) {
+            continue;
+        }
+        result.checked++;
+        for (const variant of ['strict', 'lineage']) {
+            const counts = stats[variant];
+            const asked = site.count - counts.unavailable;
+            if (asked === 0 || counts.matchesLastKnown === asked) {
+                continue;
+            }
+            const example = stats.examples.find((candidate) => JSON.stringify(candidate[variant].answer) !== JSON.stringify(candidate.lastKnown));
+            const reason = example ? example[variant].reason : Object.keys(counts.reasons)[0];
+            result[variant].push({ site, example, reason });
+            result.byReason[variant][reason] = (result.byReason[variant][reason] || 0) + 1;
+        }
+    }
+    return result;
 }
 
 /** What the rules say the getter must answer at a site, and whether it did at every read there. */
@@ -206,10 +235,10 @@ function analyze(reportPath, root, outPath) {
     if (outPath) {
         fs.writeFileSync(outPath, text);
     }
-    return { report, sites, text, getterCheck: checkGetter(sites) };
+    return { report, sites, text, getterCheck: checkGetter(sites), optionC: checkOptionC(sites) };
 }
 
-module.exports = { analyze, classify, checkGetter };
+module.exports = { analyze, classify, checkGetter, checkOptionC };
 
 if (require.main === module) {
     const root = process.cwd();

@@ -16,10 +16,16 @@ engine actually behaves today**.
 
 > **Step 3.1 is built; next is the codemod (step 3.2), after one decision.** D-36 to D-39 are built on
 > the branch `ammayberry1/lki-refactor-3`, which is not merged yet. The full suite passes, and the
-> behavior-delta audit (register §G.2) checks the built getter at every site the suite reaches: all 238
-> answer as the rules say. The decision left is how a selector receives its candidate (D-38). The spike
-> in [step 3.1](#31--widen-the-properties-surface), item 6, recommends the engine passing a present-state
-> properties object. A maintainer confirms before the codemod is written.
+> behavior-delta audit (register §G.2) checks the built getter against D-37 to D-39 at every site the
+> suite reaches: none of the 238 disagrees. An independent review (2026-11-17) found a bug and gaps in
+> the tests and documents, now fixed on the branch, and three cases where the default reads a card
+> wrongly in the zone it went to (F1 to F3), which are open with pending specs (register §B.3).
+>
+> The decision left is how a selector receives its candidate (D-38). The review proposed a third option,
+> (c), a rule by when a reference was bound, which would also fix F1 to F3. The audit measured it: in the
+> suite it changes 26 answers and improves none. [Step 3.1](#31--widen-the-properties-surface) has the
+> options, the measurement, and a recommendation: (a), with narrower fixes for F1 to F3. A maintainer
+> decides before the codemod is written.
 
 **Reading order.** This section, then §1 and §1.1 (the design), then §7 (the plan and where it stands),
 then the register (the work list). Everything else is reference: §2–§6 hold the reasoning behind each
@@ -44,7 +50,7 @@ Nothing else for this work has landed. Step 3.1 is built on the branch and not m
 | 0 — baselines and gates | ✅ done ([#2931](https://github.com/SWU-Karabast/forceteki/pull/2931)) |
 | 1 — core components, seven migrated cards | ✅ done ([#2931](https://github.com/SWU-Karabast/forceteki/pull/2931)) |
 | 3.0 — the opt-in flag | ✅ done ([#3030](https://github.com/SWU-Karabast/forceteki/pull/3030)) |
-| 3.1 — widen the properties surface, and build D-37 to D-39 | ✅ built on 2026-11-16, on the branch, not merged. The properties object covers every member card code reads, apart from engine machinery |
+| 3.1 — widen the properties surface, and build D-37 to D-39 | ✅ built on 2026-11-16, on the branch, not merged. The properties object covers every member card code reads, apart from engine machinery. Reviewed on 2026-11-17: fixes made, three findings open (register §B.3) |
 | 3.2–3.4 — the codemod, its verification, authoring guidance | Not started |
 | 2 — event plumbing | Not started; runs after phase 3 |
 | 4 — grow the opted-in set | Not started |
@@ -53,7 +59,8 @@ Nothing else for this work has landed. Step 3.1 is built on the branch and not m
 
 | Decision | Tracked in | State |
 |---|---|---|
-| How a selector receives its candidate: a present-state properties object passed by the engine, or a `getCurrentProperties` call in card code | D-38, [step 3.1](#31--widen-the-properties-surface), item 6 | **Open.** The spike recommends the engine passing a properties object; a maintainer confirms before step 3.2 |
+| How a selector receives its candidate: (a) a present-state properties object passed by the engine, (b) a `getCurrentProperties` call in card code, or (c) a rule by when a reference was bound | D-38, [step 3.1](#31--widen-the-properties-surface), register §G.2 | **Open.** Recommended: (a). (c) was measured: 26 answers change in the suite, none for the better. A maintainer decides before step 3.2 |
+| Reading a card in the zone it went to, in the action it left play (F1 to F3 from the review) | register §B.3, [step 3.1](#31--widen-the-properties-surface) | **Open.** Each has a pending spec and a proposed fix; F2's belongs in the codemod |
 | Fix for Maul, Master of the Shadow Collective's wrong-copy bug (DJ - Blatant Thief shares the cause and is unverified) | register §B.1 | Deferred by decision on 2026-10-23: "We'll do the fix later." The bug predates the LKI work. A candidate fix is identified and not applied |
 | Real identity counters for event cards, bases and tokens | D-8, phase 4 | Deferred to phase 4 |
 | An event-level identity check | D-34, SC-21 | Not built. Only if wanted, and in shadow mode first |
@@ -235,6 +242,10 @@ before this work.
 > are built. Step 3.1 (2026-11-16, not merged) built the full properties surface (D-36) and the defaults
 > of D-37 to D-39. One part of D-38 is open: how a selector receives its candidate. See
 > [Decided but not built](#decided-but-not-built).
+>
+> The default is known to answer wrongly in one shape of read: a card read in the zone it went to, in
+> the action it left play, outside a selector. The review of 2026-11-17 found three cases (F1 to F3,
+> register §B.3), none of which any card hits yet. Step 3.1 proposes a fix for each.
 
 ---
 
@@ -271,7 +282,7 @@ candidate. The spike in step 3.1 recommends an answer, and a maintainer confirms
 | D-35 | How does a card opt in to last known information, and what does a card that has not opted in get? | **`Card.usesLkiRegistry`** (public, default `false`) selects the getter passed to the card's setup: `game.cardStates.forCard(card)` returns the registry-backed getter for an opted-in card and a **live-only** getter for every other. The live-only getter reads the card as it is now — it never consults records, tombstones or identity, so a reference to an earlier identity reads the card instead of throwing. That is what lets every card's reads be rewritten through the getter before the card is migrated, with no change in behavior. `getIdentity` works for every card either way, because identity does not depend on the timeline. When one card runs another's setup (Clone, copied triggered abilities) the getter follows the card whose *code* is running, not the card receiving the abilities. The flag is transitional and is removed in phase 4. | Decided |
 | D-36 | How much of the `Card` surface must the properties object cover before the sweep (phase 3), and how is it built? | **Every member card code reads, apart from engine machinery, written by hand, under `Card`'s names.** The interface had 19 members where card code reads about 76 (§3.20), and a read can be rewritten through the getter only if its member exists. The five questions of [step 3.1](#31--widen-the-properties-surface), answered: (1) **Coverage:** every member in §3.20's categories except engine machinery, so the sweep can rewrite every read. (2) **The recorded side:** every *characteristic* the interface exposes is recorded at departure, so a card that opts in never meets a field that was not recorded. Presence members are never recorded: on both variants they read the live card (D-37). Register §G.2 lists the characteristics read on departed cards. (3) **Names:** `Card`'s (`isUnit`, `isUpgrade`, `isNonLeaderUnit`, `isBase` …), so most rewrites only swap the receiver; `isUnitCard` and `asUnitCard` become `isUnit` and `asUnit`. D-37 adds two: `isInPlay()` keeps `Card`'s meaning and the in-play guard becomes `hasInPlayStats()`, and `arena` is new. (4) **Built by hand:** under D-37 every member is one of three kinds — a recorded characteristic, a live presence read, or excluded — which a mapped type would have to restate member by member, and hand-writing keeps mutators and engine machinery out by construction (D-28). The spike step 3.1 proposed was not run; this requirement settled it. (5) **Kinds:** `isInPlay()` means for every kind what it means on `Card`. Card, unit and upgrade come first, with `parentCard`, `parentUnit` and `parentCardController` recorded for upgrades; other kinds follow when a read needs them. | Decided 2026-11-05. Built 2026-11-16 (step 3.1), with bases as a kind as well |
 | D-37 | Which reads default to last known information, and which to the present? | **Characteristics default to last known information; presence reads the present.** Card implementers are not expected to know when last known information applies, so the default has to be right nearly everywhere and the exceptions few and named. Characteristics are what SWU 8.11.1 lists — attributes, controller, modifiers, damage, exhausted status, upgrades — and for an upgrade, the card it was attached to (the Gar Saxon ruling). They answer about the moment a properties object represents. Presence — `isInPlay()`, `zoneName`, `zone`, `isAttached()`, `isAttacking()`, `isDefending()`, `activeAttack` — answers about now, on recorded views as well. The last known location is a characteristic of its own, `arena`. D-27's guard is renamed `hasInPlayStats()`, so that `isInPlay()` keeps `Card`'s meaning. Measured by the behavior-delta audit (register §G.2): every one of the 30 presence reads of a departed card wanted the present, and the five characteristic answers that change are each correct or without effect. Two exceptions need an explicit present read (register §F.1). Supersedes D-31, and restores the split in [D-3 in detail](#d-3-in-detail). See [below](#d-37-to-d-39-in-detail--the-default-measured). | Decided 2026-11-05. Built 2026-11-16 (step 3.1) |
-| D-38 | What does a selector's candidate read? | **The present.** The card a selector callback is asked about — in `cardCondition`, `matchTarget`, `attackerCondition` or a cost adjuster's match — comes from a live zone query, so it never consults records or tombstones. Only the candidate: other cards the callback reads, such as `context.source`, follow D-37. The audit found 25 candidate reads that would have thrown, and two whose answer would have changed. How the candidate reaches the present-state read is settled by the spike in step 3.1. | Decided 2026-11-05. The present-state read, `getCurrentProperties`, built 2026-11-16. How the candidate reaches it is **open**: the spike in [step 3.1](#31--widen-the-properties-surface), item 6, recommends the engine passing a properties object |
+| D-38 | What does a selector's candidate read? | **The present.** The card a selector callback is asked about — in `cardCondition`, `matchTarget`, `attackerCondition` or a cost adjuster's match — comes from a live zone query, so it never consults records or tombstones. Only the candidate: other cards the callback reads, such as `context.source`, follow D-37. The audit found 25 candidate reads that would have thrown, and two whose answer would have changed. How the candidate reaches the present-state read is settled by the spike in step 3.1. | Decided 2026-11-05. The present-state read, `getCurrentProperties`, built 2026-11-16. How the candidate reaches it is **open**, between (a), (b) and the review's (c). [Step 3.1](#31--widen-the-properties-surface) recommends (a), the engine passing a properties object, extended to cards that card code takes from a zone (F2); its measurement of (c) found no gain in the suite |
 | D-39 | What does a read of a tombstoned identity return? | **The card as it is now. Tombstones are dropped.** A tombstone cannot tell a reference held past its action, the bug D-21 targets, from a card someone has picked up again from the zone it went to, because interning makes the two the same reference. The audit found 55 legitimate reads in 41 card files that the throw would have broken: discard-pile selectors, triggers on a card played back from the discard pile, a leader reading itself after its unit side was defeated. Reading the present is today's behavior, so nothing regresses. What D-21 guarded becomes guidance (requirement 11, SC-20). The orphan throw stays (D-14, case ④). Supersedes D-21. | Decided 2026-11-05. Built 2026-11-16 (step 3.1) |
 | D-20 | When are footprints flushed? | **At the action boundary.** LKI is only meaningful between a trigger and its resolution, and no ability resolution spans an action boundary — so after it, any LKI read through a reference is definitionally a bug. Retention would mask those bugs. | Decided |
 | D-21 | How is a flushed-but-referenced identity detected? | **Tombstones** — retain the identity key after dropping its data, so a stale read throws instead of silently reading live. Tombstones persist for the game but are **cleared on rollback** (D-29). | **Superseded by D-39** |
@@ -279,7 +290,7 @@ candidate. The spike in step 3.1 recommends an answer, and a maintainer confirms
 | D-23 | May a `CardRef` enter tracked state? | **No — refs are transient** and must never appear in undo snapshots. Tracked state stores `(uuid, identityId)` primitives and rehydrates on read. | Decided |
 | D-24 | API surface: getter name, type name, relation traversal, location queries | `getLastKnownProperties(ref)` returning `IUnitProperties`; getter supplied as a **setup-time parameter**; card-valued relations routed **through the getter**; location questions asked of the game, not the properties object. See below. | Decided — the location part is superseded by D-31, and D-31 by D-37 |
 | D-25 | How is the cost of materializing properties controlled? | **Polymorphic properties object**: a *live* variant holding a card reference with lazy pass-through getters, or a *snapshot* variant holding frozen captured values. No global memoization or invalidation. See below. | Decided |
-| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesRecorded` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names were provisional; they shipped as `RecordedUnitProperties` and `LiveUnitProperties` (`RecordedCardProperties` and `LiveCardProperties` for the non-unit base). See below. | Decided |
+| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesRecorded` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names were provisional; they shipped as `RecordedUnitProperties` and `LiveUnitProperties` (`RecordedCardProperties` and `LiveCardProperties` for the non-unit base). See below. | Decided. Since step 3.1 a recorded view reads presence from the live card, so it is not durable either: a consumer that keeps values copies them (D-16) |
 | D-27 | How are in-play-only properties (`power`, `upgrades`, `activeAttack`) exposed? | **Type-level split with a narrowing guard**, preserving the existing `isInPlay()` guards and upgrading them from runtime throw to compile-time error. `power` and `printedPower` stay distinct concepts. See SC-17. | Decided. Step 3.1 renamed the guard `hasInPlayStats()` (D-37), because `isInPlay()` means "in play now" |
 | D-28 | How is the live `Card` kept out of reach of card authors? | **No live card on the event at all.** `event.card` is the single field and holds a `CardRef` whose `_card` is private. Engine code obtains the live object via a `deref` capability that is absent from the card-facing facade. Enforced by facade typing plus two lint rules; typed events are explicitly **not** a prerequisite. See below. | Decided |
 | D-29 | What happens to the registry on rollback? | **Footprints and tombstones are cleared; the intern map survives.** Rollback restores tracked state only, and mid-action rollback is a first-class path, so without this a footprint from an abandoned timeline would be served for a re-created identity. See below. | Decided. The tombstones went with D-39 (step 3.1) |
@@ -2226,25 +2237,42 @@ field at a time, and question 4 is settled.
    records it a second time, and HK-47's trigger still damages the base of the player who controlled it
    in play.
 
-**The D-38 spike (2026-11-16, reverted).** Of 775 single-line selector callbacks, 540 only read the
-candidate's properties, 221 compare it with other cards by identity, and 31 pass it to a function. One
-card from each group was rewritten both ways and compiled: Rogue Squadron Skirmisher
-(`card.isUnit() && card.cost <= 2`), Gar Saxon, Viceroy of Mandalore (whether the candidate is among the
-defeated unit's recorded upgrades) and Spark of Hope (passes the candidate to a watcher).
+**The D-38 spike (2026-11-16, reverted).** One card from each shape of selector callback was rewritten
+both ways and compiled: Rogue Squadron Skirmisher (`card.isUnit() && card.cost <= 2`, which only reads
+the candidate), Gar Saxon, Viceroy of Mandalore (whether the candidate is among the defeated unit's
+recorded upgrades) and Spark of Hope (passes the candidate to a watcher).
+
+The shapes, re-counted on 2026-11-18 because the spike's figures did not add up (540 + 221 + 31 is not
+775). Card code has eight kinds of selector callback: `cardCondition` (610), `matchTarget` (112),
+`attackerCondition` (40), `multiSelectCardCondition` (16), `attachTargetCondition` (15),
+`targetCondition` (14), `shouldCardHaveDamageModification` (9) and `multiSelectCondition` (6), 822 in
+all. 751 fit on one line. Of those, 490 only read the candidate, 231 compare it with other cards by
+identity, 30 pass it to a function (4 do both) and 4 ignore it. 142 read a member that under (a) needs
+narrowing or a new name: an in-play stat, a card-valued member, or a renamed accessor such as
+`getPower()`. Card code also filters zones itself, through the `condition` of helpers such as
+`getArenaUnits` and `hasSomeArenaUnit` (67 on one line), which no option for selectors covers.
 
 - **(b) `getCurrentProperties` in card code** compiles today and changes nothing else. But each candidate
   read needs the call, so each author has to know to make it and pick between two getters, the choice
-  D-37 removes everywhere else. A guard on the properties object does not narrow the `Card` it came from:
-  Spark of Hope had to repeat `card.isUnit()` on the card before passing it to the watcher. And a
-  candidate's in-play stats need `hasInPlayStats()` first.
-- **(a) The engine passes a present-state properties object.** Card code has no choice to make, and the
-  540 read the candidate as they do now. But a properties object is not a `Card`: an identity comparison
-  has to compare `ref`s (Gar Saxon), and a helper or watcher that takes a `Card` needs a version that
-  takes a reference (Spark of Hope does not compile: TS2345). So (a) changes the selector signatures and
-  has to ship with the codemod, which rewrites the 221 comparisons and the 31 calls.
+  D-37 removes everywhere else. A forgotten call compiles and goes wrong only when the candidate left
+  play during the action, which few specs set up. A guard on the properties object does not narrow the
+  `Card` it came from: Spark of Hope had to repeat `card.isUnit()` on the card before passing it to the
+  watcher. And a candidate's in-play stats need `hasInPlayStats()` first.
+- **(a) The engine passes a present-state properties object.** Card code has no choice to make. Changing
+  the callback's parameter type also makes the compiler list every site that needs work: an identity
+  comparison has to compare `ref`s (Gar Saxon), and a helper or watcher that takes a `Card` needs a
+  version that takes a reference (Spark of Hope does not compile: TS2345). The 142 that read in-play
+  stats or renamed members need narrowing or renaming too. So (a) changes the selector signatures of all
+  eight kinds and has to ship with the codemod. `getCurrentProperties` should then leave the getter card
+  code receives (or a lint rule should keep it out of `server/game/cards`), or the choice (b) needs comes
+  back. Candidate properties objects must be built for each evaluation, never cached: a pilot attaching
+  or a leader deploying changes the kind.
+- **(c) A bind-time rule**, proposed by the review on 2026-11-17 (below), which would make the question
+  unnecessary.
 
-*Recommendation: (a)*, because it keeps the choice out of card code, as D-37 does for every other read.
-A maintainer confirms it before step 3.2.
+*Recommendation of 2026-11-16: (a)*, because it keeps the choice out of card code, as D-37 does for every
+other read. The review agrees that (a) beats (b), mainly because of the compiler's list. Whether (c)
+replaces both is open; see the review and the measurement below.
 
 **Done when** the normal and undo suites pass and every item above has its spec. The audit must also
 agree: extend it to ask the built getter the same question at each site it reports, and check that
@@ -2259,10 +2287,93 @@ the getter's answer is the one register §G.2 says the rules give.
   `arena` read live, tombstones restored, no record for a visible → hidden move, a record written at
   creation (the Chewbacca spec), and a record for damage.
 - The audit's getter check (register §G.2, section H of its report) asks the built getter the question
-  at each site: 238 sites checked across 9,435 specs, and none disagrees. Under a mutation of the
-  getter, 11 do.
+  at each site: 238 sites checked across 9,435 specs, and none disagrees with D-37 to D-39. Under a
+  mutation of the getter, 11 do. The check compares the getter with the design, not with the rules: it
+  cannot flag a site where D-37 itself gives the wrong answer (the review's F1 to F3, below).
 
-3.1 is built on `ammayberry1/lki-refactor-3` and lands with that branch, before 3.2 starts.
+**The review (2026-11-17).** An independent review of the branch, made before deciding D-38, ran probe
+specs against the built code. What it found, and what became of it:
+
+- **Fixed on the branch (2026-11-18), each with a spec that fails without its fix:**
+  - On a recorded view of a unit that left play, `isAttacking()`, `isDefending()` and `activeAttack`
+    threw, because `Card`'s attack state only exists in an arena or the base zone. They now answer "no".
+  - Presence read through a reference to a card that has since become a new copy described the new copy,
+    so a defeated and replayed unit answered `isInPlay()` true. The copy a recorded view describes now
+    answers as being nowhere (SWU 8.5.4); `zoneName` still says where the physical card is.
+  - A live view asked through such a reference was labelled with that reference; it now names the
+    identity the card has.
+  - Records held a `Set` and a `Map`, which `Object.freeze` does not freeze; they are frozen arrays and a
+    frozen object now, and the view hands out a copy of the traits (D-17). The record only swallows the
+    zone gate's own failure. Reading `parentUnit` from a Fortify upgrade's record now says the parent was
+    a base.
+  - Tests: one spec pins every recorded characteristic, including a keyword another card gave and the
+    record of the Shield token that left play with the unit, and one pins owner and controller where
+    they differ. A pilot and a leader unit each have a spec. The flush probe also checks that a flush
+    happened, so its specs cannot pass without looking.
+    An assertion that pinned `isInPlay()` false for a leader, an engine convention the rules disagree
+    with (SWU 4.9.1), is gone.
+  - Documentation: `cost` is `null` only for bases and leaders that never deploy as a unit; `isInPlay()`
+    answers as `Card.isInPlay()` does; a recorded view's `capturedUnits` name identities a rescue replaces;
+    a fourth known difference for the codemod (`subtitle`); the corrected spike figures above.
+- **Open: three cases where the default gives the wrong answer** (register §B.3). Each has a pending spec
+  that asserts the right answer and fails today. All three are reads of a card in the zone it went to,
+  in the action it left play, outside a selector, which D-38 does not reach:
+  - **F1.** A defeated leader unit's leader side enters play as a new copy (SWU 3.4.5, 8.7), but the
+    engine keeps the identity, so for the rest of that action a read of the leader is answered from the
+    unit's record: ready, a unit. Grogu, Charming Companion's leader side, which checks that it is
+    ready, would offer to deploy again once Grogu opts in.
+  - **F2.** Card code that filters a zone itself reads a card that just went there from its record: a
+    defeated pilot is not a unit, and a stolen unit in its owner's discard pile is its thief's.
+  - **F3.** "First record wins" is right for the departure's triggers, but a reference bound to a later
+    move of the same identity, such as Moff Gideon returning the unit to hand, reads the departure's
+    record instead of its own.
+- **Proposed: option (c), a bind-time rule.** A record answers only a reference bound before the record
+  was written; anything bound later, or not bound at all, reads the present. A "When Defeated" ability's
+  context is created when its trigger is emitted, which is before the event window commits its records
+  (`EventWindow.resolveEvents`), so its source reads the record. A leader-side ability's context, created
+  after the defeat, reads the present (F1); a card taken from a zone, or a selector's candidate, is not
+  bound and reads the present (F2, and D-38 without a mechanism); a move event's own reference reads the
+  first record written after it was bound, which is its own (F3). It needs contexts and events to carry
+  bound references, which is phase 2 and 4 work, and its own trap: a context created after a departure,
+  such as a then step's, would read the present unless it inherits its parent's binding.
+
+**Option (c), measured (2026-11-18).** The audit now answers each read under (c) as well (register §G.2,
+section I of its report). Across the 9,443 game specs it checked 127 sites that read a characteristic
+outside a selector, the only reads where (c) and the built getter can differ. They differ at 26 sites in
+17 card files: the same 26 whether a then step inherits its parent's bindings or not, and none of them
+a case (c) is meant to fix.
+
+- **19 would throw.** Each reads through a reference bound before its card changed identity without a
+  record. 16 were bound before the card entered play, most of them `onCardPlayed` triggers whose
+  `event.card` was bound while the card was still in a hand or a discard pile; 3 follow a card into the
+  resource zone, which writes no record (register §B). (c) cannot run until references to a card
+  entering play are bound after it enters play (SC-14, phase 2), and every identity change that matters
+  writes a record.
+- **3 lose a defeated Clone's copied name**, which the Annihilator ruling keeps: Grand Admiral Thrawn,
+  How Unfortunate (twice) and Shadow Caster, Just Business, whose events are created after the defeat.
+- **3 read a card returned to hand as it was in play**, through the reference bound before it left:
+  Baylan Skoll, Enigmatic Master (twice) and A New Adventure. They would let the wrong player play the
+  card; register §G.2 found the present right there.
+- **1 differs without effect** (Boba Fett, Daimyo).
+
+F1 to F3 never happen in the suite, which is why the audit did not see them. So (c) would change 26
+answers in the suite and improve none. Its gains are the three latent findings, and each has a narrower
+fix:
+
+- **F1:** give a defeated leader's leader side a new identity, as SWU 8.7 says, after checking what
+  keys on identity (watchers that compare `mostRecentInPlayId`, `AbilityLimit`). The unit side's "When
+  Defeated" then reads its own record through the event's reference. Narrower still: the codemod reads
+  `context.source` as the present inside `setupLeaderSideAbilities`.
+- **F2:** extend D-38's present read to cards that card code takes from a zone itself: zone helpers'
+  `condition` callbacks and filters over a zone's cards. This belongs in the codemod.
+- **F3:** give each event its own record when phase 4 moves the readers of move events onto
+  `event.cardRef`. Until then the pending spec marks it.
+
+*Recommendation, 2026-11-18: keep D-37's default, choose (a) for D-38 with the F2 extension, and fix F1
+and F3 as above.* A maintainer decides.
+
+3.1 is built on `ammayberry1/lki-refactor-3` (commit `bf8d7cc96`) and lands with that branch, before 3.2
+starts.
 
 #### 3.2 — The codemod
 
@@ -2308,7 +2419,7 @@ The register's sites are not skipped. They must not have `usesLkiRegistry` set w
 review, but under D-35 a swept read in a card that has not opted in reads live state exactly as before.
 Since D-37, §A's sites need no review. §F.1's exceptions still do.
 
-**Where the live-only getter is not identical to reading the card.** Two differences are known, found by
+**Where the live-only getter is not identical to reading the card.** Four differences are known, found by
 reading the property classes. The list is not a proof of completeness, so the sweep still needs the full
 normal and undo suites as its check. The codemod has to account for both, and its tests should pin each:
 
@@ -2321,6 +2432,11 @@ normal and undo suites as its check. The codemod has to account for both, and it
 - **`keywords` is plain data.** Each entry is `{ name, value }`, not a keyword instance, so code that
   calls a keyword's methods needs rewriting. `hasSomeKeyword()` and `getNumericKeywordTotal()` behave as
   on `Card`.
+- **`subtitle` is `null` for a card without one**, where the card itself can answer `undefined`. A
+  comparison of two subtitles read one each way flips: Jump to Lightspeed compares two cards' subtitles,
+  so its two sides have to be swept together.
+
+Neither tsconfig enables `strictNullChecks`, so the compiler does not point at any of the `null`s.
 
 #### 3.3 — Verification
 
@@ -2340,6 +2456,20 @@ documents today. Update them in the sweep PR. Decide whether a lint rule on `ser
 (`eslint-rules/` has precedents) warns about direct property reads from the sweep onwards, rather than
 only at the end of phase 4 (D-28). A second candidate rule would flag a `zoneFilter` set from a card's
 `zoneName`. That almost always means "in the same arena", which wants `arena` (D-37).
+
+The review (2026-11-17) added three more candidates, all traps the compiler does not catch without
+`strictNullChecks`:
+
+- `zoneFilter: props.arena` where `arena` can be `null`: a `null` zone filter silently becomes "any arena
+  or base" (`BaseCardSelector`), so "in the same arena" turns into "anywhere". Asajj Ventress asserts the
+  arena and Ravager falls back to its default arena; nothing makes a new card do either. An alternative
+  to a lint rule is an `arena` that fails when it is `null`, beside an explicit way to ask whether there
+  is one.
+- A comparison on `cost` without `hasCost()`: `null <= 3` is true.
+- `isInPlay()` guarding in-play stats on the same receiver, as in
+  `x.isInPlay() ? x.asInPlayStats().power : x.printedPower`. It compiles and passes a spec of the main
+  path, and gives printed power for a unit that just left play, which is the shape Ravager had before
+  step 3.1. The guard is `hasInPlayStats()`.
 
 ### Phase 4 — grow the opted-in set
 
