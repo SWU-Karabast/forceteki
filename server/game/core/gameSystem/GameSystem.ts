@@ -44,7 +44,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
-    protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
+    private readonly ownDefaultTargetsFn = (context: TContext) => this.defaultTargets(context);
+    protected getDefaultTargets: (context: TContext) => any = this.ownDefaultTargetsFn;
 
     protected abstract isTargetTypeValid(target: GameObject | GameObject[]): boolean;
 
@@ -274,6 +275,16 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     public setDefaultTargetFn(func: (context: TContext) => any): void {
         this.getDefaultTargets = func;
+    }
+
+    /** Restores the {@link GameSystem.defaultTargets} method as this system's default targets, undoing {@link GameSystem.setDefaultTargetFn} */
+    public resetDefaultTargetFn(): void {
+        this.getDefaultTargets = this.ownDefaultTargetsFn;
+    }
+
+    /** True if a caller has assigned this system's default targets with {@link GameSystem.setDefaultTargetFn}, even if they are empty */
+    protected hasAssignedDefaultTarget(): boolean {
+        return this.getDefaultTargets !== this.ownDefaultTargetsFn;
     }
 
     /**

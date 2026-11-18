@@ -543,6 +543,13 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             return;
         }
 
+        // if this copy is already being defeated (e.g. it was dealt lethal damage as it entered play), it doesn't
+        // count toward the uniqueness rule, so run the check from one of the copies that is staying in play instead
+        if (this.pendingDefeat) {
+            uniqueDuplicatesInPlay[0].checkUnique();
+            return;
+        }
+
         if (this.isUpgrade() && uniqueDuplicatesInPlay.every((duplicateCard) =>
             duplicateCard.isUpgrade() &&
             duplicateCard.parentCard === this.parentCard

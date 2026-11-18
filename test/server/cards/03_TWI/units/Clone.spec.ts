@@ -253,6 +253,38 @@ describe('Clone', function() {
             });
         });
 
+        describe('when played from an opponent\'s resources by Tear This Ship Apart', function() {
+            it('should enter play under the playing player\'s control as non-unique copy of another unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jabba-the-hutt#crime-boss',
+                        base: 'echo-base',
+                        hand: ['tear-this-ship-apart'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                        resources: ['clone', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tearThisShipApart);
+                context.player1.clickCardInDisplayCardPrompt(context.clone);
+
+                // Clone's pre-enter-play ability resolves for player1 even though player2 still controls it in their resource row
+                expect(context.player1).toHavePrompt(clonePrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.clone).toBeInZone('groundArena', context.player1);
+                expect(context.clone).toBeCloneOf(context.wampa);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('when played from deck', function() {
             it('should enter play as non-unique copy of another unit', async function () {
                 await contextRef.setupTestAsync({

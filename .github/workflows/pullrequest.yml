@@ -9,6 +9,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   lint:
     if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
@@ -102,4 +104,3 @@ jobs:
         run: npm run get-cards
 
       - run: npm run capture-states -- --check
-
