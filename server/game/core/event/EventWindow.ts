@@ -276,7 +276,7 @@ export class EventWindow extends BaseStepWithPipeline {
     }
 
     protected resolveEvents() {
-        const eventsToResolve = this._events.sort((event) => event.order);
+        const eventsToResolve = this._events.sort((a, b) => a.order - b.order);
 
         // we emit triggered abilities here to ensure that they get triggered in case e.g. an ability is blanked during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {

@@ -4,12 +4,9 @@ import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelp
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 
 /**
- * Phase 0 vertical slice for the gamenode test suite.
- *
- * These specs prove the foundation the rest of the suite is built on: a `GameServer` can be stood up
- * in-process on a port it owns, without needing AWS credentials or the deployed card data, its API
- * can be driven over HTTP, and it can be torn down cleanly. The assertions deliberately stay on
- * observable API behaviour rather than the server's internal maps.
+ * The lobby routes over HTTP: creating a custom lobby, listing the open ones, and joining one. These were the suite's
+ * first specs; they assert on the API's responses rather than on the server's internal maps. Where a socket connects is
+ * covered by `SocketConnectionRouting`, and a lobby's life after that by `LobbyLifecycle`.
  */
 describe('GameServer lobby API', function () {
     serverIntegration(function (contextRef) {
@@ -45,14 +42,9 @@ describe('GameServer lobby API', function () {
 
                 expect(lobbyNames).toEqual(['test-lobby-1', 'test-lobby-2']);
 
+                // each owner connects, as a real one does, so the lobby is open for others to find
                 for (const lobbyName of lobbyNames) {
-                    const response = await harness.api
-                        .post('/api/create-lobby')
-                        .send(createLobbyBody({ lobbyName }));
-
-                    expect(response.status).withContext(JSON.stringify(response.body))
-                        .toBe(200);
-                    expect(response.body.success).toBe(true);
+                    await harness.openLobbyAsync({}, { lobbyName });
                 }
 
                 const response = await harness.api.get('/api/available-lobbies');
@@ -100,11 +92,7 @@ describe('GameServer lobby API', function () {
         describe('GET /api/available-lobbies', function () {
             it('advertises a newly created public lobby with its configuration and host', async function () {
                 const lobbyName = harness.uniqueLobbyName();
-
-                const created = await harness.api
-                    .post('/api/create-lobby')
-                    .send(createLobbyBody({ lobbyName }));
-                expect(created.status).toBe(200);
+                await harness.openLobbyAsync({}, { lobbyName });
 
                 const response = await harness.api.get('/api/available-lobbies');
                 expect(response.status).toBe(200);
@@ -117,21 +105,8 @@ describe('GameServer lobby API', function () {
                 expect(lobby.host).not.toBeNull();
             });
 
-            // Characterises current behaviour: `createLobbyUser` marks the owner 'connected' via
-            // `updateUserLastActivity` even though their socket is still null, so a lobby is advertised
-            // from the moment it is created over HTTP. That covers the gap while the client navigates,
-            // but it also means a lobby whose owner never connects stays listed as joinable.
-            it('advertises a lobby whose owner has not connected a socket', async function () {
-                const lobbyName = harness.uniqueLobbyName();
-
-                await harness.api
-                    .post('/api/create-lobby')
-                    .send(createLobbyBody({ lobbyName }));
-
-                const response = await harness.api.get('/api/available-lobbies');
-
-                expect(response.body.some((lobby) => lobby.name === lobbyName)).toBe(true);
-            });
+            // TODO: add a spec for how a lobby whose owner has not connected is listed and cleaned up, once
+            // Open finding #1 in long-term-project-docs/game-node-test-suite.md is fixed.
 
             it('does not advertise a private lobby', async function () {
                 const lobbyName = harness.uniqueLobbyName();
@@ -155,6 +130,16 @@ describe('GameServer lobby API', function () {
 
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
+            });
+
+            it('refuses a lobby whose two seats are taken', async function () {
+                const { lobbyId } = await harness.createLobbyWithGuestAsync();
+                const latecomer = harness.createClient();
+
+                const response = await latecomer.joinLobbyAsync(lobbyId);
+
+                expect(response.status).toBe(400);
+                expect(response.body).toEqual({ success: false, message: 'Lobby is full' });
             });
         });
     });

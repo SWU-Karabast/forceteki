@@ -183,12 +183,12 @@ describe('Simultaneous triggers', function() {
 
                 // Resolving the first instance still prompts for the upgrade on its own unit
                 context.player1.clickPrompt('Resolve next');
-                expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
-                context.player1.clickCard(context.devotion);
-
-                // The last instance resolves automatically as the only remaining trigger, targeting the other unit
                 expect(context.player1).toBeAbleToSelectExactly([context.shield]);
                 context.player1.clickCard(context.shield);
+
+                // The last instance resolves automatically as the only remaining trigger, targeting the other unit
+                expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
+                context.player1.clickCard(context.devotion);
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.devotion).toBeInZone('discard');
@@ -234,11 +234,11 @@ describe('Simultaneous triggers', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
                 context.player1.clickPrompt('Resolve all (2)');
 
-                expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
-                context.player1.clickCard(context.devotion);
-
                 expect(context.player1).toBeAbleToSelectExactly([context.shield]);
                 context.player1.clickCard(context.shield);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
+                context.player1.clickCard(context.devotion);
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
                 context.player1.clickPrompt('Trigger');

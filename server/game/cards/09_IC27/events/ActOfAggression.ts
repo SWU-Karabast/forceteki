@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class ActOfAggression extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'act-of-aggression-id',
+            id: '1574377955',
             internalName: 'act-of-aggression',
         };
     }

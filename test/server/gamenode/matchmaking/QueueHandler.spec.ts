@@ -255,6 +255,25 @@ describe('QueueHandler matchmaking preferences', function () {
         });
     });
 
+    describe('preference announcements', function () {
+        it('lets the scheduler report a heartbeat that fails, and still makes the next announcement', async function () {
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
+            const rawSocket = competitive.socket.socket as FakeIoSocket;
+            const emit = spyOn(rawSocket, 'emit').and.throwError('send failed');
+
+            // the first announcement, when the search widens at 13.5 s, fails
+            await clock.advanceAsync(13_500);
+            expect(() => clock.assertNoCapturedErrors()).toThrowError(/error announcing expanded matchmaking preferences/);
+            clock.clearCapturedErrors();
+            emit.and.callThrough();
+            const heartbeatsBefore = rawSocket.emittedEvents.filter((event) => event.event === 'queueHeartbeat').length;
+            await clock.advanceAsync(16_000);
+
+            expect(rawSocket.emittedEvents.filter((event) => event.event === 'queueHeartbeat').length).withContext('a later announcement')
+                .toBeGreaterThan(heartbeatsBefore);
+        });
+    });
+
     describe('hard queue boundaries', function () {
         const otherFormats: { description: string; key: IQueueFormatKey }[] = [
             { description: 'game format', key: { ...format, format: SwuGameFormat.Eternal } },

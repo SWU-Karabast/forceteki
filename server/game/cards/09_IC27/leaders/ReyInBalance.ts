@@ -9,7 +9,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class ReyInBalance extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rey#in-balance-id',
+            id: '9168764334',
             internalName: 'rey#in-balance',
         };
     }

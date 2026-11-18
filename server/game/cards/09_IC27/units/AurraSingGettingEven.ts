@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class AurraSingGettingEven extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'aurra-sing#getting-even-id',
+            id: '9635375462',
             internalName: 'aurra-sing#getting-even',
         };
     }

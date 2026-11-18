@@ -2,17 +2,11 @@ import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 
 /**
- * Phase 2 deliverable: the first full HTTP -> socket handoff tests, driven entirely through the fake
- * transport (`TestClient` + `FakeIoSocket`) rather than the server's internal maps. These exercise
- * the two ways a real user reaches a lobby - browsing `/api/available-lobbies` and joining, or
- * following a private lobby's link - exactly as `forceteki-client` does, and both of the production
- * branches `GameServer.onConnectionAsync` dispatches on for them.
- *
- * This is the first scenario coverage on the full stack, not the complete set - it proves the stack
- * works end to end rather than covering every connection scenario. An abrupt disconnect (grace
- * window elapsing, reconnect swapping the socket) is now covered too; Phase 4's remaining Tier 1
- * scenarios (queue/matchmaking, inactivity kick, anonymous vs authenticated behaviour, ...) belong
- * here and in sibling files as they land.
+ * A player reaching a custom lobby and their connection coming and going before the game: the two ways a real user
+ * reaches a lobby (browsing `/api/available-lobbies` and joining, or following a private lobby's link), leaving, an abrupt
+ * drop either side of the 20-second grace window, and a reconnect replacing the socket. The refactor-readiness
+ * checklist's rows C13 (in a lobby), C18, D1, D2 and D3. The same during a game is in `InGameConnections`; where a socket
+ * the server cannot place is sent is in `SocketConnectionRouting`.
  */
 describe('Lobby connection management', function () {
     serverIntegration(function (contextRef) {
@@ -156,12 +150,24 @@ describe('Lobby connection management', function () {
                 await joiner.disconnectTransportAsync();
 
                 // still inside GameServer.onSocketDisconnected's default 20s grace window: not removed yet
-                await harness.clock.advanceAsync(19 * 1000);
+                await harness.clock.advanceAsync(20_000 - 1);
                 expect(owner.lobbyState.users.map((u: any) => u.username).sort()).toEqual([joiner.username, owner.username].sort());
 
                 // grace window elapses
-                await harness.clock.advanceAsync(2 * 1000);
+                await harness.clock.advanceAsync(1);
                 expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual([owner.username]);
+            });
+
+            it('keeps the seat of a user who reconnects inside the grace window', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.createLobbyWithGuestAsync();
+
+                await guest.disconnectTransportAsync();
+                await harness.clock.advanceAsync(10_000);
+                await guest.connectAsync();
+                await harness.clock.advanceAsync(20_000);
+
+                expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id, guest.id]);
             });
 
             // Regression test for a fake-transport bug: `simulateClientEmit` used to dispatch to

@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class BansheeScreamMachine extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'banshee#scream-machine-id',
+            id: '1716199588',
             internalName: 'banshee#scream-machine',
         };
     }

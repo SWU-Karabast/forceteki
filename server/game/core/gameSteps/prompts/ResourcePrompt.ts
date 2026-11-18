@@ -6,6 +6,9 @@ import { Contract } from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
 import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker';
+import { EventName } from '../../Constants';
+import { GameEvent } from '../../event/GameEvent';
+import { TriggerHandlingMode } from '../../event/EventWindow';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     private readonly nCardsToResource: number;
@@ -133,12 +136,21 @@ export class ResourcePrompt extends AllPlayerPrompt {
     }
 
     protected resourceSelectedCards(player: Player) {
-        if (this.selectedCards[player.name].length > 0) {
-            for (const card of this.selectedCards[player.name]) {
-                player.resourceCard(card, false);
-                this.game.statsTracker.trackCardMetric(GameCardMetric.Resourced, card, player);
-            }
-            this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.name].length, this.selectedCards[player.name].length === 1 ? 'card' : 'cards');
+        const cards = this.selectedCards[player.name];
+
+        if (cards.length > 0) {
+            const events = cards.map((card) => new GameEvent(
+                EventName.OnCardResourced,
+                this.game.getFrameworkContext(player),
+                { card, resourceControllingPlayer: player },
+                () => {
+                    player.resourceCard(card, false);
+                    this.game.statsTracker.trackCardMetric(GameCardMetric.Resourced, card, player);
+                }
+            ));
+
+            this.game.openEventWindow(events, TriggerHandlingMode.ResolvesTriggers);
+            this.game.addMessage('{0} has resourced {1} {2} from hand', player, cards.length, cards.length === 1 ? 'card' : 'cards');
         } else {
             this.game.addMessage('{0} has not resourced any cards', player);
         }

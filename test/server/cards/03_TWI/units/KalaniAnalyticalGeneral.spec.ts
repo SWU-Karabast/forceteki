@@ -108,5 +108,33 @@ describe('Kalani Analytical General ability\'s', function() {
             expect(context.allianceXwing.getHp()).toBe(3);
             expect(context.allianceXwing.getPower()).toBe(2);
         });
+
+        it('Should not allow selecting a third unit once 2 are selected', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['kalani#analytical-general', 'specforce-soldier', 'battlefield-marine'],
+                    spaceArena: ['alliance-xwing'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kalani);
+            context.player1.clickCard(context.p2Base);
+            expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.battlefieldMarine, context.allianceXwing]);
+
+            context.player1.clickCard(context.specforceSoldier);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // Only the 2 selected units remain selectable (to unselect)
+            expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.battlefieldMarine]);
+
+            context.player1.clickDone();
+            expect(context.specforceSoldier.getPower()).toBe(4);
+            expect(context.battlefieldMarine.getPower()).toBe(5);
+            expect(context.allianceXwing.getPower()).toBe(2);
+        });
     });
 });

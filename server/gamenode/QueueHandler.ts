@@ -250,32 +250,28 @@ export class QueueHandler {
         });
     }
 
+    /** Runs on the scheduler, whose guard logs anything this throws, so it does not catch its own errors. */
     private cleanupPreviousMatchEntries() {
-        try {
-            const now = this.scheduler.now();
-            const cooldownMs = QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000;
-            for (const [userId, matchEntry] of this.playerPreviousMatch.entries()) {
-                if (now - matchEntry.endTimestamp >= cooldownMs) {
-                    this.playerPreviousMatch.delete(userId);
-                }
+        const now = this.scheduler.now();
+        const cooldownMs = QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000;
+        for (const [userId, matchEntry] of this.playerPreviousMatch.entries()) {
+            if (now - matchEntry.endTimestamp >= cooldownMs) {
+                this.playerPreviousMatch.delete(userId);
             }
-        } catch (error) {
-            logger.error(`QueueHandler: Error cleaning up previous match entries: ${error}`);
         }
     }
 
-    /** Send a heartbeat signal to the FE for all connected clients */
+    /**
+     * Send a heartbeat signal to the FE for all connected clients. Only ever run on the scheduler, whose guard logs
+     * anything this throws, so it does not catch its own errors.
+     */
     public sendHeartbeat() {
-        try {
-            for (const [_queueKey, queue] of this.iterateQueues()) {
-                for (const player of queue) {
-                    if (player.socket) {
-                        this.sendPlayerHeartbeat(player);
-                    }
+        for (const [_queueKey, queue] of this.iterateQueues()) {
+            for (const player of queue) {
+                if (player.socket) {
+                    this.sendPlayerHeartbeat(player);
                 }
             }
-        } catch (error) {
-            logger.error(`QueueHandler: Error sending heartbeat: ${error}`);
         }
     }
 
@@ -309,8 +305,12 @@ export class QueueHandler {
         if (nextAnnouncementAt !== null) {
             this.preferenceAnnouncementTask = this.scheduler.setTimeout(() => {
                 this.preferenceAnnouncementTask = undefined;
-                this.sendHeartbeat();
-                this.scheduleNextPreferenceAnnouncement();
+                try {
+                    this.sendHeartbeat();
+                } finally {
+                    // the next announcement is still due even if this one failed
+                    this.scheduleNextPreferenceAnnouncement();
+                }
             }, nextAnnouncementAt - serverTime, { message: 'QueueHandler: error announcing expanded matchmaking preferences' });
         }
     }

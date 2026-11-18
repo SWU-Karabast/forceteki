@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class RoseTicoInTheFight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rose-tico#in-the-fight-id',
+            id: '9201483058',
             internalName: 'rose-tico#in-the-fight',
         };
     }

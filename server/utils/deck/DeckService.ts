@@ -12,6 +12,7 @@ import { Contract } from '../../game/core/utils/Contract';
 import { ScoreType } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import type { ISaveDeckRequest } from '../../services/DynamoDBInterfaceSchemas';
 import * as Util from '../../Util';
 
 interface IBaseMapping {
@@ -151,21 +152,18 @@ export class DeckService {
 
 
     /**
-     * Save a deck to the database, checking first if a deck with the same link already exists
-     * @param deckData The deck data to save
+     * Saves a new deck for `user`, unless they already have one with the same link id, in which case that one is
+     * returned. The stored deck is built here from the request's fields: it gets a new id, belongs to `user`, is not
+     * a favourite and starts with no results.
+     * @param deck the deck's fields, as validated by `SaveDeckRequestSchema`
      * @param user submitting user
-     * @returns Promise that resolves to the saved deck ID
+     * @returns the saved (or already existing) deck
      */
-    public async saveDeckAsync(deckData: IDeckDataEntity, user: User): Promise<IDeckDataEntity> {
+    public async saveDeckAsync(deck: ISaveDeckRequest, user: User): Promise<IDeckDataEntity> {
         try {
-            // Make sure the deck has the required fields
-            if (!deckData.userId || !deckData.deck) {
-                throw new Error('Deck data is missing required fields "userId" and "deck"');
-            }
             const dbService = await this.dbServicePromise;
             // Check if a deck with this link id already exists for this user
-            const deckLinkID = deckData.deck.deckLinkID;
-            let updatedDeckData = null;
+            const deckLinkID = deck.deckLinkID;
             const existingDeck = dbService
                 ? await dbService.getDeckByLinkAsync(user.getId(), deckLinkID)
                 : Array.from(this.getInMemoryUserDecks(user.getId()).values()).find((candidate) =>
@@ -176,23 +174,37 @@ export class DeckService {
                 logger.info(`DeckService: Deck with link ${deckLinkID} already exists for user ${user.getUsername()}.`);
                 return existingDeck;
             }
+
             // If no existing deck with the same link, or no link provided, create a new deck
-            const newDeckId = uuid();
-            deckData.deck.favourite = false;
-            updatedDeckData = {
-                ...deckData,
+            const newDeck: IDeckDataEntity = {
+                id: uuid(),
                 userId: user.getId(),
-                id: newDeckId,
+                deck: {
+                    leader: { id: deck.leader.id },
+                    ...(deck.secondLeader ? { secondLeader: { id: deck.secondLeader.id } } : {}),
+                    base: { id: deck.base.id },
+                    name: deck.name,
+                    favourite: false,
+                    deckLink: deck.deckLink,
+                    deckLinkID: deck.deckLinkID,
+                    ...(deck.source !== undefined ? { source: deck.source } : {}),
+                },
+                stats: {
+                    wins: 0,
+                    losses: 0,
+                    draws: 0,
+                    statsByMatchup: []
+                }
             };
 
             // Save the new deck to the database
             if (dbService) {
-                await dbService.saveDeckAsync(updatedDeckData);
+                await dbService.saveDeckAsync(newDeck);
             } else {
-                this.getInMemoryUserDecks(user.getId()).set(updatedDeckData.id, updatedDeckData);
+                this.getInMemoryUserDecks(user.getId()).set(newDeck.id, newDeck);
             }
-            logger.info(`DeckService: Saved new deck ${updatedDeckData.id} for user ${deckData.userId}`);
-            return updatedDeckData;
+            logger.info(`DeckService: Saved new deck ${newDeck.id} for user ${newDeck.userId}`);
+            return newDeck;
         } catch (error) {
             logger.error(`Error saving deck for user ${user.getId()}:`, { error: { message: error.message, stack: error.stack } });
             throw error;

@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GeneralHuxFireVentralCannons extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'general-hux#fire-ventral-cannons-id',
+            id: '0237606783',
             internalName: 'general-hux#fire-ventral-cannons',
         };
     }

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUnitName } from '../core/Constants';
-import { EffectName, EntryType, EventName } from '../core/Constants';
+import { EffectName, EntryType, EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -94,6 +94,17 @@ export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityCont
 
             return events;
         });
+    }
+
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ICreateTokenUnitProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        // creating 0 tokens means the effect does nothing, so it is not a legal effect
+        if (properties.amount <= 0) {
+            return false;
+        }
+
+        return super.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
     public override defaultTargets(context: TContext): Player[] {

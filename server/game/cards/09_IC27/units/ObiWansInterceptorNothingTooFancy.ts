@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class ObiWansInterceptorNothingTooFancy extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'obiwans-interceptor#nothing-too-fancy-id',
+            id: '6216319341',
             internalName: 'obiwans-interceptor#nothing-too-fancy',
         };
     }

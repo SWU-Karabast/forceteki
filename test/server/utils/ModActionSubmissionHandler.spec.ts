@@ -70,9 +70,22 @@ describe('ModActionSubmissionHandler', function() {
             });
 
             expect(result).toEqual({ success: true, message: 'Action submitted.' });
-            expect(store.onActionSubmitted).toHaveBeenCalledOnceWith('player-1', ModActionType.Warning, 'mod-1', 'ModOne', 'be nice', undefined);
+            expect(store.onActionSubmitted).toHaveBeenCalledOnceWith('player-1', ModActionType.Warning, 'mod-1', 'ModOne', 'be nice', undefined, undefined);
             expect(renamer.getUsernameAsync).not.toHaveBeenCalled();
             expect(renamer.changeUsernameByModeratorAsync).not.toHaveBeenCalled();
+        });
+
+        it('link the action to the report ticket it was issued from', async function() {
+            await handler.submitAsync({
+                playerId: 'player-1',
+                actionType: ModActionType.Warning,
+                moderatorId: 'mod-1',
+                moderatorUsername: 'ModOne',
+                note: 'be nice',
+                reportId: 'report-1',
+            });
+
+            expect(store.onActionSubmitted).toHaveBeenCalledOnceWith('player-1', ModActionType.Warning, 'mod-1', 'ModOne', 'be nice', undefined, 'report-1');
         });
 
         it('pass a store rejection through', async function() {
@@ -97,7 +110,7 @@ describe('ModActionSubmissionHandler', function() {
 
             expect(result).toEqual({ success: true, message: 'Username changed from \'OldName\' to \'ApprovedName\'.' });
             expect(callOrder).toEqual(['getUsername', 'submit', 'rename', 'resolveRename']);
-            expect(store.onActionSubmitted).toHaveBeenCalledOnceWith('player-1', ModActionType.ChangeUsername, 'mod-1', 'ModOne', 'approved in ticket', undefined);
+            expect(store.onActionSubmitted).toHaveBeenCalledOnceWith('player-1', ModActionType.ChangeUsername, 'mod-1', 'ModOne', 'approved in ticket', undefined, undefined);
             expect(renamer.changeUsernameByModeratorAsync).toHaveBeenCalledOnceWith('player-1', 'ApprovedName', 'action-1');
         });
 
@@ -231,8 +244,8 @@ describe('ModActionSubmissionHandler', function() {
             expect(changeResult.success).toBeTrue();
             expect(callOrder).toEqual(['submit', 'getUsername', 'submit', 'rename', 'resolveRename']);
             expect(store.onActionSubmitted.calls.allArgs()).toEqual([
-                ['player-1', ModActionType.UsernameChangesBlocked, 'mod-1', 'ModOne', 'offensive name', undefined],
-                ['player-1', ModActionType.ChangeUsername, 'mod-1', 'ModOne', 'offensive name', undefined],
+                ['player-1', ModActionType.UsernameChangesBlocked, 'mod-1', 'ModOne', 'offensive name', undefined, undefined],
+                ['player-1', ModActionType.ChangeUsername, 'mod-1', 'ModOne', 'offensive name', undefined, undefined],
             ]);
             expect(renamer.changeUsernameByModeratorAsync).toHaveBeenCalledOnceWith('player-1', 'KaraUser0427', 'change-1');
         });

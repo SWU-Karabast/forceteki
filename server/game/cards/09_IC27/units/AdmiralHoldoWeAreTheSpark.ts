@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class AdmiralHoldoWeAreTheSpark extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'admiral-holdo#we-are-the-spark-id',
+            id: '1700178112',
             internalName: 'admiral-holdo#we-are-the-spark',
         };
     }
