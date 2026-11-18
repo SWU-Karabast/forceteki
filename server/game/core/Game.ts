@@ -6,7 +6,6 @@ import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
 import { Player } from './Player';
-import { Spectator } from '../../Spectator';
 import { AnonymousSpectator } from '../../AnonymousSpectator';
 import { GamePipeline } from './GamePipeline';
 import { SetupPhase } from './gameSteps/phases/SetupPhase';
@@ -117,7 +116,6 @@ import type {
 } from './gameSteps/PromptInterfaces';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
-import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
@@ -383,13 +381,12 @@ export class Game extends EventEmitter {
 
     public ongoingEffectEngine: OngoingEffectEngine;
     public abilityHelper: IAbilityHelper;
-    public playersAndSpectators: Record<string, Player | Spectator>;
+    public playersById: Record<string, Player>;
     public chatMessageOffsets: Map<string, number>;
     public gameChat: GameChat;
     public readonly animations: AnimationRecorder;
     public pipeline: GamePipeline;
     public id: string;
-    public allowSpectators: boolean;
     private freeUndoLimit: UndoLimit;
     public owner: string;
     public started: boolean;
@@ -465,13 +462,12 @@ export class Game extends EventEmitter {
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);
 
-        this.playersAndSpectators = {};
+        this.playersById = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
         this.animations = new AnimationRecorder(this, buildAnimationDescriptors());
         this.pipeline = new GamePipeline();
         this.id = details.id;
-        this.allowSpectators = details.allowSpectators;
 
         this.freeUndoLimit = details.undoMode === UndoMode.Request
             ? new PerGameUndoLimit(1)
@@ -541,16 +537,12 @@ export class Game extends EventEmitter {
         );
 
         details.players.forEach((player) => {
-            this.playersAndSpectators[player.id] = new Player(
+            this.playersById[player.id] = new Player(
                 player.id,
                 player,
                 this,
                 details.useActionTimer ?? false
             );
-        });
-
-        details.spectators?.forEach((spectator) => {
-            this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
         this.spaceArena = new SpaceArenaZone(this);
@@ -649,29 +641,22 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Checks if a player is a spectator
+     * Checks whether a state viewer is a seated player rather than a spectator
      */
-    public isSpectator(player: Player | Spectator | AnonymousSpectator): player is Spectator | AnonymousSpectator {
-        return !this.isPlayer(player);
-    }
-
-    /**
-     * Checks if a player is a player
-     */
-    public isPlayer(player: Player | Spectator | AnonymousSpectator): player is Player {
+    public isPlayer(player: Player | AnonymousSpectator): player is Player {
         return player.constructor === Player;
     }
 
     /**
-     * Checks whether a player/spectator is still in the game
+     * Checks whether a player is still in the game
      */
     public hasPlayerNotInactive(playerName: string): boolean {
-        const player = this.playersAndSpectators[playerName];
+        const player = this.playersById[playerName];
         if (!player) {
             return false;
         }
 
-        return !this.isPlayer(player) || !player.left;
+        return !player.left;
     }
 
     /**
@@ -686,14 +671,14 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Get all players (not spectators) in the game
+     * Get all players in the game
      */
     public getPlayers(): Player[] {
-        return Object.values(this.playersAndSpectators).filter((player): player is Player => this.isPlayer(player));
+        return Object.values(this.playersById);
     }
 
     /**
-     * Returns the Player object (not spectator) for a name
+     * Returns the Player object for a name
      */
     public getPlayerByName(playerName: string): Player {
         const player = this.getPlayers().find((player) => player.name === playerName);
@@ -708,11 +693,10 @@ export class Game extends EventEmitter {
      * Returns the Player object for an id
      */
     public getPlayerById(playerId: string): Player {
-        Contract.assertHasProperty(this.playersAndSpectators, playerId);
+        Contract.assertHasProperty(this.playersById, playerId);
 
-        const player = this.playersAndSpectators[playerId];
+        const player = this.playersById[playerId];
         Contract.assertNotNullLike(player, `Player with id ${playerId} not found`);
-        Contract.assertTrue(this.isPlayer(player), `Player ${player.name} is a spectator`);
 
         return player;
     }
@@ -728,7 +712,7 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Get all players (not spectators) with the first player at index 0
+     * Get all players with the first player at index 0
      */
     public getPlayersInInitiativeOrder(): Player[] {
         return this.getPlayers().sort((a) => (a.hasInitiative() ? -1 : 1));
@@ -736,20 +720,6 @@ export class Game extends EventEmitter {
 
     public getActivePlayer(): Player | null {
         return this.currentPhase === PhaseName.Action ? this.actionPhaseActivePlayer : this.initiativePlayer;
-    }
-
-    /**
-     * Get all players and spectators in the game
-     */
-    public getPlayersAndSpectators(): Record<string, Player | Spectator> {
-        return this.playersAndSpectators;
-    }
-
-    /**
-     * Get all spectators in the game
-     */
-    public getSpectators(): Spectator[] {
-        return Object.values(this.playersAndSpectators).filter((player): player is Spectator => this.isSpectator(player));
     }
 
     /**
@@ -1045,9 +1015,7 @@ export class Game extends EventEmitter {
             return;
         }
 
-        if (!this.isSpectator(player)) {
-            this.gameChat.addChatMessage(player, message);
-        }
+        this.gameChat.addChatMessage(player, message);
     }
 
     /**
@@ -1589,87 +1557,6 @@ export class Game extends EventEmitter {
         return new AbilityContext({ game: this, player: player });
     }
 
-    public watch(socketId: string, user: IUser): boolean {
-        if (!this.allowSpectators) {
-            return false;
-        }
-
-        this.playersAndSpectators[user.username] = new Spectator(socketId, user);
-        this.addMessage('{0} has joined the game as a spectator', user.username);
-
-        return true;
-    }
-
-    public join(socketId: string, user: IUser): boolean {
-        if (this.started || this.getPlayers().length === 2) {
-            return false;
-        }
-
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
-
-        return true;
-    }
-
-    public leave(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        this.addMessage('{0} has left the game', playerName);
-
-        if (this.isSpectator(player) || !this.started) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            player.left = true;
-
-            if (!this.finishedAt) {
-                this.finishedAt = new Date();
-            }
-        }
-    }
-
-    public disconnect(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        this.addMessage('{0} has disconnected', player);
-
-        if (this.isSpectator(player)) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            player.disconnected = true;
-            player.socket = undefined;
-        }
-    }
-
-    public failedConnect(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        if (this.isSpectator(player) || !this.started) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            this.addMessage('{0} has failed to connect to the game', player);
-
-            player.disconnected = true;
-
-            if (!this.finishedAt) {
-                this.finishedAt = new Date();
-            }
-        }
-    }
-
     public reconnect(socket: any, playerName: string): void {
         const player = this.getPlayerByName(playerName);
         if (!player) {
@@ -1839,7 +1726,7 @@ export class Game extends EventEmitter {
     public getState(notInactivePlayerId: string) {
         const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
-            const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
+            const activePlayer = this.playersById[notInactivePlayerId] || new AnonymousSpectator();
 
             if (this._serializationFailure) {
                 return {
@@ -1882,12 +1769,8 @@ export class Game extends EventEmitter {
                     totalMessages: totalMessages,
                     initiativeClaimed: this.isInitiativeClaimed,
                     clientUIProperties: this.clientUIProperties,
-                    spectators: this.getSpectators().map((spectator) => {
-                        return {
-                            id: spectator.id,
-                            name: spectator.name
-                        };
-                    }),
+                    // the engine does not track spectators (the Lobby does), but the client still tests membership in this field
+                    spectators: [],
                     started: this.started,
                     format: this.format,
                     winners: this.winnerNames,
