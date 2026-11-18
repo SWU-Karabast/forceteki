@@ -474,6 +474,172 @@ describe('Darth Sidious, There is No Mercy', function() {
                 expect(context.p1Base.damage).toBe(1);
             });
 
+            it('should not trigger when Breach divides an Overwhelm unit\'s 4 damage between the enemy unit and the base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        hand: ['breach'],
+                        groundArena: ['babwa-venomor#burning-kashyyyk'] // 4/4 Overwhelm
+                    },
+                    player2: {
+                        groundArena: ['wicket#yub-nub'] // 3 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Babwa Venomor's 4 damage is divided: 3 to Wicket and 1 to the base, so no single target is dealt 4
+                context.player1.clickCard(context.breach);
+                context.player1.clickCard(context.babwaVenomor);
+                context.player1.clickCard(context.wicket);
+                expect(context.wicket).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger only for the base when Breach divides an Overwhelm unit\'s damage and deals 4+ excess damage to the base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        hand: ['breach'],
+                        groundArena: ['republic-war-walker'] // 7/6 Overwhelm
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'] // 3 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Republic War Walker's 7 damage is divided: 3 to Battlefield Marine and 4 to the base
+                context.player1.clickCard(context.breach);
+                context.player1.clickCard(context.republicWarWalker);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(4);
+
+                // The ability triggers once, for the 4 excess damage dealt to P2's base, so that base is not selectable
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.darthSidious, context.republicWarWalker]);
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger when Breach has a unit without Overwhelm deal 4+ damage to an enemy unit with less HP remaining', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        hand: ['breach'],
+                        groundArena: ['atat-suppressor'] // 8/8
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'] // 3 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Nothing says where the excess goes, so Battlefield Marine is dealt all 8 damage
+                context.player1.clickCard(context.breach);
+                context.player1.clickCard(context.atatSuppressor);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(0);
+
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.atatSuppressor]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger for 4+ excess damage that Blizzard Assault AT-AT deals to another enemy ground unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        groundArena: ['blizzard-assault-atat'] // 9/9
+                    },
+                    player2: {
+                        groundArena: ['wroshyr-tree-tender', 'consular-security-force'] // 4 HP, 7 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Blizzard Assault AT-AT defeats Wroshyr Tree Tender, leaving 5 excess damage
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.wroshyrTreeTender);
+                expect(context.wroshyrTreeTender).toBeInZone('discard');
+
+                expect(context.player1).toHaveExactPromptButtons([abilityPrompt, 'Deal the excess damage from the attack to an enemy ground unit']);
+                context.player1.clickPrompt('Deal the excess damage from the attack to an enemy ground unit');
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.consularSecurityForce.damage).toBe(5);
+
+                // The ability triggers for the 5 excess damage dealt to Consular Security Force
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.blizzardAssaultAtat]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(1);
+
+                // It also triggers for the damage dealt to Wroshyr Tree Tender, which had 4 HP
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.blizzardAssaultAtat, context.consularSecurityForce]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger for 4+ excess damage that Wipe Them Out deals to another unit in the same arena', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        hand: ['wipe-them-out'],
+                        groundArena: ['atat-suppressor'] // 8/8
+                    },
+                    player2: {
+                        groundArena: ['wroshyr-tree-tender', 'consular-security-force'] // 4 HP, 7 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // AT-AT Suppressor defeats Wroshyr Tree Tender, leaving 4 excess damage
+                context.player1.clickCard(context.wipeThemOut);
+                context.player1.clickCard(context.atatSuppressor);
+                context.player1.clickCard(context.wroshyrTreeTender);
+                expect(context.wroshyrTreeTender).toBeInZone('discard');
+
+                expect(context.player1).toHaveExactPromptButtons([abilityPrompt, 'Deal excess damage to another unit in the same arena']);
+                context.player1.clickPrompt('Deal excess damage to another unit in the same arena');
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.consularSecurityForce.damage).toBe(4);
+
+                // The ability triggers for the 4 excess damage dealt to Consular Security Force
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.atatSuppressor]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(1);
+
+                // It also triggers for the damage dealt to Wroshyr Tree Tender, which had 4 HP
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.atatSuppressor, context.consularSecurityForce]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should trigger once for each separate qualifying instance when Fear and Dead Men deals 4 damage to multiple enemy ground units', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

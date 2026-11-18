@@ -53,6 +53,12 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
      * been applied to the total amount being distributed.
      */
     ignoreAbilityDamageIncrease?: boolean;
+
+    /**
+     * If true, the ability deals any excess damage somewhere else (e.g. Breach with an Overwhelm unit), so the
+     * target is dealt only enough damage to defeat it (CR 9.0 1.9.11.A). See {@link DamageSystem.getDamageAmountDealtToCard}.
+     */
+    excessDamageRedirected?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -100,7 +106,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         amount: null,
         type: DamageType.Ability,
         isIndirect: false,
-        isUnpreventable: false
+        isUnpreventable: false,
+        excessDamageRedirected: false
     };
 
     /**
@@ -122,9 +129,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     /**
      * Returns how much damage an `onDamageDealt` event deals to its card, for abilities that care about the amount
-     * (e.g. "when you deal 4 or more damage to a unit or base"). An Overwhelm attacker's combat damage is divided
-     * between the defending unit and the defending player's base, so the unit is dealt only the part of it that
-     * isn't excess; the excess is dealt to the base by the separate Overwhelm damage event.
+     * (e.g. "when you deal 4 or more damage to a unit or base"). When an effect says where excess damage goes (an
+     * Overwhelm attacker's combat damage, or ability damage with `excessDamageRedirected`), the unit is dealt only
+     * enough damage to defeat it and the excess is dealt by a separate event (CR 9.0 1.9.11.A). Otherwise the unit
+     * is dealt the full amount, even beyond its remaining HP.
      */
     public static getDamageAmountDealtToCard(event): number | null {
         Contract.assertTrue(event.name === EventName.OnDamageDealt);
@@ -134,7 +142,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             return null;
         }
 
-        return amount - (event.overwhelmExcessDamage ?? 0);
+        return amount - (event.redirectedExcessDamage ?? 0);
     }
 
     public eventHandler(event): void {
@@ -241,17 +249,22 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
         event.willDefeat = damageAmount >= card.remainingHp && !card.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage);
 
-        // Recorded at creation because availableExcessDamage is used up once the Overwhelm damage resolves (see getDamageAmountDealtToCard)
-        event.overwhelmExcessDamage = event.willDefeat && this.isAttackerCombatDamageWithOverwhelm(card, properties)
+        // Recorded at creation because availableExcessDamage is used up once the excess damage resolves (see getDamageAmountDealtToCard)
+        event.redirectedExcessDamage = event.willDefeat && card.isUnit() && this.isExcessDamageRedirected(card, properties)
             ? damageAmount - card.remainingHp
             : 0;
     }
 
-    private isAttackerCombatDamageWithOverwhelm(card: Card, properties: IDamageProperties): boolean {
-        return properties.type === DamageType.Combat &&
-          card.isUnit() &&
-          card !== properties.sourceAttack.attacker &&
-          properties.sourceAttack.hasOverwhelm();
+    private isExcessDamageRedirected(card: Card, properties: IDamageProperties): boolean {
+        switch (properties.type) {
+            case DamageType.Combat:
+                // an Overwhelm attacker deals its excess combat damage to the defending player's base
+                return card !== properties.sourceAttack.attacker && properties.sourceAttack.hasOverwhelm();
+            case DamageType.Ability:
+                return !!properties.excessDamageRedirected;
+            default:
+                return false;
+        }
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
