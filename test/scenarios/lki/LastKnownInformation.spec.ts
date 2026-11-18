@@ -309,8 +309,8 @@ describe('Last known information', function () {
                 expect(recordAtFlush.sawRecord).toBeFalse();
 
                 const properties = registry.getProperties(registry.getIdentity(context.chewbacca)).asUnit();
-                expect(properties.hasInPlayStats()).toBeTrue();
-                expect(properties.asInPlayStats().power).toBe(context.chewbacca.getPower());
+                expect(properties.wasInPlay()).toBeTrue();
+                expect(properties.asWasInPlay().power).toBe(context.chewbacca.getPower());
             });
         });
 
@@ -456,11 +456,11 @@ describe('Last known information', function () {
 
                 // The action that caused the defeat has now ended, so the record has been flushed.
                 // Wampa is still the same identity, in the discard pile, and card code reads it there
-                // as it is now (D-39): a unit in the discard pile has no in-play stats. The record
-                // would still answer with the ones it had in play.
+                // as it is now (D-39): out of play, in no arena. The record would still answer that it
+                // was in play, in the ground arena.
                 const afterFlush = registry.getProperties(registry.getIdentity(context.wampa)).asUnit();
-                expect(afterFlush.hasInPlayStats()).toBeFalse();
-                expect(afterFlush.zoneName as string).toBe('discard');
+                expect(afterFlush.wasInPlay()).toBeFalse();
+                expect(afterFlush.arena).toBeNull();
             });
         });
 

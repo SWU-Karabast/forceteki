@@ -3,8 +3,11 @@
  */
 'use strict';
 
-/** Members that answer where a card is now, which read the present under D-37 and under option (c). */
-const PRESENCE = new Set(['isInPlay', 'zoneName', 'zone', 'isAttacking', 'isDefending', 'activeAttack', 'isAttached', 'captureZone']);
+/**
+ * Members that answer where a card is now, which only the current view has under D-37, and which read
+ * the present under option (c).
+ */
+const PRESENCE = new Set(['isInPlay', 'zoneName', 'zone', 'isAttacking', 'isDefending', 'activeAttack', 'isAttached', 'isResource', 'captureZone']);
 
 /** Members that name a copy rather than describe it, which the properties object does not carry. */
 const IDENTITY = new Set(['inPlayId', 'mostRecentInPlayId']);

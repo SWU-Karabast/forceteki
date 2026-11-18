@@ -677,8 +677,9 @@ function recordHit(card, name, args, hit, live, threw) {
     const differs = !lkiValue.unavailable && JSON.stringify(lkiValue) !== JSON.stringify(liveValue);
     const argText = ARG_METHODS.includes(name) ? `(${JSON.stringify(normalize(args[0]))})` : '';
 
-    // What the built getter answers, both ways it can be asked.
-    const lastKnownAnswer = askGetter(card, 'getLastKnownProperties', name, args);
+    // What the built getter answers, both ways it can be asked. Presence is only on the current view
+    // (D-37), so for presence the last-known column holds what card code would read: the current view.
+    const lastKnownAnswer = askGetter(card, PRESENCE.has(name) ? 'getCurrentProperties' : 'getLastKnownProperties', name, args);
     const currentAnswer = askGetter(card, 'getCurrentProperties', name, args);
 
     // What option (c) answers, by how the receiver was reached.

@@ -39,6 +39,6 @@ export default class HelgaitDookuWasAVisionary extends NonLeaderUnitCard {
     private powerWhenDefeated(context: TriggeredAbilityContext, cardStates: ICardStateGetter): number {
         return cardStates.getLastKnownProperties(context.event.cardRef)
             .asUnit()
-            .asInPlayStats().power;
+            .asWasInPlay().power;
     }
 }

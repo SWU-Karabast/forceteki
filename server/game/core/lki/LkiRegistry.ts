@@ -1,9 +1,10 @@
 import type { Card } from '../card/Card';
 import { CardRef } from './CardRef';
-import type { ICardProperties } from './CardPropertiesInterfaces';
+import type { ICardProperties, ICurrentCardProperties } from './CardPropertiesInterfaces';
 import type { IRecordedCardState } from './CardRecord';
 import { buildCardRecord } from './CardRecord';
 import { RecordedCardProperties, RecordedUnitProperties, RecordedUpgradeProperties } from './RecordedCardProperties';
+import type { LiveViewRole } from './LiveCardProperties';
 import { LiveCardProperties, LiveUnitProperties, LiveUpgradeProperties } from './LiveCardProperties';
 import { Contract } from '../utils/Contract';
 
@@ -50,8 +51,8 @@ export class LkiRegistry {
     }
 
     /**
-     * Returns a properties view for the reference: the recorded characteristics if the identity has a
-     * record, otherwise a live pass-through. Presence reads the live card either way (D-37).
+     * Returns the last-known view for the reference: the recorded characteristics if the identity has a
+     * record, otherwise the card's characteristics as they are now (D-37).
      */
     public getProperties(ref: CardRef): ICardProperties {
         const record = this.records.get(ref.key);
@@ -65,30 +66,42 @@ export class LkiRegistry {
             'read from it. Long-lived holders must store the values they need rather than a reference.'
         );
 
-        return this.getLiveProperties(ref);
+        return LkiRegistry.liveView(ref, 'lastKnown', false);
     }
 
     /**
-     * Returns a live pass-through view of the card the reference names, as it is right now.
+     * Returns the last-known view as a card that has not opted in reads it: the card as it is right
+     * now, whichever identity the reference names (see `Card.usesLkiRegistry`).
      *
      * Deliberately ignores records and identity, so it can never fail the way {@link getProperties}
-     * does and reads exactly what reading the card directly would. This is what a card that has not
-     * opted in to last known information receives (see `Card.usesLkiRegistry`), and what any card
-     * gets when it asks for the present (`ICardStateGetter.getCurrentProperties`).
+     * does and reads exactly what reading the card directly would.
      */
     public getLiveProperties(ref: CardRef): ICardProperties {
-        const card = ref.getCardForEngine();
+        // The view describes the card as it is now, so it names the identity the card has now, even when
+        // the caller's reference names an earlier one.
+        return LkiRegistry.liveView(this.getIdentity(ref.getCardForEngine()), 'lastKnown', false);
+    }
 
-        // A live view describes the card as it is now, so it names the identity the card has now, even
-        // when the caller's reference names an earlier one.
-        const current = ref.isCurrent ? ref : this.getIdentity(card);
+    /**
+     * Returns the current view of the copy the reference names: the card as it is now, never a record.
+     *
+     * If that copy no longer exists, because the card has since re-entered play or moved into a hidden
+     * zone, the view answers that it is nowhere: not in play, attached, a resource or in an attack
+     * (SWU 8.5.4).
+     */
+    public getCurrentProperties(ref: CardRef): ICurrentCardProperties {
+        return LkiRegistry.liveView(ref, 'current', !ref.isCurrent);
+    }
+
+    private static liveView(ref: CardRef, role: LiveViewRole, copyGone: boolean): LiveCardProperties {
+        const card = ref.getCardForEngine();
         if (card.isUnit()) {
-            return new LiveUnitProperties(current, card);
+            return new LiveUnitProperties(ref, card, role, copyGone);
         }
         if (card.isUpgrade()) {
-            return new LiveUpgradeProperties(current, card);
+            return new LiveUpgradeProperties(ref, card, role, copyGone);
         }
-        return new LiveCardProperties(current, card);
+        return new LiveCardProperties(ref, card, role, copyGone);
     }
 
     private static recordedView(ref: CardRef, record: IRecordedCardState): ICardProperties {

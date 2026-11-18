@@ -37,7 +37,7 @@ says where each one stands now.
 | SC-5 | Window-batched capture preserves simultaneity | Built: records are staged at `preResolutionEffects` (D-30) |
 | SC-6 | Phase-scoped LKI in state watchers | Deferred: watchers keep their own extracts (D-16, D-20). See SC-19 |
 | SC-7 | Copy identity is zone-gated and overloaded | Built: `Card.identityId` is total. Open: real counters for event cards, bases and tokens (phase 4), and a defeated leader unit's leader side, which keeps the unit's identity although SWU 8.7 makes it a new copy (F1, register §B.3) |
-| SC-8 | One ability needs frozen and live views of a card | Resolved by D-37, which replaced D-31's resolution: characteristics read as last known, presence reads the present. Built in step 3.1 |
+| SC-8 | One ability needs frozen and live views of a card | Resolved by D-37, which replaced D-31's resolution: characteristics read as last known, on the last-known view; presence reads the present, on the current view. Built in step 3.1, and as two views on 2026-11-18 |
 | SC-9 | Reference identity comparisons | Interning is built (D-8). Identity-aware equality takes effect once events carry references (phase 4) |
 | SC-10 | `when` conditions are evaluated twice | Characterized in phase 0.4. A per-card question in phase 4 |
 | SC-11 | Seven cards hand-roll the read-through fallback | Two migrated (CalculatedLethality, Asajj). Five remain (phase 4) |
@@ -46,7 +46,7 @@ says where each one stands now.
 | SC-14 | Reference binding time for enter-play events | Open: phase 2, item 2. Option (c) would depend on it: 16 of the 19 reads that throw under (c) are references bound before their card entered play (register §G.2) |
 | SC-15 | How a reference becomes orphaned | Built: visible → hidden records (R4). Tombstones (D-21) were built, then removed in step 3.1 (D-39). The orphan throw stays |
 | SC-16 | Regression test for SC-13 | Built |
-| SC-17 | `power` versus `printedPower` | Built: the type-level split for units (D-27). Step 3.1 renamed the guard `hasInPlayStats()` (D-37), because `isInPlay()` means "now" |
+| SC-17 | `power` versus `printedPower` | Built: the type-level split for units (D-27). The guard is `wasInPlay()` on the last-known view and `isInPlay()` on the current view (D-37), because `isInPlay()` means "now" |
 | SC-18 | The targeting side is unguarded | Measured. `Attack`'s guard stays. Maul is a confirmed bug, fix deferred (register §B.1) |
 | SC-19 | State watchers as a back-channel for LKI | Ravager done; the rest are phase 4 |
 | SC-20 | Delayed effects cannot read properties later | Standing rule: hand-migrate in phase 4 |
@@ -478,7 +478,8 @@ hand or deck, tokens moved to `OutsideTheGame`.
 > characteristic of the moment, which reads the arena here, and relied on the identity check that D-34
 > later dropped to make up the difference. D-37 resolves it instead: characteristics read as last known
 > and presence reads the present. So Bothan-5's `when` reads the record, its `condition` reads the discard
-> pile, and neither needs special handling.
+> pile, and neither needs special handling. Since 2026-11-18 the two are different calls: the
+> characteristic through the last-known view, `zone` through the current view.
 
 Whole-object freezing is **not sufficient**. At least one card needs last-known state *and*
 current state of the same card, in the same ability:
@@ -620,8 +621,8 @@ longer contain the fallback; the line numbers above are from before that. The ot
 ### SC-12 — Inventory: where card implementations read *current location*
 
 > **Status (2026-11-05).** Idiom 1's fizzle hacks were to be replaced by the identity check (D-6), and
-> D-34 dropped that check. Under D-37 both idioms are presence reads, which read the present, so they
-> keep working as written. The audit (register §G.2) found more sites of both idioms than this phase-0
+> D-34 dropped that check. Under D-37 both idioms are presence reads, which read the present on the
+> current view, so they keep working. The audit (register §G.2) found more sites of both idioms than this phase-0
 > inventory lists. Register §A now has all of them, and is the list to use.
 
 Measured across `server/game/cards/**` (patterns: `.zoneName`, `.zone`, `.isInPlay()`).
@@ -964,10 +965,11 @@ already past the flush. The scenario has to make the *game* observe the differen
 
 ### SC-17 — Zone-gated properties: `power` vs `printedPower`
 
-> **Status (2026-11-16).** The split stands, and step 3.1 renamed its guard (D-37). On the properties
-> object `isInPlay()` means "in play now", as it does on `Card`, because that is how card code uses it.
-> The guard that unlocks `power`, `hp`, `damage`, `exhausted` and `upgrades` is `hasInPlayStats()`, with
-> `asInPlayStats()` as the asserting form. The code and examples below use the old names.
+> **Status (2026-11-18).** The split stands, and step 3.1 renamed its guard (D-37). `isInPlay()` means "in
+> play now", as it does on `Card`, because that is how card code uses it, and it is only on the current
+> view. On the last-known view the guard that unlocks `power`, `hp`, `damage`, `exhausted` and `upgrades`
+> is `wasInPlay()`, with `asWasInPlay()` as the asserting form; on the current view it is `isInPlay()`,
+> with `asInPlay()`. The code and examples below use the old names.
 
 The throwing accessors are **not a defect to be smoothed over**. They encode a real semantic
 distinction that the design must preserve.
@@ -1329,9 +1331,9 @@ so reads of a card that left play in an earlier action read the present. Card co
 itself is covered by D-39 when the card left play in an earlier action. The audit found no case in the
 same action where the value differs. If one appears, extend D-38 to cards taken from a zone.
 
-**Status (2026-11-18).** Step 3.1 built D-39 and D-38's present-state read, `getCurrentProperties`. How a
-selector receives its candidate is open; the plan's step 3.1 recommends the engine passing it as a
-present-state properties object. The review of 2026-11-17 showed that the case "if one appears" above
+**Status (2026-11-18).** Step 3.1 built D-39 and D-38's present-state read, `getCurrentProperties`, which
+returns the current view. How a selector receives its candidate is open; the plan's step 3.1 recommends
+the engine passing it as a current view. The review of 2026-11-17 showed that the case "if one appears" above
 can: within the action a card left play, a read of it outside a selector gets its record, so a pilot
 defeated with his vehicle is not a unit in the discard pile, and a defeated leader is still a ready unit
 (F1, F2, register §B.3). Both have pending specs. The plan recommends extending D-38 to cards that card
@@ -1352,8 +1354,8 @@ represents. So a record answered these questions about the moment of departure, 
 answer at every site the audit found. The resolution D-31 relied on for the "is it in my discard pile?"
 checks was the identity check D-34 dropped.
 
-**Decision / action.** D-37: presence reads the present on every properties object, and `arena` carries
-the last known location ("in the same arena"). Two exceptions remain where the default cannot tell what
+**Decision / action.** D-37: presence reads the present, on the current view, the only view that has it,
+and `arena` carries the last known location ("in the same arena"). Two exceptions remain where the default cannot tell what
 the text means, both pending specs in register §F.1:
 - an ability asking about its own source's current attachment, which is the Lightsaber case;
 - a trait-based defeat trigger for a Clone.

@@ -1,13 +1,15 @@
 /**
  * Tests for what a card's properties answer, and as of when (D-36 to D-39).
  *
- * A characteristic answers about the moment the properties object represents: now for a live view,
- * the instant the card left play for a recorded one. Presence — where the card is, whether it is in
- * play, attached, attacking or defending — always answers about now (D-37). A selector's candidate is
- * read as it is now (D-38).
+ * A card has two views, and each answers about one moment (D-37). The last-known view holds the card's
+ * characteristics as of the moment the reference represents: the instant the card left play, if it
+ * left during the current action, and otherwise now. The current view holds the card as it is now,
+ * presence included: where it is, whether it is in play, attached, attacking or defending. Presence
+ * exists only on the current view. A selector's candidate is read on the current view (D-38).
  *
- * Each recorded-view test reads inside the action that wrote the record, because the flush at the end
- * of the action clears the record: while a prompt holds the action open, or at the flush itself.
+ * Each test of a recorded last-known view reads inside the action that wrote the record, because the
+ * flush at the end of the action clears the record: while a prompt holds the action open, or at the
+ * flush itself.
  *
  * The pending specs are open findings (register §B.3): the correct behavior, which the default does
  * not give yet.
@@ -16,6 +18,7 @@
  */
 
 import { Aspect, KeywordName, Trait } from '../../../server/game/core/Constants';
+import type { ICardStateGetter } from '../../../server/game/core/lki/CardStateGetter';
 
 interface IFlushRead<T> {
     ran: boolean;
@@ -63,8 +66,8 @@ function readAtNextFlush<T>(registry, read: () => T): IFlushRead<T> {
 
 describe('Last known information properties', function () {
     integration(function (contextRef) {
-        describe('A recorded view', function () {
-            it('answers characteristics as the unit left play, and presence as it is now', async function () {
+        describe('The last-known view', function () {
+            it('answers characteristics as the unit left play', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -93,23 +96,13 @@ describe('Last known information properties', function () {
                 expect(helgait.controller).toBe(context.player1.player);
                 expect(helgait.isNonLeaderUnit()).toBeTrue();
                 expect(helgait.arena as string).toBe('groundArena');
-                expect(helgait.hasInPlayStats()).toBeTrue();
-                const inPlay = helgait.asInPlayStats();
+                expect(helgait.wasInPlay()).toBeTrue();
+                const inPlay = helgait.asWasInPlay();
                 expect(inPlay.power).toBe(8);
                 expect(inPlay.hp).toBe(6);
                 expect(inPlay.damage).toBe(0);
                 expect(inPlay.isUpgraded()).toBeTrue();
                 expect(inPlay.upgrades).toEqual([cardStates.getIdentity(context.academyTraining)]);
-
-                // Presence, as it is now. A card in the discard pile is in no attack, so these answer
-                // rather than fail as they would on the card.
-                expect(helgait.zoneName as string).toBe('discard');
-                expect(helgait.isInPlay()).toBeFalse();
-                expect(helgait.isAttached()).toBeFalse();
-                expect(helgait.isResource()).toBeFalse();
-                expect(helgait.isAttacking()).toBeFalse();
-                expect(helgait.isDefending()).toBeFalse();
-                expect(helgait.activeAttack).toBeNull();
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 8]
@@ -182,7 +175,7 @@ describe('Last known information properties', function () {
                 expect(helgait.canBeExhausted()).toBeTrue();
                 expect(helgait.canBeDamaged()).toBeTrue();
 
-                const inPlay = helgait.asInPlayStats();
+                const inPlay = helgait.asWasInPlay();
                 expect(inPlay.power).toBe(8);
                 expect(inPlay.hp).toBe(6);
                 expect(inPlay.damage).toBe(1);
@@ -239,7 +232,138 @@ describe('Last known information properties', function () {
                 expect(recorded.value.controller).toBe(context.player2.player);
             });
 
-            it('answers presence about the copy it describes, once the card has become a new copy', async function () {
+            it('holds the card an upgrade was attached to, and who controlled it', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'helgait#dooku-was-a-visionary', upgrades: ['academy-training'] }, 'wampa']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+                const cardStates = context.game.cardStates.forCard(context.helgait);
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.helgait);
+                expect(context.player1).toHavePrompt('Distribute 8 Advantage tokens among targets');
+
+                // The upgrade was defeated along with Helgait, in the same window.
+                expect(context.academyTraining).toBeInZone('discard');
+                const upgrade = cardStates.getLastKnownProperties(context.academyTraining).asUpgrade();
+
+                expect(upgrade.wasInPlay()).toBeTrue();
+                expect(upgrade.parentCard).toBe(cardStates.getIdentity(context.helgait));
+                expect(upgrade.parentUnit).toBe(cardStates.getIdentity(context.helgait));
+                expect(upgrade.parentCardController).toBe(context.player1.player);
+                expect(upgrade.printedUpgradePower).toBe(2);
+                expect(upgrade.arena as string).toBe('groundArena');
+
+                // Whether it is attached now is asked of the current view.
+                expect(cardStates.getCurrentProperties(context.academyTraining).isAttached()).toBeFalse();
+
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
+                    [context.wampa, 8]
+                ]));
+            });
+
+            it('has no presence members, so where a card is now has to be asked of the current view', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'helgait#dooku-was-a-visionary', upgrades: ['academy-training'] }, 'wampa']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Typed explicitly, because the harness hands out the game untyped and the compiler is
+                // half of this test.
+                const cardStates: ICardStateGetter = context.game.cardStates.forCard(context.helgait);
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.helgait);
+                expect(context.player1).toHavePrompt('Distribute 8 Advantage tokens among targets');
+
+                // Helgait's view is backed by its record, Wampa's by the live card. A presence read on
+                // either does not compile (each directive fails the build if its line starts compiling),
+                // and fails if it is forced through, rather than answer about the wrong moment.
+                const views = [
+                    cardStates.getLastKnownProperties(context.helgait).asUnit(),
+                    cardStates.getLastKnownProperties(context.wampa).asUnit()
+                ];
+                for (const view of views) {
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.isInPlay()).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.zoneName).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.zone).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.isAttached()).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.isResource()).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.isAttacking()).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.isDefending()).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.activeAttack).toThrowError(/getCurrentProperties/);
+                }
+
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
+                    [context.wampa, 8]
+                ]));
+            });
+        });
+
+        describe('The current view', function () {
+            it('reads a card as it is now even while it has a record, presence included', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'helgait#dooku-was-a-visionary', upgrades: ['academy-training'] }, 'wampa']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+                const cardStates = context.game.cardStates.forCard(context.helgait);
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.helgait);
+                expect(context.player1).toHavePrompt('Distribute 8 Advantage tokens among targets');
+
+                // Last known information: the unit as it left play.
+                expect(cardStates.getLastKnownProperties(context.helgait).asUnit()
+                    .wasInPlay()).toBeTrue();
+
+                // The present: the card in the discard pile, out of play and in no arena, as a selector
+                // candidate needs it (D-38).
+                const now = cardStates.getCurrentProperties(context.helgait).asUnit();
+                expect(now.isInPlay()).toBeFalse();
+                expect(now.arena).toBeNull();
+                expect(now.zoneName as string).toBe('discard');
+                expect(now.isAttached()).toBeFalse();
+                expect(now.isResource()).toBeFalse();
+                expect(now.printedPower).toBe(6);
+
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
+                    [context.wampa, 8]
+                ]));
+            });
+
+            it('answers that the copy a reference names is nowhere, once the card has become a new copy', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -266,20 +390,25 @@ describe('Last known information properties', function () {
                 expect(context.helgait).toBeInZone('groundArena');
                 expect(cardStates.getIdentity(context.helgait)).not.toBe(asDefeated);
 
-                // The defeated copy still reads from its record, and is in play nowhere, whatever the
-                // new copy is doing (SWU 8.5.4). Its zone is where the physical card is.
-                const defeated = cardStates.getLastKnownProperties(asDefeated).asUnit();
-                expect(defeated.asInPlayStats().power).toBe(8);
-                expect(defeated.isInPlay()).toBeFalse();
-                expect(defeated.isAttacking()).toBeFalse();
-                expect(defeated.zoneName as string).toBe('groundArena');
+                // The defeated copy is in play nowhere, whatever the new copy is doing (SWU 8.5.4). Its
+                // zone is where the physical card is.
+                const defeatedNow = cardStates.getCurrentProperties(asDefeated).asUnit();
+                expect(defeatedNow.isInPlay()).toBeFalse();
+                expect(defeatedNow.isAttacking()).toBeFalse();
+                expect(defeatedNow.activeAttack).toBeNull();
+                expect(defeatedNow.arena).toBeNull();
+                expect(defeatedNow.zoneName as string).toBe('groundArena');
+
+                // Its last-known view still reads from its record.
+                expect(cardStates.getLastKnownProperties(asDefeated).asUnit()
+                    .asWasInPlay().power).toBe(8);
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 8]
                 ]));
             });
 
-            it('holds the card an upgrade was attached to, and who controlled it', async function () {
+            it('answers that a copy gone into a hidden zone is in no attack, where the card itself would fail', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -298,63 +427,28 @@ describe('Last known information properties', function () {
                 context.player2.clickCard(context.helgait);
                 expect(context.player1).toHavePrompt('Distribute 8 Advantage tokens among targets');
 
-                // The upgrade was defeated along with Helgait, in the same window.
-                expect(context.academyTraining).toBeInZone('discard');
-                const upgrade = cardStates.getLastKnownProperties(context.academyTraining).asUpgrade();
+                // From the discard pile into a hidden zone, which makes it a new copy.
+                const inDiscard = cardStates.getIdentity(context.helgait);
+                context.player1.moveCard(context.helgait, 'hand');
+                expect(cardStates.getIdentity(context.helgait)).not.toBe(inDiscard);
 
-                expect(upgrade.parentCard).toBe(cardStates.getIdentity(context.helgait));
-                expect(upgrade.parentUnit).toBe(cardStates.getIdentity(context.helgait));
-                expect(upgrade.parentCardController).toBe(context.player1.player);
-                expect(upgrade.printedUpgradePower).toBe(2);
-                expect(upgrade.arena as string).toBe('groundArena');
+                // The card in hand cannot be asked about attacks, on the card or on its current view...
+                expect(() => cardStates.getCurrentProperties(context.helgait).asUnit()
+                    .isAttacking()).toThrowError();
 
-                // Whether it is attached is presence, so it answers about now.
-                expect(upgrade.isAttached()).toBeFalse();
-
-                context.player1.setDistributeTokenUpgradePromptState(new Map([
-                    [context.wampa, 8]
-                ]));
-            });
-        });
-
-        describe('The present-state read', function () {
-            it('reads a card as it is now even while it has a record, as a selector candidate needs', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: [{ card: 'helgait#dooku-was-a-visionary', upgrades: ['academy-training'] }, 'wampa']
-                    },
-                    player2: {
-                        hasInitiative: true,
-                        hand: ['rivals-fall']
-                    }
-                });
-
-                const { context } = contextRef;
-                const cardStates = context.game.cardStates.forCard(context.helgait);
-
-                context.player2.clickCard(context.rivalsFall);
-                context.player2.clickCard(context.helgait);
-                expect(context.player1).toHavePrompt('Distribute 8 Advantage tokens among targets');
-
-                // Last known information: the unit as it left play.
-                expect(cardStates.getLastKnownProperties(context.helgait).asUnit()
-                    .hasInPlayStats()).toBeTrue();
-
-                // The present: the card in the discard pile, which has no in-play stats or arena (D-38).
-                const now = cardStates.getCurrentProperties(context.helgait).asUnit();
-                expect(now.hasInPlayStats()).toBeFalse();
-                expect(now.arena).toBeNull();
-                expect(now.zoneName as string).toBe('discard');
-                expect(now.printedPower).toBe(6);
+                // ...but the copy that went to the discard pile is in no attack, so it answers.
+                const gone = cardStates.getCurrentProperties(inDiscard).asUnit();
+                expect(gone.isInPlay()).toBeFalse();
+                expect(gone.isAttacking()).toBeFalse();
+                expect(gone.isDefending()).toBeFalse();
+                expect(gone.activeAttack).toBeNull();
+                expect(gone.zoneName as string).toBe('hand');
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 8]
                 ]));
             });
-        });
 
-        describe('A live view', function () {
             it('narrows to the members each kind of card has', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -368,7 +462,7 @@ describe('Last known information properties', function () {
                 const cardStates = context.game.cardStates;
 
                 const wampa = cardStates.getCurrentProperties(context.wampa).asUnit()
-                    .asInPlayStats();
+                    .asInPlay();
                 expect(wampa.power).toBe(4);
                 expect(wampa.remainingHp).toBe(4);
                 expect(wampa.exhausted).toBeFalse();
@@ -597,7 +691,7 @@ describe('Last known information properties', function () {
                         fromMove = {
                             controller: stormtrooper.controller,
                             arena: stormtrooper.arena,
-                            hadInPlayStats: stormtrooper.isUnit() && stormtrooper.hasInPlayStats()
+                            wasInPlay: stormtrooper.wasInPlay()
                         };
                     }
                 });
@@ -611,7 +705,7 @@ describe('Last known information properties', function () {
                 expect(fromMove).not.toBeNull();
                 expect(fromMove.controller).toBe(context.player1.player);
                 expect(fromMove.arena).toBeNull();
-                expect(fromMove.hadInPlayStats).toBeFalse();
+                expect(fromMove.wasInPlay).toBeFalse();
             });
         });
     });

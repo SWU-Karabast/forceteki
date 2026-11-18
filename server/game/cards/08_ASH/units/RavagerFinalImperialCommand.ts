@@ -42,7 +42,7 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
     /** The unit's power, whether it is currently in play or has just left play. */
     private playedUnitPower(context, cardStates: ICardStateGetter): number {
         const played = cardStates.getLastKnownProperties(context.event.card).asUnit();
-        return played.hasInPlayStats() ? played.power : played.printedPower;
+        return played.wasInPlay() ? played.power : played.printedPower;
     }
 
     /** The arena the played unit is in, or was in when it left play.*/

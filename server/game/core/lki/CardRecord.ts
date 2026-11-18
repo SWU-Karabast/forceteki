@@ -24,7 +24,7 @@ export type RecordedKindCheck = typeof recordedKindChecks[number];
  * never ask for a characteristic that was not recorded. Members marked optional are only present when
  * the card had them at that moment: a unit's in-play stats only if it was in play, an upgrade's parent
  * only if it was attached. Presence (where the card is, whether it is in play, attached or attacking)
- * is never recorded, because it is always read from the live card (D-37).
+ * is never recorded: only the current view answers it, from the live card (D-37).
  */
 export interface IRecordedCardState {
     readonly title: string;

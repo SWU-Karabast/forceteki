@@ -41,21 +41,23 @@ describe('Last known information opt-in', function () {
                 const recorded = cardStates.forCard(context.helgait).getLastKnownProperties(context.helgait)
                     .asUnit();
                 expect(recorded.arena as string).toBe('groundArena');
-                expect(recorded.asInPlayStats().power).toBe(7);
+                expect(recorded.asWasInPlay().power).toBe(7);
 
                 // Not opted in: reads the card as it is right now, exactly as reading it directly would.
                 const live = cardStates.forCard(context.wampa).getLastKnownProperties(context.helgait)
                     .asUnit();
                 expect(live.arena).toBeNull();
-                expect(live.hasInPlayStats()).toBeFalse();
+                expect(live.wasInPlay()).toBeFalse();
                 expect(live.printedPower).toBe(6);
-                expect(() => live.asInPlayStats()).toThrowError(/to be in play/);
+                expect(() => live.asWasInPlay()).toThrowError(/to be in play/);
 
-                // Where the card is now is presence, which both read from the live card (D-37).
-                expect(recorded.zoneName as string).toBe('discard');
-                expect(recorded.isInPlay()).toBeFalse();
-                expect(live.zoneName as string).toBe('discard');
-                expect(live.isInPlay()).toBeFalse();
+                // Where the card is now is asked of the current view, which both getters answer from the
+                // live card (D-37).
+                for (const getter of [cardStates.forCard(context.helgait), cardStates.forCard(context.wampa)]) {
+                    const now = getter.getCurrentProperties(context.helgait);
+                    expect(now.zoneName as string).toBe('discard');
+                    expect(now.isInPlay()).toBeFalse();
+                }
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 7]
@@ -124,14 +126,14 @@ describe('Last known information opt-in', function () {
                 // now (D-39): card code picks cards up from the discard pile all the time.
                 const optedIn = cardStates.forCard(context.helgait).getLastKnownProperties(context.helgait)
                     .asUnit();
-                expect(optedIn.zoneName as string).toBe('discard');
-                expect(optedIn.hasInPlayStats()).toBeFalse();
+                expect(optedIn.arena).toBeNull();
+                expect(optedIn.wasInPlay()).toBeFalse();
 
                 // A card that has not opted in never reaches the records at all, and reads the same.
                 const live = cardStates.forCard(context.wampa).getLastKnownProperties(context.helgait)
                     .asUnit();
-                expect(live.zoneName as string).toBe('discard');
-                expect(live.hasInPlayStats()).toBeFalse();
+                expect(live.arena).toBeNull();
+                expect(live.wasInPlay()).toBeFalse();
             });
 
             it('reads the card as it is now when given a reference to an earlier identity of it', async function () {
@@ -160,9 +162,16 @@ describe('Last known information opt-in', function () {
 
                 // ...whereas reading the card directly never cared which identity it was asked about.
                 // The view describes the card as it is now, so it names the identity it has now.
-                const live = cardStates.forCard(context.battlefieldMarine).getLastKnownProperties(whileInHand);
-                expect(live.zoneName as string).toBe('groundArena');
+                const liveOnly = cardStates.forCard(context.battlefieldMarine);
+                const live = liveOnly.getLastKnownProperties(whileInHand);
+                expect(live.arena as string).toBe('groundArena');
                 expect(live.ref).toBe(cardStates.getIdentity(context.wampa));
+
+                // The same holds for its current view. The registry-backed getter answers that the copy
+                // the reference names, the one that was in hand, is in play nowhere (SWU 8.5.4).
+                expect(liveOnly.getCurrentProperties(whileInHand).isInPlay()).toBeTrue();
+                const registryBacked = cardStates.forCard(context.hk47);
+                expect(registryBacked.getCurrentProperties(whileInHand).isInPlay()).toBeFalse();
             });
 
             it('still gets the same canonical identity references as a card that has opted in', async function () {

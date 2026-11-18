@@ -21,7 +21,7 @@ export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
                     // A unit that was in play when it was defeated, not a face-down card defeated as a resource
                     const defeated = cardStates.getLastKnownProperties(event.cardRef);
                     return defeated.isUnit() &&
-                      defeated.hasInPlayStats() &&
+                      defeated.wasInPlay() &&
                       defeated.controller !== context.player;
                 }
             },

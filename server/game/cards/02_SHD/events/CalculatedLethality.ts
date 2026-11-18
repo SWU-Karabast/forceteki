@@ -45,6 +45,6 @@ export default class CalculatedLethality extends EventCard {
      */
     private upgradeCountWhenDefeated(target: Card, cardStates: ICardStateGetter): number {
         const unit = cardStates.getLastKnownProperties(target);
-        return unit.isUnit() && unit.hasInPlayStats() ? unit.upgrades.length : 0;
+        return unit.isUnit() && unit.wasInPlay() ? unit.upgrades.length : 0;
     }
 }

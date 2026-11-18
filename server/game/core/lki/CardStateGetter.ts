@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import { CardRef } from './CardRef';
-import type { ICardProperties } from './CardPropertiesInterfaces';
+import type { ICardProperties, ICurrentCardProperties } from './CardPropertiesInterfaces';
 import type { LkiRegistry } from './LkiRegistry';
 import { Contract } from '../utils/Contract';
 
@@ -17,14 +17,16 @@ import { Contract } from '../utils/Contract';
 export interface ICardStateGetter {
 
     /**
-     * Returns the characteristics of the card named by `ref`, as of the moment that reference
-     * represents.
+     * Returns the last-known view of the card named by `ref`: its characteristics as of the moment that
+     * reference represents. The default way to read a card.
      *
-     * For a card that has opted in, a characteristic comes from the record written when the card left
-     * play during the current action, and from the live card otherwise. Presence — where the card is,
-     * whether it is in play, attached or attacking — always comes from the live card (D-37). Call
-     * sites do not need to know which applies, and should not branch on it. A card that has not opted
-     * in always reads live state, exactly as reading the card directly would.
+     * For a card that has opted in, the characteristics come from the record written when the card left
+     * play during the current action, and from the live card otherwise. Call sites do not need to know
+     * which applies, and should not branch on it. A card that has not opted in always reads live state,
+     * exactly as reading the card directly would.
+     *
+     * The view holds characteristics only. Where the card is now, and whether it is in play, attached,
+     * attacking or defending, is asked of {@link getCurrentProperties} (D-37).
      *
      * A live {@link Card} is accepted transitionally, while events and contexts still carry card
      * objects rather than references. Once they carry references this overload goes away and the
@@ -33,13 +35,14 @@ export interface ICardStateGetter {
     getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties;
 
     /**
-     * Returns the characteristics of the card as it is right now, never last known information.
+     * Returns the current view of the card: the card as it is right now, never last known information.
      *
-     * For a card a selector is choosing from: it was found in a zone, so it is asked about as it is
-     * there (D-38). Ignores records entirely, so it reads exactly what reading the card directly
-     * would.
+     * The only view with presence: whether the card is in play now, where it is, and whether it is
+     * attached, a resource, attacking or defending. Also the view for a card a selector is choosing
+     * from, which was found in a zone and is asked about as it is there (D-38). Ignores records
+     * entirely.
      */
-    getCurrentProperties(refOrCard: CardRef | Card): ICardProperties;
+    getCurrentProperties(refOrCard: CardRef | Card): ICurrentCardProperties;
 
     /**
      * Returns the canonical reference for a card's current identity.
@@ -102,12 +105,14 @@ export class LiveOnlyCardStateGetter implements ICardStateGetter {
     public constructor(private readonly getRegistry: () => LkiRegistry) {}
 
     public getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties {
-        return this.getCurrentProperties(refOrCard);
-    }
-
-    public getCurrentProperties(refOrCard: CardRef | Card): ICardProperties {
         const registry = this.getRegistry();
         return registry.getLiveProperties(toRef(registry, refOrCard));
+    }
+
+    public getCurrentProperties(refOrCard: CardRef | Card): ICurrentCardProperties {
+        // The card as it is now, whichever identity the reference names, as reading the card would.
+        const registry = this.getRegistry();
+        return registry.getCurrentProperties(registry.getIdentity(toRef(registry, refOrCard).getCardForEngine()));
     }
 
     public getIdentity(card: Card): CardRef {
@@ -137,9 +142,9 @@ export class CardStateGetter implements ICardStateInternal {
         return registry.getProperties(toRef(registry, refOrCard));
     }
 
-    public getCurrentProperties(refOrCard: CardRef | Card): ICardProperties {
+    public getCurrentProperties(refOrCard: CardRef | Card): ICurrentCardProperties {
         const registry = this.getRegistry();
-        return registry.getLiveProperties(toRef(registry, refOrCard));
+        return registry.getCurrentProperties(toRef(registry, refOrCard));
     }
 
     public deref(ref: CardRef): Card | null {

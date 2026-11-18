@@ -1,7 +1,5 @@
-import type { Arena, Aspect, CardType, KeywordName, Trait, ZoneName } from '../Constants';
-import type { Attack } from '../attack/Attack';
-import type { Card } from '../card/Card';
-import type { NumericKeywordName, Zone } from '../../Interfaces';
+import type { Arena, Aspect, CardType, KeywordName, Trait } from '../Constants';
+import type { NumericKeywordName } from '../../Interfaces';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
@@ -17,6 +15,7 @@ import type {
     IUpgradeProperties
 } from './CardPropertiesInterfaces';
 import type { IRecordedCardState, RecordedField } from './CardRecord';
+import { presenceNotOnLastKnownView } from './LiveCardProperties';
 
 function asList<T>(items: T | T[] | Set<T>): T[] {
     if (items instanceof Set) {
@@ -26,31 +25,21 @@ function asList<T>(items: T | T[] | Set<T>): T[] {
 }
 
 /**
- * Properties backed by a record: characteristics as they were when the card left play (D-37).
+ * The last-known view of a card that left play during the current action: its characteristics as they
+ * were at that instant, from the record written then (D-37).
  *
- * Presence — where the card is, whether it is in play, attached, attacking or defending — is never
- * recorded. It reads the live card through the reference, so it always answers about now. If the card
- * has since become a new copy, the copy this view describes no longer exists anywhere: it is not in
- * play, attached, attacking, defending or a resource, whatever the new copy is doing (SWU 8.5.4).
+ * Holds characteristics only. Presence (where the card is now, whether it is in play, attached,
+ * attacking or defending) is asked of the current view, and the members below that would answer it
+ * fail, for code that got past the types.
  *
- * The record is immutable and shared between readers, but this view is not safe to retain, because
- * its presence reads go to the live card. Long-lived holders store the values they need (D-16).
+ * The record is immutable and shared between readers. Long-lived holders store the values they need
+ * rather than this view (D-16).
  */
 export class RecordedCardProperties implements ICardProperties {
     public constructor(
         public readonly ref: CardRef,
         protected readonly record: IRecordedCardState
     ) {}
-
-    /** The physical card, wherever it is now, whichever copy of it that is. */
-    protected get liveCard(): Card {
-        return this.ref.getCardForEngine();
-    }
-
-    /** The live card while it is still the copy this view describes, otherwise `null`. */
-    protected get currentCopy(): Card | null {
-        return this.ref.isCurrent ? this.ref.getCardForEngine() : null;
-    }
 
     // ----- characteristics
 
@@ -218,44 +207,44 @@ export class RecordedCardProperties implements ICardProperties {
         return this.record.checks.isForceToken;
     }
 
-    // ----- presence: the live card (D-37)
+    // ----- the in-play guard, as the card answered when it was recorded
 
-    /** The zone the physical card is in now, which is the new copy's zone if it has become one. */
-    public get zoneName(): ZoneName {
-        return this.liveCard.zoneName;
+    public wasInPlay(): boolean {
+        return this.record.wasInPlay;
     }
 
-    /** As {@link zoneName}. */
-    public get zone(): Zone | null {
-        return this.liveCard.zone;
+    // ----- presence is not on this view: these fail, for code that got past the types
+
+    public get zoneName(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'zoneName'));
     }
 
-    public isInPlay(): boolean {
-        const card = this.currentCopy;
-        return card != null && card.canBeInPlay() && card.isInPlay();
+    public get zone(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'zone'));
     }
 
-    public isAttached(): boolean {
-        const card = this.currentCopy;
-        return card != null && card.canBeInPlay() && card.isAttached();
+    public isInPlay(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'isInPlay'));
     }
 
-    public isResource(): boolean {
-        const card = this.currentCopy;
-        return card != null && card.isResource();
+    public isAttached(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'isAttached'));
     }
 
-    // A card that has left play cannot be in an attack, and `Card` fails if asked outside an attackable
-    // zone, so these check the zone first: presence answers, whatever has happened to the card.
-
-    public isDefending(): boolean {
-        const card = this.currentCopy;
-        return card != null && card.canBeDamaged() && card.canHaveActiveAttack() && card.isDefending();
+    public isResource(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'isResource'));
     }
 
-    public get activeAttack(): Attack | null {
-        const card = this.currentCopy;
-        return card != null && card.canBeDamaged() && card.canHaveActiveAttack() ? card.activeAttack : null;
+    public isAttacking(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'isAttacking'));
+    }
+
+    public isDefending(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'isDefending'));
+    }
+
+    public get activeAttack(): never {
+        return Contract.fail(presenceNotOnLastKnownView(this.ref, 'activeAttack'));
     }
 
     // ----- members reached by narrowing with canBeExhausted(), canBeDamaged() or isBase()
@@ -330,21 +319,16 @@ export class RecordedUnitProperties extends RecordedCardProperties implements IU
         return this.read('defaultArena');
     }
 
-    public hasInPlayStats(): this is IUnitPropertiesInPlay {
+    public override wasInPlay(): this is IUnitPropertiesInPlay {
         return this.record.wasInPlay;
     }
 
-    public asInPlayStats(): IUnitPropertiesInPlay {
+    public asWasInPlay(): IUnitPropertiesInPlay {
         Contract.assertTrue(
             this.record.wasInPlay,
             `Expected ${this.ref} to have been in play when it was recorded, but it was in ${this.record.zoneName}`
         );
         return this;
-    }
-
-    public isAttacking(): boolean {
-        const card = this.currentCopy;
-        return card != null && card.isUnit() && card.canHaveActiveAttack() && card.isAttacking();
     }
 
     public get power(): number {
@@ -401,7 +385,7 @@ export class RecordedUnitProperties extends RecordedCardProperties implements IU
         Contract.assertTrue(
             this.record.wasInPlay,
             `Attempting to read in-play property '${property}' from the record for ${this.ref}, ` +
-            'which was not in play when it was recorded. Narrow with hasInPlayStats() first.'
+            'which was not in play when it was recorded. Narrow with wasInPlay() first.'
         );
     }
 }

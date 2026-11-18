@@ -139,7 +139,7 @@ function render(report, sites) {
 
     const check = checkGetter(sites);
     lines.push('', `## H. The built getter against the rules — ${check.checked} sites checked, ${check.disagreements.length} disagree`, '');
-    lines.push('At each read, the audit also asks the built getter the same question: `getCurrentProperties` for a selector candidate (D-38), and `getLastKnownProperties` otherwise. A candidate, presence, a tombstoned identity and a card that has become a new copy must get the live answer; a characteristic of a card that left play during the action must get the recorded one.', '');
+    lines.push('At each read, the audit also asks the built getter the same question: `getCurrentProperties` for a selector candidate (D-38) and for presence, which only the current view has (D-37), and `getLastKnownProperties` otherwise. A candidate, presence, a tombstoned identity and a card that has become a new copy must get the live answer; a characteristic of a card that left play during the action must get the recorded one.', '');
     for (const { site, expected, example } of check.disagreements) {
         lines.push(`- \`${site.file.replace(/^server\/game\/cards\//, '')}:${site.line}\` \`${site.receiver}.${site.property}\` — ${site.state}, expected ${expected}`);
         if (example) {

@@ -15,11 +15,15 @@ engine actually behaves today**.
 ## Start here
 
 > **Step 3.1 is built; next is the codemod (step 3.2), after one decision.** D-36 to D-39 are built on
-> the branch `ammayberry1/lki-refactor-3`, which is not merged yet. The full suite passes, and the
-> behavior-delta audit (register §G.2) checks the built getter against D-37 to D-39 at every site the
-> suite reaches: none of the 238 disagrees. An independent review (2026-11-17) found a bug and gaps in
-> the tests and documents, now fixed on the branch, and three cases where the default reads a card
-> wrongly in the zone it went to (F1 to F3), which are open with pending specs (register §B.3).
+> the branch `ammayberry1/lki-refactor-3`, which is not merged yet. On 2026-11-18 D-37 was revised: a
+> card has two views, and each answers about one moment. The last-known view (`getLastKnownProperties`)
+> holds characteristics only; the current view (`getCurrentProperties`) holds the card as it is now,
+> presence included. Before, one view mixed members that answered about different moments, and nothing
+> at the call site said which. The full suite passes, and the behavior-delta audit (register §G.2)
+> checks the built getter against D-37 to D-39 at every site the suite reaches: none of the 237
+> disagrees. An independent review (2026-11-17) found a bug and gaps in the tests and documents, now
+> fixed on the branch, and three cases where the default reads a card wrongly in the zone it went to
+> (F1 to F3), which are open with pending specs (register §B.3).
 >
 > The decision left is how a selector receives its candidate (D-38). The review proposed a third option,
 > (c), a rule by when a reference was bound, which would also fix F1 to F3. The audit measured it: in the
@@ -50,7 +54,7 @@ Nothing else for this work has landed. Step 3.1 is built on the branch and not m
 | 0 — baselines and gates | ✅ done ([#2931](https://github.com/SWU-Karabast/forceteki/pull/2931)) |
 | 1 — core components, seven migrated cards | ✅ done ([#2931](https://github.com/SWU-Karabast/forceteki/pull/2931)) |
 | 3.0 — the opt-in flag | ✅ done ([#3030](https://github.com/SWU-Karabast/forceteki/pull/3030)) |
-| 3.1 — widen the properties surface, and build D-37 to D-39 | ✅ built on 2026-11-16, on the branch, not merged. The properties object covers every member card code reads, apart from engine machinery. Reviewed on 2026-11-17: fixes made, three findings open (register §B.3) |
+| 3.1 — widen the properties surface, and build D-37 to D-39 | ✅ built on 2026-11-16, on the branch, not merged. The two views cover every member card code reads, apart from engine machinery. Reviewed on 2026-11-17: fixes made, three findings open (register §B.3). D-37 revised and rebuilt on 2026-11-18: two views, one moment each |
 | 3.2–3.4 — the codemod, its verification, authoring guidance | Not started |
 | 2 — event plumbing | Not started; runs after phase 3 |
 | 4 — grow the opted-in set | Not started |
@@ -59,7 +63,7 @@ Nothing else for this work has landed. Step 3.1 is built on the branch and not m
 
 | Decision | Tracked in | State |
 |---|---|---|
-| How a selector receives its candidate: (a) a present-state properties object passed by the engine, (b) a `getCurrentProperties` call in card code, or (c) a rule by when a reference was bound | D-38, [step 3.1](#31--widen-the-properties-surface), register §G.2 | **Open.** Recommended: (a). (c) was measured: 26 answers change in the suite, none for the better. A maintainer decides before step 3.2 |
+| How a selector receives its candidate: (a) the engine passes the callback a current view, (b) a `getCurrentProperties` call in card code, or (c) a rule by when a reference was bound | D-38, [step 3.1](#31--widen-the-properties-surface), register §G.2 | **Open.** Recommended: (a). (c) was measured: 26 answers change in the suite, none for the better. A maintainer decides before step 3.2 |
 | Reading a card in the zone it went to, in the action it left play (F1 to F3 from the review) | register §B.3, [step 3.1](#31--widen-the-properties-surface) | **Open.** Each has a pending spec and a proposed fix; F2's belongs in the codemod |
 | Fix for Maul, Master of the Shadow Collective's wrong-copy bug (DJ - Blatant Thief shares the cause and is unverified) | register §B.1 | Deferred by decision on 2026-10-23: "We'll do the fix later." The bug predates the LKI work. A candidate fix is identified and not applied |
 | Real identity counters for event cards, bases and tokens | D-8, phase 4 | Deferred to phase 4 |
@@ -128,18 +132,22 @@ sections use the left-hand terms. The right-hand terms are what the code calls t
 | footprint; "captured" properties | **record** — `IRecordedCardState`, `RecordedCardProperties`, `RecordedUnitProperties` (D-32) |
 | mint, minted, minting | **write a record**: `LkiRegistry.recordPending` stages it at `preResolutionEffects`, `commitPending` keeps it just before the handler (D-30) |
 | accessor, live accessor | **live** properties — `LiveCardProperties`, `LiveUnitProperties` |
-| `IUnitPropertiesCaptured`, `…Recorded`, `…Accessor` (D-26) | `IUnitProperties`, implemented by the four classes above |
+| `IUnitPropertiesCaptured`, `…Recorded`, `…Accessor` (D-26) | `IUnitProperties` on the last-known view, implemented by the recorded and live classes; `ICurrentUnitProperties` on the current view, implemented by the live classes |
 | instance, instance number, copy id | **identity** — `Card.identityId`, backed by the existing `InPlayCard._mostRecentInPlayId` counter. `inPlayId` and `mostRecentInPlayId` are the older zone-gated accessors |
 | handle, reference | `CardRef`, interned per `(card, identityId)`, obtained with `getIdentity(card)` |
 | `cardStates.getCardProperties`, `getLiveCard` (D-19 sketches) | `getLastKnownProperties` (D-24); `deref` is the engine-only escape hatch |
 | flush | `LkiRegistry.flushRecords()`; `clearForRollback()` on rollback |
 | legacy LKI | `event.lastKnownInformation`, built by `buildLastKnownInformation`; removed in phase 4 |
 
-D-37 gives two terms their meaning, built in step 3.1. A **characteristic** is what SWU 8.11.1 lists,
-read as of the moment a properties object represents. **Presence** means whether a card is in play,
-attached or attacking, and where it is, always read as of now. On the properties object `isInPlay()` is a
-presence question, as it is on `Card`. The in-play guard, called `isInPlay()` before step 3.1, is
-`hasInPlayStats()`. `arena` is the last known location.
+D-37 gives these terms their meaning, built in step 3.1 and revised on 2026-11-18. A **characteristic**
+is what SWU 8.11.1 lists. **Presence** means whether a card is in play, attached, a resource or in an
+attack, and where it is. A card has two **views**, each answering about one moment. The **last-known
+view**, from `getLastKnownProperties` (`ICardProperties`), holds characteristics as of the moment its
+reference represents, and has no presence members. The **current view**, from `getCurrentProperties`
+(`ICurrentCardProperties`), holds the card as it is now, presence included. The in-play guard is
+`wasInPlay()` on the last-known view and `isInPlay()` on the current view. It was `isInPlay()` on the
+one view before step 3.1, and `hasInPlayStats()` from 2026-11-16 to 2026-11-18. `arena` is the location
+that is a characteristic.
 
 ---
 
@@ -168,7 +176,7 @@ Three object kinds, with a strict separation of who may hold which:
 |---|---|---|---|
 | **`Card`** | the live, mutable game object | engine only | the game |
 | **`CardRef`** | an opaque token, `(card, identity)`, interned by the registry | events, contexts, engine | transient — never in tracked state (D-23) |
-| **`IUnitProperties`** | a read-only characteristics view | **card authors** | one evaluation |
+| **`ICardProperties`**, **`ICurrentCardProperties`** | read-only views: last known, and current | **card authors** | one evaluation |
 
 **Card authors never touch a `Card`.** They receive a `CardRef` and exchange it for properties. That is
 the end state: today events and contexts still carry live `Card` objects, so the getter accepts either,
@@ -176,25 +184,34 @@ and `event.card` becoming a reference is phase 4 (D-28).
 
 ```ts
 const props = cardStates.getLastKnownProperties(context.event.card);
-if (props.isUnit() && props.hasInPlayStats()) {
+if (props.isUnit() && props.wasInPlay()) {
     /* props.power is reachable only here */
 }
+
+// whether the card is in play now is asked of the current view
+const survived = cardStates.getCurrentProperties(context.source).isInPlay();
 ```
 
-`hasInPlayStats()` asks about the represented moment, so it is true for a unit that left play; `isInPlay()`
-asks about now, as it does on `Card` (D-37).
+`wasInPlay()` asks about the represented moment, so it is true for a unit that left play. Whether the card
+is in play now is asked of the current view, whose `isInPlay()` means what it means on `Card` (D-37).
 
-**The properties object has two backings, one interface** (D-25, D-26):
+**Two views, each answering about one moment** (D-37). The last-known view (`ICardProperties`, from
+`getLastKnownProperties`) holds characteristics only, as of the moment the reference represents. The
+current view (`ICurrentCardProperties`, from `getCurrentProperties`) holds the card as it is now, presence
+included. The call names the moment, so a reader can see which one each line reads.
+
+**And two backings** (D-25, D-26):
 
 - `RecordedCardProperties` / `RecordedUnitProperties` / `RecordedUpgradeProperties` — characteristics
-  from a record. The record is immutable; the view is not retained, because its presence reads go to the
-  live card.
+  from a record: the last-known view of a card that left play during the current action. The record is
+  immutable; the view is not retained (D-16).
 - `LiveCardProperties` / `LiveUnitProperties` / `LiveUpgradeProperties` — lazy pass-through to the live
-  card. Cheap; must not be retained.
+  card: the last-known view of every other card, and every current view. Cheap; must not be retained.
 
-The getter picks the backing: a record exists → recorded; otherwise → live. Because one is immutable
-and the other always reads current state, **no cache invalidation is needed anywhere**. A card that has
-not opted in always gets the live backing (D-35).
+For the last-known view the getter picks the backing: a record exists → recorded; otherwise → live. The
+current view is always live. Because one backing is immutable and the other always reads current state,
+**no cache invalidation is needed anywhere**. A card that has not opted in always gets the live backing
+(D-35).
 
 **Records** are written when a card leaves play, or moves from a visible zone to a hidden one (R4). Each
 is staged at the event window's `preResolutionEffects` step, so everything leaving in one window is
@@ -216,16 +233,20 @@ a legitimate one.
 A flushed record leaves nothing behind, so a later read of a still-current identity reads the card as it
 is now (D-39).
 
-**What the default answers (D-37 to D-39).** A characteristic answers about the moment the properties
-object represents: now, for a live view, and the instant of departure for a recorded one. Characteristics
-are what SWU 8.11.1 lists: attributes, controller, modifiers, damage, exhausted status, upgrades, and for
-an upgrade the card it was attached to. Presence answers about now on every properties object:
-`isInPlay()`, `zoneName`, `zone`, whether the card is attached, attacking or defending. The last known
-location is a characteristic of its own, `arena`. A selector's candidate always reads the present (D-38),
-and a still-current identity whose record was flushed reads the present instead of throwing (D-39).
+**What the default answers (D-37 to D-39).** The last-known view answers about the moment its reference
+represents: the instant of departure if the card left play during the action, and now otherwise. It
+holds what SWU 8.11.1 lists: attributes, controller, modifiers, damage, exhausted status, upgrades, and
+for an upgrade the card it was attached to. The location that is a characteristic is `arena`, the arena
+the card was in. Presence is only on the current view: `isInPlay()`, `zoneName`, `zone`, and whether the
+card is attached, a resource, attacking or defending. A question about now therefore cannot be asked of
+the last-known view: it does not compile. A selector's candidate always reads the present (D-38), and a
+still-current identity whose record was flushed reads the present instead of throwing (D-39).
 
-This replaced D-31, under which location was a characteristic like any other. The behavior-delta audit
-showed that every presence read of a card that had left play wanted the present (register §G.2).
+D-37 replaced D-31, under which one view answered every question, location included, about the moment it
+represented. The behavior-delta audit showed that every presence read of a card that had left play
+wanted the present (register §G.2). D-37's first form (2026-11-05) kept one view and made its presence
+members read now. Its revision (2026-11-18) moved them onto the current view, because a reader could not
+tell from a call which moment a member answered about.
 
 **Dereference is engine-only, and nothing calls it yet.** `ICardStateInternal.deref(ref)` returns the
 live card, or `null` when the reference names an identity the card has since left. The original design
@@ -238,10 +259,10 @@ before this work.
 > - the identity fizzle above, which was dropped;
 > - `event.card` holding a `CardRef` (phase 4, D-28).
 >
-> The registry, `CardRef`, both property variants, the getter, the opt-in flag and the record lifecycle
-> are built. Step 3.1 (2026-11-16, not merged) built the full properties surface (D-36) and the defaults
-> of D-37 to D-39. One part of D-38 is open: how a selector receives its candidate. See
-> [Decided but not built](#decided-but-not-built).
+> The registry, `CardRef`, both views and their backings, the getter, the opt-in flag and the record
+> lifecycle are built. Step 3.1 (2026-11-16, revised 2026-11-18, not merged) built the full properties
+> surface (D-36) and the defaults of D-37 to D-39. One part of D-38 is open: how a selector receives its
+> candidate. See [Decided but not built](#decided-but-not-built).
 >
 > The default is known to answer wrongly in one shape of read: a card read in the zone it went to, in
 > the action it left play, outside a selector. The review of 2026-11-17 found three cases (F1 to F3,
@@ -280,9 +301,9 @@ candidate. The spike in step 3.1 recommends an answer, and a maintainer confirms
 | D-33 | How does a card implementation obtain the getter? | **A third parameter on the setup methods** — `setupCardAbilities(registrar, AbilityHelper, cardStates)` — since setup is the only point at which it is relevant. Non-migrated cards are unaffected, because TypeScript permits an override to declare fewer parameters than its base. | Decided |
 | D-34 | Is the automatic identity fizzle built — D-6's "fizzles when the identity no longer matches", and the `deref` in `checkEventCondition` from D-28? | **No.** A log-only audit across the full suite (9,633 specs) compared each card-targeted event's target identity when the event was created with its identity when its condition is checked. It fired **23** times, and every hit is an event that is *meant* to resolve after its subject has moved on: 20 `onCardReadied` events from `ResourceCardSystem` (put a card into play as a resource, then ready it — Superlaser Technician, and a Clone of it) and 3 `onBountyCollected` events from Spare the Target (collect a bounty on a unit it has just returned to hand). A blanket fizzle would break all of them. The seam was also wrong: seven systems override `checkEventCondition`, so the universal place is `GameSystem.updateEvent`. If a check is wanted later it should ship in shadow mode first, with an explicit way for an event to declare that it follows its subject (SC-21). Today's real protection is `Attack`'s own guard and the engine dropping delayed effects when their target leaves play, which has one known hole — `WhileSourceInPlay` effects, a confirmed bug for Maul (SC-18, register §B.1). | Decided |
 | D-35 | How does a card opt in to last known information, and what does a card that has not opted in get? | **`Card.usesLkiRegistry`** (public, default `false`) selects the getter passed to the card's setup: `game.cardStates.forCard(card)` returns the registry-backed getter for an opted-in card and a **live-only** getter for every other. The live-only getter reads the card as it is now — it never consults records, tombstones or identity, so a reference to an earlier identity reads the card instead of throwing. That is what lets every card's reads be rewritten through the getter before the card is migrated, with no change in behavior. `getIdentity` works for every card either way, because identity does not depend on the timeline. When one card runs another's setup (Clone, copied triggered abilities) the getter follows the card whose *code* is running, not the card receiving the abilities. The flag is transitional and is removed in phase 4. | Decided |
-| D-36 | How much of the `Card` surface must the properties object cover before the sweep (phase 3), and how is it built? | **Every member card code reads, apart from engine machinery, written by hand, under `Card`'s names.** The interface had 19 members where card code reads about 76 (§3.20), and a read can be rewritten through the getter only if its member exists. The five questions of [step 3.1](#31--widen-the-properties-surface), answered: (1) **Coverage:** every member in §3.20's categories except engine machinery, so the sweep can rewrite every read. (2) **The recorded side:** every *characteristic* the interface exposes is recorded at departure, so a card that opts in never meets a field that was not recorded. Presence members are never recorded: on both variants they read the live card (D-37). Register §G.2 lists the characteristics read on departed cards. (3) **Names:** `Card`'s (`isUnit`, `isUpgrade`, `isNonLeaderUnit`, `isBase` …), so most rewrites only swap the receiver; `isUnitCard` and `asUnitCard` become `isUnit` and `asUnit`. D-37 adds two: `isInPlay()` keeps `Card`'s meaning and the in-play guard becomes `hasInPlayStats()`, and `arena` is new. (4) **Built by hand:** under D-37 every member is one of three kinds — a recorded characteristic, a live presence read, or excluded — which a mapped type would have to restate member by member, and hand-writing keeps mutators and engine machinery out by construction (D-28). The spike step 3.1 proposed was not run; this requirement settled it. (5) **Kinds:** `isInPlay()` means for every kind what it means on `Card`. Card, unit and upgrade come first, with `parentCard`, `parentUnit` and `parentCardController` recorded for upgrades; other kinds follow when a read needs them. | Decided 2026-11-05. Built 2026-11-16 (step 3.1), with bases as a kind as well |
-| D-37 | Which reads default to last known information, and which to the present? | **Characteristics default to last known information; presence reads the present.** Card implementers are not expected to know when last known information applies, so the default has to be right nearly everywhere and the exceptions few and named. Characteristics are what SWU 8.11.1 lists — attributes, controller, modifiers, damage, exhausted status, upgrades — and for an upgrade, the card it was attached to (the Gar Saxon ruling). They answer about the moment a properties object represents. Presence — `isInPlay()`, `zoneName`, `zone`, `isAttached()`, `isAttacking()`, `isDefending()`, `activeAttack` — answers about now, on recorded views as well. The last known location is a characteristic of its own, `arena`. D-27's guard is renamed `hasInPlayStats()`, so that `isInPlay()` keeps `Card`'s meaning. Measured by the behavior-delta audit (register §G.2): every one of the 30 presence reads of a departed card wanted the present, and the five characteristic answers that change are each correct or without effect. Two exceptions need an explicit present read (register §F.1). Supersedes D-31, and restores the split in [D-3 in detail](#d-3-in-detail). See [below](#d-37-to-d-39-in-detail--the-default-measured). | Decided 2026-11-05. Built 2026-11-16 (step 3.1) |
-| D-38 | What does a selector's candidate read? | **The present.** The card a selector callback is asked about — in `cardCondition`, `matchTarget`, `attackerCondition` or a cost adjuster's match — comes from a live zone query, so it never consults records or tombstones. Only the candidate: other cards the callback reads, such as `context.source`, follow D-37. The audit found 25 candidate reads that would have thrown, and two whose answer would have changed. How the candidate reaches the present-state read is settled by the spike in step 3.1. | Decided 2026-11-05. The present-state read, `getCurrentProperties`, built 2026-11-16. How the candidate reaches it is **open**, between (a), (b) and the review's (c). [Step 3.1](#31--widen-the-properties-surface) recommends (a), the engine passing a properties object, extended to cards that card code takes from a zone (F2); its measurement of (c) found no gain in the suite |
+| D-36 | How much of the `Card` surface must the properties object cover before the sweep (phase 3), and how is it built? | **Every member card code reads, apart from engine machinery, written by hand, under `Card`'s names.** The interface had 19 members where card code reads about 76 (§3.20), and a read can be rewritten through the getter only if its member exists. The five questions of [step 3.1](#31--widen-the-properties-surface), answered: (1) **Coverage:** every member in §3.20's categories except engine machinery, so the sweep can rewrite every read. (2) **The recorded side:** every *characteristic* the interface exposes is recorded at departure, so a card that opts in never meets a field that was not recorded. Presence members are never recorded: they are only on the current view, which reads the live card (D-37). Register §G.2 lists the characteristics read on departed cards. (3) **Names:** `Card`'s (`isUnit`, `isUpgrade`, `isNonLeaderUnit`, `isBase` …), so most rewrites only swap the receiver; `isUnitCard` and `asUnitCard` become `isUnit` and `asUnit`. D-37 adds: the in-play guard is `wasInPlay()` / `asWasInPlay()` on the last-known view and `isInPlay()` / `asInPlay()` on the current view, where `isInPlay()` means what it means on `Card`; and `arena` is new. (4) **Built by hand:** under D-37 every member is one of three kinds — a characteristic on both views, a presence member on the current view only, or excluded — which a mapped type would have to restate member by member, and hand-writing keeps mutators and engine machinery out by construction (D-28). The spike step 3.1 proposed was not run; this requirement settled it. (5) **Kinds:** on the current view, `isInPlay()` means for every kind what it means on `Card`, and on the last-known view `wasInPlay()` asks the same about the represented moment. Card, unit and upgrade come first, with `parentCard`, `parentUnit` and `parentCardController` recorded for upgrades; other kinds follow when a read needs them. | Decided 2026-11-05. Built 2026-11-16 (step 3.1), with bases as a kind as well |
+| D-37 | Which reads default to last known information, and which to the present? | **Characteristics default to last known information; presence reads the present. Each is read from its own view, and each view answers about one moment.** Card implementers are not expected to know when last known information applies, so the default has to be right nearly everywhere and the exceptions few and named. The **last-known view** (`getLastKnownProperties`, `ICardProperties`) is the default. It holds characteristics only — what SWU 8.11.1 lists: attributes, controller, modifiers, damage, exhausted status, upgrades, and for an upgrade the card it was attached to (the Gar Saxon ruling) — as of the moment its reference represents. The **current view** (`getCurrentProperties`, `ICurrentCardProperties`) holds the card as it is now: the same characteristics, and presence — `isInPlay()`, `zoneName`, `zone`, `isAttached()`, `isResource()`, `isAttacking()`, `isDefending()`, `activeAttack`. Presence is not on the last-known view, so a question about now does not compile there, and the call names the moment each read answers about. The last known location is a characteristic of its own, `arena`. D-27's guard is `wasInPlay()` on the last-known view; `isInPlay()` keeps `Card`'s meaning on the current view. Measured by the behavior-delta audit (register §G.2): every one of the 30 presence reads of a departed card wanted the present, and the five characteristic answers that change are each correct or without effect. Two exceptions need an explicit present read (register §F.1). Supersedes D-31, and restores the split in [D-3 in detail](#d-3-in-detail). See [below](#d-37-to-d-39-in-detail--the-default-measured). | Decided 2026-11-05, revised 2026-11-18: the first form kept one view and had its presence members read now, which left a reader unable to tell from a call which moment a member answered about. Built 2026-11-16 (step 3.1); the revision built 2026-11-18 |
+| D-38 | What does a selector's candidate read? | **The present.** The card a selector callback is asked about — in `cardCondition`, `matchTarget`, `attackerCondition` or a cost adjuster's match — comes from a live zone query, so it never consults records or tombstones. Only the candidate: other cards the callback reads, such as `context.source`, follow D-37. The audit found 25 candidate reads that would have thrown, and two whose answer would have changed. How the candidate reaches the present-state read is settled by the spike in step 3.1. | Decided 2026-11-05. The present-state read, `getCurrentProperties`, built 2026-11-16; since D-37's revision it returns the current view. How the candidate reaches it is **open**, between (a), (b) and the review's (c). [Step 3.1](#31--widen-the-properties-surface) recommends (a), the engine passing a current view, extended to cards that card code takes from a zone (F2); its measurement of (c) found no gain in the suite |
 | D-39 | What does a read of a tombstoned identity return? | **The card as it is now. Tombstones are dropped.** A tombstone cannot tell a reference held past its action, the bug D-21 targets, from a card someone has picked up again from the zone it went to, because interning makes the two the same reference. The audit found 55 legitimate reads in 41 card files that the throw would have broken: discard-pile selectors, triggers on a card played back from the discard pile, a leader reading itself after its unit side was defeated. Reading the present is today's behavior, so nothing regresses. What D-21 guarded becomes guidance (requirement 11, SC-20). The orphan throw stays (D-14, case ④). Supersedes D-21. | Decided 2026-11-05. Built 2026-11-16 (step 3.1) |
 | D-20 | When are footprints flushed? | **At the action boundary.** LKI is only meaningful between a trigger and its resolution, and no ability resolution spans an action boundary — so after it, any LKI read through a reference is definitionally a bug. Retention would mask those bugs. | Decided |
 | D-21 | How is a flushed-but-referenced identity detected? | **Tombstones** — retain the identity key after dropping its data, so a stale read throws instead of silently reading live. Tombstones persist for the game but are **cleared on rollback** (D-29). | **Superseded by D-39** |
@@ -314,7 +335,7 @@ apart from the naming differences in the [terminology table](#terminology).
 | D-24 — the getter reaches every setup entry point | `setupCardAbilities`, `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities` | `setupStateWatchers`, because watchers keep their own extracts (D-16) |
 | D-22 — a record for every departure that loses information | Records at the seven capture points, plus visible → hidden moves (R4) | Unverified for engine paths no spec exercises. The assertion that would check it fails 27 specs, all of them test-harness moves (register §G.1) |
 | D-20 — flush wherever no trigger can still be pending | Between actions, and at each phase start | The end of the action phase, and after the phase-start and phase-end windows — phase 2, item 4 |
-| D-38 — a selector's candidate reads the present | `getCurrentProperties` on both getters reads the card as it is now (step 3.1) | How a selector receives its candidate: **open**, see [step 3.1](#31--widen-the-properties-surface), item 6. Until step 3.2, card code reads the candidate from the `Card`, which is the present |
+| D-38 — a selector's candidate reads the present | `getCurrentProperties` on both getters returns the current view, the card as it is now (step 3.1) | How a selector receives its candidate: **open**, see [step 3.1](#31--widen-the-properties-surface), item 6. Until step 3.2, card code reads the candidate from the `Card`, which is the present |
 
 ### D-5 in detail — two independent lifecycle events
 
@@ -1191,7 +1212,7 @@ about it:
 
 | Rule | Removes | Mechanism |
 |---|---|---|
-| D-37: characteristics as last known, presence as now | 30 presence answers that flip | Presence members read the live card on every properties object. The last known location gets its own name, `arena` |
+| D-37: characteristics as last known, presence as now | 30 presence answers that flip | Presence members exist only on the current view, which reads the live card. The last known location gets its own name, `arena` |
 | D-38: a selector's candidate reads the present | 2 candidate answers that change, and 25 throws | The candidate never consults records or tombstones |
 | D-39: no tombstones | the other 30 throws | A still-current identity with no record reads the card as it is now |
 
@@ -1207,25 +1228,43 @@ Card code that filters a zone itself, outside a selector, is also asking about t
 it when the card left play in an earlier action, and the audit found no case in the same action where the
 value differs. If one appears, D-38 extends to cards taken from a zone.
 
-**Naming.** D-27's guard cannot keep the name `isInPlay()`. Card code uses that name for the presence
-question ("did it survive?"), as `Card` does, and a properties object must not give the familiar name
-the other meaning. The guard becomes `hasInPlayStats()`, with `asInPlayStats()` as the asserting form.
-`zoneName` keeps `Card`'s present meaning too. The one location shape that wants last known information
-is setting a `zoneFilter` from a card's zone ("in the same arena"), and that is what `arena` is for. A
-lint rule from step 3.4 can point there.
+**Two views, one moment each (the revision of 2026-11-18).** D-37's first form kept a single properties
+object and made its presence members read now, while its characteristics read the record. The answers
+were right at every site the audit checked, but the object mixed two moments with nothing to tell them
+apart: `controller` and `exhausted` answered as the card left play, `activeAttack` and `isInPlay()` as it
+is now. A reader could not tell from a call which moment a member answered about, and the split followed
+SWU 8.11.1's list, which a card author cannot be expected to know. So presence moved onto a view of its
+own. The last-known view (`getLastKnownProperties`) holds characteristics only; the current view
+(`getCurrentProperties`) holds the card as it is now, presence included. Every view answers about one
+moment, as under D-31, and the call names it. The answers did not change: the audit's getter check
+gives the same result as before the revision.
 
-One data point runs the other way. #3167 (2026-11-13) added `defeated.isInPlay()` to HK-47 on a properties
+The structure also catches the likelier mistake. Someone asking "did it survive?" of the default view
+cannot compile `getLastKnownProperties(x).isInPlay()`; the only way to ask is the current view. Under
+D-31 that line compiled and answered "yes" for a card that had just left play, and under D-37's first form
+it compiled and answered correctly but gave no sign of which moment it read.
+
+**Naming.** D-27's guard cannot be called `isInPlay()` on the last-known view. Card code uses that name
+for the presence question ("did it survive?"), as `Card` does, and the question has to stay off the
+last-known view. The guard is `wasInPlay()`, with `asWasInPlay()` as the asserting form; the tense says
+which moment it asks about. On the current view the guard is `isInPlay()`, with `Card`'s meaning, and
+`asInPlay()`. The one location shape that wants last known information is setting a `zoneFilter` from a
+card's zone ("in the same arena"), and that is what `arena` is for. A lint rule from step 3.4 can point
+there.
+
+One data point shaped the name. #3167 (2026-11-13) added `defeated.isInPlay()` to HK-47 on a properties
 object, meaning "was it in play when it was defeated?", D-31's sense. So a developer working with
-properties objects read the name as the moment. The choice still stands, because of how each mistake
-fails. Someone who wants the moment and gets "now" finds the ability failing on its main path, which its
-own spec catches. Someone who wants "now" and gets the moment finds it misbehaving only when the card left
-play mid-resolution, which few specs exercise. That is the Poe case. The guard's documentation has to make
-`hasInPlayStats()` easy to find.
+properties objects read the name as the moment. D-37's first form renamed the guard `hasInPlayStats()`,
+which avoided the clash but described what the guard unlocks rather than the question it asks.
+`wasInPlay()` is the question HK-47's author was asking. Both mistakes fail loudly: asking the
+last-known view whether a card is in play now does not compile, and asking the current view whether a
+defeated card was in play answers no on the ability's main path, which its own spec catches.
 
-**The trade.** D-31's single rule ("every member answers about one moment") was simpler to state. D-37
-gives it up for a split the code base already makes informally: `lastKnownInformation.arena` beside
-`card.zoneName` (§3.11). So the sweep can map each existing read by its form, and no existing card needs
-a judgment call.
+**The trade.** Card code that asks both kinds of question about one card makes two calls. That is the
+cost of seeing the moment of each read. The sweep can still map each existing read by its form:
+presence members go to the current view and everything else to the last-known view, a split the code
+base already makes informally (`lastKnownInformation.arena` beside `card.zoneName`, §3.11). No existing
+card needs a judgment call.
 
 ### D-3 in detail
 
@@ -1686,7 +1725,8 @@ one. Figures re-measured since are cited where they are used (§7, phase 3.2 and
 
 1. **Correct by default.** A card implementation that does nothing special must get last-known
    state for a departed card. *D-37 to D-39 say what the default is: characteristics read as last
-   known, while presence and a selector's candidate read the present.*
+   known on the last-known view, while presence and a selector's candidate read the present, on the
+   current view.*
 2. **Eager materialization at departure.** Derived values cannot be reconstructed after ongoing
    effects are torn down (§3.1), so a footprint must be captured while the card is still in play.
 3. **Window-batched capture.** Simultaneity semantics must be preserved (§3.4, SC-5).
@@ -1720,7 +1760,8 @@ one. Figures re-measured since are cited where they are used (§7, phase 3.2 and
     captured values are immutable. Neither needs a state-version signal (D-25).
 14. **`power` and `printedPower` remain distinct concepts** (D-27, SC-17). In-play-only properties
     are reachable only after narrowing, preserving the guard that reading `power` from a card in
-    hand is an error. *Under D-37 the guard is `hasInPlayStats()`.*
+    hand is an error. *Under D-37 the guard is `wasInPlay()` on the last-known view and `isInPlay()` on
+    the current view.*
 
 ---
 
@@ -1857,10 +1898,11 @@ remain unchanged; cards opt in individually.
 | `LkiRegistry.ts` | Intern map, footprints, pending captures, tombstones, with the three lifetimes from D-29. |
 | `CardStateGetter.ts` | `ICardStateGetter` (card-facing), `ICardStateInternal` (adds `deref` and `forCard`), the registry-backed `CardStateGetter`, and `LiveOnlyCardStateGetter` for cards that have not opted in (D-35). |
 
-Step 3.1 changed the module since: `CardPropertiesInterfaces.ts` has the full surface, with upgrade,
-base and capability kinds and the guard renamed `hasInPlayStats()`; the new `CardRecord.ts` builds
-records; `LkiRegistry.ts` keeps no tombstones (D-39); and the getters gained `getCurrentProperties`
-(D-38).
+Step 3.1 changed the module since: `CardPropertiesInterfaces.ts` has the full surface as two views, the
+last-known and the current, with upgrade, base and capability kinds on each and the guard renamed
+`wasInPlay()` on the last-known view; the new `CardRecord.ts` builds records; `LkiRegistry.ts` keeps no
+tombstones (D-39); and the getters gained `getCurrentProperties`, which returns the current view (D-37,
+D-38).
 
 **Lifecycle wiring**, all behavior-preserving because nothing read from the registry until the
 first card was migrated:
@@ -2201,6 +2243,11 @@ field at a time, and question 4 is settled.
    *Built*, together with `isResource()`, which is presence too. `arena` is the arena the card is in, or
    was in when it left play, and `null` for every other zone. The recorded Helgait above answers
    `'groundArena'` for `arena` and `'discard'` for `zoneName`.
+
+   *Revised 2026-11-18:* presence left the recorded views altogether. It is only on the current view,
+   which `getCurrentProperties` returns, and the last-known view holds characteristics only, so each
+   view answers about one moment (D-37). The recorded Helgait still answers `'groundArena'` for `arena`;
+   `'discard'` is now its current view's `zoneName`.
 4. **The renames (D-36, D-37).** The in-play guard `isInPlay()` / `asInPlay()` becomes
    `hasInPlayStats()` / `asInPlayStats()`, and `isUnitCard()` / `asUnitCard()` become `isUnit()` /
    `asUnit()`. Five migrated cards and the two LKI specs use the old names. One use is newer than the
@@ -2210,6 +2257,10 @@ field at a time, and question 4 is settled.
 
    *Built.* All six migrated cards that read properties are updated: the renames, `arena` for Asajj
    Ventress and Ravager, and `hasInPlayStats()` for HK-47.
+
+   *Revised 2026-11-18:* the guard is `wasInPlay()` / `asWasInPlay()` on the last-known view and
+   `isInPlay()` / `asInPlay()` on the current view. "Stats" did not say which moment the guard asks
+   about, and the tense does.
 5. **No tombstones (D-39).** `LkiRegistry` stops keeping them, and `getProperties` reads a current
    identity live when it has no record. The orphan throw stays. Three specs assert the tombstone's message.
    Two read a card that is still the same identity in the discard pile, so they change to assert the
@@ -2228,7 +2279,9 @@ field at a time, and question 4 is settled.
    selector signatures alone.
 
    *Built:* the present-state read, `getCurrentProperties(refOrCard)` on both getters, which ignores
-   records. Either mechanism needs it. **Open:** which mechanism, after the spike below.
+   records. Either mechanism needs it. **Open:** which mechanism, after the spike below. Since D-37's
+   revision (2026-11-18) the present-state read returns the current view, which is also where presence
+   lives, so it stays in the getter card code receives whichever mechanism is chosen.
 7. **The record-key collision** in register §B, because under these rules the record becomes the
    common answer.
 
@@ -2257,16 +2310,19 @@ narrowing or a new name: an in-play stat, a card-valued member, or a renamed acc
   D-37 removes everywhere else. A forgotten call compiles and goes wrong only when the candidate left
   play during the action, which few specs set up. A guard on the properties object does not narrow the
   `Card` it came from: Spark of Hope had to repeat `card.isUnit()` on the card before passing it to the
-  watcher. And a candidate's in-play stats need `hasInPlayStats()` first.
+  watcher. And a candidate's in-play stats need the in-play guard first (`isInPlay()` on the current view).
 - **(a) The engine passes a present-state properties object.** Card code has no choice to make. Changing
   the callback's parameter type also makes the compiler list every site that needs work: an identity
   comparison has to compare `ref`s (Gar Saxon), and a helper or watcher that takes a `Card` needs a
   version that takes a reference (Spark of Hope does not compile: TS2345). The 142 that read in-play
   stats or renamed members need narrowing or renaming too. So (a) changes the selector signatures of all
-  eight kinds and has to ship with the codemod. `getCurrentProperties` should then leave the getter card
-  code receives (or a lint rule should keep it out of `server/game/cards`), or the choice (b) needs comes
-  back. Candidate properties objects must be built for each evaluation, never cached: a pilot attaching
-  or a leader deploying changes the kind.
+  eight kinds and has to ship with the codemod. Candidate properties objects must be built for each
+  evaluation, never cached: a pilot attaching or a leader deploying changes the kind.
+
+  *Revised 2026-11-18:* the candidate is a current view, the type `getCurrentProperties` returns. This
+  section once said `getCurrentProperties` should leave the getter card code receives, so that (b)'s
+  choice could not come back. Since D-37's revision it is the only place presence can be asked, so it
+  stays. What (a) still removes is the choice for a candidate: the callback is handed the current view.
 - **(c) A bind-time rule**, proposed by the review on 2026-11-17 (below), which would make the question
   unnecessary.
 
@@ -2297,9 +2353,11 @@ specs against the built code. What it found, and what became of it:
 - **Fixed on the branch (2026-11-18), each with a spec that fails without its fix:**
   - On a recorded view of a unit that left play, `isAttacking()`, `isDefending()` and `activeAttack`
     threw, because `Card`'s attack state only exists in an arena or the base zone. They now answer "no".
+    *Since the split below, recorded views have no presence members, so this no longer arises.*
   - Presence read through a reference to a card that has since become a new copy described the new copy,
     so a defeated and replayed unit answered `isInPlay()` true. The copy a recorded view describes now
-    answers as being nowhere (SWU 8.5.4); `zoneName` still says where the physical card is.
+    answers as being nowhere (SWU 8.5.4); `zoneName` still says where the physical card is. *Since the
+    split below, the current view applies this rule, for the registry-backed getter.*
   - A live view asked through such a reference was labelled with that reference; it now names the
     identity the card has.
   - Records held a `Set` and a `Map`, which `Object.freeze` does not freeze; they are frozen arrays and a
@@ -2372,8 +2430,41 @@ fix:
 *Recommendation, 2026-11-18: keep D-37's default, choose (a) for D-38 with the F2 extension, and fix F1
 and F3 as above.* A maintainer decides.
 
-3.1 is built on `ammayberry1/lki-refactor-3` (commit `bf8d7cc96`) and lands with that branch, before 3.2
-starts.
+**Two views, one moment each (2026-11-18).** A maintainer's review of the branch objected to the single
+properties object D-37 had produced: some of its members answered from the record and others about now,
+and nothing at a call site said which. `controller` was last known information and `activeAttack` was
+not, and the only rule that told them apart was SWU 8.11.1's list. The answers were right; the reading was
+not. D-37 was revised (see [D-37 to D-39 in detail](#d-37-to-d-39-in-detail--the-default-measured)), and
+built the same day:
+
+- **Two views.** `getLastKnownProperties` returns the last-known view (`ICardProperties`), which holds
+  characteristics only. `getCurrentProperties` returns the current view (`ICurrentCardProperties`), the
+  card as it is now with presence: `isInPlay()`, `zoneName`, `zone`, `isAttached()`, `isResource()`,
+  `isAttacking()`, `isDefending()`, `activeAttack`. Characteristics are shared through
+  `ICardCharacteristics` and per-kind interfaces, so each member is declared once. The kind guards narrow
+  within each view.
+- **The guard.** `wasInPlay()` / `asWasInPlay()` on the last-known view, `isInPlay()` / `asInPlay()` on
+  the current view. `hasInPlayStats()` named what the guard unlocks, not the moment it asks about.
+- **Enforced by the compiler, backed at runtime.** A presence read on the last-known view does not
+  compile. Code that gets past the types fails with a message pointing to `getCurrentProperties`: the
+  recorded classes have failing presence members, and the live classes, which serve both views, refuse
+  presence when handed out as the last-known view.
+- **A copy that no longer exists.** The registry-backed current view, asked through a reference to a copy
+  the card has since left, answers that the copy is nowhere: not in play, in no arena, not attached, not
+  a resource, in no attack. That is the rule the review's fix gave the recorded view, moved with
+  presence. The live-only getter reads the card as it is now whichever identity it is asked about, so
+  cards that have not opted in see no change (D-35).
+- **Poe Dameron, One Hell of a Pilot, opted in** as the example of a presence read: his then-step asks
+  `getCurrentProperties(context.source).isInPlay()`. His existing spec, where he is defeated by
+  attacking with Ambush before the then-step, fails if the line asks the last-known view instead.
+- **Specs.** One spec pins that the last-known view has no presence members, on a recorded view and on
+  a live one: each read is a compile-time `@ts-expect-error`, so the build fails if a member comes back,
+  and each also fails at runtime if forced. Two specs pin the current view of a copy that no longer
+  exists, in play and in a hidden zone. The existing specs moved their presence reads to the current
+  view. Twelve mutations, each caught by the spec meant to catch it, are listed in register §I.
+
+3.1 is built on `ammayberry1/lki-refactor-3` (commits `bf8d7cc96` and `e9fc3071e`, and the revision of
+D-37) and lands with that branch, before 3.2 starts.
 
 #### 3.2 — The codemod
 
@@ -2398,15 +2489,18 @@ re-measured. Together that is roughly **800** files, not all 2,000.
   does, or captured. Cards that build abilities outside those methods, the `common/` base classes, and
   `setupStateWatchers` (which does not receive it) each need a rule.
 - **Add the narrowing.** `card.isUnit() && card.damage` becomes a read on a properties object whose
-  in-play members need `hasInPlayStats()` or `asInPlayStats()` first (SC-17, D-37). The rewrite must not
+  in-play members need the view's in-play guard first: `wasInPlay()` or `asWasInPlay()` on the
+  last-known view, `isInPlay()` or `asInPlay()` on the current view (SC-17, D-37). The rewrite must not
   turn a read that throws today into one that does not, or the reverse.
 - **Map each read by its form (D-37, D-38).** A presence read — `card.isInPlay()`, `card.zoneName`,
-  `card.zone` — keeps its name, which reads the present on every properties object. A selector's
-  candidate reads the present by the mechanism D-38 settles. Under the recommended one the engine
-  passes the candidate as a present-state properties object, so its reads need no rewrite, and the
-  codemod rewrites its identity comparisons and the calls that pass it on (step 3.1, item 6). Reads of
-  the legacy struct are phase 4's (step 2 there), and when it reaches them,
-  `lastKnownInformation.arena` becomes `arena`.
+  `card.zone`, `card.isAttached()`, `card.isResource()`, and the attack members — goes to the current
+  view, `getCurrentProperties(card)`, under its own name. Every other read goes to the last-known view.
+  An existing `isInPlay()` that only guards in-play stats on the same receiver goes to the view those
+  stats are read from: `wasInPlay()` when they go to the last-known view. A selector's candidate reads
+  the present by the mechanism D-38 settles. Under the recommended one the engine passes the candidate
+  as a current view, so its reads need no rewrite, and the codemod rewrites its identity comparisons and
+  the calls that pass it on (step 3.1, item 6). Reads of the legacy struct are phase 4's (step 2 there),
+  and when it reaches them, `lastKnownInformation.arena` becomes `arena`.
 - **Rename the accessors.** `getPower()` becomes `power`, `getHp()` becomes `hp`, and `getPrintedPower()`
   becomes `printedPower`.
 - **Skip two kinds of file.** Delayed effects: every one spans an action boundary, and at least one
@@ -2466,10 +2560,12 @@ The review (2026-11-17) added three more candidates, all traps the compiler does
   to a lint rule is an `arena` that fails when it is `null`, beside an explicit way to ask whether there
   is one.
 - A comparison on `cost` without `hasCost()`: `null <= 3` is true.
-- `isInPlay()` guarding in-play stats on the same receiver, as in
-  `x.isInPlay() ? x.asInPlayStats().power : x.printedPower`. It compiles and passes a spec of the main
-  path, and gives printed power for a unit that just left play, which is the shape Ravager had before
-  step 3.1. The guard is `hasInPlayStats()`.
+- A current view's `isInPlay()` guarding stats read from the last-known view, as in
+  `current.isInPlay() ? lastKnown.asWasInPlay().power : lastKnown.printedPower`. It compiles and passes
+  a spec of the main path, and gives printed power for a unit that just left play, which is the shape
+  Ravager had before step 3.1. The guard for the last-known view's stats is its own `wasInPlay()`. (Since
+  D-37's revision the guard and the stats can no longer share a receiver by mistake: `isInPlay()` is not
+  on the last-known view.)
 
 ### Phase 4 — grow the opted-in set
 
@@ -2545,8 +2641,8 @@ export default class MyCard extends NonLeaderUnitCard {
 | | `false` (default) | `true` |
 |---|---|---|
 | Getter the card's setup receives | `LiveOnlyCardStateGetter` | the registry-backed `CardStateGetter` |
-| `getLastKnownProperties(ref)` | **live** properties; records and identity are ignored, so it cannot throw on a stale reference | consults records; throws for an orphaned reference |
-| `getCurrentProperties(ref)` | **live** properties | **live** properties; records and identity are ignored, as on the left (D-38) |
+| `getLastKnownProperties(ref)` | the last-known view, **live**; records and identity are ignored, so it cannot throw on a stale reference | the last-known view; consults records; throws for an orphaned reference |
+| `getCurrentProperties(ref)` | the current view, **live**, of the card as it is now, whichever identity the reference names | the current view, **live**, records ignored (D-38); through a reference to a copy that no longer exists it answers that the copy is nowhere (D-37) |
 | `getIdentity(card)` | works | works |
 | Behavior | identical to reading the card directly, apart from the known differences listed under phase 3 | new LKI semantics |
 | `event.lastKnownInformation` | still available for legacy use | unused |

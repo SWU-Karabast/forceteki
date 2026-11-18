@@ -19,9 +19,12 @@ the opt-in flag and a correction pass).
 Status values: `pending` · `in-progress` · `done` · `deferred`.
 
 **Since 2026-11-05, §A needs no per-site decisions.** D-37 replaced D-31, so a presence question (is it
-in play, is it attached, where is it now) reads the present on every properties object, and those sites
-keep today's behavior once their card opts in. §A still lists them as the evidence that step 3.1 keeps
-them that way, which the behavior-delta audit (§G.2) confirmed on 2026-11-16.
+in play, is it attached, where is it now) reads the present, and those sites keep today's behavior once
+their card opts in. Since D-37's revision on 2026-11-18 a presence question is asked of the current view
+(`getCurrentProperties`), the only view that has it, so the codemod maps each of these reads there and
+none can be left on the last-known view by mistake: it would not compile. §A still lists them as the
+evidence that step 3.1 keeps them that way, which the behavior-delta audit (§G.2) confirmed on 2026-11-16
+and again on 2026-11-18.
 
 Every file and line anchor in this document was checked by reading the line it points at, against `main`
 at `445792e61` on 2026-11-01 (§I). The anchors added on 2026-11-05 (§A, §B, §E, §F.1 and §G.2) were checked
@@ -38,9 +41,9 @@ These sites ask a presence question about a card that has just left play: is it 
 still attached, is it in the discard pile now. Under D-31 a properties object answered every question
 about the moment it represented, so a record answered `isInPlay()` as `true` for a unit sitting in the
 discard pile, and each of these cards would have changed behavior when it opted in. Under D-37 presence
-reads the present on every properties object, recorded ones included, so each keeps today's behavior and
-needs no decision. Several are workarounds for a separate rules problem, an ability that goes on
-resolving after its source left play, which is tracked as future work.
+reads the present: it is only on the current view, which never reads a record, so each keeps today's
+behavior and needs no decision. Several are workarounds for a separate rules problem, an ability that
+goes on resolving after its source left play, which is tracked as future work.
 
 The first seven were the whole section before the audit. The audit (§G.2) found the other twenty-one on
 2026-11-05, and one more, on a card added since, when it was re-run on 2026-11-13. The first four of the
@@ -56,7 +59,7 @@ reaches the other two, Rey Skywalker and Millennium Falcon, with the card having
 
 | Site | Read | Source | Status |
 |---|---|---|---|
-| [PoeDameronOneHellOfAPilot.ts:24](../server/game/cards/04_JTL/units/PoeDameronOneHellOfAPilot.ts) | `thenCondition: context.source.isInPlay()`, "did Poe survive to be attached?" The canonical example; `PoeDameronOneHellOfAPilot.spec.ts:88` covers the defeated case | before the audit | done |
+| [PoeDameronOneHellOfAPilot.ts:29](../server/game/cards/04_JTL/units/PoeDameronOneHellOfAPilot.ts) | `thenCondition: context.source.isInPlay()`, "did Poe survive to be attached?" The canonical example; `PoeDameronOneHellOfAPilot.spec.ts:88` covers the defeated case. Since 2026-11-18 Poe has opted in and asks the current view, `cardStates.getCurrentProperties(context.source).isInPlay()`, so the audit, which instruments `Card` reads, no longer sees the read; the spec does (§I) | before the audit | done |
 | [UnrefusableOffer.ts:33](../server/game/cards/02_SHD/upgrades/UnrefusableOffer.ts) | `ifYouDoCondition: context.source.isInPlay()`. Line 23 also asks whether it is in the discard pile or captivity | before the audit | done |
 | [ReySkywalker.ts:24](../server/game/cards/07_LAW/units/ReySkywalker.ts) | `context.source.isInPlay() && …`. No spec reaches it with Rey having left play | before the audit | done |
 | [MillenniumFalconLandosPride.ts:26](../server/game/cards/02_SHD/units/MillenniumFalconLandosPride.ts) | constant-ability `condition` reading `context.source.isInPlay()`. No spec reaches it with the Falcon having left play | before the audit | done |
@@ -217,8 +220,8 @@ Phase 1 flushes records between actions (`ActionPhase.queueNextAction`) and at e
 
 The symptom of over-retention is a card that departed to a **visible** zone — where identity is
 preserved and `identityId` does not increment — continuing to report its pre-departure arena state
-instead of live discard state. Since D-37 that applies to its characteristics only: presence always
-reads the present.
+instead of live discard state. Since D-37 that applies to its characteristics only: presence is asked of
+the current view, which always reads the present.
 
 **Deferring this cannot affect any card migrated in phase 1.** All seven read within the same action
 as the event that created the record:
@@ -395,7 +398,8 @@ falls in a class the decisions already cover:
 
 **The getter check, 2026-11-16, with step 3.1 built.** The audit now also asks the built getter the same
 question at each read: `getCurrentProperties` for a selector candidate (D-38), and
-`getLastKnownProperties` otherwise. It checks the answer against D-37 to D-39, as the tables here apply
+`getLastKnownProperties` otherwise. Since D-37's revision (2026-11-18) it asks a presence read of
+`getCurrentProperties` too, because only the current view has presence. It checks the answer against D-37 to D-39, as the tables here apply
 them: a candidate, a presence read, a card read after its record was flushed, and a card that has become
 a new copy must get the live answer, and a characteristic of a card that left play during the action
 must get the recorded one. Section H of `analysis.md` reports it, and `run.js` fails if any site
@@ -725,3 +729,48 @@ landed on `main` since `445792e61`.
   callbacks of eight kinds, not 775 of three.
 - **Environment.** `build/` held 14 compiled files from another branch (player reports, action timers),
   built on 2026-11-17. The audit's preflight caught them; they were deleted.
+
+**2026-11-18 — branch `ammayberry1/lki-refactor-3`, D-37 revised: two views, one moment each.**
+
+- **Why.** A maintainer's review objected to the single properties object: some members answered from
+  the record and others about now, and nothing at a call site said which. The answers were right (§G.2);
+  the reading was not. The plan's step 3.1, "Two views, one moment each", has the change, and D-37's row
+  the decision.
+- **Built:**
+  - The last-known view (`ICardProperties`, `getLastKnownProperties`) holds characteristics only. The
+    current view (`ICurrentCardProperties`, `getCurrentProperties`) holds the card as it is now, with
+    presence. Shared characteristics are declared once and composed into both.
+  - The in-play guard is `wasInPlay()` / `asWasInPlay()` on the last-known view and `isInPlay()` /
+    `asInPlay()` on the current view.
+  - Presence forced through the last-known view fails, on recorded and live backings alike.
+  - The registry-backed current view of a copy that no longer exists answers that it is nowhere; the
+    live-only getter's current view reads the card as it is now, as reading the card would.
+  - Four cards renamed the guard. Poe Dameron, One Hell of a Pilot opted in and asks the current view
+    whether he is still in play.
+  - The interface declaration of `canHaveActiveAttack()` that 2026-11-17's attack-state fix added is
+    gone again: recorded views no longer answer attack state.
+  - The audit asks a presence read of the current view, and counts `isResource` as presence.
+- **Specs:** in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts), one spec pins that
+  the last-known view has no presence members, at compile time (`@ts-expect-error` on each read) and at
+  runtime, on a recorded and a live view. Two pin the current view of a copy that no longer exists, in
+  play and in a hidden zone. The existing specs moved their presence reads to the current view, here and
+  in [LkiOptIn.spec.ts](../test/scenarios/lki/LkiOptIn.spec.ts) and
+  [LastKnownInformation.spec.ts](../test/scenarios/lki/LastKnownInformation.spec.ts).
+- **Mutation checks** (twelve runs), each failing the spec meant to catch it:
+  - `isInPlay()` declared on the last-known view: the build fails on an unused `@ts-expect-error`;
+  - a recorded view answering `zoneName`, and a live view handed out as last-known answering presence;
+  - the current view ignoring that a copy is gone, which fails three specs;
+  - the live-only getter's current view keeping a stale reference;
+  - Poe asking `getLastKnownProperties(context.source).wasInPlay()`, which his existing spec, defeated by
+    attacking with Ambush, catches;
+  - `wasInPlay()` wrong on a recorded view and on a live one;
+  - a gone copy reporting the physical card's arena, and its attack state, three times.
+
+  Each pending spec for F1 to F3, switched on, still fails as its finding describes.
+- **Gates:** `npm test` 10,356 specs (71 pending) and `npm run test-undo` 9,256 (78 pending), 0
+  failures: 2 specs more than on 2026-11-18's earlier run, the two new ones. `eslint --quiet`,
+  `validate-cards`, `validate-specs` and `capture-states -- --check` pass.
+- **The audit:** 9,445 game specs, 0 failures. The getter check: 237 sites, none disagrees. The one
+  site fewer than before is Poe's. The audit instruments `Card` reads made from card code, and Poe now
+  reads through the getter, so his spec covers the read instead (the Poe mutation above). Option (c)
+  is unchanged: 127 sites checked, 26 differ. `--self-check` passes.
