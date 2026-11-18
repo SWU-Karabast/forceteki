@@ -223,6 +223,8 @@ function attributesOf(card: Card): Attrs {
         a.damage = card.damage;
         a.power = card.getPower();
         a.hp = card.getHp();
+        // `card.keywords` is already stacked as CR 7.5.4 says (`KeywordHelpers.dedupeKeywords`): numbered ones once with
+        // their sum, cost and dash ones once per instance, others once. The registry's `keywords` row asks for exactly that.
         const keywords = card.keywords.map((keyword) => (keyword.hasNumericValue() ? `${keyword.name} ${keyword.value}` : keyword.name)).sort();
         if (keywords.length > 0) {
             a.keywords = keywords;
