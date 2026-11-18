@@ -62,7 +62,7 @@ describe('GameServer user API', function () {
                 expect(harness.db.profiles.has(anonymous.id)).toBeFalse();
             });
         });
-    }, { database: true });
+    });
 });
 
 describe('Development preferences without DynamoDB', function () {
@@ -85,5 +85,5 @@ describe('Development preferences without DynamoDB', function () {
             expect(reloaded.body.user.preferences.sound.muteAllSound).toBe(value);
             expect(reloaded.body.user.id).toBe('exe66');
         });
-    });
+    }, { database: false });
 });

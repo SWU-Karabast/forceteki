@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class NuteGunrayRingRingSpaceCalling extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'nute-gunray#ring-ring-space-calling-id',
+            id: '1027393252',
             internalName: 'nute-gunray#ring-ring-space-calling',
         };
     }

@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class ReyEmbracingDestiny extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rey#embracing-destiny-id',
+            id: '9049217087',
             internalName: 'rey#embracing-destiny',
         };
     }

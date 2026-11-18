@@ -53,6 +53,19 @@ describe('GameServer anonymous user restrictions', function () {
                 expect(response.body.success).toBe(false);
             });
 
+            it('rejects an anonymous user joining a public best-of-three lobby, without seating them', async function () {
+                const { harness } = contextRef;
+                const owner = await harness.openLobbyAsync({ authenticated: true }, { config: premierBestOfThree });
+                const anonymous = harness.createClient();
+
+                const response = await anonymous.joinLobbyAsync(owner.lobbyId);
+
+                expect(response.status).toBe(400);
+                expect(response.body).toEqual({ success: false, message: 'You must be logged in to join a public best of three lobby' });
+                expect(await anonymous.hasNoPlaceAsync()).withContext('the refusal gave no seat')
+                    .toBeTrue();
+            });
+
             it('still allows an anonymous user to create a private best-of-three lobby', async function () {
                 const { harness } = contextRef;
 

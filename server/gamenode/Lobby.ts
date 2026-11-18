@@ -38,6 +38,7 @@ import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
+import { ReportDimensionsSchema } from '../services/DynamoDBInterfaceSchemas';
 import {
     createStatsMessage,
     StatsMessageKey,
@@ -259,6 +260,16 @@ export class Lobby {
         return this.winHistory.gamesToWinMode;
     }
 
+    /** A finished game releases a Bo1 player; a Bo3 player must finish the whole set. */
+    public get isMatchComplete(): boolean {
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree) {
+            return !!this.winHistory.setEndResult || this.isBo3SetComplete();
+        }
+
+        // Use the current game state so undoing a win makes the match active again.
+        return this.game?.isEnded ?? false;
+    }
+
     public get queueFormatKey(): IQueueFormatKey {
         return { format: this.format, cardPool: this.cardPool, gamesToWinMode: this.gamesToWinMode };
     }
@@ -390,7 +401,7 @@ export class Lobby {
     }
 
     private hasUserDisabledChatInPreferences(user: LobbyUserWrapper): boolean {
-        return this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
+        return !this.isPrivate && this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
     }
 
     /** The user's account, or `undefined` for a user created ahead of their first socket connection. */
@@ -410,7 +421,7 @@ export class Lobby {
      */
     private getChatBlockedReason(sender: LobbyUserWrapper): string | null {
         if (this.isPrivate) {
-            return this.hasUserDisabledChatInPreferences(sender) ? 'sender disabled chat in preferences' : null;
+            return null;
         }
 
         const opponent = this.users.find((u) => u.id !== sender.id);
@@ -509,10 +520,6 @@ export class Lobby {
 
         const now = this.scheduler.currentDate();
         this.userLastActivity.set(id, now);
-
-        if (this.game) {
-            this.game.onPlayerAction(id);
-        }
     }
 
     public hasPlayer(id: string) {
@@ -569,7 +576,7 @@ export class Lobby {
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
-                username: user.getId(),
+                username: user.getUsername(),
                 socket,
                 user: socket.user,
                 state: 'connected'
@@ -864,7 +871,7 @@ export class Lobby {
 
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
-        this.game = null;
+        this.replaceGame(null);
         if (this.matchmakingType === MatchmakingType.Quick) {
             this.matchmakingType = MatchmakingType.PublicLobby;
         }
@@ -1302,6 +1309,17 @@ export class Lobby {
         this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, this.scheduler.now());
     }
 
+    /**
+     * Makes `game` the lobby's game (or leaves it with none), disposing of the one it had, so that nothing the old game
+     * scheduled can act on the lobby afterwards.
+     */
+    private replaceGame(game: Game | null): void {
+        if (this.game && this.game !== game) {
+            this.game.dispose();
+        }
+        this.game = game;
+    }
+
     public cleanLobby(): void {
         this.clearBo3TransitionTimer();
         this.bo3LobbyReadyTimer?.stop();
@@ -1313,7 +1331,7 @@ export class Lobby {
             this.matchingCountdownTask = undefined;
         }
 
-        this.game = null;
+        this.replaceGame(null);
         this.users = [];
         this.spectators = [];
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
@@ -1351,7 +1369,7 @@ export class Lobby {
             legalCardTitles
         );
 
-        this.game = game;
+        this.replaceGame(game);
 
         for (const player of this.game.getPlayers()) {
             const userWrapper = this.getUser(player.user.id);
@@ -1377,7 +1395,7 @@ export class Lobby {
             this.statsUpdateStatus.clear();
 
             const game = new Game(this.buildGameSettings(), { router: this });
-            this.game = game;
+            this.replaceGame(game);
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
 
@@ -1598,26 +1616,14 @@ export class Lobby {
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
             scheduler: this.scheduler,
-            userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
             onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
-                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                ? (losingPlayerId: string, game: Game) => {
+                    if (game === this.game) {
+                        this.concedeBo3ByUserId(losingPlayerId);
+                    }
+                }
                 : undefined,
         };
-    }
-
-    private userTimeoutDisconnect(userId: string) {
-        const socket = this.users.find((u) => u.id === userId)?.socket;
-
-        Contract.assertNotNullLike(socket, `Unable to find socket for user ${userId} in lobby ${this.id} while attempting to disconnect`);
-
-        socket.socket.data.forceDisconnect = true;
-
-        socket.send('inactiveDisconnect');
-        socket.disconnect();
-
-        this.server.handleIntentionalDisconnect(userId, false, this);
-
-        logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
 
     private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
@@ -1704,7 +1710,8 @@ export class Lobby {
 
             this.updateUserLastActivity(socket.user.getId());
 
-            // this command is a no-op since we reset the timer just above
+            // A player's messages do not affect their action timer. Clients still send this when a report dialog opens, so
+            // it is accepted and ignored until they stop.
             if (command === 'resetActionTimer') {
                 return;
             }
@@ -2174,10 +2181,15 @@ export class Lobby {
     }
 
     private sendLobbyStateToSpectator(socket: Socket): void {
-        socket.socket.send('lobbystate', this.getLobbyState());
+        socket.send('lobbystate', this.getLobbyState());
     }
 
-    public handleGameEnd(): void {
+    public handleGameEnd(game: Game): void {
+        // only the lobby's current game decides its results
+        if (game !== this.game) {
+            return;
+        }
+
         // Record winner based on game mode
         this.recordGameResult(this.gamesToWinMode);
 
@@ -2301,7 +2313,7 @@ export class Lobby {
         this.winHistory.currentGameNumber++;
 
         // Reset for next game (winner was already recorded in handleGameEnd)
-        this.game = null;
+        this.replaceGame(null);
         this.bo3NextGameConfirmedBy?.clear();
 
         // Clear the 'ready' state for all users
@@ -2611,11 +2623,12 @@ export class Lobby {
             let viewport = null;
 
             if (reportMessage && typeof reportMessage === 'object') {
-                parsedDescription = reportMessage.description || '';
-                screenResolution = reportMessage.screenResolution || null;
-                viewport = reportMessage.viewport || null;
+                parsedDescription = typeof reportMessage.description === 'string' ? reportMessage.description : '';
+                // Sent by the client as-is (bug reports only); anything that is not a plain size is dropped
+                screenResolution = ReportDimensionsSchema.safeParse(reportMessage.screenResolution).data ?? null;
+                viewport = ReportDimensionsSchema.safeParse(reportMessage.viewport).data ?? null;
             } else {
-                parsedDescription = reportMessage;
+                parsedDescription = typeof reportMessage === 'string' ? reportMessage : '';
             }
 
             const gameState = this.game
@@ -2628,7 +2641,8 @@ export class Lobby {
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
-                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                // A player report keeps chat in its own log, so its game log leaves the chat out
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.getGameLogMessages();
                 if (reportType === ReportType.PlayerReport) {
                     chatMessages = this.game.gameChat.getPlayerChatMessages();
                 }
@@ -2640,14 +2654,39 @@ export class Lobby {
                 } else {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
-                gameMessages = this.gameChat.messages;
+                gameMessages = reportType === ReportType.BugReport ? this.gameChat.messages : this.gameChat.getGameLogMessages();
                 chatMessages = this.gameChat.getPlayerChatMessages();
+            }
+
+            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            if (reportType === ReportType.PlayerReport) {
+                await this.server.playerReportService.createReportAsync({
+                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                    reportedPlayer: opponent,
+                    offense: playerReportType ?? PlayerReportType.Other,
+                    description: parsedDescription,
+                    lobbyId: this.id,
+                    gameId: this.game?.id,
+                    gameFormat: String(this.gameFormat),
+                    matchType: String(this.matchmakingType),
+                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                    // Screen and viewport size are only kept for bug reports; a player report does not need them
+                    gameMessages,
+                    chatMessages: chatMessages ?? [],
+                });
+
+                socket.send(resultEvent, {
+                    id: uuid(),
+                    success: true,
+                    message: `Successfully sent ${reportLabel}`
+                });
+                this.sendLobbyState();
+                return;
             }
 
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
-                playerReportType,
                 socket.user,
                 opponent,
                 gameMessages,
@@ -2657,18 +2696,15 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport,
-                chatMessages
+                viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
+            const success = await this.discordDispatcher.formatAndSendBugReportAsync(report);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
             const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            if (reportType === ReportType.BugReport) {
-                existingUser.reportedBugs += 1;
-            }
+            existingUser.reportedBugs += 1;
 
             socket.send(resultEvent, {
                 id: uuid(),
@@ -2676,14 +2712,11 @@ export class Lobby {
                 message: `Successfully sent ${reportLabel}`
             });
 
-            // we report the alert only if its a bug report
-            if (reportType === ReportType.BugReport) {
-                this.game.addAlert(
-                    AlertType.Notification,
-                    `{0} has submitted a ${reportLabel}`,
-                    existingUser.username
-                );
-            }
+            this.game.addAlert(
+                AlertType.Notification,
+                `{0} has submitted a ${reportLabel}`,
+                existingUser.username
+            );
 
             this.sendLobbyState();
         } catch (error) {

@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class AdmiralMottiConanInCommand extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'admiral-motti#conan-in-command-id',
+            id: '5516959671',
             internalName: 'admiral-motti#conan-in-command',
         };
     }

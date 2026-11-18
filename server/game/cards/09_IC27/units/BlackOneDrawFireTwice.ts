@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BlackOneDrawFireTwice extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'black-one#draw-fire-twice-id',
+            id: '6750448471',
             internalName: 'black-one#draw-fire-twice',
         };
     }

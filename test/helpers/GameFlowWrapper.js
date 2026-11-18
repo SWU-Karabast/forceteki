@@ -34,7 +34,6 @@ class GameFlowWrapper {
             legalCardTitles,
             pushUpdate: () => true,
             scheduler: new NoopScheduler(),
-            userTimeoutDisconnect: () => undefined,
             undoMode
         };
 

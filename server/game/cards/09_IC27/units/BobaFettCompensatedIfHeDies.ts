@@ -10,7 +10,7 @@ export default class BobaFettCompensatedIfHeDies extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'boba-fett#compensated-if-he-dies-id',
+            id: '9812640874',
             internalName: 'boba-fett#compensated-if-he-dies',
         };
     }

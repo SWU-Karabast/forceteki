@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class C3POImpulseBuy extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'c3po#impulse-buy-id',
+            id: '3544731718',
             internalName: 'c3po#impulse-buy',
         };
     }

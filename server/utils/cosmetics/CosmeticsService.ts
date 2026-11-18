@@ -1,4 +1,5 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import { logger } from '../../logger';
 import type { IScheduler } from '../IScheduler';
 import { type IActiveCosmetics, type ICosmeticEntity, RegisteredCosmeticType } from './CosmeticsInterfaces';
 import { CosmeticsCache } from './CosmeticsCache';
@@ -8,6 +9,21 @@ export interface ICosmeticsSelection {
     cardback?: string;
     background?: string;
 }
+
+/** A cosmetic could not be created because one with the same id already exists. */
+export class CosmeticAlreadyExistsError extends Error {
+    public constructor(cosmeticId: string) {
+        super(`A cosmetic with id ${cosmeticId} already exists`);
+        this.name = 'CosmeticAlreadyExistsError';
+    }
+}
+
+/**
+ * Where the client's upload route stores cosmetic images (forceteki-client `S3Service`): the
+ * `karabast-customization` bucket, and in development optionally a local S3 mock.
+ */
+const cosmeticImageOrigins = ['https://karabast-customization.s3.us-east-1.amazonaws.com'];
+const developmentCosmeticImageOrigins = ['http://localhost:9090/karabast-customization'];
 
 export class CosmeticsService {
     private readonly dbServicePromise = getDynamoDbServiceAsync();
@@ -121,10 +137,40 @@ export class CosmeticsService {
         return result;
     }
 
-    public async saveCosmeticAsync(cosmeticData: ICosmeticEntity) {
+    /**
+     * Whether `path` is where the client's upload route stores the image for a cosmetic of this type and id:
+     * `<bucket>/<type>s/<id>.webp`.
+     */
+    public static isUploadedImagePath(type: RegisteredCosmeticType, id: string, path: string): boolean {
+        const origins = process.env.ENVIRONMENT === 'development'
+            ? [...cosmeticImageOrigins, ...developmentCosmeticImageOrigins]
+            : cosmeticImageOrigins;
+
+        return origins.some((origin) => path === `${origin}/${type}s/${id}.webp`);
+    }
+
+    /**
+     * Adds a new cosmetic. Never replaces one: an id that is already taken is refused. Once the cosmetic is stored it
+     * counts as created, even if the cached list cannot be re-read straight away; the periodic refresh picks it up.
+     * @throws CosmeticAlreadyExistsError if a cosmetic with this id exists
+     */
+    public async createCosmeticAsync(cosmeticData: ICosmeticEntity) {
         const dbService = await this.dbServicePromise;
-        const result = await dbService.saveCosmeticAsync(cosmeticData);
-        await this.cosmeticsCache.forceRefreshAsync();
+        let result;
+        try {
+            result = await dbService.saveCosmeticAsync(cosmeticData, { createOnly: true });
+        } catch (error) {
+            if (error.name === 'ConditionalCheckFailedException') {
+                throw new CosmeticAlreadyExistsError(cosmeticData.id);
+            }
+            throw error;
+        }
+
+        try {
+            await this.cosmeticsCache.forceRefreshAsync();
+        } catch (error) {
+            logger.warn(`CosmeticsService: cosmetic ${cosmeticData.id} was created, but the cosmetics list could not be refreshed`, { error: { message: error.message } });
+        }
         return result;
     }
 
