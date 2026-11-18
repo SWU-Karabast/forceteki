@@ -477,6 +477,12 @@ redactor renumbers every file it writes ([R-14]).
 > out. A writer whose game objects keep one identifier for their whole life can add a counter
 > that goes up each time the card enters a deck.
 
+> **Note (informative):** A pass through the deck can start and end inside one step: "shuffle your
+> hand into your deck, then draw that many". A writer that compares the board at one decision
+> point with the board at the next sees the same game object in the hand on both boards, yet
+> [W-22] still makes it a new entity. Such a writer needs the counter above, or an event when a card
+> enters a deck, to see it.
+
 > **Note (informative):** Ids are per file. The files of different profiles of one game do not
 > share ids: entity 5 in one is unrelated to entity 5 in another, and a reader cannot join them
 > by id. Each viewer's file gives an entity a new id where that viewer loses track of it
@@ -501,8 +507,10 @@ An entity is anything on the board a reader tracks:
 - every card outside a deck: in a hand, the resource row, an arena, the discard pile, the base zone, captured, or set aside
 - every token (Shield, Experience, Advantage, Weakness, Beast, Credit and the like) while it exists
 - every base and every leader
-- every lasting or delayed effect
+- every lasting or delayed effect a writer records ([W-31])
 - the game (`"g"`) and the two seats (`"p1"`, `"p2"`)
+
+An entity that begins and ends within one step group may be left out of a file ([W-37]).
 
 A card in a deck is not an entity. A deck is the seat's `deckCount` attribute. One exception: a
 deck card becomes a temporary entity in zone `deck` while someone looks at it or it is revealed
@@ -579,9 +587,19 @@ version. An attribute that is not in the registry is never face-down.
 `controller` (or its `owner`, when `controller` is absent) is the seat that controls the effect.
 Its `src` names the card whose ability created it, and its `targets` name what it applies to,
 seats included (`"p1"`). Its `ability` attribute is the writer's id for the ability: for display,
-never for branching.
+never for branching. The id is opaque: two writers, or two versions of one writer, may give one
+ability different ids.
 
-- **[W-31]** A writer MUST create an entity for every lasting or delayed effect while it lasts, with `kind` `effect`, no `zone`, and a `to`, and MUST remove it when the effect ends. The effect's `to` MUST be the audience of its `src` card's identity when the effect is created ([§10.2](#102-audience-and-knowledge)): `"all"` when the source is public.
+**One effect entity** is one effect that one resolution of an ability creates, with every entity
+it applies to in its `targets`. "Give each friendly Trooper unit Raid 1 for this phase" is one
+effect entity whose `targets` are the Troopers, not one entity per Trooper.
+
+- **[W-31]** A writer SHOULD create an entity for every lasting or delayed effect while it lasts. A writer that creates one MUST give it `kind` `effect`, no `zone`, and a `to`, and MUST remove it when the effect ends. The effect's `to` MUST be the audience of its `src` card's identity when the effect is created ([§10.2](#102-audience-and-knowledge)): `"all"` when the source is public.
+
+> **Note (informative):** What an effect does to the board is required whether or not the effect is
+> recorded: [W-33] keeps `power`, `hp`, `keywords`, `traits` and `blank` current. Effect entities
+> add who caused it and until when. An effect's audience is fixed when it is created, so an effect
+> whose source was hidden then stays hidden after the source is revealed ([§23](#23-open-issues)).
 
 **Keeping attributes current.**
 
@@ -612,7 +630,7 @@ This table says where. The attribute names are the registry's ([§22](#22-regist
 | Captured cards | entities with that `parent` (the captor) and `rel` `captured` |
 | Leaders, deployed or not, either side up, two per seat or one | leader entities with `deployed`, `onStartingSide`, `exhausted`, `epicActionUsed` |
 | A base's Epic Action | the base's `epicActionUsed` |
-| Lasting and delayed effects | effect entities ([§7.3](#73-attributes)) |
+| Lasting and delayed effects | their results in the attributes above, and effect entities ([§7.3](#73-attributes)), which a writer SHOULD write ([W-31]) |
 | Limited-use abilities | `abilityUses` on the card |
 | Lost abilities, an ability-made leader unit, a copy | `blank`, `leaderUnit`, `copyOf` |
 | A resource entering exhausted | the resource entity's `exhausted` when it is created or moved there |
@@ -666,22 +684,27 @@ every block still applies the board correctly.
 
 ### 8.2 Order and steps
 
-- **[W-37]** A record MAY refer only to entities that exist when it applies. A writer that needs to name an entity in the middle of an action (a drawn card in a `draw` block, a token created and used inside one action) MUST write its `create` first. Every entity that exists at any point during a step group MUST be created, even when it is removed in the same step group: a card drawn and discarded in one decision, a token created and defeated in one action. A drawn card MUST be created in, or moved to (when it is already a temporary deck entity), its owner's `hand`, with a `to` that holds its owner.
+**Only the board at each step is normative.** The board is promised consistent only at a `step`,
+and the board at step k is what applying every record up to and including `step` k gives. Between
+two steps, a file holds what that board needs and what its blocks name.
+
+- **[W-37]** A record MAY refer only to entities that exist when it applies: a writer that names an entity in a block or a record writes its `create` first. A writer MAY leave out an entity, a `reveal` or an effect that begins and ends within one step group (a card drawn and discarded in one decision, a token created and defeated in one action, a look that starts and ends inside one action, "+2 power for this attack"), unless a block it writes references it. A drawn card that a writer creates MUST be created in, or moved to (when it is already a temporary deck entity), its owner's `hand`, with a `to` that holds its owner.
 - **[W-38]** The first `step` MUST have `seq` 0, and each later `step` MUST have the `seq` of the one before plus one.
-- **[W-39]** A writer MUST write `step` 0 after the starting board: setup done, mulligans taken, opening resources chosen, before the first action.
+- **[W-39]** A writer MUST write `step` 0 at the first decision of the game, in setup: the starting board (the game, the seats, the bases and the leaders, with `g.phase` `setup`) and everything that happens before that decision come before it. Each later decision of setup (who takes the initiative, the mulligans, the opening resources) gets a `step` like any other decision.
 - **[W-40]** A writer SHOULD end `RECORDS` with a `step`.
 
-> **Note (informative):** A writer that only compares the board at one decision point with the
-> board at the next cannot meet [W-37]: a card drawn and discarded between them, or a token created
-> and defeated, is on neither board. It must also capture the entities created and removed inside
-> the step.
+> **Note (informative):** Leaving something out fails safe: a viewer sees less, never more. A file
+> with blocks still holds every transient entity its blocks name, because [W-65] makes a writer
+> that writes blocks write one for every occurrence: a card drawn and discarded in one decision is in
+> a `draw` block and a `discard` block, so it is created. A file with no blocks can be written by
+> comparing the board at one decision point with the board at the next.
 
-The board is promised consistent only at a `step`. The board at step k is what applying every
-record up to and including `step` k gives.
+`g.phase` is `setup` from the start of a file until the action phase of round 1 begins, so a
+reader can stop on the opening hand and on each mulligan decision.
 
 **What a step marks** is set by the `Steps` header tag:
 
-- `decision`: each `step` marks a point where a seat is about to make a decision, and each step group is what one decision did.
+- `decision`: each `step` marks a point where a seat is about to make a decision, and each step group is what one decision did. A prompt that asks both seats at once (the mulligans, the opening resources, the regroup resource choice, a blind choice of CR 7.1.4a) is one decision point and one `step`. Its step group holds both seats' records, those of the seat that has the initiative first, and the blocks of a blind choice share a `group`.
 - `event`: steps are finer than decisions: a writer may also mark points inside the resolution of one decision. The exact granularity is an open issue ([§23](#23-open-issues)).
 
 - **[W-41]** A writer SHOULD write `Steps` `decision`.
@@ -690,6 +713,15 @@ record up to and including `step` k gives.
 **Undo.** A platform may let a player take a decision back.
 
 - **[W-42]** A writer MUST NOT write the step groups that an undo took back, MUST number the remaining steps without a gap ([W-38]), and MUST count each undo in `Undos`.
+
+> **Note (informative):** The step group of a prompt that asks both seats at once ends only when
+> both seats have answered, so taking back one seat's answer before then takes back nothing a writer
+> has written. Taking an answer back after then takes back the whole step group.
+
+> **Note (informative):** With `Steps` `decision`, a decision that sets off a long resolution (an
+> attack that defeats units and fires triggers, with nobody asked anything) is one step group, and
+> there is no board between its moments. A viewer that animates them does so from the step
+> group's blocks.
 
 ### 8.3 Looks
 
@@ -835,7 +867,10 @@ or V lost track of it) is:
 - **unmaterialized** when its zone is one whose opponent visibility is `count`, when its zone is not in the registry, or when it has no zone (an effect).
 
 When a card V cannot track becomes trackable, or an anonymous card moves, V sees a fresh entity.
-So V can never link an anonymous card's past to its future.
+So V cannot link an anonymous card's past to its future, with one exception, as at the table: when
+an anonymous card is revealed to V where it lies, the `remove` of the anonymous entity and the
+`create` of the known one come together ([R-03]), so V can tell which face-down card it was, and
+since when it lay there.
 
 **Losing track in a hidden hand.** A hand that is not V's is hidden from V: V sees how many cards
 it holds, but cannot follow one face-down card within it. When a card leaves such a hand for a
@@ -992,7 +1027,7 @@ leaves.
 - **[W-46]** A writer MAY produce `perspective` and `public` files some other way, but each MUST equal, byte for byte in canonical form ([§4.5](#45-canonical-form)), what this section yields from the writer's `full` file.
 - **[W-63]** A writer that writes a `perspective` or `public` file some other way MUST lose track of known cards in a hidden hand as step 0 ([R-17]) does: the same `remove` records, at the same place, and fresh entities afterwards. A writer that keeps knowing a card the viewer lost track of breaks [W-46].
 
-> **Note (informative):** Step 9 keeps every block, because that something happened is public;
+> **Note (informative):** Step 9 keeps every block, because that something happened is public ([W-54]);
 > it drops only what the block says about cards the viewer cannot see. Block `text` is dropped from
 > every block but a `name` block, because words can name a card the viewer never saw, and nothing
 > in the file lets a redactor or a validator tell whether they do ([W-54] is a promise of the
@@ -1101,7 +1136,7 @@ A block is one point record. There are no open and close pairs: nesting is `pare
 
 - **[W-52]** A block's `parent` MUST name a block earlier in the file.
 - **[W-53]** A block's `src`, `targets`, `options` and `via` MUST name entities that exist when the block is applied ([W-37]).
-- **[W-54]** A block's `text` MUST NOT name or describe any card or entity other than the ones the block references, so that a reader who knows every entity the block references learns nothing hidden from it. A `name` block is exempt: its `text` is the chosen name, which was announced to both seats, and it MUST hold that name and nothing else.
+- **[W-54]** A writer MUST write a block only for an event both seats observe, even when one of them cannot see the cards it names. A block's `amount` MUST hold only the quantity its kind's field contract ([§22.4](#224-block-kinds)) defines. A block's `text` MUST NOT name or describe any card or entity other than the ones the block references, so that a reader who knows every entity the block references learns nothing hidden from it. A `name` block is exempt: its `text` is the chosen name, which was announced to both seats, and it MUST hold that name and nothing else.
 - **[W-66]** A block that names a card leaving a hand for a zone whose opponent visibility is `public` (a card played, or discarded from hand) MUST be written after the `set` that moves it, so that the reference survives redaction ([R-09]). A block that names a card leaving a hand face down (into the resource row or a deck) MUST be written before the record that moves it: a `full` file keeps the name, and a `perspective` or `public` file drops it.
 
 > **Note (informative):** A played event therefore moves to `discard` before its `play` block, and
@@ -1361,7 +1396,7 @@ that does not reproduce them is not conformant. Where a vector disagrees with th
 
 `vectors/manifest.json` lists every vector:
 
-- a **positive vector** `N` has one file per profile, `vectors/N.full.swupgn`, `vectors/N.p1.swupgn`, `vectors/N.p2.swupgn` and `vectors/N.public.swupgn`, and for each a `vectors/N.<profile>.board.json`: the board at the file's last step. Its manifest row names the requirements it covers.
+- a **positive vector** `N` has one file per profile, `vectors/N.full.swupgn`, `vectors/N.p1.swupgn`, `vectors/N.p2.swupgn` and `vectors/N.public.swupgn`, and for each a `vectors/N.<profile>.boards.jsonl`: the board at every step, one JSON line per step, line k being the board at `step` k. Its manifest row names the requirements it covers.
 - a **negative vector** is a file under `vectors/negative/`, with the code it must produce and the line where it must be found.
 
 Every positive file is valid and written in canonical form ([§4.5](#45-canonical-form)).
@@ -1370,8 +1405,18 @@ Every positive file is valid and written in canonical form ([§4.5](#45-canonica
 
 1. **Parser:** every positive file parses. Every negative file whose code is `fatal` is rejected with that code at that line.
 2. **Validator:** every positive file is valid with no issues. Every negative file reports its code at its line.
-3. **Applier:** for every positive file, the board at its last step equals its `board.json` as JSON values: key order is not significant, array order is, and an absent field is not equal to `null`.
+3. **Applier:** for every positive file and every step k, the board at step k equals line k of its `boards.jsonl` as JSON values: key order is not significant, array order is, and an absent field is not equal to `null`.
 4. **Redactor:** for every positive vector, redacting `N.full` for seat 1, for seat 2 and for `public`, and writing the result in canonical form, gives `N.p1`, `N.p2` and `N.public` byte for byte.
+
+**Testing a writer.** The vectors test readers, appliers, validators and redactors. They cannot
+test a writer: whether a file matches the game it records takes the writer's engine. Two checks
+belong in every writer's own continuous integration, over as many recorded games as it has:
+
+- **Drift ([W-32]):** at every step k, the board that applying the writer's `full` file up to step k gives equals the writer's own game state at that decision.
+- **Privacy ([W-43], [W-44]):** at every step, the `perspective:N` file names no card identity that the engine's own per-seat view (what its client is sent for seat N) did not show seat N, and the `public` file none that it did not show both seats.
+
+Every privacy property of the `perspective` and `public` files rests on the `to` of the `full`
+file, which no reader can check; only the writer's engine knows what each seat was shown.
 
 A platform that writes files may contribute a real game as a vector. The file MUST hold no
 identifying data ([§16](#16-privacy-considerations)), and it is accepted once it is valid and
@@ -1548,12 +1593,12 @@ registry field `faceDown`, absent meaning no.
 | `credits` | `count` | public | no | seat | Credit tokens. | 7.5.x (Credits) |
 | `force` | `bool` | public | no | seat | Whether the seat has the Force. | 8.x (the Force) |
 | `kind` | `string` | identity | no | card | unit, upgrade, event, leader, base or token; effect on effect entities. | 3 |
-| `exhausted` | `bool` | public | yes | unit, leader, resource, upgrade | Ready or exhausted (upgrades that can exhaust). | 1.16.1 |
+| `exhausted` | `bool` | public | yes | unit, leader, resource | Exhausted (true) or ready (false). Upgrades are neither ready nor exhausted, so a card attached as an upgrade or a pilot never carries it. | 1.5.4 |
 | `damage` | `count` | public | no | unit, base | Damage on it. | 1.9 |
 | `power` | `int` | public | no | unit | Current power, after every effect. | 3.x |
 | `hp` | `int` | public | no | unit, base | Current max HP, after every effect (remaining = hp - damage). | 3.x |
-| `keywords` | `string[]` | public | no | unit | Current keywords; numbered ones once with their sum (raid 2); cost and dash ones once per instance. | 7.5.4 |
-| `traits` | `string[]` | public | no | unit, upgrade | Current traits, lower case. | 1.16.1 |
+| `keywords` | `string[]` | public | no | unit | Current keywords, sorted, each the keyword's name in lower case, stacked as CR 7.5.4 says: a keyword followed by a number once, with the numbers added (raid 2 for Raid 1 given twice); a keyword followed by a cost or by a dash and an ability once per instance, by name alone (smuggle, bounty); any other keyword once, however often it is given (sentinel). | 7.5.4 |
+| `traits` | `string[]` | public | no | unit, upgrade | Current traits, sorted, each as printed in lower case with its spaces (bounty hunter). | 1.16.1 |
 | `aspects` | `string[]` | identity | no | card | Aspect icons, one entry per icon. | 2.x |
 | `cost` | `int` | identity | no | card | Printed cost (copy effects: copied cost). | — |
 | `name` | `string` | identity | no | card | The name to show, only when it differs from the CARDS name (copy effects, a leader's other side). | — |
@@ -1564,12 +1609,12 @@ registry field `faceDown`, absent meaning no.
 | `onStartingSide` | `bool` | public | no | leader | Which side of a double-sided leader is up. | 3.4 |
 | `epicActionUsed` | `bool` | public | no | leader, base | Epic Action spent. | 1.16.1 |
 | `defeated` | `bool` | public | no | base | Defeated (also without damage: the Death Star). | 5.6 |
-| `abilityUses` | `object[]` | identity | no | card | One entry per limited ability used at least once: {ability: string, seat, count, per: "phase"\|"round"\|"game", max}. | 7.2.5, 1.16.3 |
+| `abilityUses` | `object[]` | identity | no | card | One entry per limited ability used at least once: {ability: string, seat, count, per: "phase"\|"round"\|"game", max}. Its ability is opaque, as an effect's ability is. | 7.2.5, 1.16.3 |
 | `src` | `ref` | public | no | effect | The card (or base) whose ability created it. | — |
 | `targets` | `ref[]` | public | no | effect | The entities it applies to (seats allowed: "p1"). | — |
 | `duration` | `string` | public | no | effect | attack, phase, round, whileSourceInPlay, until, delayed or game. | — |
 | `untilText` | `string` | public | no | effect | Words for an until condition. | — |
-| `ability` | `string` | public | no | effect | The writer's ability id (display only, never branched on). | — |
+| `ability` | `string` | public | no | effect | The writer's id for the ability: opaque, for display only, never branched on. Two writers, or two versions of one writer, may give one ability different ids. | — |
 | `text` | `string` | public | no | effect | The effect in words. | — |
 <!-- /registry:attributes -->
 
@@ -1674,6 +1719,7 @@ In release order.
 
 - **Steps finer than a decision.** `Steps` `event` is reserved for a granularity finer than one decision ([§8.2](#82-order-and-steps)). Which points inside a decision it marks is not yet defined.
 - **Snapshots for seeking.** 0.1 has none ([§9.4](#94-the-board-at-a-step)). A later minor version may add a `snapshot` record so a viewer can seek without applying from the start.
+- **Effect audiences.** An effect entity's `to` is fixed when it is created ([W-31]). An effect whose source is revealed later stays hidden from the seat that did not know the source.
 - **Deck positions.** Only the starting deck order of a `full` file is recorded. Where a card goes when it is put into a deck (top, bottom, shuffled) is not board state in 0.1.
 - **Multiplayer.** Games with more than two players are out of scope ([§1](#1-introduction-and-terminology)).
 

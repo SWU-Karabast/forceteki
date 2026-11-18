@@ -60,9 +60,11 @@ trusting it, use `validate(text)` from `@swupgn/format/validate`; it returns a l
 
 Three rules writers get wrong:
 
-- **Record transient entities yourself.** `diff` compares decision boards, so it cannot see an
+- **Create what your blocks name.** `diff` compares decision boards, so it cannot see an
   entity created and removed inside one step (a drawn-then-discarded card, a token created and
-  defeated in one action). The writer must still write that `create` and `remove`
+  defeated in one action). Only the board at each step is normative, so a file with no blocks
+  may leave such entities out. But a block may name only an entity that exists, so a writer
+  that writes blocks must write the `create` and `remove` of every entity they name
   ([W-37](SPEC.md#82-order-and-steps)).
 - **Blocks follow their kind's contract and are complete.** Each block kind has a field contract
   ([§13](SPEC.md#13-narrative-blocks-and-story), `registry/blockKinds.json`). A writer that
@@ -80,17 +82,21 @@ Three rules writers get wrong:
 
 `vectors/` is the conformance suite and `vectors/manifest.json` lists it
 ([SPEC §19](SPEC.md#19-conformance-suite)). Each positive vector has a file per profile
-(`N.full.swupgn`, `N.p1.swupgn`, `N.p2.swupgn`, `N.public.swupgn`) and a `board.json` for each.
+(`N.full.swupgn`, `N.p1.swupgn`, `N.p2.swupgn`, `N.public.swupgn`) and for each a
+`boards.jsonl` holding the board at every step.
 Negative vectors under `vectors/negative/` name the code and line they must produce.
 
 Your writer passes when:
 
 - `validate` says `valid` for every file it writes, and
-- `redact` of your `full` file reproduces your perspective files byte for byte.
+- `redact` of your `full` file reproduces your perspective files byte for byte, and
+- in your own CI, at every step, the board your `full` file applies to equals your engine's state,
+  and no perspective file names a card your engine did not show that seat
+  ([SPEC §19](SPEC.md#19-conformance-suite), "Testing a writer").
 
 Your reader or implementation of the SDK surface passes when every positive file parses, the
-board at its last step equals its `board.json`, and every negative file reports its code at its
-line.
+board at every step equals the matching line of its `boards.jsonl`, and every negative file
+reports its code at its line.
 
 A platform may contribute a real game as a vector, with no identifying data
 ([SPEC §16](SPEC.md#16-privacy-considerations)).
