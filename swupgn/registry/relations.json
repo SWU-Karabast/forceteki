@@ -1,0 +1,17 @@
+[
+    {
+        "name": "attached",
+        "parent": "unit or base",
+        "meaning": "An upgrade (card or token) on its host. A Fortify upgrade is attached to the base."
+    },
+    {
+        "name": "pilot",
+        "parent": "vehicle unit",
+        "meaning": "A pilot upgrade (a unit or leader with Piloting)."
+    },
+    {
+        "name": "captured",
+        "parent": "unit or base",
+        "meaning": "A captured card (base: Arrest)."
+    }
+]
