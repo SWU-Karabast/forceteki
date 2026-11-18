@@ -1,4 +1,15 @@
 === Round 1 ===
+Step 0
+1. Player 1 shuffles their deck.
+2. Player 2 shuffles their deck.
+3. Player 1 draws Battlefield Marine, New Tactics and Rebel Assault.
+4. Player 2 draws Bodhi Rook, Imperial Defector and Trust Yourself.
+Step 1
+1. Player 1 makes a mulligan decision.
+2. Player 2 makes a mulligan decision.
+Step 2
+1. Player 1 resources Distant Patroller.
+2. Player 2 resources Guardian of the Whills.
 Step 3
 1. Player 1 plays Battlefield Marine.
 Step 4
