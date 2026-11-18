@@ -49,7 +49,7 @@ describe('Sith Holocron', function () {
             expect(context.p2Base.damage).toBe(5); // 2+1+2
 
             context.player2.passAction();
-            context.karis.exhausted = false;
+            context.readyCard(context.karis);
             context.setDamage(context.p2Base, 0);
 
             // sith holocron bonus should be only for the current attack

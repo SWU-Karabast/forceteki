@@ -73,7 +73,7 @@ describe('Yaddle, A Chance to Make Things Right', function () {
 
                 context.player1.clickPrompt('Restore 1');
 
-                context.yaddle.exhausted = false;
+                context.readyCard(context.yaddle);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.yaddle);

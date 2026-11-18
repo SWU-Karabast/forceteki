@@ -17,6 +17,7 @@ import type { GameConfiguration } from '../game/core/GameInterfaces';
 import type { GameServer } from './GameServer';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
+import type { SwuPgnWriter } from '../game/core/swupgn/SwuPgnWriter';
 import {
     AlertType,
     GameEndReason,
@@ -254,6 +255,11 @@ export class Lobby {
 
     public get spectationAllowed(): boolean {
         return this.allowSpectators;
+    }
+
+    /** The SWU-PGN writer recording the lobby's current game, or null when there is no game or it records none. */
+    public get swuPgnWriter(): SwuPgnWriter | null {
+        return this.game?.swuPgnWriter ?? null;
     }
 
     public get gamesToWinMode(): GamesToWinMode {
@@ -1646,6 +1652,13 @@ export class Lobby {
         'updateSetting',
     ]);
 
+    /**
+     * Told how long each game command took to process (the command, `game.continue()` and sending the game state), as
+     * `onGameMessage` measures it. Null in production; the SWU-PGN writer benchmark sets it to read the server's cost
+     * per decision. Observing only: nothing here changes what the lobby does.
+     */
+    public static gameCommandTimingObserver: ((command: string, durationMs: number) => void) | null = null;
+
     /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
     private static readonly allowedGameCommands = new Set([
         'cardClicked',
@@ -1737,6 +1750,7 @@ export class Lobby {
 
             const end = process.hrtime.bigint();
             const durationMs = Number(end - start) / 1e6;
+            Lobby.gameCommandTimingObserver?.(command, durationMs);
 
             if (durationMs > 100) {
                 logger.info('[Lobby] GameCommand took longer than 100ms to process', {

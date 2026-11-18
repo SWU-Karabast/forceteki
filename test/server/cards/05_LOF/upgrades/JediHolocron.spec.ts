@@ -48,7 +48,7 @@ describe('Jedi Holocron', function () {
             expect(context.p2Base.damage).toBe(3);
 
             context.player2.passAction();
-            context.karis.exhausted = false;
+            context.readyCard(context.karis);
             context.setDamage(context.p2Base, 0);
 
             // Scenario 2 - Jedi Holocron heals opponents wampa

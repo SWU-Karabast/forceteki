@@ -99,6 +99,14 @@ export abstract class ResettingLimitBase extends GameObjectBase {
 export abstract class AbilityLimit extends ResettingLimitBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
+    /** Tells the SWU-PGN writer that this limit's count changed, so its card's `abilityUses` is read again. */
+    protected reportChange(): void {
+        const card = this.ability?.card;
+        if (card) {
+            this.game.swuPgnWriter?.onAbilityLimitChanged(card);
+        }
+    }
+
     public isEpicActionLimit(): this is EpicActionLimit {
         return false;
     }
@@ -127,6 +135,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
+        // no `reportChange()`: an unlimited ability's uses are never projected (`limitRecordOf` in swupgn/projectEffects.ts)
         this.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
@@ -169,14 +178,21 @@ export class PerGameAbilityLimit extends AbilityLimit {
 
     public increment(player: Player): void {
         this.useCount++;
+        this.reportChange();
     }
 
     public reset(): void {
         this.useCount = 0;
+        this.reportChange();
     }
 
     public currentForPlayer(): number {
         return this.useCount;
+    }
+
+    /** The most uses allowed. Read-only, for the SWU-PGN writer's `abilityUses.max`. */
+    public maxForPlayer(): number {
+        return this.max;
     }
 }
 
@@ -206,14 +222,21 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public increment(player: Player): void {
         const key = this.getKey(player.name);
         this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.reportChange();
     }
 
     public reset(): void {
         this.useCount.clear();
+        this.reportChange();
     }
 
     public currentForPlayer(player: Player) {
         return this.useCount.get(this.getKey(player.name)) ?? 0;
+    }
+
+    /** The most uses allowed for `player`, after modifiers. Read-only, for the SWU-PGN writer's `abilityUses.max`. */
+    public maxForPlayer(player: Player): number {
+        return this.getModifiedMax(player);
     }
 
     private getKey(player: string): string {
@@ -255,6 +278,23 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimitBase {
 
     public override isRepeatable(): boolean {
         return true;
+    }
+
+    /**
+     * The boundary whose end resets the uses: `phase` or `round`, undefined for any other event set.
+     * Read-only, for the SWU-PGN writer's `abilityUses.per`; it changes nothing.
+     */
+    public get resetsOn(): 'phase' | 'round' | undefined {
+        if (this.eventName.size !== 1) {
+            return undefined;
+        }
+        if (this.eventName.has(EventName.OnPhaseEnded)) {
+            return 'phase';
+        }
+        if (this.eventName.has(EventName.OnRoundEnded)) {
+            return 'round';
+        }
+        return undefined;
     }
 }
 

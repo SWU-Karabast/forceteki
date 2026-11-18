@@ -26,6 +26,12 @@ const parsedEnv = z
         INTRASERVICE_SECRET: z.string().optional(),
         PROFILE_CAPTURE_SECRET: z.string().optional(),
         DEBUG_MOD_ACTION_CACHE: z.string().optional(),
+        // SWU-PGN writer: 'flush' records every game; 'off', 'decision' and 'event' exist for the CPU benchmark
+        SWUPGN_WRITER: z.enum(['off', 'decision', 'flush', 'event']).default('flush'),
+        // SWU-PGN writer work counters for the CPU benchmark ('1' counts them); test-only, never read in production
+        SWUPGN_WRITER_STATS: z.string().optional(),
+        // '1' checks every SWU-PGN writer flush's dirty projection against the full one (a mismatch is a writer error); test-only
+        SWUPGN_PROJECTION_CHECK: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -101,6 +107,9 @@ export const SWUBASE_CLIENT_SECRET = parsedEnv.data.SWUBASE_CLIENT_SECRET;
 export const INTRASERVICE_SECRET = parsedEnv.data.INTRASERVICE_SECRET;
 export const PROFILE_CAPTURE_SECRET = parsedEnv.data.PROFILE_CAPTURE_SECRET;
 export const DEBUG_MOD_ACTION_CACHE = parsedEnv.data.DEBUG_MOD_ACTION_CACHE === 'true';
+export const SWUPGN_WRITER = parsedEnv.data.SWUPGN_WRITER;
+export const SWUPGN_WRITER_STATS = parsedEnv.data.SWUPGN_WRITER_STATS === '1';
+export const SWUPGN_PROJECTION_CHECK = parsedEnv.data.SWUPGN_PROJECTION_CHECK === '1';
 
 type ParsedEnvData = typeof parsedEnv.data;
 

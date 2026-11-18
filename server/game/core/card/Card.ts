@@ -290,6 +290,16 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this._title;
     }
 
+    /** The title printed on the card's front, whatever side is up and whatever effects apply. */
+    public get printedTitle(): string {
+        return this._title;
+    }
+
+    /** The subtitle printed on the card's front (null when it has none), whatever side is up and whatever effects apply. */
+    public get printedSubtitle(): string | null {
+        return this._subtitle ?? null;
+    }
+
     public get unique(): boolean {
         return this._unique;
     }
@@ -428,6 +438,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     // ******************************************* ABILITY GETTERS *******************************************
+    /**
+     * Every action and triggered ability the card holds, blanked or not. Read-only, for the SWU-PGN
+     * writer's `abilityUses`: blanking hides an ability but keeps its uses. Nothing in the game reads it.
+     */
+    public getAllAbilitiesForRecording(): readonly CardAbility[] {
+        return [...this.actionAbilities, ...this.triggeredAbilities];
+    }
+
     /**
      * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
      * abilities have a cost in brackets that must be paid in order to use the ability.
@@ -1055,6 +1073,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         if (initializeCardState === InitializeCardStateOption.Initialize || initializeCardState === InitializeCardStateOption.ForceInitialize) {
             this.initializeForCurrentZone(movedFromZone);
         }
+
+        this.game.swuPgnWriter?.onCardEnteredZone(this, this.zoneName);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,

@@ -295,6 +295,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
                 this.game.emit(event.name + ':preResolve', event);
                 event.executeHandler();
+                this.game.swuPgnWriter?.onEventResolved(event);
                 this.game.emit(event.name, event);
 
                 this.resolvedEvents.push(event);

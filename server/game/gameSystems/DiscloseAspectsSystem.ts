@@ -26,6 +26,9 @@ export interface IDiscloseAspectsProperties extends IPlayerTargetSystemPropertie
     mode?: DiscloseMode;
 }
 
+/** A disclose event: the cards revealed from hand to disclose the aspects, set once they are chosen. */
+export type AspectsDisclosedEvent = GameEvent & { disclosedCards?: Card[] };
+
 export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscloseAspectsProperties> {
     public override readonly name = 'aspectsDisclosed';
     public override readonly eventName = EventName.OnAspectsDisclosed;
@@ -187,7 +190,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    private updateEventsWithSelectedCards(events: any[], selectedCards: Card | Card[]) {
+    private updateEventsWithSelectedCards(events: AspectsDisclosedEvent[], selectedCards: Card | Card[]) {
         for (const event of events) {
             event.disclosedCards = Helpers.asArray(selectedCards);
         }

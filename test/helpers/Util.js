@@ -172,6 +172,8 @@ function isTokenUpgrade(cardName) {
  * @param {Game} game
  */
 function refreshGameState(game) {
+    // the harness changed the board outside the engine's events, which the SWU-PGN writer's dirty projection follows
+    game.swuPgnWriter?.onBoardChangedOutsideEngine();
     game.resolveGameState(true);
 
     const currentOpenPrompt = game.getCurrentOpenPrompt();

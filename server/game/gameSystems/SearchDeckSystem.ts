@@ -55,6 +55,15 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
 }
 
+/** A deck search event: whose deck (`player`), how it was searched, and the cards the searching player saw. */
+export type SearchDeckEvent<TContext extends AbilityContext = AbilityContext> = GameEvent & {
+    player: Player;
+    searchProperties: ISearchDeckProperties<TContext>;
+
+    /** Set when the search resolves, before the event is emitted. Nothing in the game reads it; the SWU-PGN writer does. */
+    viewedCards: readonly Card[];
+};
+
 export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ISearchDeckProperties<TContext> = ISearchDeckProperties<TContext>> extends PlayerTargetSystem<TContext, TProperties> {
     public override readonly name = 'deckSearch';
     public override readonly eventName = EventName.OnDeckSearch;
@@ -79,6 +88,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         // event.searchWholeDeck indicates a whole-deck search; otherwise event.amount is the requested top-N count.
         const amount = event.searchWholeDeck ? deckLength : Math.min(event.amount, deckLength);
         const cards = this.getDeck(player).slice(0, amount);
+        const searchEvent: SearchDeckEvent<TContext> = event;
+        searchEvent.viewedCards = cards;
         this.promptSelectCards(event, additionalProperties, cards, new Set());
     }
 

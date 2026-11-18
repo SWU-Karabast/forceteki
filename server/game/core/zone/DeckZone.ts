@@ -86,13 +86,16 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         switch (zone) {
             case DeckZoneDestination.DeckTop:
                 this._deck.unshift(card);
-                return;
+                break;
             case DeckZoneDestination.DeckBottom:
                 this._deck.push(card);
-                return;
+                break;
             default:
                 Contract.fail(`Unknown value for DeckZoneDestination enum: ${zone}`);
         }
+
+        // Every move into a deck (Card.moveTo, and so addCardToTop / addCardToBottom) comes through here.
+        this.game.swuPgnWriter?.onCardEnteredDeck(card);
     }
 
     /**

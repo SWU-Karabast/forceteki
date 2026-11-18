@@ -1,6 +1,7 @@
 import { GameServer } from '../../../server/gamenode/GameServer';
 import type { IGameNodeConfig } from '../../../server/gamenode/GameNodeConfig';
 import type { Lobby } from '../../../server/gamenode/Lobby';
+import type { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
 import type { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { UserFactory } from '../../../server/utils/user/UserFactory';
 import { UserProfileCache } from '../../../server/utils/user/UserProfileCache';
@@ -166,6 +167,11 @@ export class TestGameServer extends GameServer {
         const lobbyId = this.getUserLobbyId(userId);
 
         return lobbyId === undefined ? undefined : this.lobbies.get(lobbyId);
+    }
+
+    /** The SWU-PGN writer of the game this user is in, or `undefined` if they are in no lobby. */
+    public testSwuPgnWriterFor(userId: string): SwuPgnWriter | null | undefined {
+        return this.testLobbyFor(userId)?.swuPgnWriter;
     }
 
     /** Stops the database-backed services' refresh timers along with everything the server stops itself. */

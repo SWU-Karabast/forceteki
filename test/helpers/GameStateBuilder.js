@@ -8,6 +8,21 @@ const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTest
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
 const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
 
+/**
+ * The SWU-PGN writer benchmark's Lobby baseline (`SWUPGN_BENCHMARK=lobby`): after each `Game.continue()`, which every
+ * player action ends in, build each seat's game state, as `Lobby.onGameMessage` does through `sendGameState`.
+ * @param {import('../../server/game/core/Game').Game} game
+ */
+function sendStateAfterEachDecision(game) {
+    const proceed = game.continue.bind(game);
+    game.continue = () => {
+        proceed();
+        for (const player of game.getPlayers()) {
+            game.getState(player.id);
+        }
+    };
+}
+
 class GameStateBuilder {
     constructor() {
         const directory = 'test/json';
@@ -63,7 +78,9 @@ class GameStateBuilder {
 
         const testContext = {};
         this.attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
-        await this.setupGameStateAsync(testContext, setupTestOptions);
+        // the SWU-PGN writer benchmark (workload L) times this game as a production game: only the state watchers the
+        // game's own cards and the engine register, as a real Lobby game has, not every watcher in the library
+        await this.setupGameStateAsync(testContext, setupTestOptions, { registerAllStateWatchers: !process.env.SWUPGN_BENCHMARK });
 
         return gameFlowWrapper.game;
     }
@@ -95,8 +112,10 @@ class GameStateBuilder {
     /**
      * @param {SwuTestContext} context
      * @param {SwuSetupTestOptions} options
+     * @param {{ registerAllStateWatchers?: boolean }} [builderOptions] `registerAllStateWatchers` (default true) registers
+     * every watcher in the library, to stress test them; false leaves only those the cards and the engine register
      */
-    async setupGameStateAsync(context, options = {}) {
+    async setupGameStateAsync(context, options = {}, { registerAllStateWatchers = true } = {}) {
         // Set defaults
         if (!options.player1) {
             options.player1 = {};
@@ -236,9 +255,19 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
-        this.registerAllStateWatchers(context.game);
+        if (registerAllStateWatchers) {
+            this.registerAllStateWatchers(context.game);
+        }
 
         Util.refreshGameState(context.game);
+
+        // the board above was built with no decision point between its changes: record it as the starting board
+        // (step 0), before the snapshots below so that a rollback to them keeps it
+        context.game.swuPgnWriter?.restartBaseline();
+
+        if (process.env.SWUPGN_BENCHMARK === 'lobby') {
+            sendStateAfterEachDecision(context.game);
+        }
 
         if (options.phase !== 'setup') {
             // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup
@@ -259,6 +288,11 @@ class GameStateBuilder {
         }
 
         this.attachAbbreviatedContextInfo(context, context);
+
+        // a test game file (`/api/start-test-game`) has no spec to seed its game: seeded last, where a spec would
+        if (options.randomSeed != null) {
+            context.game.setRandomSeed(options.randomSeed);
+        }
     }
 
     /**
@@ -347,7 +381,8 @@ class GameStateBuilder {
             'autoSingleTarget',
             'testUndo',
             'enableConfirmationToUndo',
-            'format'
+            'format',
+            'randomSeed'
         ];
 
         // Check for unknown properties

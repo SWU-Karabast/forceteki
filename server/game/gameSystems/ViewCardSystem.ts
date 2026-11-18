@@ -65,6 +65,9 @@ export interface IViewCardWithPerCardButtonsProperties extends IViewCardProperti
 
 export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsProperties | IViewCardWithPerCardButtonsProperties;
 
+/** The event of a look or a reveal: the cards shown. */
+export type ViewCardEvent = GameEvent & { cards: Card[] };
+
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override eventHandler(event): void {
         if (event.promptHandler) {
@@ -111,6 +114,12 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         event.cards = cards;
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
         event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;
+        this.addViewPropertiesToEvent(event, properties, context);
+    }
+
+    /** For a subclass to add its own fields to the event from the properties already generated for it. */
+    protected addViewPropertiesToEvent(_event: ViewCardEvent, _properties: TProperties, _context: TContext): void {
+        // nothing by default
     }
 
     private buildPromptHandler(cards: Card[], properties: IViewCardProperties, context: TContext): () => void {

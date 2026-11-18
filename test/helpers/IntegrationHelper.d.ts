@@ -10,6 +10,7 @@ type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
 type PlayerInteractionWrapper = import('./PlayerInteractionWrapper').PlayerInteractionWrapper;
 type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
+type RevealLog = import('./SwuPgnRoundTrip').RevealLog;
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
 type QuickUndoAvailableState = import('../../server/game/core/snapshot/SnapshotInterfaces').QuickUndoAvailableState;
 
@@ -75,6 +76,9 @@ interface SwuTestContext {
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
 
+    /** The cards shown to each seat, for the SWU-PGN round-trip check (only with `SWUPGN_ROUNDTRIP=true`). */
+    swuPgnRevealLog?: RevealLog;
+
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
     getAllNonLeaderCardTitles(): string[];
@@ -125,6 +129,9 @@ interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'pl
 
     /** Deck/rules format being played. Defaults to Premier. Use 'fauxSuns' for 1v1 Twin Suns. Accepts SwuGameFormat enum values or their string equivalents. */
     format?: import('../../server/game/core/Constants').SwuGameFormat | string;
+
+    /** Seeds the game's randomness once the board is set up. For a test game file (`/api/start-test-game`); a spec seeds with `game.setRandomSeed`. */
+    randomSeed?: string;
 
     [field: string]: any;
 }

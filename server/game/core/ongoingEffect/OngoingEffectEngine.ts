@@ -244,6 +244,9 @@ export class OngoingEffectEngine extends GameObjectBase {
     public events: EventRegistrar;
     public effectsChangedSinceLastCheck = false;
 
+    /** Not state: counts up for the life of the engine, so a reader that saw an older value knows something changed. */
+    private _changeCount = 0;
+
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
         return true;
@@ -264,7 +267,16 @@ export class OngoingEffectEngine extends GameObjectBase {
         ]);
     }
 
+    /**
+     * Counts every change to what the effects apply: an effect added or removed, and a resolution that changed an
+     * effect's targets or value. Read-only, for observers that cache what the effects produce (the SWU-PGN writer).
+     */
+    public get changeCount(): number {
+        return this._changeCount;
+    }
+
     public add(effect: OngoingEffect<any>) {
+        this._changeCount++;
         this.effects = [...this.effects, effect];
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
@@ -456,6 +468,9 @@ export class OngoingEffectEngine extends GameObjectBase {
 
         // Check each effect's condition and find new targets
         stateChanged = this.effects.reduce((stateChanged, effect) => effect.resolveEffectTargets() || stateChanged, stateChanged);
+        if (stateChanged) {
+            this._changeCount++;
+        }
         if (loops === 10) {
             throw new Error('OngoingEffectEngine.resolveEffects looped 10 times');
         } else {
@@ -498,6 +513,9 @@ export class OngoingEffectEngine extends GameObjectBase {
         }
 
         this.effects = remainingEffects;
+        if (anyEffectRemoved) {
+            this._changeCount++;
+        }
 
         for (const removedEffect of removedEffects) {
             this.unapplyEffect(removedEffect);
@@ -575,6 +593,7 @@ export class OngoingEffectEngine extends GameObjectBase {
             const event = args[0];
             const listener = customDurationEffect.until[event.name];
             if (listener && listener(event, customDurationEffect.context)) {
+                this._changeCount++;
                 customDurationEffect.cancel();
                 this.unregisterEffectEventListeners(customDurationEffect);
                 this.effects = this.effects.filter((effect) => effect !== customDurationEffect);

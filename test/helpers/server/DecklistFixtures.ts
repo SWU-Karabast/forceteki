@@ -11,6 +11,9 @@ export interface IDecklistFixtureOptions {
     cardPool?: CardPool;
     name?: string;
     author?: string;
+
+    /** Cards in the sideboard, one copy each of playable cards the main deck does not hold. None by default. */
+    sideboardSize?: number;
 }
 
 interface ICandidateCards {
@@ -67,6 +70,16 @@ export class DecklistFixtures {
             base: { id: bases[0], count: 1 },
             deck,
         };
+
+        const sideboardSize = options.sideboardSize ?? 0;
+        if (sideboardSize > 0) {
+            const inDeck = new Set(deck.map((entry) => entry.id));
+            const unused = playable.filter((setCode) => !inDeck.has(setCode));
+            if (unused.length < sideboardSize) {
+                throw new Error(`DecklistFixtures: only ${unused.length} playable cards are left for a ${sideboardSize} card sideboard`);
+            }
+            decklist.sideboard = unused.slice(0, sideboardSize).map((id) => ({ id, count: 1 }));
+        }
 
         this.assertValid(decklist, format, cardPool);
 

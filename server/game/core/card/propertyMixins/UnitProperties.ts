@@ -35,6 +35,7 @@ import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 import type { ICardWithUpgrades, IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbilityBase } from '../../ability/ActionAbility';
+import type { CardAbility } from '../../ability/CardAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
@@ -590,6 +591,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 title: 'Give triggered ability to the attached card',
                 ...properties
             });
+        }
+
+        /** Adds the piloting abilities to the recorder-only list (see Card.getAllAbilitiesForRecording). */
+        public override getAllAbilitiesForRecording(): readonly CardAbility[] {
+            return [...super.getAllAbilitiesForRecording(), ...this.pilotingTriggeredAbilities];
         }
 
         public override getTriggeredAbilities(): TriggeredAbilityBase[] {

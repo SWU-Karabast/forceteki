@@ -144,7 +144,7 @@ describe('Qui-Gon Jinn\'s Lightsaber', () => {
                 const quigonJinnLeader = context.player1.findCardByName('quigon-jinn#student-of-the-living-force');
                 const quigonJinnUnit = context.player1.findCardByName('quigon-jinn#the-negotiations-will-be-short');
 
-                context.phaseiiiDarkTrooper.exhausted = true;
+                context.exhaustCard(context.phaseiiiDarkTrooper);
                 expect(context.phaseiiiDarkTrooper.exhausted).toBe(true);
 
                 // Play the lightsaber on Qui-Gon Jinn leader

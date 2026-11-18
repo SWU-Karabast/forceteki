@@ -30,6 +30,8 @@ import { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { PreResolvedOptionalChoice } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
+import { SwuPgnWriter } from './swupgn/SwuPgnWriter';
+import { SWUPGN_WRITER } from '../../env';
 import { cards } from '../cards/Index';
 
 import {
@@ -230,6 +232,11 @@ export class Game extends EventEmitter {
         return claimedCount < maxClaimableCounters;
     }
 
+    /** The SWU-PGN writer recording this game, or null when none is (`SWUPGN_WRITER=off`). */
+    public get swuPgnWriter(): SwuPgnWriter | null {
+        return this._swuPgnWriter;
+    }
+
     public get roundNumber() {
         return this.state.roundNumber;
     }
@@ -376,6 +383,7 @@ export class Game extends EventEmitter {
     // #region ──── Instance Fields ────────────────────────────────────────────
 
     private readonly _snapshotManager: SnapshotManager;
+    private readonly _swuPgnWriter: SwuPgnWriter | null;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
     private readonly _lkiRegistry: LkiRegistry;
@@ -464,6 +472,9 @@ export class Game extends EventEmitter {
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);
+
+        // built before any snapshot is taken, so every rollback restores its state
+        this._swuPgnWriter = SWUPGN_WRITER === 'off' ? null : SwuPgnWriter.tryCreate(this, SWUPGN_WRITER);
 
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
@@ -990,6 +1001,7 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+        this._swuPgnWriter?.onGameEnded();
         this._router.handleGameEnd(this);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -1736,7 +1748,9 @@ export class Game extends EventEmitter {
     }
 
     public continue(): void {
+        this._swuPgnWriter?.onContinue();
         this.pipeline.continue(this);
+        this._swuPgnWriter?.onDecisionPoint();
     }
 
     /**
@@ -2189,6 +2203,8 @@ export class Game extends EventEmitter {
             if (rollbackResult.rolledPastGameEnd) {
                 this._router.handleUndoGameEnd();
             }
+
+            this._swuPgnWriter?.onRolledBack();
 
             const postUndoState = this.captureGameState('any');
 
