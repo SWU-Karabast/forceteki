@@ -31,8 +31,8 @@ From the maintainer review (2026-11-18):
 - Effect entities are a SHOULD (W-31), with a granularity rule: one entity per effect that one
   ability resolution creates. Effect audiences that widen later are an open issue (§23).
 - Setup has steps: step 0 is the first decision of the game, and `g.phase` is `setup` until the
-  action phase (W-39). A prompt that asks both seats at once is one step, the seat with the
-  initiative's records first (§8.2).
+  action phase (W-39). A prompt that asks both seats at once is one step, its blocks giving
+  the seat with the initiative first (§8.2).
 - A block records only an event both seats observe, and its `amount` holds only what its
   contract defines (W-54).
 - Vectors pin the board at every step (`N.<profile>.boards.jsonl`, §19). §19 describes the drift

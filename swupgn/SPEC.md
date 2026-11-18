@@ -704,7 +704,7 @@ reader can stop on the opening hand and on each mulligan decision.
 
 **What a step marks** is set by the `Steps` header tag:
 
-- `decision`: each `step` marks a point where a seat is about to make a decision, and each step group is what one decision did. A prompt that asks both seats at once (the mulligans, the opening resources, the regroup resource choice, a blind choice of CR 7.1.4a) is one decision point and one `step`. Its step group holds both seats' records, those of the seat that has the initiative first, and the blocks of a blind choice share a `group`.
+- `decision`: each `step` marks a point where a seat is about to make a decision, and each step group is what one decision did. A prompt that asks both seats at once (the mulligans, the opening resources, the regroup resource choice, a blind choice of CR 7.1.4a) is one decision point and one `step`. Its step group holds both seats' records. Its blocks give the seat that has the initiative first, and the blocks of a blind choice share a `group`; the order of its other records is not significant, since only the board at the `step` is.
 - `event`: steps are finer than decisions: a writer may also mark points inside the resolution of one decision. The exact granularity is an open issue ([§23](#23-open-issues)).
 
 - **[W-41]** A writer SHOULD write `Steps` `decision`.
