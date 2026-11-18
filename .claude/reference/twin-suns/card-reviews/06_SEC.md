@@ -371,8 +371,8 @@
 - Type: Unit
 - Text: When an enemy unit deals combat damage to your base: This unit gains Sentinel for this phase. (Enemy units in this arena must attack a Sentinel when they attack you.)
 - Rules: “Combat damage” is only the damage dealt during the “deal combat damage” step of an attack. When Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 042 - Cassian Andor - Lay Low
 
@@ -380,8 +380,8 @@
 - Type: Unit
 - Text: While this unit is defending, the attacker gets –2/–0. If an enemy card ability would deal damage to this unit, prevent 2 of that damage.
 - Rules: Enemy card abilities include any ability controlled by an enemy on a unit, upgrade, or event. Combat damage is not a card ability. If Cassian has a Shield attached to him, you can choose in what order to resolve the damage prevention effects.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 043 - Chandrilan Sponsor
 
@@ -405,8 +405,8 @@
 - Internal name: `senator-chuchi#voice-for-the-voiceless`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.) On Attack: Give another friendly Official unit Restore 2 for this phase.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 046 - Galen Erso - You'll Never Win
 
@@ -414,16 +414,17 @@
 - Type: Unit
 - Text: When Played: Name a card. While this unit is in play, each non-leader card an opponent owns with that name, including those not in play, loses all abilities (and can't gain abilities). Plot
 - Rules: Abilities that refer to a card’s “name” do not include the subtitle of the card. Until Galen leaves play, the cards with the chosen name lose all abilities. This effect is not changed if an opponent takes control of Galen. If Galen is captured and then rescued, his "When Played" effect does not resume. Galen's ability affects each card owned by each opponent. Cards with the chosen name can't gain abilities while Galen is in play. You can name any card when using Galen's ability, including bases and tokens.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: OPP-CHOOSE
+- Test notes: Affects all opponents
+- Status: Reviewed
 
 ### 047 - Coronet - Stately Vessel
 
 - Internal name: `coronet#stately-vessel`
 - Type: Unit
 - Text: Restore 1 (When this unit attacks, heal 1 damage from your base.) Each other friendly unit gains Restore 1.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 048 - Captain Rex - Into the Firefight
 
@@ -431,8 +432,8 @@
 - Type: Unit
 - Text: When Played/When this unit completes an attack: Give this unit and an enemy unit Sentinel for this phase.
 - Rules: A unit must survive an attack to trigger its “when this unit completes an attack” abilities. When Attack Ends abilities trigger when combat damage is dealt. The attacker doesn’t need to survive for the ability to trigger unless the ability says otherwise. The unit isn’t considered to be attacking when these abilities resolve.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 049 - Jade Squadron Patrol
 
@@ -449,8 +450,8 @@
 - Type: Unit
 - Text: If damage would be dealt to another friendly unit, prevent 1 of that damage. If damage would be dealt to this unit by another card, deal that much damage plus 1 instead. Plot
 - Rules: If the other friendly unit has a Shield attached, you can choose in what order to resolve the prevention effects. Vigil's ability applies to a single instance of damage once; after increasing or decreasing the total damage dealt by 1, Vigil's ability does not resolve again.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 051 - Bo-Katan Kryze - Alone
 
@@ -458,8 +459,8 @@
 - Type: Unit
 - Text: When Played: Give each enemy unit –3/–3 for this phase. When an enemy unit is defeated: Give an Experience token to a friendly unit.
 - Rules: Bo-Katan's "When Played" ability can trigger her "When an enemy unit is defeated" ability if it defeats enemy units.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 052 - Diplomatic Immunity
 
