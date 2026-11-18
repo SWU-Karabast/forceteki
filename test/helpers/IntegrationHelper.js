@@ -16,7 +16,7 @@ const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
-const { RevealLog, checkSwuPgnRoundTrip } = require('./SwuPgnRoundTrip.js');
+const { RevealLog, StepRecorder, checkSwuPgnRoundTrip } = require('./SwuPgnRoundTrip.js');
 
 // enabled via the `ENABLE_UNDO_ALL_TESTS` env var (see the `test-undo` npm scripts) to run the
 // whole suite in undo mode (each test runs, rolls back, then runs again)
@@ -127,6 +127,8 @@ global.integration = function (definitions, enableUndo = false) {
             if (SWUPGN_ROUNDTRIP && newContext.game.swuPgnWriter) {
                 newContext.swuPgnRevealLog = new RevealLog();
                 newContext.swuPgnRevealLog.install(newContext.game);
+                newContext.swuPgnStepRecorder = new StepRecorder();
+                newContext.swuPgnStepRecorder.install(newContext.game);
             }
 
             /**
@@ -215,7 +217,7 @@ global.integration = function (definitions, enableUndo = false) {
             }
 
             if (SWUPGN_ROUNDTRIP && context.swuPgnRevealLog) {
-                const problems = checkSwuPgnRoundTrip(context.game, context.swuPgnRevealLog);
+                const problems = checkSwuPgnRoundTrip(context.game, context.swuPgnRevealLog, context.swuPgnStepRecorder);
                 if (problems.length > 0) {
                     throw new TestSetupError(`SWU-PGN round-trip check (SWUPGN_ROUNDTRIP=true) found ${problems.length} problem(s):\n${problems.join('\n')}`);
                 }

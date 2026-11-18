@@ -1,11 +1,12 @@
 import { apply } from '@swupgn/format';
 import type { SwuRecord } from '@swupgn/format';
 import type { SwuPgnRoundTripSubject } from '../../helpers/SwuPgnRoundTrip';
-import { RevealLog, checkSwuPgnRoundTrip, checkSwuPgnSubject, swuPgnSubjectOf } from '../../helpers/SwuPgnRoundTrip';
+import { RevealLog, StepRecorder, checkSwuPgnRoundTrip, checkSwuPgnSubject, swuPgnSubjectOf } from '../../helpers/SwuPgnRoundTrip';
 
 describe('SWU-PGN round-trip checker', function() {
     integration(function(contextRef) {
         let log: RevealLog;
+        let recorder: StepRecorder;
 
         /** The subject of a short game: p1 plays a unit; p2 holds a card in hand and its resources. */
         async function subjectOfAGameAsync(): Promise<SwuPgnRoundTripSubject> {
@@ -17,10 +18,14 @@ describe('SWU-PGN round-trip checker', function() {
             const { context } = contextRef;
             log = new RevealLog();
             log.install(context.game);
+            recorder = new StepRecorder();
+            recorder.install(context.game);
+            // start the records again so the recorder sees step 0 too
+            context.game.swuPgnWriter.restartBaseline();
             log.reset();
 
             context.player1.clickCard(context.battlefieldMarine);
-            return swuPgnSubjectOf(context.game, log);
+            return swuPgnSubjectOf(context.game, log, recorder);
         }
 
         /** The subject with its records replaced, and the writer's board the one they give, so only `check` sees them. */
@@ -31,8 +36,52 @@ describe('SWU-PGN round-trip checker', function() {
         it('finds nothing wrong with the files of a game', async function () {
             const subject = await subjectOfAGameAsync();
 
+            expect(subject.stepCaptures.length).withContext('a capture at every step')
+                .toBe(subject.records.filter((record) => record.t === 'step').length);
             expect(checkSwuPgnSubject(subject)).toEqual([]);
-            expect(checkSwuPgnRoundTrip(contextRef.context.game, log)).toEqual([]);
+            expect(checkSwuPgnRoundTrip(contextRef.context.game, log, recorder)).toEqual([]);
+        });
+
+        it('finds a step whose records do not replay to the writer\'s board at that step', async function () {
+            const subject = await subjectOfAGameAsync();
+            const captures = subject.stepCaptures.map((capture) => ({ ...capture }));
+            const board = apply(subject.records, { untilSeq: 0 });
+            board.entities.g.a.round = 99;
+            captures[0] = { ...captures[0], board };
+
+            const problems = checkSwuPgnSubject({ ...subject, stepCaptures: captures });
+
+            expect(problems).toEqual([jasmine.stringMatching(/^step drift: .*step 0: entities g differ/)]);
+        });
+
+        it('finds a step that has no captured board', async function () {
+            const subject = await subjectOfAGameAsync();
+
+            const problems = checkSwuPgnSubject({ ...subject, stepCaptures: subject.stepCaptures.slice(1) });
+
+            expect(problems).toContain(jasmine.stringMatching(/^step drift: .*no board was captured/));
+        });
+
+        it('finds a view that names, at a step, a hidden card the engine had not shown its seat', async function () {
+            const subject = await subjectOfAGameAsync();
+
+            // the full file, passed off as seat 1's: it names p2's hand and resources at every step
+            const problems = checkSwuPgnSubject({ ...subject, files: { ...subject.files, 1: subject.files.full } });
+
+            expect(problems).toContain(jasmine.stringMatching(/^step leak: fileFor\(1\) names hidden cards .*step 0: .*in p2's (hand|resource)/));
+        });
+
+        it('allows a hidden card the engine showed the seat at that step', async function () {
+            const subject = await subjectOfAGameAsync();
+            const captures = subject.stepCaptures.map((capture) => ({
+                ...capture,
+                shown: { 1: new Set([...capture.shown[1], ...capture.hidden.map((card) => card.uuid)]), 2: capture.shown[2] }
+            }));
+            const shownCards = subject.hiddenCards.map((card) => (card.owner === 2 ? { ...card, seenBy: [1] } : card));
+
+            const problems = checkSwuPgnSubject({ ...subject, stepCaptures: captures, hiddenCards: shownCards, files: { ...subject.files, 1: subject.files.full } });
+
+            expect(problems).toEqual([]);
         });
 
         it('skips a game with no writer', function () {
@@ -80,8 +129,9 @@ describe('SWU-PGN round-trip checker', function() {
         it('finds a view that names a hidden card its viewer was not shown', async function () {
             const subject = await subjectOfAGameAsync();
 
-            // the full file, passed off as seat 1's: it names p2's hand and resources
-            const problems = checkSwuPgnSubject({ ...subject, files: { ...subject.files, 1: subject.files.full } });
+            // the full file, passed off as seat 1's: it names p2's hand and resources (the per-step check, with no
+            // captures here, is the case below)
+            const problems = checkSwuPgnSubject({ ...subject, stepCaptures: undefined, files: { ...subject.files, 1: subject.files.full } });
 
             expect(problems.length).toBe(1);
             expect(problems[0]).toMatch(/^leak: fileFor\(1\) names hidden cards .*in p2's (hand|resource)/);
@@ -91,7 +141,7 @@ describe('SWU-PGN round-trip checker', function() {
             const subject = await subjectOfAGameAsync();
             const shown = subject.hiddenCards.map((card) => (card.owner === 2 ? { ...card, seenBy: [1] } : card));
 
-            const problems = checkSwuPgnSubject({ ...subject, hiddenCards: shown, files: { ...subject.files, 1: subject.files.full } });
+            const problems = checkSwuPgnSubject({ ...subject, stepCaptures: undefined, hiddenCards: shown, files: { ...subject.files, 1: subject.files.full } });
 
             expect(problems).toEqual([]);
         });

@@ -153,6 +153,13 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     }
 
     /** The board the records describe: `apply(records)` gives it. */
+    /**
+     * Not state, and unset in production: told the seq of each `step` right after it is written, while the game is at
+     * that decision. The test harness's per-step checks (SPEC §19, "Testing a writer") read the board and the engine
+     * there. A rollback writes the steps it took back again with the same seqs.
+     */
+    public stepObserver: ((seq: number) => void) | null = null;
+
     public currentBoard(): Board {
         const board = cloneBoard(this.prev);
         board.seq = this.lastStepSeq();
@@ -345,6 +352,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
                     swuPgnWriterStats.steps++;
                 }
                 this.state.recordsLength = this._records.length;
+                this.stepObserver?.(seq);
             }
 
             this.lastPrompt = prompt;
