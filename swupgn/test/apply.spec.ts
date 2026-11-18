@@ -33,14 +33,16 @@ describe('apply', () => {
         expect(emptyBoard()).toEqual(want);
     });
 
-    it('applies every vector to its board.json', () => {
+    it('applies every vector to the board at its last step', () => {
         const dir = path.resolve(__dirname, '..', '..', 'vectors');
         const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8'));
         let n = 0;
         for (const v of manifest.vectors) {
             for (const profile of v.profiles) {
                 const file = parse(fs.readFileSync(path.join(dir, `${v.name}.${profile}.swupgn`), 'utf8'));
-                const want = JSON.parse(fs.readFileSync(path.join(dir, `${v.name}.${profile}.board.json`), 'utf8'));
+                const boards = fs.readFileSync(path.join(dir, `${v.name}.${profile}.boards.jsonl`), 'utf8').trimEnd()
+                    .split('\n');
+                const want = JSON.parse(boards[boards.length - 1]);
                 expect(apply(file.records)).withContext(`${v.name}.${profile}`)
                     .toEqual(want);
                 n++;
