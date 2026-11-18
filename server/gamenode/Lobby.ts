@@ -65,10 +65,6 @@ export interface ISpectatorSummary {
 
     /** Spectators connected now. One inside the reconnect grace window is not counted. */
     count: number;
-
-    // Phase 5 of the spectator work adds elevated roles here:
-    // coaches?: Record<string, true>;   which seats have a coach
-    // judge?: boolean;                  whether the game has a judge
 }
 
 enum LobbySettingKeys {
