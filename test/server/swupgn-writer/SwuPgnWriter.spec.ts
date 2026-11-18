@@ -352,7 +352,7 @@ describe('SwuPgnWriter', function() {
             expect(apply([...writer.records])).toEqual(writer.currentBoard());
         });
 
-        it('makes a mulligan a new hand of new entities and writes no step before setup is done (W-22, W-39)', async function () {
+        it('makes a mulligan a new hand of new entities, with a step at each setup decision (W-22, W-39)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'setup',
                 player1: {
@@ -365,6 +365,20 @@ describe('SwuPgnWriter', function() {
             });
             const { context } = contextRef;
             const writer = writerOf();
+            const gameAt = (seq: number): Entity['a'] => {
+                const at = writer.records.findIndex((record) => record.t === 'step' && record.seq === seq);
+                const board: Board = apply([...writer.records.slice(0, at + 1)]);
+                const game: Entity = board.entities.g;
+                return game.a;
+            };
+            const phaseAt = (seq: number): unknown => gameAt(seq)?.phase;
+            const roundAt = (seq: number): unknown => gameAt(seq)?.round;
+
+            // step 0: who takes the initiative, before the opening hands
+            expect(steps(writer.records)).toEqual([0]);
+            expect(phaseAt(0)).toBe('setup');
+            expect(roundAt(0)).withContext('round 0 during setup')
+                .toBe(0);
 
             context.selectInitiativePlayer(context.player1);
             const handIds = (board: Board) => Object.entries(board.entities)
@@ -372,27 +386,37 @@ describe('SwuPgnWriter', function() {
                 .map(([id]) => Number(id));
             const firstHand = handIds(writer.currentBoard());
             expect(firstHand.length).toBe(6);
+            // step 1: the mulligans, one step for both seats
+            expect(steps(writer.records)).toEqual([0, 1]);
 
             context.player1.clickPrompt('Mulligan');
+            expect(steps(writer.records)).withContext('one seat answering the mulligan prompt writes no step')
+                .toEqual([0, 1]);
             context.player2.clickPrompt('Keep');
 
             const secondHand = handIds(writer.currentBoard());
             expect(secondHand.length).toBe(6);
             expect(secondHand.filter((id) => firstHand.includes(id))).toEqual([]);
+            // the first hand goes back into the deck in the mulligan's step group
+            const mulliganGroup = groupAfter(writer.records, 1);
             for (const id of firstHand) {
-                expect(writer.records).toContain({ t: 'remove', e: id });
+                expect(mulliganGroup).toContain({ t: 'remove', e: id });
             }
-            expect(steps(writer.records)).toEqual([]);
+            // step 2: the opening resources, one step for both seats
+            expect(steps(writer.records)).toEqual([0, 1, 2]);
+            expect(phaseAt(2)).toBe('setup');
 
             context.player1.clickAnyOfSelectableCards(2);
             context.player1.clickDone();
-            expect(steps(writer.records)).toEqual([]);
+            expect(steps(writer.records)).withContext('one seat answering the resource prompt writes no step')
+                .toEqual([0, 1, 2]);
             context.player2.clickAnyOfSelectableCards(2);
             context.player2.clickDone();
 
             expect(context.game.currentPhase).toBe('action');
-            expect(steps(writer.records)).toEqual([0]);
-            expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: 0 });
+            expect(steps(writer.records)).toEqual([0, 1, 2, 3]);
+            expect(phaseAt(3)).toBe('action');
+            expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: 3 });
             expect(apply([...writer.records])).toEqual(writer.currentBoard());
         });
     });

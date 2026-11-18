@@ -223,7 +223,7 @@ describe('SWU-PGN file assembly', function() {
             expect(full.records.slice(0, atGameEnd.length)).toEqual(atGameEnd);
         });
 
-        it('writes step 0 with the result for a game conceded during the mulligan prompt (W-11, W-39, W-40)', async function () {
+        it('writes a final step with the result for a game conceded during the mulligan prompt (W-11, W-39, W-40)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'setup',
                 player1: {
@@ -238,13 +238,14 @@ describe('SWU-PGN file assembly', function() {
 
             context.selectInitiativePlayer(context.player1);
             expect(context.player1).toHaveExactPromptButtons(['Mulligan', 'Keep']);
-            expect(writer.records.some((record) => record.t === 'step')).withContext('no step during setup')
-                .toBeFalse();
+            // step 0 at the initiative choice, step 1 at the mulligan prompt
+            expect(writer.records.filter((record) => record.t === 'step').length).withContext('a step at each setup decision')
+                .toBe(2);
 
             context.game.concede(context.player2Object.id);
 
-            expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: 0 });
-            expect(writer.records.filter((record) => record.t === 'step').length).toBe(1);
+            expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: 2 });
+            expect(writer.records.filter((record) => record.t === 'step').length).toBe(3);
             expectEveryViewValid(writer);
             const full = parse(writer.fileFor('full'));
             expect(resultOf(full)).toBe('p1');

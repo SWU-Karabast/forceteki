@@ -47,8 +47,6 @@ export class SwuPgnWriterState extends GameObjectBase {
     /** The next seq to write; the first step is 0 (W-38). */
     @statePrimitive() public accessor stepSeq = 0;
 
-    @statePrimitive() public accessor inSetup = true;
-
     /** How the game ended, as of the first `endGame` (the `Reason` tag); null while it has not. An undo past game end clears it. */
     @statePrimitive() public accessor gameEndReason: GameEndReason | null = null;
 
@@ -83,7 +81,6 @@ export class SwuPgnWriterState extends GameObjectBase {
         this.nextId = 1;
         this.recordsLength = 0;
         this.stepSeq = 0;
-        this.inSetup = true;
         this.atStep = false;
         this.gameEndReason = null;
     }

@@ -6,7 +6,7 @@ import { SWUPGN_PROJECTION_CHECK } from '../../../env';
 import { logger } from '../../../logger';
 import type { Card } from '../card/Card';
 import type { GameEndReason, ZoneName } from '../Constants';
-import { EventName, PhaseName } from '../Constants';
+import { EventName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
 import type { UiPrompt } from '../gameSteps/prompts/UiPrompt';
@@ -257,7 +257,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
 
     /**
      * Starts the records again from the current board, as if the game began here: used by the test harness, which
-     * builds its board with no decision point between the changes. Writes step 0 unless the game is still in setup.
+     * builds its board with no decision point between the changes. Writes step 0.
      */
     public restartBaseline(): void {
         this._records.length = 0;
@@ -315,28 +315,29 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         }
     }
 
-    /** `force` writes the step even at an unchanged decision point or in setup (the game end). */
+    /**
+     * Writes a step at every decision point, setup's included (W-39). `force` writes the step even at an unchanged
+     * decision point (the game end).
+     */
     private decide(afterRollback: boolean, force = false): void {
         // a look shown at an earlier step ends now: it is visible at exactly the step of its prompt
         const seq = this.state.stepSeq;
         this.flushEnding((look) => look.seenAtSeq < seq);
         this.guard('step', () => {
-            const phase = this.game.currentPhase;
-            if (!force && this.state.inSetup && (phase === PhaseName.Setup || phase == null)) {
-                return; // W-39: step 0 comes after setup
-            }
-
             const prompt = this.game.getCurrentOpenPrompt() ?? null;
             const players = prompt ? this.game.getPlayers().filter((player) => prompt.activeCondition(player)) : [];
             const last = this._records[this._records.length - 1];
             const nothingNew = last !== undefined && last.t === 'step';
+            // a prompt that asks both seats at once is one decision point (SPEC §8.2): one seat answering leaves the
+            // same prompt open for the other, which writes no new step
+            const sameSimultaneousPrompt = !afterRollback && prompt !== null && prompt === this.lastPrompt && prompt.isAllPlayerPrompt();
             // after a rollback the prompt objects are new: the restored state says whether its snapshot was taken at a step
             const samePrompt = afterRollback
                 ? this.state.atStep
                 : prompt === this.lastPrompt && players.length === this.lastPromptPlayers.length &&
                   players.every((player, i) => player === this.lastPromptPlayers[i]);
 
-            if (force || !(nothingNew && samePrompt)) {
+            if (force || !(sameSimultaneousPrompt || (nothingNew && samePrompt))) {
                 const seq = this.state.stepSeq;
                 this._records.push({ t: 'step', seq });
                 this.state.stepSeq = seq + 1;
@@ -349,7 +350,6 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
             this.lastPrompt = prompt;
             this.lastPromptPlayers = players;
             this.state.atStep = true;
-            this.state.inSetup = false;
         });
     }
 
