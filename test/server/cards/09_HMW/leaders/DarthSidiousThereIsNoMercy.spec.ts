@@ -227,6 +227,60 @@ describe('Darth Sidious, There is No Mercy', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(1);
             });
+
+            it('should not trigger when a unit with Overwhelm divides 4 damage between the defending unit and the base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-sidious#there-is-no-mercy',
+                        groundArena: ['babwa-venomor#burning-kashyyyk'] // 4/4 Overwhelm
+                    },
+                    player2: {
+                        groundArena: ['wicket#yub-nub'] // 3/3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Babwa Venomor's 4 damage is divided: 3 to Wicket and 1 to the base, so no single target is dealt 4
+                context.player1.clickCard(context.babwaVenomor);
+                context.player1.clickCard(context.wicket);
+                expect(context.wicket).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(1);
+
+                expect(context.darthSidious.exhausted).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger when a unit with Overwhelm deals 4 or more of its divided damage to the defending unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-sidious#there-is-no-mercy',
+                        groundArena: ['republic-war-walker'] // 7/6 Overwhelm
+                    },
+                    player2: {
+                        groundArena: ['cantina-bouncer'] // 5 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Republic War Walker's 7 damage is divided: 5 to Cantina Bouncer and 2 to the base
+                context.player1.clickCard(context.republicWarWalker);
+                context.player1.clickCard(context.cantinaBouncer);
+                expect(context.cantinaBouncer).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(2);
+
+                // Only the 5 damage dealt to Cantina Bouncer qualifies
+                expect(context.player1).toHavePassAbilityPrompt(exhaustAbilityPrompt);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.darthSidious.exhausted).toBeTrue();
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('Darth Sidious\'s leader unit side ability', function() {
@@ -363,7 +417,7 @@ describe('Darth Sidious, There is No Mercy', function() {
                 expect(context.p2Base.damage).toBe(1);
             });
 
-            it('should trigger twice when a unit with Overwhelm attacks a unit and deals 4+ excess damage to the base', async function() {
+            it('should trigger only for the base when a unit with Overwhelm divides its damage and deals 4+ excess damage to the base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -371,29 +425,20 @@ describe('Darth Sidious, There is No Mercy', function() {
                         groundArena: ['republic-war-walker'] // 7/6 Overwhelm
                     },
                     player2: {
-                        groundArena: ['battlefield-marine']
+                        groundArena: ['battlefield-marine'] // 3 HP
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Republic War Walker attacks and defeats Battlefield Marine
+                // Republic War Walker's 7 damage is divided: 3 to Battlefield Marine and 4 to the base
                 context.player1.clickCard(context.republicWarWalker);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(4); // Overwhelm damage
 
-                // Darth Sidious' ability triggers twice: once for the damage dealt to BM, once for the 4 excess damage dealt to base
-                expect(context.player1).toHavePrompt(`Resolve "${abilityPrompt}"`);
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
-                context.player1.clickPrompt('Resolve all (2)');
-
-                // First trigger is for Battlefield Marine
-                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.republicWarWalker]);
-                context.player1.clickCard(context.p2Base);
-                expect(context.p2Base.damage).toBe(5);
-
-                // Second trigger is for P2's base, so it is not selectable
+                // Darth Sidious' ability triggers once, for the 4 excess damage dealt to P2's base, so that base is not selectable
+                expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.darthSidious, context.republicWarWalker]);
                 context.player1.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(1);

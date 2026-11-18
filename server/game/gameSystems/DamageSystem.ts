@@ -120,6 +120,23 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return damageSource.card ? [damageSource.card] : [];
     }
 
+    /**
+     * Returns how much damage an `onDamageDealt` event deals to its card, for abilities that care about the amount
+     * (e.g. "when you deal 4 or more damage to a unit or base"). An Overwhelm attacker's combat damage is divided
+     * between the defending unit and the defending player's base, so the unit is dealt only the part of it that
+     * isn't excess; the excess is dealt to the base by the separate Overwhelm damage event.
+     */
+    public static getDamageAmountDealtToCard(event): number | null {
+        Contract.assertTrue(event.name === EventName.OnDamageDealt);
+
+        const amount = event.amount ?? event.sourceEventForExcessDamage?.availableExcessDamage;
+        if (amount == null) {
+            return null;
+        }
+
+        return amount - (event.overwhelmExcessDamage ?? 0);
+    }
+
     public eventHandler(event): void {
         const eventDamageAmount = this.getDamageAmountFromEvent(event);
 
@@ -223,6 +240,18 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
         event.willDefeat = damageAmount >= card.remainingHp && !card.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage);
+
+        // Recorded at creation because availableExcessDamage is used up once the Overwhelm damage resolves (see getDamageAmountDealtToCard)
+        event.overwhelmExcessDamage = event.willDefeat && this.isAttackerCombatDamageWithOverwhelm(card, properties)
+            ? damageAmount - card.remainingHp
+            : 0;
+    }
+
+    private isAttackerCombatDamageWithOverwhelm(card: Card, properties: IDamageProperties): boolean {
+        return properties.type === DamageType.Combat &&
+          card.isUnit() &&
+          card !== properties.sourceAttack.attacker &&
+          properties.sourceAttack.hasOverwhelm();
     }
 
     private addAttackDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: ICombatDamageProperties): void {
