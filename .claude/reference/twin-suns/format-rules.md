@@ -4,7 +4,67 @@ Purpose: the rules that are unique to each multiplayer format, so card text can 
 
 Sources and confidence:
 - **Twin Suns**: Comprehensive Rules v7.0 §11 (multiplayer) and §12 (Twin Suns), plus the judge rulings in `archive_old/rules-rulings.md` (Anthony, 2026-10-06). Official.
-- **Always Two (Doubles)**: announcement-stream slides plus verbal clarifications, 2026-11-18. **Not official; no written rules yet.** Anything marked *(open)* is unknown. Update this file as rules are published.
+- **Always Two (Doubles)**: the announcement-stream slides and verbal clarifications (2026-11-18), plus the official one-page overview "Game Mode Overview: Doubles" (https://cdn.starwarsunlimited.com//SWH_OP_Doubles_Rules_f3d3a07209.pdf, published 2026-11-18; its rules are summarized in "Official Doubles overview" below). That overview is short; the full Comprehensive Rules for the mode are still not published. Anything marked *(open)* is unknown. Update this file as rules are published.
+
+## Judge rulings from the card review (Anthony, 2026-11-18)
+These supersede the "open" items and assumptions elsewhere in this file for the matching topics.
+
+| # | Topic | Ruling |
+|---|---|---|
+| R1 | Twin Suns: static condition or comparison that says "an opponent" (no choice step) | **Any opponent qualifies.** The condition is true if at least one opponent meets it; no opponent is chosen. (This differs from abilities that choose "an opponent" when used, where the controller chooses and the choice persists.) Applies to the conditional wording on cards such as Corrupt Politician and Dedra Meero in place of the earlier "controller chooses" reading. |
+| R2 | Always Two: the same condition or comparison with two enemies | Same as Twin Suns (R1): each enemy is an individual opponent and either one qualifying is enough. Nothing is summed across the two enemies; the teammate is never an opponent. |
+| R3 | Always Two: reveal, look at, disclose | A "look at" is private to the player (they may tell their teammate). A reveal is seen by everyone, including the teammate. Disclose uses only your own hand and aspects; a teammate's hand or aspects never count. |
+| R4 | Always Two: "an opponent" | Confirmed: the controller chooses either enemy player; the teammate is never an opponent. |
+| R5 | Always Two: effects that say "a unit" / "a base" without "enemy" | A teammate's units and base are legal targets. An attack can only target an enemy unit or base, never a teammate's. |
+| R6 | Always Two: "you" and shared turns | "You" is personal (your own plays, control, resources). The exception is "have the initiative", which is the team's: it applies when the teammate took it. |
+
+| R7 | Twin Suns: "the player to their right" | Taken from each player's own perspective: it is the player **before them in turn order** (the neighbour on their counterclockwise side). Turns pass clockwise, so the player to your left acts after you and the player to your right acts before you. |
+
+| R8 | Always Two: seating and "the player to their right" | The two teams sit across from each other, so teammates sit next to each other. "The player to their right" is taken from each player's own perspective: for one player on each team the player to their right is their **teammate**, and for the other it is an **enemy**. (Which seat each player takes within their team is not yet defined.) |
+
+| R9 | Both formats: choices made in turn by each player | Player order always runs clockwise. Where each player makes a choice and the card gives no other start (e.g. Merciless Contest), it starts with the player who played the card. Rhydonium Detonation's own clarification says the same ("starting with the active player"). Where a card says "in player order", the official definition applies: it begins with the player to the active player's left and continues clockwise. In Always Two this follows the seating in R8. |
+
+| R10 | Always Two: base damage | Base damage counts up toward the base's health and can exceed it. A player whose base is at or past its health is not eliminated and can keep doing things that put more damage on their base, such as paying "deal damage to your base" costs (e.g. playing an event under Saw Gerrera). Damage can be healed back down while the teammate's base is still healthy. |
+
+| R11 | Always Two: "each player" | Includes the teammate (a teammate is another player in the game). Effects that are conditional on an *opponent* acting (e.g. "when an opponent draws") are not triggered by the teammate. Example: Crosshair — I've Changed has every player, teammate included, draw a card, but the teammate's draw does not cause the 2 damage. |
+
+| R12 | Always Two: "a player" | Any player can be chosen: an enemy, the controller, or the teammate. This holds for every card that says "a player" (not "an opponent"). Example: Radiant VII — Ambassadors' Arrival's 5 indirect damage can be dealt to any player. |
+
+| R13 | Always Two: "if you've (done something) this phase" | Counts only what you, or your own cards, did. A teammate's actions and cards do not count for "you". Example: Tempest Assault ("if you've dealt damage to an enemy base this phase") is not enabled by damage a teammate's units dealt. (Consistent with R6 and with the official overview: you do not own or control a teammate's cards. The initiative remains the team's.) |
+
+| R14 | Always Two: "an opponent ... their (nth) card/action" | Counted per individual enemy player, not per team. Example: Ki-Adi-Mundi — Composed and Confident triggers on an enemy player's own second card this phase; cards played by the other enemy are not added in. |
+
+| R15 | Always Two: Exploit | Exploit can only use (defeat) the player's own units. A teammate's units cannot be exploited, even though they are "friendly". Applies to every Exploit card (an engine-level rule). Example: The Invasion of Christophsis. |
+
+| R16 | Both formats: "an opponent ... their previous action" | "Their" is the opponent who did the thing: it means that opponent's own most recent action this phase, even if other players acted in between. In Always Two this is per individual enemy player, not the team's last action (same per-player reading as R14). Example: Fully Armed and Operational. |
+
+| R17 | Both formats: comparisons over "enemy units" | A comparison or total over "enemy units" (e.g. "the highest cost among enemy units") pools **all** opponents' units together, in both Twin Suns and Always Two. It is not evaluated per opponent. Example: Dengar — Take Your Shot. (Contrast with R14/R16, which are about "an opponent ... their ...", where it is per individual opponent.) |
+
+| R18 | Both formats: "if [condition] an opponent, [effect on] that opponent" | When a card's effect refers back to the opponent in its condition (e.g. "if you control more space units than an opponent, deal 4 damage to a ground unit that opponent controls"), the controller chooses an opponent for whom the condition is true (one with fewer units, in this example), and the effect applies to that opponent. In Always Two the choice is between the two enemies; the teammate is never chosen. Example: Air Superiority. (Refines R1: a condition with no "that opponent" follow-up is true if any opponent qualifies.) |
+
+| R19 | Both formats: Restore | Restore always heals the base of the **controller of the unit that has Restore**, however the keyword was gained. In Always Two, a teammate's unit with a granted Restore heals the teammate's base, not the base of the player whose card granted it. Engine-level rule; examples: Home One, Coronet, Yaddle, Obi-Wan, In Defense of Kamino, Figure of Unity, Mother Talzin. |
+
+| R20 | Always Two: "you" in an ability granted to a unit | In an ability that a card grants to a unit, "you" is the controller of the unit that has the ability. A teammate's unit with a granted "When Defeated: You may draw a card" makes the teammate draw, not the player whose card granted it. Ruled for General Krell — Heartless Tactician; the same shape on other cards (Nala Se, Snoke, Payroll Heist) is confirmed card by card. |
+
+| R21 | Always Two: "friendly resource" | The teammate's resources are friendly resources (the user's presumption; confirm if it conflicts with the full rules). They gain granted abilities (Tech — Source of Insight: the teammate uses a gained Smuggle from their own resources, paying with their own resources, since you can never pay for or play a teammate's cards) and can be chosen by effects that ready or otherwise act on a "friendly resource" (San Hill — Chairman of the Banking Clan may ready a teammate's resource). Sundari Palace's regroup defeat is still unknown (tagged "Always Two: Rules Unknown"). |
+
+| R22 | Always Two: exchanging control with a teammate's unit | When "exchange control" is done using a teammate's unit as the chosen friendly unit, each unit goes to the other unit's controller: the enemy unit goes to the teammate (the former controller of the unit you chose), not to the player who played the event. Any Credit tokens for Doublecross go to whoever takes control of the lower-cost unit. Examples: Choose Sides, Doublecross. |
+
+| R23 | Always Two: "friendly Credit tokens" | A teammate's Credit tokens are friendly Credit tokens in every use: they are counted (Backed by the Hutts) and can be defeated as a cost or effect (Han Solo — I Got a Really Good Feeling, Cad Bane — Now It's My Turn). Ruled for Credit tokens; other kinds of friendly tokens are not covered by this ruling. |
+
+| R24 | Always Two: "friendly" includes the teammate's cards (general, with exceptions to be listed) | Most effects, conditions and costs that say "friendly" apply to the teammate's cards as well as your own (the user's ruling: "most of those would apply to teammates"). Applied now to conditions about friendly units leaving play or being defeated this phase (Disturbance in the Force, Last Words, Bail Organa — Doing Everything He Can, Moff Gideon) and to friendly Battle Droid tokens (Roger Roger). Exceptions already known: playing a teammate's cards, attacking with their units, paying with their resources, and Exploit (R15). Costs that exhaust, defeat or return a friendly card can also use the teammate's cards (the user: "I think these probably apply"): Emperor Palpatine, Tomb of Eilram, Fennec Shand, Vane, Jabba — Crime Boss, Alliance Outpost, and Darth Vader — No One to Stop Us. |
+
+| R25 | Always Two: using a teammate's unit's ability through your own card | When your card lets you use a "When Defeated" (or similar) ability that belongs to a teammate's unit, you are the player using the ability, so "you" in that ability is **you**, the controller of the card that uses it. Example: with Chimaera — Reinforcing the Center, a teammate's Night Sister Warrior's "draw a card" makes Chimaera's controller draw. Applied to Shadow Caster — Just Business by the same pattern. (This is the opposite of R20, which covers an ability that a card grants to a unit: there "you" is the unit's controller.) Only the controller of a card can use that card's own action abilities (e.g. Bail Organa — Rebel Councilor). Fire Across the Galaxy is still unknown. |
+
+| R26 | Both formats: effects that ready "a resource" / "N resources" with no qualifier | With no qualifier ("friendly", "your", "an opponent's"), the effect can ready any player's resource: your own, the teammate's in Always Two, or an opponent's. (Cards that say "friendly resource" follow R21.) Examples: Rafa Martez, Coruscant Dissident, Leia Organa — Defiant Princess, R2-D2 — The First Protagonist, Boba Fett — Compensated If He Dies, Corona Squadron X-Wing, Emperor's Messenger, Second Sister. |
+
+| R27 | Always Two: taking control of a teammate's unit | An effect that says "take control of a unit" (no "enemy") can take control of the teammate's unit: it moves to the player who played the card, and the owner regains it as the card says (Rehabilitation at regroup, Traitorous on detach). Applied to Rehabilitation and Traitorous. Pantoran Starship Thief also involves attaching as a Pilot, which is unknown, so it is tagged "Always Two: Rules Unknown". |
+
+| R28 | Always Two: a base at or past its health | Its remaining HP is 0 (never negative), so effects that use remaining HP see 0 (e.g. Supremacy — Destroy the Resistance deals 0). Damage can still be dealt to it, and "when this unit deals combat damage to a base" abilities still trigger (Blockade Runner). |
+
+| R29 | Both formats: choosing several "enemy" cards | When a card has you reveal, look at or choose several enemy cards (e.g. "3 enemy resources"), they can come from any combination of opponents (Twin Suns) or enemies (Always Two), unless the card says they must belong to one player. Where the card then refers to "its controller", that is each card's own controller. Examples: Scanning Officer, Elia Kane — False Convert. |
+
+Deferred rulings (still open): Twin Suns attacker takes control of the defender mid-attack, controlled-not-owned cards on elimination, whether an eliminated player can share a win; Always Two base at 0 HP edge cases, seating and choice order, whether a teammate's plays satisfy "you play" effects beyond R6.
 
 ## Twin Suns (3-4 players, free-for-all)
 
@@ -35,7 +95,7 @@ Deferred rulings: attacker takes control of the defender mid-attack, controlled-
 | Turns | Shared: the team gets **one action per turn**, taken by either teammate. |
 | Initiative | Shared. If one teammate takes the initiative, neither can take actions for the rest of the round. |
 | Passing | Not allowed. |
-| Base at 0 HP | The player is **not** eliminated. They stay in until both bases on the team are defeated. Bases at 0 remaining health can still be healed. |
+| Base damage reaches its health | A base has a health total, and damage counts **up** on it (it does not count down from the total). The player is **not** eliminated when their base takes damage equal to its health: they stay in until both bases on the team are defeated. In Always Two a base can be damaged **beyond** its health and healed back down, as long as the teammate's base is still healthy. (The announcement's "0 HP / no remaining health" wording means damage has reached the base's health.) |
 | Information | Teammates may look at each other's hands and talk strategy. A "look at" effect lets only the player see it (they may tell their teammate). |
 | Resources | You cannot spend a teammate's resources, and you do not get their aspects when paying costs. |
 | Control | You cannot attack with, or play, a teammate's cards. An attack is never initiated with a teammate's unit. |
@@ -44,6 +104,25 @@ Deferred rulings: attacker takes control of the defender mid-attack, controlled-
 | "You control" | Counts only your own cards (e.g. "if you control an Endor base"). |
 | Overwhelm | Excess damage goes to the base of whoever controls the unit being attacked. |
 | Decks | Built per the event format (30 Sealed / 50 Premier), independently per player, so both teammates may run 3 copies of a card. |
+
+### Official Doubles overview (published 2026-11-18)
+Source: "Game Mode Overview: Doubles" PDF. The official text, close to verbatim:
+- **Overview / decks:** Doubles is for casual play; two friends team up against two opponents. No special deckbuilding requirements; each player builds per the Organized Play event format (30-card Sealed, 50-card Premier). Each player's deck is independent, so both teammates may include 3 copies of the same card.
+- **Teams:** Teams of 2, each player with their own leader, base and deck. **Objective:** defeat BOTH enemy bases.
+- **Shared turns:** Teams take their turn together. On a given turn, 1 player may take 1 action, then play alternates to the other team. Either player may take their team's action, but only 1 player can take an action per turn.
+- **Shared information:** Players may look at each other's hands, strategize and advise. They may look at each other's **hands and resources**. If an ability tells a player to "look at" a card, their teammate may not look at it, but the information gained can be discussed freely.
+- **Shared initiative:** The initiative counter is shared by each player on the team (both players have the initiative). When 1 member takes the initiative, neither teammate can take further actions that round.
+- **No passing:** Players may not take the "pass" action.
+- **Simultaneous victory:** The game is not won when a single enemy base is reduced to 0 HP. That player (and their base) remain in the game until both of that team's bases are reduced to 0 HP. They are **not eliminated**, their cards remain in play, and they may still take actions and go through the phases as normal. A base with 0 HP remaining may still be healed.
+- **Friendly cards:** Each player's cards are "friendly" to their teammate. **Shared Sentinels:** friendly Sentinel units protect their teammate's other units and base.
+- **"An opponent":** when a card indicates "an opponent", one opponent must be chosen.
+- **Communication:** teammates may communicate verbally or in writing.
+- **No shared control:** players may not exhaust their resources to help pay for a teammate's card, may not attack with their teammate's units, and may not play cards from their teammate's hand.
+- **Overwhelm:** excess damage dealt to a unit by Overwhelm is applied to that unit's controller's base.
+- **Ownership:** although your teammate's cards are friendly to you, you do not "own" or "control" them for gameplay purposes.
+- **Teammate:** a teammate is another player in the game. Teammates are **not opponents**. If one teammate wins the game via a card ability, they both win.
+
+How this relates to the earlier rulings: it agrees with R3 ("look at" is private; hands and resources are visible), R4 ("an opponent" is chosen, teammate is never an opponent) and R6 ("you" is personal; you do not own or control a teammate's cards). It does not say how base damage beyond the base's health works (see R10), or how granted abilities work on a teammate's cards.
 
 ### Open for Always Two (no ruling yet)
 - Meaning of "an opponent" / "each opponent" with two enemy players (assumed: either/both enemy players, as in Twin Suns).

@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiplayer Card Review</title>
+<style>
+:root { --bg:#f6f7f9; --panel:#fff; --text:#1c2230; --muted:#667085; --line:#d8dce3; --accent:#2b59d9; --accent-text:#fff; --ok:#1f8a4c; --warn:#b26a00; --err:#c0392b; --mark:#ffe58a; --okbg:#e6f5ec; --errbg:#fdeceb; }
+@media (prefers-color-scheme: dark) { :root { --bg:#12151c; --panel:#1b2029; --text:#e8ebf2; --muted:#95a0b5; --line:#2e3646; --accent:#6c93ff; --accent-text:#0c1220; --ok:#4cc27f; --warn:#e0a040; --err:#ff7b6b; --mark:#6b5a12; --okbg:#173325; --errbg:#3a1f1c; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+header { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+header h1 { font-size:16px; margin:0 8px 0 0; }
+select, input[type=search], textarea, button { font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+button { cursor:pointer; }
+button.primary { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
+button:disabled { opacity:.45; cursor:default; }
+.tabs { display:flex; gap:0; }
+.tabs button { border-radius:0; } .tabs button:first-child { border-radius:6px 0 0 6px; } .tabs button:last-child { border-radius:0 6px 6px 0; }
+.tabs button.on { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
+.progress { color:var(--muted); margin-left:auto; font-size:13px; }
+#msg { font-size:13px; } #msg.ok { color:var(--ok); } #msg.err { color:var(--err); }
+.wrap { max-width:1200px; margin:0 auto; padding:16px; }
+.bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+.desc { color:var(--muted); font-size:13px; margin:0 0 12px; }
+.banner { border:1px solid var(--warn); color:var(--warn); border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:14px; }
+.grid { display:grid; grid-template-columns:1fr; gap:10px; }
+.tile .tnote { flex:0 0 50%; min-width:0; display:flex; flex-direction:column; gap:6px; cursor:default; }
+.tile .nbox { flex:1; display:flex; flex-direction:column; }
+.tile .tnote b { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px; }
+.tile .tnote textarea { flex:none; min-height:56px; font-size:13px; }
+textarea { overflow:hidden; }
+dialog { border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); padding:16px 18px; width:min(520px, 92vw); }
+dialog::backdrop { background:rgba(0,0,0,.4); }
+dialog label { display:block; font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:10px 0 3px; }
+dialog input[type=text] { width:100%; font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+dialog .hintline { font-size:12px; color:var(--muted); margin-top:3px; }
+dialog .err { color:var(--err); font-size:13px; min-height:18px; margin-top:8px; }
+select { max-width:100%; }
+@media (max-width:800px) { .foot { position:static; } .wrap { padding:10px; } .tile { flex-wrap:wrap; } .tile .tnote { flex-basis:100%; } }
+.tile { display:flex; gap:12px; background:var(--panel); border:2px solid var(--ok); border-radius:10px; padding:10px; cursor:pointer; user-select:none; }
+.tile.off { border-color:var(--err); background:var(--errbg); }
+.tile.ro { cursor:default; border-color:var(--line); }
+.tile .tick { flex:none; width:22px; height:22px; border-radius:50%; background:var(--ok); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; margin-top:2px; }
+.tile.off .tick { background:var(--err); }
+.tile.ro .tick { display:none; }
+.thumb { flex:none; width:120px; }
+.thumb img { width:100%; border-radius:6px; display:block; }
+.thumb .noimg { font-size:12px; color:var(--muted); padding:20px 4px; text-align:center; }
+.body { min-width:0; flex:1; }
+.body h3 { margin:0; font-size:16px; }
+.sub { color:var(--muted); font-size:12px; margin-bottom:4px; }
+.field { margin:4px 0; font-size:14px; } .field b { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; display:block; }
+.rem { color:var(--muted); }
+mark { background:var(--mark); color:inherit; border-radius:3px; padding:0 1px; }
+.chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
+.hit { font-size:11px; border:1px solid var(--line); border-radius:999px; padding:1px 8px; color:var(--muted); }
+button.hit { background:transparent; font:inherit; font-size:11px; cursor:pointer; }
+.hit.tag { border-color:var(--ok); color:var(--ok); } .hit.followup { border-color:var(--err); color:var(--err); } .hit.ok { border-color:var(--ok); color:var(--ok); }
+.foot { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px; position:sticky; bottom:0; background:var(--bg); padding:10px 0; border-top:1px solid var(--line); }
+.foot .sp { margin-left:auto; color:var(--muted); font-size:13px; }
+.empty { padding:40px; text-align:center; color:var(--muted); }
+/* single mode */
+.single { display:grid; grid-template-columns:minmax(220px,340px) 1fr; gap:20px; }
+@media (max-width:720px) { .single { grid-template-columns:1fr; } }
+.imgbox { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px; text-align:center; align-self:start; }
+.imgbox img { max-width:100%; border-radius:8px; display:block; margin:0 auto 4px; }
+.noimg { color:var(--muted); padding:40px 12px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+.panel h2 { margin:0 0 2px; font-size:20px; }
+.meta { color:var(--muted); font-size:13px; margin-bottom:10px; }
+.panel h4 { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:16px 0 6px; }
+.chip { border:1px solid var(--line); border-radius:999px; padding:4px 11px; font-size:13px; cursor:pointer; background:transparent; }
+.chip.sel { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
+.chip.sug:not(.sel) { border-style:dashed; border-color:var(--accent); }
+textarea { width:100%; min-height:64px; resize:vertical; }
+.qbox { border:1px solid var(--warn); border-radius:8px; padding:6px 10px; margin:8px 0; font-size:13px; }
+.qbox b { color:var(--warn); font-size:11px; text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:2px; }
+.qbox .q { margin:2px 0; } .qbox .fmt { font-size:11px; font-weight:600; color:var(--warn); }
+textarea.draft { border-style:dashed; border-color:var(--accent); }
+.row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; align-items:center; }
+.badge { font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+.badge.done { color:var(--ok); border-color:var(--ok); } .badge.todo { color:var(--warn); border-color:var(--warn); } .badge.follow { color:var(--err); border-color:var(--err); }
+.src { font-size:12px; color:var(--muted); }
+details { margin-top:6px; font-size:13px; color:var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Multiplayer card review</h1>
+  <div class="tabs"><button id="tabBulk">Bulk</button><button id="tabSingle">Single</button></div>
+  <span id="msg"></span>
+  <span class="progress" id="progress"></span>
+</header>
+<div class="wrap" id="app"><p>Loading…</p></div>
+<dialog id="tagDlg">
+  <form method="dialog" id="tagForm">
+    <h3 style="margin:0">New review tag</h3>
+    <label for="tagLabel">Name</label>
+    <input type="text" id="tagLabel" maxlength="60" placeholder="e.g. Each Teammate" required>
+    <label for="tagDesc">Description (optional)</label>
+    <input type="text" id="tagDesc" maxlength="300" placeholder="What this tag means / what its test must show">
+    <label for="tagRe">Phrase to auto-match (optional)</label>
+    <input type="text" id="tagRe" maxlength="300" placeholder="e.g. \bteammate\b  (a regular expression, case-insensitive)">
+    <div class="hintline">Leave the phrase empty for a tag you only apply by hand in Single mode. Cards that match it become unresolved until reviewed again.</div>
+    <div class="err" id="tagErr"></div>
+    <div class="row"><button class="primary" type="submit" id="tagOk">Add tag</button><button type="button" id="tagCancel">Cancel</button></div>
+  </form>
+</dialog>
+<script>
+// Review results are saved to the server (reviews.json) as soon as you act; nothing is held back in the browser.
+let DATA = null, reviews = {}, groupById = {}, lastBatch = null;
+const UI_KEY = 'mp-card-review-ui-v1';
+let ui = {};
+try { ui = JSON.parse(localStorage.getItem(UI_KEY) || '{}'); } catch (e) { ui = {}; }
+const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) { /* session only */ } };
+const PAGE_SIZE = 5;
+let bulkOffset = 0, sel = new Set(), selKey = '', singleList = [], singleIdx = 0;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+// ---- review state ----
+const rec = (c) => reviews[c.id] || {};
+const res = (c, g) => (rec(c).r || {})[g];
+const isManual = (gid) => groupById[gid].kind === 'manual';
+const needsSingle = (c) => !c.auto && !rec(c).reviewed && (c.hits.some(isManual) || c.hits.some((g) => res(c, g) === 'followup'));
+const isComplete = (c) => c.auto || rec(c).reviewed || (!needsSingle(c) && c.hits.every((g) => ['tag', 'ok'].includes(res(c, g))));
+const effTags = (c) => {
+  const r = rec(c);
+  if (r.tags && (r.reviewed || r.tagsEdited)) { return new Set(r.tags); }
+  const s = new Set(r.tags || []);
+  for (const g of c.hits) { if (groupById[g].kind === 'tag' && !res(c, g)) { s.add(g); } }
+  return s;
+};
+
+// ---- text rendering with highlighted phrases (parenthetical reminder text is dimmed and never highlighted) ----
+function segments(text) {
+  const out = []; let cur = '', depth = 0;
+  for (const ch of text) {
+    if (ch === '(') { if (depth === 0 && cur) { out.push({ t: cur, p: false }); cur = ''; } depth++; cur += ch; }
+    else if (ch === ')' && depth > 0) { cur += ch; depth--; if (depth === 0) { out.push({ t: cur, p: true }); cur = ''; } }
+    else { cur += ch; }
+  }
+  if (cur) { out.push({ t: cur, p: depth > 0 }); }
+  return out;
+}
+function render1(text, res0) {
+  return segments(text).map((s) => {
+    if (s.p) { return `<span class="rem">${esc(s.t)}</span>`; }
+    if (!res0) { return esc(s.t); }
+    let html = '', last = 0, m; res0.lastIndex = 0;
+    while ((m = res0.exec(s.t)) !== null) {
+      if (m[0] === '') { res0.lastIndex++; continue; }
+      html += esc(s.t.slice(last, m.index)) + `<mark>${esc(m[0])}</mark>`; last = m.index + m[0].length;
+    }
+    return html + esc(s.t.slice(last));
+  }).join('');
+}
+const hlRegex = (gids) => { const src = gids.map((g) => groupById[g].re).filter(Boolean); return src.length ? new RegExp(src.map((s) => `(?:${s})`).join('|'), 'gi') : null; };
+const fieldsHtml = (c, gids) => {
+  const re = hlRegex(gids);
+  return c.fields.length ? c.fields.map((f) => `<div class="field"><b>${esc(f.label)}</b>${render1(f.text, re)}</div>`).join('') : '<div class="field"><b>Text</b>(none)</div>';
+};
+
+// ---- images (SWUDB names are inconsistent, so several candidates are tried) ----
+function imageUrls(c, suffixes) {
+  const bare = String(parseInt(c.num, 10));
+  return suffixes.split(',').flatMap((suf) => [...new Set([c.num, bare, bare.padStart(2, '0')])].map((n) => `https://swudb.com/images/cards/${c.set}/${n}${suf}.png`));
+}
+const hasImage = (c) => c.num && !c.token && !Number.isNaN(parseInt(c.num, 10));
+function wireImages(root) {
+  for (const slot of root.querySelectorAll('.imgslot')) {
+    const c = byId[slot.dataset.id], img = slot.querySelector('img'), urls = imageUrls(c, slot.dataset.suffix);
+    let n = 0;
+    img.onerror = () => { n++; if (n < urls.length) { img.src = urls[n]; } else { img.hidden = true; slot.querySelector('.noimg').hidden = false; } };
+    img.src = urls[0];
+  }
+}
+const imgSlot = (c, suffix, label) => `<div class="imgslot" data-id="${esc(c.id)}" data-suffix="${suffix}"><img loading="lazy" referrerpolicy="no-referrer" alt="${esc(c.name)}"><div class="noimg" hidden>${label}</div></div>`;
+let byId = {};
+
+// ---- saving ----
+function setMsg(text, kind) { $('msg').textContent = text; $('msg').className = kind || ''; }
+async function persist(updates) {
+  setMsg('Saving…');
+  try {
+    const out = await (await fetch('/api/save', { method: 'POST', headers: { 'content-type': 'application/json', 'x-review-tool': '1' }, body: JSON.stringify({ updates }) })).json();
+    if (out.error) { throw new Error(out.error); }
+    if (out.errors && out.errors.length) { throw new Error(out.errors[0]); }
+    for (const u of updates) { if (u.record === null) { delete reviews[u.id]; } else { reviews[u.id] = u.record; } }
+    setMsg(`Saved ${out.saved}`, 'ok');
+    return true;
+  } catch (e) { setMsg('Save failed: ' + e.message, 'err'); return false; }
+}
+
+// ---- header ----
+function updateHeader() {
+  const rev = DATA.cards.filter((c) => !c.auto);
+  const done = rev.filter(isComplete).length, follow = rev.filter(needsSingle).length;
+  const openQ = rev.filter((c) => questionsFor(c).length && !rec(c).qAnswer).length;
+  $('progress').textContent = `${done} / ${rev.length} reviewed · ${follow} need single review${openQ ? ` · ${openQ} open question${openQ === 1 ? '' : 's'}` : ''} · ${DATA.cards.length - rev.length} auto-cleared`;
+  $('tabBulk').className = ui.mode !== 'single' ? 'on' : ''; $('tabSingle').className = ui.mode === 'single' ? 'on' : '';
+}
+
+// ======================= BULK =======================
+const groupCount = (g, set) => {
+  const cs = DATA.cards.filter((c) => !c.auto && c.hits.includes(g.id) && (set === 'all' || c.set === set));
+  return { open: cs.filter((c) => !rec(c).reviewed && !res(c, g.id)).length, total: cs.length };
+};
+function viewMatch(c, gid) {
+  const v = ui.view || 'open', r = res(c, gid), done = rec(c).reviewed;
+  if (v === 'open') { return !done && !r; }
+  if (v === 'done') { return done || r === 'tag' || r === 'ok'; }
+  if (v === 'follow') { return !done && r === 'followup'; }
+  return true;
+}
+// "Auto" (the default) picks the first set that still has cards in this group and view, and moves on to the
+// next set once that one is finished. Choosing a specific set, or All sets, overrides it.
+function effSet() {
+  const s = ui.set || 'auto';
+  if (s !== 'auto') { return s; }
+  return DATA.sets.find((x) => DATA.cards.some((c) => !c.auto && c.hits.includes(ui.group) && c.set === x && viewMatch(c, ui.group))) || 'all';
+}
+function bulkCards() {
+  const set = effSet();
+  return DATA.cards.filter((c) => !c.auto && c.hits.includes(ui.group) && (set === 'all' || c.set === set) && viewMatch(c, ui.group));
+}
+function renderBulk() {
+  if (!groupById[ui.group]) { ui.group = DATA.groups.find((g) => g.kind === 'tag').id; }
+  const g = groupById[ui.group];
+  const set = effSet(), choice = ui.set || 'auto';
+  const countSet = choice === 'auto' ? 'all' : choice;
+  const opt = (kind, label) => `<optgroup label="${label}">` + DATA.groups.filter((x) => x.kind === kind).map((x) => { const n = groupCount(x, countSet); return `<option value="${x.id}"${x.id === g.id ? ' selected' : ''}>${esc(x.label)} — ${n.open} left / ${n.total}</option>`; }).join('') + '</optgroup>';
+  const all = bulkCards(), page = all.slice(bulkOffset, bulkOffset + PAGE_SIZE);
+  const key = page.map((c) => c.id).join('|');
+  if (key !== selKey) { selKey = key; sel = new Set(page.map((c) => c.id)); }
+  const manual = g.kind === 'manual';
+  const applyLabel = g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
+  $('app').innerHTML = `
+    <div class="bar">
+      <select id="bGroup">${opt('tag', 'Review tags')}${opt('manual', 'Special attention')}${opt('watch', 'Other phrases (candidates)')}${opt('passfail', 'Nothing matched')}</select>
+      <select id="bSet"><option value="auto"${choice === 'auto' ? ' selected' : ''}>Auto: ${set === 'all' ? 'all sets' : set}</option><option value="all"${choice === 'all' ? ' selected' : ''}>All sets</option>${DATA.sets.map((s) => `<option value="${s}"${s === choice ? ' selected' : ''}>${s}</option>`).join('')}</select>
+      <select id="bView">${[['open', 'Unresolved'], ['follow', 'Follow-up'], ['done', 'Resolved'], ['all', 'All']].map(([v, l]) => `<option value="${v}"${v === (ui.view || 'open') ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <span class="src">${all.length} card${all.length === 1 ? '' : 's'} in this view</span>
+      <button id="bNewTag">+ New tag</button>
+    </div>
+    <p class="desc">${esc(g.desc)} ${g.kind === 'tag' ? 'Selected cards get this tag (they need a test of this kind). Deselected cards go to follow-up.' : g.kind === 'passfail' ? 'Selected cards pass (no multiplayer test needed). Deselected cards go to follow-up.' : g.kind === 'watch' ? 'Selected cards are marked no concern. Deselected cards go to follow-up.' : ''}</p>
+    ${manual ? '<div class="banner">These cards cannot be bulk-cleared. Open them one by one in the Single tab.</div>' : ''}
+    <div class="grid" id="grid">${page.length ? page.map((c) => tile(c, g, manual)).join('') : '<div class="empty">Nothing left in this view.</div>'}</div>
+    <div class="foot">
+      ${manual ? `<button class="primary" id="bOpenSingle">Review these in Single mode</button>` : `
+      <button class="primary" id="bApply" ${page.length ? '' : 'disabled'}></button>
+      <button id="bAll">Select all</button><button id="bNone">Select none</button><button id="bSkip" ${all.length > bulkOffset + PAGE_SIZE ? '' : 'disabled'}>Skip these ${PAGE_SIZE}</button>`}
+      <button id="bPrev" ${bulkOffset > 0 ? '' : 'disabled'}>&larr; Previous page</button>
+      <button id="bUndo" ${lastBatch ? '' : 'disabled'}>Undo last apply</button>
+      <span class="sp">${page.length ? `Showing ${bulkOffset + 1}–${bulkOffset + page.length} of ${all.length}` : ''}</span>
+    </div>`;
+  wireImages($('app')); wireNotes(page); autosize($('app')); $('bNewTag').onclick = openTagDialog;
+  const refreshApply = () => {
+    const b = $('bApply'); if (!b) { return; }
+    const n = page.filter((c) => sel.has(c.id)).length;
+    b.textContent = `${applyLabel[0]} ${n} · ${applyLabel[1]} ${page.length - n}  (Enter)`;
+    for (const t of document.querySelectorAll('.tile[data-id]')) { t.classList.toggle('off', !sel.has(t.dataset.id)); t.querySelector('.tick').textContent = sel.has(t.dataset.id) ? '✓' : '✕'; }
+  };
+  refreshApply();
+  $('bGroup').onchange = (e) => { ui.group = e.target.value; bulkOffset = 0; saveUi(); renderBulk(); };
+  $('bSet').onchange = (e) => { ui.set = e.target.value; bulkOffset = 0; saveUi(); renderBulk(); };
+  $('bView').onchange = (e) => { ui.view = e.target.value; bulkOffset = 0; saveUi(); renderBulk(); };
+  if (!manual) {
+    for (const t of document.querySelectorAll('.tile[data-id]')) { t.onclick = (ev) => { if (ev.target.closest('a,summary,details,.tnote')) { return; } const id = t.dataset.id; if (sel.has(id)) { sel.delete(id); } else { sel.add(id); } refreshApply(); }; }
+    $('bAll').onclick = () => { sel = new Set(page.map((c) => c.id)); refreshApply(); };
+    $('bNone').onclick = () => { sel = new Set(); refreshApply(); };
+    $('bSkip').onclick = () => { bulkOffset += PAGE_SIZE; renderBulk(); };
+    $('bApply').onclick = () => applyBulk(page, g);
+  } else {
+    $('bOpenSingle').onclick = () => { ui.mode = 'single'; ui.sFilter = 'group'; ui.sGroup = g.id; ui.sCard = null; saveUi(); renderSingle(); };
+  }
+  $('bPrev').onclick = () => { bulkOffset = Math.max(0, bulkOffset - PAGE_SIZE); renderBulk(); };
+  $('bUndo').onclick = undoBulk;
+  updateHeader();
+}
+function tile(c, g, manual) {
+  const r = res(c, g.id), others = c.hits.filter((h) => h !== g.id);
+  const state = rec(c).reviewed ? '<span class="hit ok">reviewed</span>' : (r ? `<span class="hit ${r}">${r === 'followup' ? 'follow-up' : r === 'tag' ? 'tagged' : 'no concern'}</span>` : '');
+  return `<div class="tile${manual ? ' ro' : ''}" data-id="${esc(c.id)}">
+    <div class="tick">✓</div>
+    <div class="thumb">${hasImage(c) ? imgSlot(c, '', 'No image') : '<div class="noimg">No image</div>'}</div>
+    <div class="body">
+      <h3>${esc(c.name)}${c.subtitle ? ' — ' + esc(c.subtitle) : ''}</h3>
+      <div class="sub">${c.set} #${c.num} · ${esc(c.type)}</div>
+      ${fieldsHtml(c, [g.id])}
+      ${questionsHtml(c)}
+      <div class="chips">${state}${others.filter((h) => h !== 'nohit').map((h) => `<span class="hit">${esc(groupById[h].label)}</span>`).join('')}</div>
+    </div>
+    <div class="tnote">
+      <div class="nbox"><b>Twin Suns notes</b>${noteBox(c, 'noteTS', 'Twin Suns notes for this card')}</div>
+      <div class="nbox"><b>Always Two notes</b>${noteBox(c, 'noteA2', 'Always Two notes for this card')}</div>
+      ${questionsFor(c).length ? `<div class="nbox"><b>Answer to open question</b>${answerBox(c)}</div>` : ''}
+    </div></div>`;
+}
+// A note box shows the saved note, or else the drafted suggestion (dashed, italic). A draft is approved by
+// editing it, by Apply on a selected card, or by "Mark reviewed"; it is never saved for a deselected card.
+const SUG_KEY = { noteTS: 'ts', noteA2: 'a2' };
+// Open questions the rules do not settle, drafted per card. The reviewer's answer is saved with the card (qAnswer).
+const questionsFor = (c) => (DATA.suggestions && DATA.suggestions[c.id] && DATA.suggestions[c.id].q) || [];
+const FMT = { ts: 'Twin Suns', a2: 'Always Two' };
+function questionsHtml(c) {
+  const qs = questionsFor(c);
+  if (!qs.length) { return ''; }
+  return `<div class="qbox"><b>Open question${qs.length > 1 ? 's' : ''}</b>${qs.map((q) => `<div class="q"><span class="fmt">${FMT[q.f] || ''}</span> ${esc(q.t.replace(/^(?:Always Two|Twin Suns)\s*[:,]?\s*/i, ''))}</div>`).join('')}</div>`;
+}
+const answerBox = (c) => `<textarea data-f="qAnswer" placeholder="Your ruling / answer to the open question">${esc(rec(c).qAnswer || '')}</textarea>`;
+function noteBox(c, field, placeholder) {
+  const saved = rec(c)[field], draft = !saved && DATA.suggestions && DATA.suggestions[c.id] && DATA.suggestions[c.id][SUG_KEY[field]];
+  return `<textarea data-f="${field}" placeholder="${esc(placeholder)}"${draft ? ` class="draft" data-draft="${esc(draft)}" title="Drafted note: edit it, or Apply to approve"` : ''}>${esc(saved || draft || '')}</textarea>`;
+}
+const tileEl = (id) => [...document.querySelectorAll('.tile[data-id]')].find((x) => x.dataset.id === id);
+// Returns the card's record with both note fields taken from the boxes (an emptied box removes that note).
+function withNotes(base, root, approveDrafts) {
+  const out = Object.assign({}, base);
+  for (const f of ['noteTS', 'noteA2', 'qAnswer']) {
+    const ta = root && root.querySelector(`textarea[data-f="${f}"]`);
+    if (!ta) { continue; }
+    if (ta.dataset.draft && ta.value === ta.dataset.draft && !approveDrafts) { continue; }
+    const v = ta.value.trim();
+    if (v) { out[f] = v; } else { delete out[f]; }
+  }
+  return out;
+}
+// Notes are saved as soon as you leave a box, so they survive skipping or paging; Apply also saves them.
+function wireNotes(page) {
+  for (const c of page) {
+    const t = tileEl(c.id);
+    if (t) { for (const ta of t.querySelectorAll('textarea')) { ta.onchange = () => { ta.classList.remove('draft'); ta.dataset.draft = ''; persist([{ id: c.id, record: withNotes(rec(c), t) }]); }; } }
+  }
+}
+async function applyBulk(page, g) {
+  const updates = [], prev = {};
+  for (const c of page) {
+    const r = Object.assign({}, rec(c).r || {}), tags = new Set(rec(c).tags || []);
+    if (sel.has(c.id)) { r[g.id] = g.kind === 'tag' ? 'tag' : 'ok'; if (g.kind === 'tag') { tags.add(g.id); } }
+    else { r[g.id] = 'followup'; tags.delete(g.id); }
+    prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
+    updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { r, tags: [...tags] }), tileEl(c.id), sel.has(c.id)) });
+  }
+  if (!updates.length || !(await persist(updates))) { return; }
+  lastBatch = { prev, label: g.label };
+  if ((ui.view || 'open') !== 'open') { bulkOffset += PAGE_SIZE; }
+  renderBulk();
+}
+async function undoBulk() {
+  if (!lastBatch) { return; }
+  const updates = Object.entries(lastBatch.prev).map(([id, record]) => ({ id, record }));
+  if (await persist(updates)) { lastBatch = null; selKey = ''; renderBulk(); }
+}
+
+// ======================= SINGLE =======================
+function singleCards() {
+  const f = ui.sFilter || 'attention', set = ui.sSet || 'all', q = ($('sSearch') ? $('sSearch').value : (ui.sQuery || '')).trim().toLowerCase();
+  return DATA.cards.filter((c) => (set === 'all' || c.set === set)
+    && (f === 'all' || (f === 'attention' && needsSingle(c)) || (f === 'unresolved' && !c.auto && !isComplete(c)) || (f === 'reviewed' && !c.auto && isComplete(c))
+      || (f === 'question' && !c.auto && questionsFor(c).length && !rec(c).qAnswer) || (f === 'auto' && c.auto) || (f === 'group' && !c.auto && c.hits.includes(ui.sGroup) && !rec(c).reviewed))
+    && (!q || (c.name + ' ' + c.subtitle + ' ' + c.fields.map((x) => x.text).join(' ')).toLowerCase().includes(q)));
+}
+function renderSingle(keepId) {
+  singleList = singleCards();
+  const want = keepId || ui.sCard;
+  singleIdx = want ? Math.max(0, singleList.findIndex((c) => c.id === want)) : 0;
+  drawSingle();
+}
+function drawSingle() {
+  const f = ui.sFilter || 'attention', set = ui.sSet || 'all';
+  const c = singleList[singleIdx];
+  if (c) { ui.sCard = c.id; saveUi(); }
+  const bar = `<div class="bar">
+      <select id="sFilter">${[['attention', 'Needs single review'], ['question', 'Has open question'], ['unresolved', 'Anything unresolved'], ['reviewed', 'Reviewed'], ['auto', 'Auto-cleared'], ['all', 'All cards'], ['group', 'By group…']].map(([v, l]) => `<option value="${v}"${v === f ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      ${f === 'group' ? `<select id="sGroup">${DATA.groups.map((g) => `<option value="${g.id}"${g.id === ui.sGroup ? ' selected' : ''}>${esc(g.label)}</option>`).join('')}</select>` : ''}
+      <select id="sSet"><option value="all">All sets</option>${DATA.sets.map((s) => `<option value="${s}"${s === set ? ' selected' : ''}>${s}</option>`).join('')}</select>
+      <input id="sSearch" type="search" placeholder="Search name/text" value="${esc(ui.sQuery || '')}">
+      <span class="src">${singleList.length ? `${singleIdx + 1} of ${singleList.length}` : ''}</span></div>`;
+  if (!c) { $('app').innerHTML = bar + '<div class="empty">No cards match this filter.</div>'; wireSingleBar(); updateHeader(); return; }
+  const r = rec(c), tags = effTags(c), manualHits = c.hits.filter(isManual);
+  const status = c.auto ? `<span class="badge done">auto-cleared: ${esc(c.auto)}</span>` : r.reviewed ? '<span class="badge done">reviewed</span>' : needsSingle(c) ? '<span class="badge follow">needs single review</span>' : isComplete(c) ? '<span class="badge done">resolved in bulk</span>' : '<span class="badge todo">unresolved</span>';
+  const page = hasImage(c) ? `https://swudb.com/card/${c.set}/${c.set === 'TS26' ? String(parseInt(c.num, 10)).padStart(2, '0') : c.num}` : '';
+  const hitChips = c.hits.map((h) => { const x = res(c, h); return `<button class="hit ${x || ''}" data-g="${h}" title="${esc(groupById[h].desc)} Click to cycle: unresolved, ${groupById[h].kind === 'tag' ? 'tagged' : 'no concern'}, follow-up.">${esc(groupById[h].label)}${x ? ': ' + (x === 'followup' ? 'follow-up' : x === 'tag' ? 'tagged' : 'no concern') : ''}</button>`; }).join('');
+  $('app').innerHTML = bar + `<div class="single">
+    <div class="imgbox">${hasImage(c) ? imgSlot(c, '', 'No image on SWUDB.') + (c.leader ? `<div class="src" style="margin:8px 0 4px">Deployed</div>${imgSlot(c, '-back,-portrait', 'No deployed image found.')}` : '') + `<div class="src"><a href="${page}" target="_blank" rel="noopener">Open on SWUDB</a></div>` : '<div class="noimg">No image (token).</div>'}</div>
+    <div>
+      <div class="panel">
+        <h2>${esc(c.name)}${c.subtitle ? ' — ' + esc(c.subtitle) : ''}</h2>
+        <div class="meta">${c.set} #${c.num} · ${esc(c.type)} · ${status}</div>
+        ${c.auto ? '' : `<div class="chips">${hitChips}</div>
+        ${manualHits.length ? '<div class="banner" style="margin-top:10px">Special attention: ' + manualHits.map((h) => esc(groupById[h].label)).join(', ') + '. Check the interaction with both formats.</div>' : ''}
+        <h4>Review tags</h4>
+        <div class="chips" id="tagChips"></div>
+        <h4>Twin Suns notes</h4>
+        ${noteBox(c, 'noteTS', 'What the Twin Suns test must show, or why it is a special case')}
+        <h4>Always Two notes</h4>
+        ${noteBox(c, 'noteA2', 'What the Always Two test must show, or why it is a special case')}
+        ${questionsFor(c).length ? questionsHtml(c) + answerBox(c) : ''}
+        <div class="row"><button class="primary" id="sOk">Mark reviewed &amp; next</button><button id="sSkip">Skip</button>${r.reviewed || r.r ? '<button id="sReset">Reset this card</button>' : ''}</div>`}
+        <h4>Official card text</h4>
+        ${fieldsHtml(c, c.hits.filter((h) => h !== 'nohit'))}
+        ${c.rules ? `<details><summary>Official rules / clarifications</summary>${esc(c.rules)}</details>` : ''}
+      </div>
+      <div class="row"><button id="sPrev">&larr; Prev</button><button id="sNext">Next &rarr;</button></div>
+    </div></div>`;
+  wireImages($('app')); wireSingleBar(); autosize($('app')); updateHeader();
+  if (c.auto) { $('sPrev').onclick = () => goSingle(-1); $('sNext').onclick = () => goSingle(1); return; }
+  // Category chips (the groups this card matched) work as in bulk mode: click to cycle unresolved -> tagged / no concern -> follow-up.
+  for (const hb of document.querySelectorAll('button.hit[data-g]')) {
+    hb.onclick = async () => {
+      const gid = hb.dataset.g, g = groupById[gid], cur = res(c, gid);
+      const next = cur === 'tag' || cur === 'ok' ? 'followup' : cur === 'followup' ? undefined : (g.kind === 'tag' ? 'tag' : 'ok');
+      const r2 = Object.assign({}, rec(c).r || {}), tags = new Set(rec(c).tags || []);
+      if (next === undefined) { delete r2[gid]; } else { r2[gid] = next; }
+      if (g.kind === 'tag') { if (next === 'tag') { tags.add(gid); } else { tags.delete(gid); } }
+      if (await persist([{ id: c.id, record: Object.assign({}, rec(c), { r: r2, tags: [...tags], tagsEdited: true }) }])) { drawSingle(); }
+    };
+  }
+  const chips = $('tagChips');
+  for (const g of DATA.groups.filter((x) => x.kind === 'tag')) {
+    const b = document.createElement('button');
+    b.className = 'chip' + (tags.has(g.id) ? ' sel' : '') + (c.hits.includes(g.id) && !r.reviewed ? ' sug' : '');
+    b.textContent = g.label; b.title = g.desc;
+    b.onclick = async () => { const t = new Set(effTags(c)); if (t.has(g.id)) { t.delete(g.id); } else { t.add(g.id); } if (await persist([{ id: c.id, record: Object.assign({}, rec(c), { tags: [...t], tagsEdited: true }) }])) { drawSingle(); } };
+    chips.appendChild(b);
+  }
+  const nb = document.createElement('button');
+  nb.className = 'chip'; nb.textContent = '+ New tag'; nb.title = 'Add a new review tag'; nb.onclick = openTagDialog;
+  chips.appendChild(nb);
+  const panel = document.querySelector('.panel');
+  for (const ta of panel.querySelectorAll('textarea')) { ta.onchange = () => { ta.classList.remove('draft'); ta.dataset.draft = ''; persist([{ id: c.id, record: withNotes(rec(c), panel) }]); }; }
+  $('sOk').onclick = async () => {
+    const record = withNotes(Object.assign({}, rec(c), { tags: [...effTags(c)], reviewed: true }), panel, true);
+    if (await persist([{ id: c.id, record }])) { const n = singleList[singleIdx + 1]; renderSingle(n ? n.id : null); }
+  };
+  $('sSkip').onclick = () => goSingle(1);
+  if ($('sReset')) { $('sReset').onclick = async () => { if (await persist([{ id: c.id, record: null }])) { drawSingle(); } }; }
+  $('sPrev').onclick = () => goSingle(-1); $('sNext').onclick = () => goSingle(1);
+}
+function goSingle(d) { singleIdx = Math.min(Math.max(singleIdx + d, 0), singleList.length - 1); drawSingle(); }
+function wireSingleBar() {
+  if (!$('sFilter')) { return; }
+  $('sFilter').onchange = (e) => { ui.sFilter = e.target.value; if (e.target.value === 'group' && !ui.sGroup) { ui.sGroup = DATA.groups[0].id; } ui.sCard = null; saveUi(); renderSingle(); };
+  if ($('sGroup')) { $('sGroup').onchange = (e) => { ui.sGroup = e.target.value; ui.sCard = null; saveUi(); renderSingle(); }; }
+  $('sSet').onchange = (e) => { ui.sSet = e.target.value; ui.sCard = null; saveUi(); renderSingle(); };
+  $('sSearch').oninput = (e) => { ui.sQuery = e.target.value; saveUi(); const keep = ui.sCard; singleList = singleCards(); singleIdx = Math.max(0, singleList.findIndex((c) => c.id === keep)); const pos = e.target.selectionStart; drawSingle(); $('sSearch').focus(); $('sSearch').setSelectionRange(pos, pos); };
+}
+
+// ---- note boxes grow to show their whole text ----
+function autosize(root) {
+  for (const ta of root.querySelectorAll('textarea')) {
+    const fit = () => { if (!ta.offsetParent) { return; } ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; };
+    fit(); ta.addEventListener('input', fit);
+  }
+}
+window.addEventListener('resize', () => { if (DATA) { autosize($('app')); } });
+
+// ---- new tag dialog ----
+function openTagDialog() { $('tagLabel').value = ''; $('tagDesc').value = ''; $('tagRe').value = ''; $('tagErr').textContent = ''; $('tagDlg').showModal(); $('tagLabel').focus(); }
+$('tagCancel').onclick = () => $('tagDlg').close();
+$('tagForm').onsubmit = async (e) => {
+  e.preventDefault();
+  $('tagErr').textContent = '';
+  try {
+    const out = await (await fetch('/api/groups', { method: 'POST', headers: { 'content-type': 'application/json', 'x-review-tool': '1' }, body: JSON.stringify({ label: $('tagLabel').value, desc: $('tagDesc').value, re: $('tagRe').value }) })).json();
+    if (out.error) { $('tagErr').textContent = out.error; return; }
+    $('tagDlg').close();
+    await loadData();
+    ui.group = out.id; saveUi(); bulkOffset = 0; selKey = '';
+    setMsg(`Added tag; ${out.matches} card${out.matches === 1 ? '' : 's'} match its phrase`, 'ok');
+    show();
+  } catch (err) { $('tagErr').textContent = 'Could not add the tag: ' + err.message; }
+};
+
+// ---- boot ----
+async function loadData() {
+  const r = await fetch('/api/data', { cache: 'no-store' });
+  if (!r.ok) { throw new Error('server returned ' + r.status); }
+  DATA = await r.json(); reviews = DATA.reviews; groupById = Object.fromEntries(DATA.groups.map((g) => [g.id, g])); byId = Object.fromEntries(DATA.cards.map((c) => [c.id, c]));
+}
+function show() { if (ui.mode === 'single') { renderSingle(); } else { renderBulk(); } }
+$('tabBulk').onclick = () => { ui.mode = 'bulk'; saveUi(); selKey = ''; show(); };
+$('tabSingle').onclick = () => { ui.mode = 'single'; saveUi(); show(); };
+document.addEventListener('keydown', (e) => {
+  if (/TEXTAREA|INPUT|SELECT/.test(e.target.tagName)) { return; }
+  if (ui.mode === 'single') { if (e.key === 'ArrowRight') { goSingle(1); } if (e.key === 'ArrowLeft') { goSingle(-1); } }
+  else if (e.key === 'Enter' && $('bApply') && !$('bApply').disabled) { $('bApply').click(); }
+});
+loadData().then(show).catch((e) => { $('app').innerHTML = `<p><b>Could not load card data.</b> (${esc(e.message)})<br>Start the server from <code>.claude/reference/twin-suns</code> with <code>node card-review-server.js</code> and open <code>http://localhost:8123/</code>.</p>`; });
+</script>
+</body>
+</html>
