@@ -50,6 +50,15 @@ function setRank(set) {
     return i < 0 ? 100 : i;
 }
 
+// Common-rarity bases (from the official card API; see common-bases.json) have generic abilities and need no review.
+function loadCommonBases() {
+    try {
+        return new Set(JSON.parse(fs.readFileSync(path.join(__dirname, 'common-bases.json'), 'utf8')).titles.map((t) => t.toLowerCase()));
+    } catch (e) {
+        return new Set();
+    }
+}
+
 let CARDS = null;
 function loadCards() {
     if (CARDS) {
@@ -59,6 +68,7 @@ function loadCards() {
         throw new Error(`Card data not found at ${CARD_DIR}. Run "npm run get-cards" first.`);
     }
     const cards = [];
+    const commonBases = loadCommonBases();
     for (const file of fs.readdirSync(CARD_DIR)) {
         if (!file.endsWith('.json')) {
             continue;
@@ -79,7 +89,11 @@ function loadCards() {
         }
         const stripped = fields.map((f) => stripParenthetical(f.text)).filter(Boolean);
         let auto = null;
-        if (stripped.length === 0) {
+        if (d.types.includes('token')) {
+            auto = 'Token';
+        } else if (isBase && commonBases.has(d.title.toLowerCase())) {
+            auto = 'Common base';
+        } else if (stripped.length === 0) {
             auto = 'No ability text';
         } else if (stripped.every((t) => /^mock ability text$/i.test(t))) {
             auto = 'Placeholder text (no real ability text)';

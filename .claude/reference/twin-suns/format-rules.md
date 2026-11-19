@@ -1,5 +1,7 @@
 # Format rules: Twin Suns and Always Two (Doubles)
 
+Engine-level behaviors to test once (Sentinel as described for Doubles, Coordinate, Restore, Exploit, Overwhelm, any-number choices): see `engine-test-notes.md`.
+
 Purpose: the rules that are unique to each multiplayer format, so card text can be mined for phrases whose meaning changes in these formats. This replaces the old tag catalog (kept in `archive_old/`).
 
 Sources and confidence:
@@ -63,6 +65,10 @@ These supersede the "open" items and assumptions elsewhere in this file for the 
 | R28 | Always Two: a base at or past its health | Its remaining HP is 0 (never negative), so effects that use remaining HP see 0 (e.g. Supremacy — Destroy the Resistance deals 0). Damage can still be dealt to it, and "when this unit deals combat damage to a base" abilities still trigger (Blockade Runner). |
 
 | R29 | Both formats: choosing several "enemy" cards | When a card has you reveal, look at or choose several enemy cards (e.g. "3 enemy resources"), they can come from any combination of opponents (Twin Suns) or enemies (Always Two), unless the card says they must belong to one player. Where the card then refers to "its controller", that is each card's own controller. Examples: Scanning Officer, Elia Kane — False Convert. |
+
+| R30 | Both formats: "choose any number of players / opponents / bases" | Any subset can be chosen: none, one, several, or all legal choices, including the controller where "players" allows it and, in Always Two, the teammate (R12). Each chosen target is affected once. **Engine requirement:** the current engine is not set up for arbitrary subsets of players, so Twin Suns and Always Two both need full support and tests for every combination (the user's note). Examples: Yoda — Old Master, Coruscanti Spy, Rancor Keeper. "Choose 2 players" (an exact count) works the same way for any N legal players: Chio Fain, Count Dooku — Offering Aid. |
+
+| R31 | Always Two: Coordinate | Coordinate counts only units controlled by the same player, not the team as a whole: a teammate's units do not count toward it. Applies to the keyword and to Coordinate granted by another card. An engine-level rule to be tested once (see `engine-test-notes.md`); no per-card notes needed. |
 
 Deferred rulings (still open): Twin Suns attacker takes control of the defender mid-attack, controlled-not-owned cards on elimination, whether an eliminated player can share a win; Always Two base at 0 HP edge cases, seating and choice order, whether a teammate's plays satisfy "you play" effects beyond R6.
 

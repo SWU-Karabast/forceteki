@@ -33,7 +33,9 @@
     {"id":"w-leader","label":"Leader (other)","kind":"watch","desc":"Mentions leaders (not \"non-leader\").","re":"(?<!non-)\\bleaders?\\b"},
     {"id":"w-each-unit","label":"Each unit","kind":"watch","desc":"\"each unit\" / \"all units\": both teams' units.","re":"\\beach (?:other )?unit\\b|\\ball units\\b"},
     {"id":"tag-always-two-rules-unknown","label":"Always Two: Rules Unknown","kind":"tag","desc":"Always Two behavior for this card cannot be decided yet: the rules or an official ruling are missing. Revisit when more is known.","re":null},
-    {"id":"tag-twin-suns-elimination-unclear","label":"Twin Suns: Elimination Unclear","kind":"tag","desc":"The result depends on how player elimination works mid-effect (do the remaining steps resolve, does the heal happen, controlled-not-owned cards). Rules not settled yet; review individually.","re":null}
+    {"id":"tag-twin-suns-elimination-unclear","label":"Twin Suns: Elimination Unclear","kind":"tag","desc":"The result depends on how player elimination works mid-effect (do the remaining steps resolve, does the heal happen, controlled-not-owned cards). Rules not settled yet; review individually.","re":null},
+    {"id":"tag-choose-any-number-of-players-bases","label":"Choose Any Number of Players/Bases","kind":"tag","desc":"\"Choose any number of players / opponents / bases\": any subset can be chosen (none, one, several, all). Both new modes must support every combination, including the controller and, in Always Two, the teammate.","re":"\\bany number of (?:other |different )?(?:players?|opponents?|bases?)\\b"},
+    {"id":"tag-choose-n-players","label":"Choose N Players","kind":"tag","desc":"\"Choose 2 players\" (an exact number of players). Any N of the legal players can be chosen, including the controller and, in Always Two, the teammate.","re":"\\bchoose (?:\\d+|two|three|four) players?\\b"}
   ],
   "passfail": {"id":"nohit","label":"No phrase hit (pass / fail)","desc":"Matches none of the groups above. Pass if the card needs no multiplayer test; fail sends it to follow-up."}
 }

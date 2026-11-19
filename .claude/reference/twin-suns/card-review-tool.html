@@ -8,6 +8,7 @@
 :root { --bg:#f6f7f9; --panel:#fff; --text:#1c2230; --muted:#667085; --line:#d8dce3; --accent:#2b59d9; --accent-text:#fff; --ok:#1f8a4c; --warn:#b26a00; --err:#c0392b; --mark:#ffe58a; --okbg:#e6f5ec; --errbg:#fdeceb; }
 @media (prefers-color-scheme: dark) { :root { --bg:#12151c; --panel:#1b2029; --text:#e8ebf2; --muted:#95a0b5; --line:#2e3646; --accent:#6c93ff; --accent-text:#0c1220; --ok:#4cc27f; --warn:#e0a040; --err:#ff7b6b; --mark:#6b5a12; --okbg:#173325; --errbg:#3a1f1c; } }
 * { box-sizing: border-box; }
+[hidden] { display:none !important; }
 body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
 header { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
 header h1 { font-size:16px; margin:0 8px 0 0; }
@@ -45,6 +46,10 @@ select { max-width:100%; }
 .tile.off .tick { background:var(--err); }
 .tile.ro .tick { display:none; }
 .thumb { flex:none; width:120px; }
+.thumb.leader { width:250px; display:flex; gap:6px; align-items:flex-start; }
+.thumb.leader .imgslot { flex:1; min-width:0; }
+/* Phones: larger card images; a leader's two images get a full row, with the text below. */
+@media (max-width:800px) { .thumb { width:160px; } .thumb.leader { width:100%; } .thumb.leader + .body { flex-basis:100%; } }
 .thumb img { width:100%; border-radius:6px; display:block; }
 .thumb .noimg { font-size:12px; color:var(--muted); padding:20px 4px; text-align:center; }
 .body { min-width:0; flex:1; }
@@ -168,15 +173,24 @@ function imageUrls(c, suffixes) {
   return suffixes.split(',').flatMap((suf) => [...new Set([c.num, bare, bare.padStart(2, '0')])].map((n) => `https://swudb.com/images/cards/${c.set}/${n}${suf}.png`));
 }
 const hasImage = (c) => c.num && !c.token && !Number.isNaN(parseInt(c.num, 10));
+// Each candidate URL is probed off-screen first, and the visible <img> only gets the first one that loads, so a
+// missing candidate never shows as a broken image (some mobile browsers don't retry a failed lazy image).
 function wireImages(root) {
   for (const slot of root.querySelectorAll('.imgslot')) {
     const c = byId[slot.dataset.id], img = slot.querySelector('img'), urls = imageUrls(c, slot.dataset.suffix);
-    let n = 0;
-    img.onerror = () => { n++; if (n < urls.length) { img.src = urls[n]; } else { img.hidden = true; slot.querySelector('.noimg').hidden = false; } };
-    img.src = urls[0];
+    img.hidden = true;
+    const tryNext = (i) => {
+      if (i >= urls.length) { slot.querySelector('.noimg').hidden = false; return; }
+      const probe = new Image();
+      probe.referrerPolicy = 'no-referrer';
+      probe.onload = () => { img.src = urls[i]; img.hidden = false; };
+      probe.onerror = () => tryNext(i + 1);
+      probe.src = urls[i];
+    };
+    tryNext(0);
   }
 }
-const imgSlot = (c, suffix, label) => `<div class="imgslot" data-id="${esc(c.id)}" data-suffix="${suffix}"><img loading="lazy" referrerpolicy="no-referrer" alt="${esc(c.name)}"><div class="noimg" hidden>${label}</div></div>`;
+const imgSlot = (c, suffix, label) => `<div class="imgslot" data-id="${esc(c.id)}" data-suffix="${suffix}"><img referrerpolicy="no-referrer" alt="${esc(c.name)}"><div class="noimg" hidden>${label}</div></div>`;
 let byId = {};
 
 // ---- saving ----
@@ -270,12 +284,12 @@ function renderBulk() {
     for (const t of document.querySelectorAll('.tile[data-id]')) { t.onclick = (ev) => { if (ev.target.closest('a,summary,details,.tnote')) { return; } const id = t.dataset.id; if (sel.has(id)) { sel.delete(id); } else { sel.add(id); } refreshApply(); }; }
     $('bAll').onclick = () => { sel = new Set(page.map((c) => c.id)); refreshApply(); };
     $('bNone').onclick = () => { sel = new Set(); refreshApply(); };
-    $('bSkip').onclick = () => { bulkOffset += PAGE_SIZE; renderBulk(); };
+    $('bSkip').onclick = () => { bulkOffset += PAGE_SIZE; renderBulk(); window.scrollTo(0, 0); };
     $('bApply').onclick = () => applyBulk(page, g);
   } else {
     $('bOpenSingle').onclick = () => { ui.mode = 'single'; ui.sFilter = 'group'; ui.sGroup = g.id; ui.sCard = null; saveUi(); renderSingle(); };
   }
-  $('bPrev').onclick = () => { bulkOffset = Math.max(0, bulkOffset - PAGE_SIZE); renderBulk(); };
+  $('bPrev').onclick = () => { bulkOffset = Math.max(0, bulkOffset - PAGE_SIZE); renderBulk(); window.scrollTo(0, 0); };
   $('bUndo').onclick = undoBulk;
   updateHeader();
 }
@@ -284,7 +298,7 @@ function tile(c, g, manual) {
   const state = rec(c).reviewed ? '<span class="hit ok">reviewed</span>' : (r ? `<span class="hit ${r}">${r === 'followup' ? 'follow-up' : r === 'tag' ? 'tagged' : 'no concern'}</span>` : '');
   return `<div class="tile${manual ? ' ro' : ''}" data-id="${esc(c.id)}">
     <div class="tick">✓</div>
-    <div class="thumb">${hasImage(c) ? imgSlot(c, '', 'No image') : '<div class="noimg">No image</div>'}</div>
+    <div class="thumb${c.leader ? ' leader' : ''}">${hasImage(c) ? imgSlot(c, '', 'No image') + (c.leader ? imgSlot(c, '-back,-portrait', 'No deployed image') : '') : '<div class="noimg">No image</div>'}</div>
     <div class="body">
       <h3>${esc(c.name)}${c.subtitle ? ' — ' + esc(c.subtitle) : ''}</h3>
       <div class="sub">${c.set} #${c.num} · ${esc(c.type)}</div>
@@ -347,6 +361,7 @@ async function applyBulk(page, g) {
   lastBatch = { prev, label: g.label };
   if ((ui.view || 'open') !== 'open') { bulkOffset += PAGE_SIZE; }
   renderBulk();
+  window.scrollTo(0, 0);
 }
 async function undoBulk() {
   if (!lastBatch) { return; }

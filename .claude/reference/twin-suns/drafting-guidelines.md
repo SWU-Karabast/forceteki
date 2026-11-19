@@ -42,6 +42,9 @@ Every agent that drafts Twin Suns / Always Two notes for cards must read this fi
 - Always Two: "take control of a unit" with no "enemy" can take the teammate's unit; it moves to the player who played the card and the owner regains it as the card says (R27).
 - Always Two: a base at or past its health has 0 remaining HP, can still be dealt damage, and still triggers "deals combat damage to a base" (R28).
 - Several "enemy" cards chosen/revealed (e.g. 3 enemy resources) can come from any combination of opponents or enemies; "its controller" is each card's own controller (R29).
+- "Choose any number of players / opponents / bases" allows any subset (none, one, several, all), including the controller and the teammate where "players" allows; both modes must support every combination (R30). Mention this requirement in the notes of these cards.
+- Any card that initiates an attack gets this Always Two line: "Ensure the attack can only be initiated with a unit you control, never with the teammate's unit." (No shared control.)
+- Always Two Coordinate counts only units controlled by the same player, not the team (R31), and Sentinel (shared by teammates in Always Two) is tested as described in `engine-test-notes.md`. Both are engine-level: do not write per-card notes about them.
 - Do not write an "Open:" line for any of the questions above; apply the ruling.
 
 ## Format reminders
