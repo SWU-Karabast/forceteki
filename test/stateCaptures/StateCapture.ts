@@ -11,6 +11,7 @@
 // the engine no longer produces exactly what is committed. Clients fetch these files at a given
 // commit to test their board against; nothing here knows about any client.
 
+import { GameCommand } from '../../server/gamenode/SocketCommands';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { CaptureRun } from './CaptureRun';
@@ -24,21 +25,13 @@ const Participants = {
 
 export type Participant = keyof typeof Participants;
 
-/**
- * The commands `Lobby` accepts on the `game` socket event (its `allowedGameCommands`), apart from
- * chat. A chain records every one of them, so no move between steps goes unrecorded.
- */
-const RecordedCommands = [
-    'cardClicked',
-    'concede',
-    'menuButton',
-    'perCardMenuButton',
-    'rollbackToSnapshot',
-    'statefulPromptResults',
-    'toggleOptionSetting',
-] as const;
+type RecordedCommand = Exclude<GameCommand, GameCommand.Chat>;
 
-type RecordedCommand = typeof RecordedCommands[number];
+/**
+ * The commands `Lobby` accepts on the `game` socket event (`GameCommand`), apart from chat. A chain records every one
+ * of them, so no move between steps goes unrecorded.
+ */
+const RecordedCommands = Object.values(GameCommand).filter((command): command is RecordedCommand => command !== GameCommand.Chat);
 
 /** A message as the client sends it: `socket.emit('game', command, ...args)`. */
 type GameMessage = [RecordedCommand, ...unknown[]];

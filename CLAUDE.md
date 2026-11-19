@@ -132,7 +132,8 @@ Server specs live in `test/server/gamenode/<area>/`, grouped by what they are ab
 
 - `auth/authentication/` — who the caller is: tokens and cookies, sign-in and account creation, anonymous identity, service secrets.
 - `auth/authorization/` — what a known caller may do: the route manifest, roles, anonymous-versus-logged-in limits, chat permissions.
-- `lobby/` — creating and joining lobbies, where a socket is routed, spectators, the lobby lifecycle, in-game connections, reports, the socket command allowlist, test game setups.
+- `lobby/` — creating and joining lobbies, where a socket is routed, spectators, the lobby lifecycle, in-game connections, reports, test game setups.
+- `protocol/` — what a client may send and what it is told back: the socket events, the commands each channel accepts (`server/gamenode/SocketCommands.ts`), what becomes of a command or argument the server refuses, and which match configurations it accepts.
 - `matchmaking/` — queues, matchmaking and the quick-lobby countdown.
 - `timers/` — the action timer during a game: which games are timed, turn and main time, warnings, running out, pauses, the end of a game, reconnects and spectators.
 - `moderation/` — the mod tools end to end: player reports from filing to closing, mod actions issued from a ticket, the report retention cleanup.

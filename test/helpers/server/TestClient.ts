@@ -19,6 +19,7 @@ import { FakeIoSocket } from './FakeIoSocket';
 import type { RouteMethod } from './RouteRecorder';
 import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
+import { GameCommand, LobbyCommand } from '../../../server/gamenode/SocketCommands';
 import { AnonymousUser } from '../../../server/utils/user/User';
 
 /** Options for {@link TestClient.create}. */
@@ -386,72 +387,72 @@ export class TestClient {
 
     /** `sendChatMessage`: a message in the lobby chat (`SetUp`). */
     public async sendChatMessageAsync(message: string): Promise<void> {
-        await this.sendLobbyMessageAsync('sendChatMessage', message);
+        await this.sendLobbyMessageAsync(LobbyCommand.SendChatMessage, message);
     }
 
     /** `typingState`: whether this player is typing in the chat (`useChatTypingState`). */
     public async typingStateAsync(isTyping: boolean): Promise<void> {
-        await this.sendLobbyMessageAsync('typingState', isTyping);
+        await this.sendLobbyMessageAsync(LobbyCommand.TypingState, isTyping);
     }
 
     /** `muteChat`: hides the chat in both directions for this lobby (`ChatDrawer`, `PlayerReportDialog`). */
     public async muteChatAsync(): Promise<void> {
-        await this.sendLobbyMessageAsync('muteChat');
+        await this.sendLobbyMessageAsync(LobbyCommand.MuteChat);
     }
 
     /** `setReadyStatus`: this player's ready toggle (`LobbyReadyButtons`). */
     public async setReadyStatusAsync(ready: boolean): Promise<void> {
-        await this.sendLobbyMessageAsync('setReadyStatus', ready);
+        await this.sendLobbyMessageAsync(LobbyCommand.SetReadyStatus, ready);
     }
 
     /** `startGameAsync`: the owner's start button (`LobbyReadyButtons`), and a quick rematch (`EndGameOptions`). */
     public async startGameAsync(): Promise<void> {
-        await this.sendLobbyMessageAsync('startGameAsync');
+        await this.sendLobbyMessageAsync(LobbyCommand.StartGameAsync);
     }
 
     /** `updateDeck`: moves a card between the deck and the sideboard, from game 2 of a set (`Deck`). */
     public async updateDeckAsync(list: 'Deck' | 'Sideboard', cardId: string): Promise<void> {
-        await this.sendLobbyMessageAsync('updateDeck', list, cardId);
+        await this.sendLobbyMessageAsync(LobbyCommand.UpdateDeck, list, cardId);
     }
 
     /** `updateSetting`: one of the owner's lobby settings, `requestUndo` or `allowSpectators` (`DeckSelectionCard`). */
     public async updateSettingAsync(settingName: string, value: boolean): Promise<void> {
-        await this.sendLobbyMessageAsync('updateSetting', settingName, value);
+        await this.sendLobbyMessageAsync(LobbyCommand.UpdateSetting, settingName, value);
     }
 
     /** `requestRematch`: asks the opponent for a rematch of this kind (`EndGameOptions`, `LobbyConcededPopup`). */
     public async requestRematchAsync(mode: RematchMode): Promise<void> {
-        await this.sendLobbyMessageAsync('requestRematch', mode);
+        await this.sendLobbyMessageAsync(LobbyCommand.RequestRematch, mode);
     }
 
     /** `rematch`: accepts the requested rematch (`EndGameOptions`, `LobbyConcededPopup`). */
     public async rematchAsync(): Promise<void> {
-        await this.sendLobbyMessageAsync('rematch');
+        await this.sendLobbyMessageAsync(LobbyCommand.Rematch);
     }
 
     /** `concedeBo3`: concedes the whole best-of-three set (`LobbyReadyButtons`, `EndGameOptions`). */
     public async concedeBo3Async(): Promise<void> {
-        await this.sendLobbyMessageAsync('concedeBo3');
+        await this.sendLobbyMessageAsync(LobbyCommand.ConcedeBo3);
     }
 
     /** `proceedToNextBo3Game`: confirms moving on to the next game of the set (`EndGameOptions`). */
     public async proceedToNextBo3GameAsync(): Promise<void> {
-        await this.sendLobbyMessageAsync('proceedToNextBo3Game');
+        await this.sendLobbyMessageAsync(LobbyCommand.ProceedToNextBo3Game);
     }
 
     /** `submitReport` for a bug report (`BugReportDialog`). */
     public async submitBugReportAsync(description: string): Promise<void> {
-        await this.sendLobbyMessageAsync('submitReport', 'bugReport', description);
+        await this.sendLobbyMessageAsync(LobbyCommand.SubmitReport, 'bugReport', description);
     }
 
     /** `submitReport` for a report against the opponent (`PlayerReportDialog`). */
     public async submitPlayerReportAsync(description: string, reportType: PlayerReportType): Promise<void> {
-        await this.sendLobbyMessageAsync('submitReport', 'playerReport', description, reportType);
+        await this.sendLobbyMessageAsync(LobbyCommand.SubmitReport, 'playerReport', description, reportType);
     }
 
     /** `reportScreenResolution`: the reply to the server's `requestScreenResolution` at game start (`Game.context`). */
     public async reportScreenResolutionAsync(width: number, height: number): Promise<void> {
-        await this.sendLobbyMessageAsync('reportScreenResolution', { width, height });
+        await this.sendLobbyMessageAsync(LobbyCommand.ReportScreenResolution, { width, height });
     }
 
     /**
@@ -459,14 +460,14 @@ export class TestClient {
      * one command a spectator may send.
      */
     public async retransmitGameMessagesAsync(startIndex: number, endIndex: number): Promise<void> {
-        await this.sendLobbyMessageAsync('retransmitGameMessages', startIndex, endIndex);
+        await this.sendLobbyMessageAsync(LobbyCommand.RetransmitGameMessages, startIndex, endIndex);
     }
 
     // ---- Game commands: one per entry in `Lobby`'s game allowlist, plus `resetActionTimer` ----
 
     /** `chat`: a message in the game chat (`ChatDrawer`). */
     public async sendGameChatAsync(message: string): Promise<void> {
-        await this.sendGameMessageAsync('chat', message);
+        await this.sendGameMessageAsync(GameCommand.Chat, message);
     }
 
     /**
@@ -474,12 +475,12 @@ export class TestClient {
      * as well, which the server ignores. Also the quickest way for a spec to end a game.
      */
     public async concedeAsync(): Promise<void> {
-        await this.sendGameMessageAsync('concede', this.username);
+        await this.sendGameMessageAsync(GameCommand.Concede, this.username);
     }
 
     /** `cardClicked`: a click on a card, by its uuid in the game state (`GameCard`, `LeaderBaseCard`). */
     public async clickCardAsync(cardUuid: string): Promise<void> {
-        await this.sendGameMessageAsync('cardClicked', cardUuid);
+        await this.sendGameMessageAsync(GameCommand.CardClicked, cardUuid);
     }
 
     /**
@@ -509,22 +510,22 @@ export class TestClient {
 
     /** `menuButton` with an argument the real client builds itself (`DropdownPopup`, `NumberPopup`, `SelectCardsPopup`). */
     public async menuButtonAsync(arg: string | number, promptUuid: string): Promise<void> {
-        await this.sendGameMessageAsync('menuButton', arg, promptUuid);
+        await this.sendGameMessageAsync(GameCommand.MenuButton, arg, promptUuid);
     }
 
     /** `perCardMenuButton`: a button shown against one card of a card-selection prompt (`SelectCardsPopup`). */
     public async perCardMenuButtonAsync(arg: string, cardUuid: string, promptUuid: string): Promise<void> {
-        await this.sendGameMessageAsync('perCardMenuButton', arg, cardUuid, promptUuid);
+        await this.sendGameMessageAsync(GameCommand.PerCardMenuButton, arg, cardUuid, promptUuid);
     }
 
     /** `statefulPromptResults`: the result of a distribution prompt (`Game.context`'s `sendGameMessage`). */
     public async statefulPromptResultsAsync(results: IStatefulPromptResults, promptUuid: string): Promise<void> {
-        await this.sendGameMessageAsync('statefulPromptResults', results, promptUuid);
+        await this.sendGameMessageAsync(GameCommand.StatefulPromptResults, results, promptUuid);
     }
 
     /** `rollbackToSnapshot`: an undo (`ChatDrawer`, `CurrentGameTab`). */
     public async rollbackToSnapshotAsync(settings: IGetSnapshotSettings): Promise<void> {
-        await this.sendGameMessageAsync('rollbackToSnapshot', settings);
+        await this.sendGameMessageAsync(GameCommand.RollbackToSnapshot, settings);
     }
 
     /**
@@ -540,7 +541,7 @@ export class TestClient {
 
     /** `toggleOptionSetting`: an in-game option, such as `autoSingleTarget` (`GameOptionsTab`). */
     public async toggleOptionSettingAsync(settingName: string, enabled: boolean): Promise<void> {
-        await this.sendGameMessageAsync('toggleOptionSetting', settingName, enabled);
+        await this.sendGameMessageAsync(GameCommand.ToggleOptionSetting, settingName, enabled);
     }
 
     /**

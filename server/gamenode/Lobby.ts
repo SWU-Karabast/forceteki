@@ -3,6 +3,7 @@ import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import { Contract } from '../game/core/utils/Contract';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
+import { GameCommand, LobbyCommand, spectatorCommands } from './SocketCommands';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
@@ -1626,41 +1627,9 @@ export class Lobby {
         };
     }
 
-    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
-
-    /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
-    private static readonly allowedLobbyCommands = new Set([
-        'concedeBo3',
-        'muteChat',
-        'proceedToNextBo3Game',
-        'rematch',
-        'reportScreenResolution',
-        'requestRematch',
-        'retransmitGameMessages',
-        'sendChatMessage',
-        'setReadyStatus',
-        'startGameAsync',
-        'submitReport',
-        'typingState',
-        'updateDeck',
-        'updateSetting',
-    ]);
-
-    /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
-    private static readonly allowedGameCommands = new Set([
-        'cardClicked',
-        'chat',
-        'concede',
-        'menuButton',
-        'perCardMenuButton',
-        'rollbackToSnapshot',
-        'statefulPromptResults',
-        'toggleOptionSetting',
-    ]);
-
     private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         try {
-            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+            if (!spectatorCommands.has(command) || typeof this[command] !== 'function') {
                 return;
             }
 
@@ -1673,7 +1642,7 @@ export class Lobby {
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         const start = process.hrtime.bigint();
         try {
-            if (!Lobby.allowedLobbyCommands.has(command) || typeof this[command] !== 'function') {
+            if (!EnumHelpers.isEnumValue(command, LobbyCommand) || typeof this[command] !== 'function') {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
             }
 
@@ -1720,7 +1689,7 @@ export class Lobby {
             //     return this.onLeaveGame(socket);
             // }
 
-            if (!Lobby.allowedGameCommands.has(command) || typeof this.game[command] !== 'function') {
+            if (!EnumHelpers.isEnumValue(command, GameCommand) || typeof this.game[command] !== 'function') {
                 logger.warn(`Lobby: ignoring unknown game command '${String(command).substring(0, 64)}'`, { lobbyId: this.id, userId: socket.user.getId() });
                 return;
             }

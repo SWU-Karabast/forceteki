@@ -1,10 +1,9 @@
 # Game Node Test Suite
 
 Status: **in progress.** Phases 0–2.5 and the account-auth guards are merged to `main` and CI-gated (PRs #2934, #2961,
-#2950, #3021, #3117, #3129 and #3152). The remaining work is split by topic area (core server logic, game timers, stats and so on),
+#2950, #3021, #3117, #3129, #3152 and #3169). The remaining work is split by topic area (core server logic, game timers, stats and so on),
 each taken through the same five steps, from planning to an independent review. The core area, which gates the lobby /
-queue / connection refactor, is finished apart from four checklist rows held for security fixes. Game timers are done, apart from the client part of
-open finding #11.
+queue / connection refactor, is finished apart from four checklist rows held for security fixes. Game timers are done. Protocol surface has finished step b (set up).
 
 This document is the plan: the current state, the decisions in force, the roadmap, and the reference material for working
 on the suite. The working record (what each phase built, what the reviews found, how each merge by other contributors was
@@ -50,7 +49,7 @@ spectator flows beyond the connection, most deck routes, and most moderation and
 
 ### Core merges
 
-The work landed on `main` as seven squash merges, so the branch commits named in the history document no longer exist as
+The work landed on `main` as eight squash merges, so the branch commits named in the history document no longer exist as
 separate commits.
 
 | PR | Commit | Merged | What it landed |
@@ -62,6 +61,7 @@ separate commits.
 | #3117 | `c6c71e058f6434956ef76960180f2ffb720a5004` | 2026-11-05 | **Part 4.** The follow-up to #3111: the harness database on by default, account time on the virtual clock (an optional clock on `UserFactory`), `harness.databaseTaskCount`, a de-duplication spec whose requests really overlap, socket identity read from `lobbystate`, open finding #10, the legacy-moderation specs removed, and this document and `CLAUDE.md` brought up to date. 25 files. |
 | #3129 | `0746a81cbde9f9bb0c8e04d732436c31ca8ba454` | 2026-11-06 | **Part 5.** The core area's steps a to c: the scenario builders (`openLobbyAsync`, `createLobbyWithGuestAsync`, `startLiveGameAsync`, typed `TestClient` commands, chat accessors), the refactor-gate scenarios, the coupling clean-up (`hasNoPlaceAsync`), the readiness check, `FakeIoSocket`'s serialised emits, and the plan split by topic area. Core's steps d and e followed on `ammayberry1/gameserver-lobby-tests-6`. |
 | #3152 | `1a48579af0342991f307816c132537460b7e239b` | 2026-11-09 | **Part 6.** The core area's steps d and e: the fixes for open findings #6, #12, #13 and #14 with their specs, the dead code the coverage runs found, and the independent review's follow-up (`QueueConnections` and `TestScheduler` as their own files). The game-timer area followed on `ammayberry1/gameserver-timer-tests`. |
+| #3169 | `74249c6e5ff8caeb25965166fa89c871ea300c45` | 2026-11-17 | **Part 7.** The game-timer area, steps a to e: the game driver on `TestClient`, `playThroughSetupAsync`, `advanceToDeadlineAsync`, the `timers/` specs, the timer fixes (open findings #16 to #20 and two security items), and three topic areas added to the plan. |
 
 **Also on `main`, from other contributors.** Before #3021: #2994 (disable reporting), #3001 (matchmaking preference and
 `SchedulerTaskScope`), #3011 (username moderation) and #3014 (command allowlists, anonymous-identity hardening, chat and report
@@ -79,8 +79,8 @@ the profile cache), evaluated under [Account resolution and the profile cache](g
 | Production seams | Injected collaborators with production defaults (`IScheduler`, `IGameNodeConfig`, `IHttpClient`, an optional scheduler on the DB-backed caches, an optional clock on `UserFactory`). No test-only API on production classes: test construction lives in the `TestGameServer` subclass over `protected` members | *Design goals* 4 |
 | Inspection surface | Specs assert what a client receives. Reading the server's own state (`testLobbies`, `lobbyCount`, `getUserLobbyId`, `pendingTaskCount`) is kept for what no client can see - resources the server holds, such as a closed lobby or a cancelled timer - and for set-ups whose ids never reach a client (`start-test-game`). Whether the server forgot a user is checked with `TestClient.hasNoPlaceAsync` | *Design goals* 2 |
 | Lobby ids | `create-lobby` keeps not returning one (a deliberate anti-automation measure); the harness browses `available-lobbies` or joins by `connectionLink`, as the FE does | *Approach* |
-| Command dispatch | Explicit allowlists (landed in #3014 by another contributor); the residual guards are in the protocol-surface area | *Topic areas* |
-| Game-mode configurations | Wanted as Tier 1 (for example, Open is lobby-only and cannot be queued). Production does not validate them yet, so `validateMatchConfiguration` (Phase 3b) comes first | *Topic areas*, protocol surface; Open finding #3 |
+| Command dispatch | Explicit allowlists (landed in #3014 by another contributor), in `server/gamenode/SocketCommands.ts` since the protocol-surface area's step b; the residual guards are in that area | *Topic areas* |
+| Game-mode configurations | Wanted as Tier 1 (for example, Open is lobby-only and cannot be queued). Production does not validate them yet; who owns the legal matrix is the protocol-surface area's decision 1 | *Topic areas*, protocol surface; Open finding #3 |
 | Dead ack callback | Removed from production, with the drift spec that watched it, rather than characterised | history, Phase 2 |
 | Stats sites | An `IHttpClient` seam and handler-level specs now; game-result payloads are the stats area | history, Phase 2.5 |
 | Test-only interfaces | Migrate to production only once Phase 3 starts. `IMatchConfiguration` was replaced by the production `IQueueFormatKey` in #3021; `ITestUserPayload` is still test-only | history |
@@ -128,8 +128,8 @@ code for anything the plan did not cover; the areas after protocol surface were 
 | # | Area | Depends on | Status |
 |---|---|---|---|
 | 1 | **Core server logic:** connections, lobbies, the queue and matchmaking, spectators, and the harness itself | - | ✅ done (2026-11-06), apart from the held rows |
-| 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | ✅ done (2026-11-09), apart from #11's client part |
-| 3 | **Protocol surface:** the command allowlists and game-mode validation | core | step a; its step d waits on open finding #3 |
+| 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | ✅ done (2026-11-09) |
+| 3 | **Protocol surface:** the socket events and command allowlists, what a client is told when it sends something wrong, and the match configuration it sends | core | steps a and b done (2026-11-19); step c next |
 | 4 | **Undo in live games:** the undo policy each lobby runs, its limits, the confirmation flow over the wire, and undo past the end of a game | core; game timers | step a |
 | 5 | **The database layer:** the real `DynamoDBService` against the fake every other spec uses, and the data migrations | core | step a |
 | 6 | **Decks:** deck routes, deck-link resolution, and deck checks in lobbies and at game start | core; the database layer | step a |
@@ -144,7 +144,7 @@ code for anything the plan did not cover; the areas after protocol surface were 
 Suite work that no single area owns (I-12, the CI split, the formal parallel-safety review) is listed under *Suite
 infrastructure* and goes with the first area that needs it.
 
-Open findings that still need a production fix or a decision are #1, #3, #10, #11 (its client part), #15 and #21;
+Open findings that still need a production fix or a decision are #1, #3, #10, #11 (the server's no-op), #15 and #21;
 each belongs to an area.
 Anything exploitable is tracked privately with the maintainers, not here.
 
@@ -558,45 +558,131 @@ each player's game state, the chat, and the winners.
   best-of-three area, a game the lobby is done with starting no timers, a unit spec for the draw rule's turn time (with
   a behaviour-neutral seam), specs for what the review found unpinned, the layout of `TimedGames` and
   `ActionTimerPauses`, and fixes to this document and the history. 861 → 868 non-game specs.
-- **What remains:** #11's client part (forceteki-client branch `ammayberry1/timer-cleanup`), then, once it has shipped,
-  `Lobby.onGameMessage`'s no-op branch for `resetActionTimer`.
+- **What remains:** nothing of this area. The client part of #11 shipped (forceteki-client #881); the server's no-op
+  branch for `resetActionTimer` goes in the protocol-surface area's step d.
 - **Not this area's:** the best-of-three ready and transition timers, and the set forfeit on a timeout (the best-of-three
   area).
 
-### 3. Protocol surface — step a
+### 3. Protocol surface — step c
 
-**3b — `validateMatchConfiguration`: not started.** Add it mirroring the FE's `LobbyFormatConfigs` /
-`QueueFormatConfigs`; see Open finding #3. Follow the house style `enter-queue` already uses for the new
-preference field (`EnumHelpers.isEnumValue` → `400` with `Invalid <field> '<value>'`), and keep a
-backward-compat spec for omitted fields the way the preference work does (`defaults an omitted preference…`).
-`gamesToWinMode` is still the one field never enum-checked on either route.
+What a client may send the server over its socket, and what happens when it sends something wrong: the socket events,
+the three command allowlists and how each channel treats a command it does not know or arguments it cannot use; and the
+match configuration a client sends to `create-lobby` and `enter-queue`. Depends only on core. (The HTTP routes' own
+behaviour stays with the areas that own them; the route manifest already covers who may call each. The contract with
+forceteki-client is covered by separate work: see decision 3.)
 
-**Game-mode configuration matrix.** Once 3b lands: one spec per legal and illegal combination on `create-lobby` and
-`enter-queue`, asserting the response decided for it.
+**What the code does** (read on 2026-11-19, with a throwaway probe of the match configuration, since deleted):
 
-**3a — command allowlist: ✅ landed in #3014.** What remains is turning it from "implemented" into
-"guarded", since an allowlist fails *silently* (an unrecognised command is just dropped):
+- *Socket events.* `Lobby` registers `lobby` and `game` for a player and `lobby` alone for a spectator; `GameServer` registers
+  `requeue` (quick lobbies) and `manualDisconnect`. The `Socket` wrapper (`server/socket.js`) also handles one event itself
+  (core's row C21, held: V-4). socket.io drops any other event.
+- *The allowlists* (`Lobby`, `private static`, until step b moved them to `server/gamenode/SocketCommands.ts`): 14 lobby
+  commands, 8 game commands, and `retransmitGameMessages` for a spectator. `onGameMessage` also takes `resetActionTimer` before its allowlist check, as a no-op the client no longer sends
+  (forceteki-client #881).
+- *A command the channel does not know:* a lobby command throws, so it is logged at error level; a game command is logged as
+  a warning; a spectator's is ignored silently. The client is told nothing in each case.
+- *Arguments a command cannot use:* commands check theirs with `Contract` (`rematch`'s mode, `updateSetting`'s name and
+  type, …), so a bad argument throws, is logged at error level, and changes nothing; the client is told nothing. A lobby
+  command still sends the lobby state afterwards; a game command runs `game.continue()` and sends the game state. The
+  engine's own checks on a prompt's arguments are the undo and prompt work's (V-7, V-11), not this area's.
+- *The client* (forceteki-client `main` @ `04142faa`, audited 2026-11-19) sends exactly the 14 lobby commands; it names six
+  game commands (`cardClicked`, `chat`, `concede`, `menuButton`, `rollbackToSnapshot`, `toggleOptionSetting`) and sends the
+  others (`perCardMenuButton`, `statefulPromptResults`) because the server's prompt data names them; and it emits the events
+  `lobby`, `game`, `requeue` and `manualDisconnect`. For sign-in it relies on the HTTP sequence the account-auth work
+  covers (`get-user`, a 401 with `ACCOUNT_NOT_FOUND`, `EMAIL_NOT_VERIFIED` or `SIGN_IN_AGAIN`, then `create-user` and
+  `get-user` again) and the handshake fields (`auth.token`, whose claims include `emailVerified`; `query.user` only when
+  anonymous). #3111 with forceteki-client #875, and #3168 with forceteki-client #892, changed both sides by hand, and nothing
+  would have flagged a half-made change.
+- *Captured states* (#3072) already pin the game messages a client sends for the prompts they cover (each control chain's
+  `send`), but took the list of game commands from their own copy (`RecordedCommands` in `test/stateCaptures/StateCapture.ts`),
+  a third copy of the allowlist beside `Lobby`'s and the client's, until step b derived it from the server's (P2).
+- *Match configuration* (the probe; open finding #3). `format` and `cardPool` are checked against their enums on both routes
+  (400), and so is the matchmaking preference. `gamesToWinMode` is not: an unknown value gets a 500 from `create-lobby`, and
+  a 200 from `enter-queue`, whose socket then connects and waits in a queue nobody else can join. Nothing checks that the
+  fields fit together: Premier or Eternal with the unlimited card pool gets a 400 `invalidDeckData` (a `Contract` failure in
+  deck validation, logged at error level); Open with the current pool, Open or Limited in the queue, and FauxSuns (which the
+  client offers only in development) are accepted. The only statement of what is legal is the client's
+  (`LobbyFormatConfigs` and `QueueFormatConfigs` in forceteki-client's `src/app/_constants/constants.ts`).
 
-- Export the three sets (`Lobby.allowedLobbyCommands` / `allowedGameCommands` /
-  `allowedSpectatorCommands`, currently `private static`) so a spec can iterate them.
-- **Consistency guard:** for every allowlisted name, assert the method exists on `Lobby.prototype` /
-  `Game.prototype`. A rename today silently disables the command; nothing fails.
-- **FE contract guard:** a checked-in manifest of what `forceteki-client` relies on, asserted against the server and used
-  by `TestClient`. For the socket commands, the manifest lists the commands the FE sends, asserted to be a subset of the
-  allowlists. This audit was done by hand on 2026-10-15 and found no gap (14 lobby + 8 game commands, including
-  `reportScreenResolution` / `retransmitGameMessages`, which the FE sends as raw `emit('lobby', …)`, and `resetActionTimer`,
-  which `onGameMessage` special-cases before the allowlist). For sign-in, it lists the HTTP sequence the FE runs and the
-  responses it branches on (`get-user`, a 401 with `code: 'ACCOUNT_NOT_FOUND'`, then `create-user` and `get-user` again,
-  and since #3168 the 401 codes `EMAIL_NOT_VERIFIED` and `SIGN_IN_AGAIN`) and the handshake fields it sends (`auth.token`,
-  whose claims now include `emailVerified`; `query.user` only when anonymous). #3111 and forceteki-client #875 changed all
-  three together and `TestClient` was updated by hand, as #3168 and forceteki-client #892 did again with `AuthTokens`, so
-  nothing would have flagged a half-made change. The manifest
-  needs a refresh step whenever the FE changes either surface; note that in the FE PR template.
-- **Positive coverage:** 2 of the 22 allowlisted commands are asserted as accepted. Add one routed-and-effective
-  assertion per command (a parameterised spec over the exported sets, using typed `TestClient` commands — I-6),
-  plus the spectator allowlist (`retransmitGameMessages` accepted; everything else ignored). Since #3110 the game accepts an
-  action-window menu command only while a matching button is offered, so each positive spec needs a game state in which its
-  command is offered (`harness.startLiveGameAsync`).
+**The local security documents** (read 2026-11-19): V-4 (the wrapper's own event; core's row C21), V-8 and V-9 (two lobby
+commands; the per-command specs must not run them where those fixes apply, so those rows stay held until they ship), V-11
+(prompt commands), V-12 and V-28 (message size and rate), V-24 (error responses), and V-7 (the undo command; the undo
+area's). Step a starts from them; tracked files cite them by number only.
+
+**Definition of done.** Every row below is covered, waived with a reason, or held, and a coverage run over `Lobby`'s three
+dispatchers, `server/socket.js` and the `create-lobby` and `enter-queue` handlers finds no unlisted gap. Every row is
+asserted on the wire (what the sender and the others in the lobby receive), apart from P1 and P2, which check the code.
+
+| Row | Behaviour | Status |
+|---|---|---|
+| P1 | every allowlisted name is a method of `Lobby` or `Game`, so a rename cannot silently disable a command | ✅ covered (step b) |
+| P2 | one list of game commands: the captured states derive theirs from `GameCommand` (less chat) instead of keeping a copy | ✅ done (step b) |
+| P3 | each lobby command reaches its method and takes effect, in a state in which the client sends it | in part (step b): `concedeBo3`, `proceedToNextBo3Game` and `setReadyStatus` in `protocol/SocketCommands`, and the chat, report and start commands in the specs its table names; six pending; held where V-8 and V-9 apply |
+| P4 | each game command reaches the game and takes effect, in a state in which it is offered (since #3110 an action-window menu command is accepted only while its button is offered) | in part (step b): `concede` in `protocol/SocketCommands`, and `chat`, `menuButton` and `rollbackToSnapshot` in the specs its table names; four pending |
+| P5 | a spectator's `retransmitGameMessages` is answered, and every other lobby or game command from a spectator changes nothing | the answer is covered (step b); the rest is pending |
+| P6 | a command a channel does not know changes nothing, on all three channels: the sender gets the rejection event (decision 2), nobody else is sent anything, and it is logged as a warning | in part: on the lobby and game channels it changes nothing (the specs `SocketCommandAllowlist` had); the rest with step d's fix |
+| P7 | a command with arguments it cannot use changes nothing: the sender gets the rejection event, and it is logged as a warning | to do, with step d's fix |
+| P8 | the socket events: `requeue` and `manualDisconnect` (core's specs), an event the server does not register | partly covered (core) |
+| P9 | the client contract: a change on one side that the other relies on fails CI | not this area's: covered by separate work on the captured states (decision 3) |
+| P10 | each match-configuration field is checked on both routes: `format`, `cardPool`, `gamesToWinMode`, the preference, with a 400 naming the field | `gamesToWinMode` waits on #3's fix |
+| P11 | the legal combinations, as the server's own table has them (decision 1): one spec per legal and illegal combination on each route | with #3's fix |
+| P12 | `resetActionTimer` is gone: the game channel treats it as any unknown command | step d |
+| P13 | the wrapper's own event | held (V-4; core's row C21) |
+| P14 | limits on message size and rate | held (V-12, V-28) |
+
+**Decisions for the owner** (step a):
+
+1. **Who owns the legal matrix — decided (2026-11-19): independent copies, for now.** The server keeps its own table of the
+   legal combinations of format, card pool and games to win (`validateMatchConfiguration`) and refuses anything else with a
+   400; the client keeps its own tables. Nothing shares or generates one from the other yet. Unless the owner says
+   otherwise, the server's table starts as the client's does today: FauxSuns only on a development server, Open in lobbies
+   only.
+2. **What a client is told when it sends something the server cannot use — decided (2026-11-19): an error event to the
+   sender**, even though the client shows nothing for it yet. A new event (its name settled in step b, such as
+   `commandRejected`) carrying the command and a fixed reason code (an unknown command, or arguments it cannot use), never
+   an internal error message (V-24). Logged as a warning on all three channels. No client change is needed first:
+   socket.io-client (4.8) drops an event no listener is registered for, the client has no catch-all listener, and the name
+   avoids `connection_error`, which the client does handle.
+3. **How the client contract stays current — decided (2026-11-19): not this area's.** The author of the captured states
+   (#3072, forceteki-client #872) will extend them to cover it, as separate work. The captures already pin the game states
+   the server sends and the game messages a client sends for the prompts they cover. A note sent to that author on
+   2026-11-19 lists what they do not cover yet:
+   - the lobby commands and the client's other events;
+   - the server's events other than `gamestate`;
+   - the HTTP exchanges, sign-in first;
+   - the handshake fields;
+   - a check on the server side, so that a server PR which breaks the client fails before a client run uses it.
+
+   This area keeps no record of its own. P2 removed the captures' copy of the game commands.
+
+**Steps.**
+
+- **a: ✅ done (2026-11-19).** The owner took all three decisions.
+- **b: ✅ done (2026-11-19).**
+  - Production (behaviour-neutral): the command lists moved out of `Lobby` into `server/gamenode/SocketCommands.ts`. They
+    are the enums `LobbyCommand` and `GameCommand`, rather than the read-only sets this step first planned (the repository
+    prefers enums for a fixed set of strings), and the set `spectatorCommands`. `Lobby`'s three dispatchers check them.
+  - The captured states derive `RecordedCommands` from `GameCommand` (P2), and `TestClient`'s typed commands name the
+    enums.
+  - The new `test/server/gamenode/protocol/` area (with its bullet in `CLAUDE.md`). `SocketCommandAllowlist` moved there
+    as `SocketCommands`, which has:
+    - P1's check;
+    - a table with an entry for every command: its spec there, the spec elsewhere that covers it, or a pending spec for
+      step c. A command added to the enums without an entry fails to compile;
+    - "hello world" specs for one command per channel: `setReadyStatus`, `concede`, and a spectator's
+      `retransmitGameMessages`;
+    - the two specs of an unknown command that `SocketCommandAllowlist` had.
+
+    That makes 9 specs and 11 pending, where the old file had 4 specs.
+  - A fragility-register row for P1's check.
+
+  Dropped: the client-contract record (P9), by decision 3.
+- **c:** the rows. The per-command specs build on the core builders and the game driver (`startLiveGameAsync`,
+  `playThroughSetupAsync`); the pending entries in `protocol/SocketCommands` are the starting list.
+- **d:** #3's fix, with the server's own table (decision 1); the rejection event and warning-level logging on all three
+  channels (decision 2); `resetActionTimer` removed (P12, the last of #11), with `TestClient.resetActionTimerAsync`; and
+  the Premier-with-unlimited path answering with its own error rather than `invalidDeckData`.
+- **Not this area's:** what each HTTP route does (its own area), the prompts' own argument checks (V-11) and undo (area 4).
 
 ### 4. Undo in live games — step a
 
@@ -861,6 +947,7 @@ list exists so none is mistaken for a stable contract when the refactor starts.
 | `ByoyomiTimer` (unit spec) | Builds the timer directly on a `TestScheduler`, through the narrow `IActionTimerPlayer` / `IActionTimerGame` types, to pin what no game without cards reaches | keep it while those types stay narrow; a card-driven wire spec could replace it |
 | `SaveDeck`: `spyOn(harness.db, 'saveDeckAsync').and.callThrough()` | Checks what the server hands the database through the fake's method name | the decks area's alignment; keep it if the contract suite names that method |
 | `CosmeticCreation`: `spyOn(harness.db, 'getCosmeticsAsync').and.rejectWith(...)` | Forces the cosmetics list's re-read to fail after a save; depends on the route re-reading through that method | the cosmetics area's alignment |
+| `SocketCommands` (protocol): *the command lists name only methods of Lobby / Game* | Reads `Lobby.prototype` and `Game.prototype` (row P1), because `Lobby` runs a command by calling the method of the same name | rewrite against whatever dispatches commands after the refactor; a table of handlers would make the check unnecessary |
 | `DynamoDBService.spec.ts`: the exact commands sent | Asserts update expressions and placeholder names (`#field0`, `:value0`) as well as keys and items | the database layer's step a, which decides what is the contract |
 | `TestGameServer`, `TestClient` and `FakeIoSocket`: `GameServer`'s `protected` constructor, `lobbies`, `httpServer`, `authenticateSocketAsync` and `handleSocketConnectionAsync` | The harness itself is the main consumer of these members (see *What the harness depends on in production* in the Handoff) | re-wire the three helpers to whatever replaces them; the behaviour specs should not change |
 
@@ -927,18 +1014,16 @@ and #20 were fixed the same day).
    socket. **Not fixed**, and no spec asserts the current behaviour: a `TODO` in `GameServerLobbyApi` marks the spec to add
    once it is.
 
-3. **Game-mode configuration is barely validated — open, partly improved.** `format` and `cardPool` are
-   enum-checked with a `400` on both `create-lobby` and `enter-queue`, and #3001's new matchmaking
-   preference is validated the same way (`EnumHelpers.isEnumValue` → `400`) — that is the house style for
-   Phase 3b. But `gamesToWinMode` is **still never enum-checked** on either route, and there is no cross-field
-   validation (nothing enforces "open is lobby-only", "queue is premier/eternal only", or "premier cannot use
-   unlimited"); `fauxSuns` is accepted although the FE has no such value. Failure modes are unchanged: a bogus
-   `gamesToWinMode` on `create-lobby` yields a **500**, premier+unlimited yields a **500** from a `Contract`
-   assertion, and a bogus `gamesToWinMode` on `enter-queue` returns **`200 OK`** and then fails silently at
-   socket-connect time, leaving the user on a "searching" screen forever. Queue keys are still
-   `JSON.stringify`-based (`JSON.parse(queueKey)` in `QueueHandler`); they are built in a fixed order in
-   production, so the property-order sensitivity is latent rather than live. Re-verified on 2026-11-01: `gamesToWinMode` is
-   still not enum-checked on either route.
+3. **Game-mode configuration is barely validated — open.** `format` and `cardPool` are enum-checked with a `400` on both
+   `create-lobby` and `enter-queue`, and so is the matchmaking preference (`EnumHelpers.isEnumValue` → `400`, the house
+   style). But `gamesToWinMode` is **still never checked** on either route, and nothing checks that the fields fit together.
+   Re-verified on 2026-11-19 with a probe (the protocol-surface area's step a): an unknown `gamesToWinMode` gets a **500**
+   from `create-lobby` and a **`200 OK`** from `enter-queue`, whose socket then connects and waits in a queue nobody else
+   can join; Premier or Eternal with the unlimited card pool now gets a 400 `invalidDeckData` (a `Contract` failure in deck
+   validation, logged at error level) rather than a 500; Open with the current pool, Open or Limited in the queue, and
+   FauxSuns (offered by the client only in development) are accepted, though the client's tables never send them. Queue keys
+   are still `JSON.stringify`-based, built in a fixed order, so the property-order sensitivity is latent. For the
+   protocol-surface area's step d, once its decision 1 settles who owns the legal matrix.
 
 10. **A lost account-creation race leaves the losing request's profile behind — open, new (2026-11-05).** When two
     processes create an account for one identity at the same moment, the one whose conditional OAuth-link write fails
@@ -949,7 +1034,7 @@ and #20 were fixed the same day).
     `CredentialVerification`'s race spec says what to add once the profile is deleted.
 
 11. **The inactivity kick and `resetActionTimer` no longer reach the action timer — open: fixed on the server
-    (2026-11-09), the client's part to do.** Since the byoyomi timer (#2056), nothing calls the `userTimeoutDisconnect` callback a lobby hands its game, so
+    (2026-11-09) and the client, the server's no-op left.** Since the byoyomi timer (#2056), nothing calls the `userTimeoutDisconnect` callback a lobby hands its game, so
     `Lobby.userTimeoutDisconnect`, the `inactiveDisconnect` event, the `forceDisconnect` flag and the disconnect handler's
     check for it are unreachable; a player whose time runs out loses the game on timeout instead. And
     `GameActionTimer.shouldFireHandler` always returns true (the check that the player has not acted since the timer
@@ -963,9 +1048,9 @@ and #20 were fixed the same day).
     than starting it again, and it fails once the player has sent any message since the timer started, chat included.
     The tracking it relies on is also what logs #17. Row T12 covers the decided behaviour. **Fixed on the server in the
     game-timer area's step d (2026-11-09):** the kick, the check and its tracking are gone (the history document lists
-    them). What remains is the client's part: forceteki-client stops sending `resetActionTimer` and drops its
-    `inactiveDisconnect` handler (made on its branch `ammayberry1/timer-cleanup`, 2026-11-09), then, once that has
-    shipped, the server's no-op branch for `resetActionTimer` goes.
+    them). The client's part shipped in forceteki-client #881 (`resetActionTimer` no longer sent, the `inactiveDisconnect`
+    handler gone). What remains is the server's no-op branch for `resetActionTimer`, which goes in the protocol-surface
+    area's step d (row P12).
 
 15. **`Lobby.hasOngoingGame()` means "a game has ever started" — open, new (2026-11-06).** It is `game !== undefined`, and
     `rematch()` and the best-of-three transition set `game = null`, so between the games of a rematch or a set the lobby
