@@ -21,15 +21,15 @@ button:disabled { opacity:.45; cursor:default; }
 .tabs button.on { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
 .progress { color:var(--muted); margin-left:auto; font-size:13px; }
 #msg { font-size:13px; } #msg.ok { color:var(--ok); } #msg.err { color:var(--err); }
-.wrap { max-width:1200px; margin:0 auto; padding:16px; }
+.wrap { max-width:1900px; margin:0 auto; padding:16px; }
 .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
 .desc { color:var(--muted); font-size:13px; margin:0 0 12px; }
 .banner { border:1px solid var(--warn); color:var(--warn); border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:14px; }
 .grid { display:grid; grid-template-columns:1fr; gap:10px; }
-.tile .tnote { flex:0 0 50%; min-width:0; display:flex; flex-direction:column; gap:6px; cursor:default; }
+.tile .tnote { flex:0 0 42%; min-width:0; display:flex; flex-direction:column; gap:6px; cursor:default; }
 .tile .nbox { flex:1; display:flex; flex-direction:column; }
 .tile .tnote b { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px; }
-.tile .tnote textarea { flex:none; min-height:56px; font-size:13px; }
+.tile .tnote textarea { flex:none; min-height:110px; font-size:13px; }
 textarea { overflow:hidden; }
 dialog { border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); padding:16px 18px; width:min(520px, 92vw); }
 dialog::backdrop { background:rgba(0,0,0,.4); }
@@ -45,8 +45,8 @@ select { max-width:100%; }
 .tile .tick { flex:none; width:22px; height:22px; border-radius:50%; background:var(--ok); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; margin-top:2px; }
 .tile.off .tick { background:var(--err); }
 .tile.ro .tick { display:none; }
-.thumb { flex:none; width:120px; }
-.thumb.leader { width:250px; display:flex; gap:6px; align-items:flex-start; }
+.thumb { flex:none; width:250px; }
+.thumb.leader { width:520px; display:flex; gap:6px; align-items:flex-start; }
 .thumb.leader .imgslot { flex:1; min-width:0; }
 /* Phones: larger card images; a leader's two images get a full row, with the text below. */
 @media (max-width:800px) { .thumb { width:160px; } .thumb.leader { width:100%; } .thumb.leader + .body { flex-basis:100%; } }
@@ -55,7 +55,8 @@ select { max-width:100%; }
 .body { min-width:0; flex:1; }
 .body h3 { margin:0; font-size:16px; }
 .sub { color:var(--muted); font-size:12px; margin-bottom:4px; }
-.field { margin:4px 0; font-size:14px; } .field b { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; display:block; }
+.abilities { border:1px solid var(--line); border-radius:8px; padding:4px 10px; margin:6px 0; }
+.field { margin:6px 0; font-size:14px; } .field b { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; display:block; }
 .rem { color:var(--muted); }
 mark { background:var(--mark); color:inherit; border-radius:3px; padding:0 1px; }
 .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
@@ -164,7 +165,7 @@ function render1(text, res0) {
 const hlRegex = (gids) => { const src = gids.map((g) => groupById[g].re).filter(Boolean); return src.length ? new RegExp(src.map((s) => `(?:${s})`).join('|'), 'gi') : null; };
 const fieldsHtml = (c, gids) => {
   const re = hlRegex(gids);
-  return c.fields.length ? c.fields.map((f) => `<div class="field"><b>${esc(f.label)}</b>${render1(f.text, re)}</div>`).join('') : '<div class="field"><b>Text</b>(none)</div>';
+  return '<div class="abilities">' + (c.fields.length ? c.fields.map((f) => `<div class="field"><b>${esc(f.label)}</b>${render1(f.text, re)}</div>`).join('') : '<div class="field"><b>Text</b>(none)</div>') + '</div>';
 };
 
 // ---- images (SWUDB names are inconsistent, so several candidates are tried) ----
@@ -217,12 +218,26 @@ function updateHeader() {
 }
 
 // ======================= BULK =======================
+// A card is in a group when its text matches the group's phrase, or when it was tagged with that group by hand
+// (tags such as "Always Two: Rules Unknown" have no phrase, so only a hand tag puts a card in them).
+// "Hide reprints" skips cards printed in more than one set (they are listed once, under one set).
+const shown = (c) => !(ui.hideReprints && c.reprint);
+const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in more than one set. Listed here once.">Reprint${c.alsoIn.length ? ': also ' + esc(c.alsoIn.join(', ')) : ''}</span>` : '');
+const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
 const groupCount = (g, set) => {
-  const cs = DATA.cards.filter((c) => !c.auto && c.hits.includes(g.id) && (set === 'all' || c.set === set));
+  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set));
   return { open: cs.filter((c) => !rec(c).reviewed && !res(c, g.id)).length, total: cs.length };
 };
 function viewMatch(c, gid) {
   const v = ui.view || 'open', r = res(c, gid), done = rec(c).reviewed;
+  if (gid === AGENT_GROUP) {
+    // This list spans groups, so a card's state is judged over every group it matched.
+    if (v === 'open') { return !done && c.hits.some((h) => !res(c, h)); }
+    if (v === 'done') { return done || c.hits.every((h) => ['tag', 'ok'].includes(res(c, h))); }
+    if (v === 'follow') { return !done && c.hits.some((h) => res(c, h) === 'followup'); }
+    return true;
+  }
+  if (v === 'agent') { return agentClear(c) && !r; }
   if (v === 'open') { return !done && !r; }
   if (v === 'done') { return done || r === 'tag' || r === 'ok'; }
   if (v === 'follow') { return !done && r === 'followup'; }
@@ -233,11 +248,11 @@ function viewMatch(c, gid) {
 function effSet() {
   const s = ui.set || 'auto';
   if (s !== 'auto') { return s; }
-  return DATA.sets.find((x) => DATA.cards.some((c) => !c.auto && c.hits.includes(ui.group) && c.set === x && viewMatch(c, ui.group))) || 'all';
+  return DATA.sets.find((x) => DATA.cards.some((c) => !c.auto && shown(c) && inGroup(c, ui.group) && c.set === x && viewMatch(c, ui.group))) || 'all';
 }
 function bulkCards() {
   const set = effSet();
-  return DATA.cards.filter((c) => !c.auto && c.hits.includes(ui.group) && (set === 'all' || c.set === set) && viewMatch(c, ui.group));
+  return DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, ui.group) && (set === 'all' || c.set === set) && viewMatch(c, ui.group));
 }
 function renderBulk() {
   if (!groupById[ui.group]) { ui.group = DATA.groups.find((g) => g.kind === 'tag').id; }
@@ -247,14 +262,19 @@ function renderBulk() {
   const opt = (kind, label) => `<optgroup label="${label}">` + DATA.groups.filter((x) => x.kind === kind).map((x) => { const n = groupCount(x, countSet); return `<option value="${x.id}"${x.id === g.id ? ' selected' : ''}>${esc(x.label)} — ${n.open} left / ${n.total}</option>`; }).join('') + '</optgroup>';
   const all = bulkCards(), page = all.slice(bulkOffset, bulkOffset + PAGE_SIZE);
   const key = page.map((c) => c.id).join('|');
-  if (key !== selKey) { selKey = key; sel = new Set(page.map((c) => c.id)); }
+  if (key !== selKey) {
+    selKey = key;
+    // In the agent list, cards already sent to follow-up start deselected so a bulk apply does not overwrite that.
+    sel = new Set(page.filter((c) => g.id !== AGENT_GROUP || !Object.values(rec(c).r || {}).includes('followup')).map((c) => c.id));
+  }
   const manual = g.kind === 'manual';
   const applyLabel = g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
   $('app').innerHTML = `
     <div class="bar">
       <select id="bGroup">${opt('tag', 'Review tags')}${opt('manual', 'Special attention')}${opt('watch', 'Other phrases (candidates)')}${opt('passfail', 'Nothing matched')}</select>
       <select id="bSet"><option value="auto"${choice === 'auto' ? ' selected' : ''}>Auto: ${set === 'all' ? 'all sets' : set}</option><option value="all"${choice === 'all' ? ' selected' : ''}>All sets</option>${DATA.sets.map((s) => `<option value="${s}"${s === choice ? ' selected' : ''}>${s}</option>`).join('')}</select>
-      <select id="bView">${[['open', 'Unresolved'], ['follow', 'Follow-up'], ['done', 'Resolved'], ['all', 'All']].map(([v, l]) => `<option value="${v}"${v === (ui.view || 'open') ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <select id="bView">${[['open', 'Unresolved'], ['agent', 'Agent: no concern'], ['follow', 'Follow-up'], ['done', 'Resolved'], ['all', 'All']].map(([v, l]) => `<option value="${v}"${v === (ui.view || 'open') ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <label class="src"><input type="checkbox" id="bHideRe"${ui.hideReprints ? ' checked' : ''}> Hide reprints</label>
       <span class="src">${all.length} card${all.length === 1 ? '' : 's'} in this view</span>
       <button id="bNewTag">+ New tag</button>
     </div>
@@ -280,6 +300,7 @@ function renderBulk() {
   $('bGroup').onchange = (e) => { ui.group = e.target.value; bulkOffset = 0; saveUi(); renderBulk(); };
   $('bSet').onchange = (e) => { ui.set = e.target.value; bulkOffset = 0; saveUi(); renderBulk(); };
   $('bView').onchange = (e) => { ui.view = e.target.value; bulkOffset = 0; saveUi(); renderBulk(); };
+  $('bHideRe').onchange = (e) => { ui.hideReprints = e.target.checked; bulkOffset = 0; selKey = ''; saveUi(); renderBulk(); };
   if (!manual) {
     for (const t of document.querySelectorAll('.tile[data-id]')) { t.onclick = (ev) => { if (ev.target.closest('a,summary,details,.tnote')) { return; } const id = t.dataset.id; if (sel.has(id)) { sel.delete(id); } else { sel.add(id); } refreshApply(); }; }
     $('bAll').onclick = () => { sel = new Set(page.map((c) => c.id)); refreshApply(); };
@@ -295,7 +316,8 @@ function renderBulk() {
 }
 function tile(c, g, manual) {
   const r = res(c, g.id), others = c.hits.filter((h) => h !== g.id);
-  const state = rec(c).reviewed ? '<span class="hit ok">reviewed</span>' : (r ? `<span class="hit ${r}">${r === 'followup' ? 'follow-up' : r === 'tag' ? 'tagged' : 'no concern'}</span>` : '');
+  const marks = g.id === AGENT_GROUP ? Object.entries(rec(c).r || {}).filter(([gid]) => groupById[gid]).map(([gid, x]) => `<span class="hit ${x}">${esc(groupById[gid].label)}: ${x === 'followup' ? 'follow-up' : x === 'tag' ? 'tagged' : 'no concern'}</span>`).join('') : '';
+  const state = g.id === AGENT_GROUP ? (rec(c).reviewed ? '<span class="hit ok">reviewed</span>' : '') + marks : rec(c).reviewed ? '<span class="hit ok">reviewed</span>' : (r ? `<span class="hit ${r}">${r === 'followup' ? 'follow-up' : r === 'tag' ? 'tagged' : 'no concern'}</span>` : '');
   return `<div class="tile${manual ? ' ro' : ''}" data-id="${esc(c.id)}">
     <div class="tick">✓</div>
     <div class="thumb${c.leader ? ' leader' : ''}">${hasImage(c) ? imgSlot(c, '', 'No image') + (c.leader ? imgSlot(c, '-back,-portrait', 'No deployed image') : '') : '<div class="noimg">No image</div>'}</div>
@@ -304,7 +326,7 @@ function tile(c, g, manual) {
       <div class="sub">${c.set} #${c.num} · ${esc(c.type)}</div>
       ${fieldsHtml(c, [g.id])}
       ${questionsHtml(c)}
-      <div class="chips">${state}${others.filter((h) => h !== 'nohit').map((h) => `<span class="hit">${esc(groupById[h].label)}</span>`).join('')}</div>
+      <div class="chips">${state}${reprintChip(c)}${agentClear(c) ? '<span class="hit" title="The drafting agent found nothing format-specific for this card. Not marked until you review it.">Agent: no concern</span>' : ''}${others.filter((h) => h !== 'nohit').map((h) => `<span class="hit">${esc(groupById[h].label)}</span>`).join('')}</div>
     </div>
     <div class="tnote">
       <div class="nbox"><b>Twin Suns notes</b>${noteBox(c, 'noteTS', 'Twin Suns notes for this card')}</div>
@@ -317,6 +339,14 @@ function tile(c, g, manual) {
 const SUG_KEY = { noteTS: 'ts', noteA2: 'a2' };
 // Open questions the rules do not settle, drafted per card. The reviewer's answer is saved with the card (qAnswer).
 const questionsFor = (c) => (DATA.suggestions && DATA.suggestions[c.id] && DATA.suggestions[c.id].q) || [];
+// The drafting agent found nothing format-specific: both drafted notes are empty and no question is open.
+// This is only a suggestion; the card is not marked until the reviewer does it.
+const AGENT_GROUP = '__agent';
+const agentEmpty = (c) => {
+  const d = DATA.suggestions && DATA.suggestions[c.id], r = rec(c);
+  return !c.auto && !!d && !d.ts && !d.a2 && !(d.q && d.q.length) && !r.noteTS && !r.noteA2;
+};
+const agentClear = (c) => agentEmpty(c) && !rec(c).reviewed;
 const FMT = { ts: 'Twin Suns', a2: 'Always Two' };
 function questionsHtml(c) {
   const qs = questionsFor(c);
@@ -352,7 +382,13 @@ async function applyBulk(page, g) {
   const updates = [], prev = {};
   for (const c of page) {
     const r = Object.assign({}, rec(c).r || {}), tags = new Set(rec(c).tags || []);
-    if (sel.has(c.id)) { r[g.id] = g.kind === 'tag' ? 'tag' : 'ok'; if (g.kind === 'tag') { tags.add(g.id); } }
+    if (g.id === AGENT_GROUP) {
+      // This list spans groups: mark every group the card matched (tag groups are left for a person to decide).
+      for (const h of c.hits) {
+        if (groupById[h].kind === 'tag' || groupById[h].kind === 'manual') { continue; }
+        r[h] = sel.has(c.id) ? 'ok' : 'followup';
+      }
+    } else if (sel.has(c.id)) { r[g.id] = g.kind === 'tag' ? 'tag' : 'ok'; if (g.kind === 'tag') { tags.add(g.id); } }
     else { r[g.id] = 'followup'; tags.delete(g.id); }
     prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
     updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { r, tags: [...tags] }), tileEl(c.id), sel.has(c.id)) });
@@ -372,9 +408,9 @@ async function undoBulk() {
 // ======================= SINGLE =======================
 function singleCards() {
   const f = ui.sFilter || 'attention', set = ui.sSet || 'all', q = ($('sSearch') ? $('sSearch').value : (ui.sQuery || '')).trim().toLowerCase();
-  return DATA.cards.filter((c) => (set === 'all' || c.set === set)
-    && (f === 'all' || (f === 'attention' && needsSingle(c)) || (f === 'unresolved' && !c.auto && !isComplete(c)) || (f === 'reviewed' && !c.auto && isComplete(c))
-      || (f === 'question' && !c.auto && questionsFor(c).length && !rec(c).qAnswer) || (f === 'auto' && c.auto) || (f === 'group' && !c.auto && c.hits.includes(ui.sGroup) && !rec(c).reviewed))
+  return DATA.cards.filter((c) => (set === 'all' || c.set === set) && shown(c)
+    && (f === 'all' || (f === 'attention' && needsSingle(c)) || (f === 'unresolved' && !c.auto && !isComplete(c)) || (f === 'reviewed' && !c.auto && isComplete(c)) || (f === 'agent' && agentClear(c))
+      || (f === 'question' && !c.auto && questionsFor(c).length && !rec(c).qAnswer) || (f === 'auto' && c.auto) || (f === 'group' && !c.auto && inGroup(c, ui.sGroup) && !rec(c).reviewed))
     && (!q || (c.name + ' ' + c.subtitle + ' ' + c.fields.map((x) => x.text).join(' ')).toLowerCase().includes(q)));
 }
 function renderSingle(keepId) {
@@ -388,10 +424,11 @@ function drawSingle() {
   const c = singleList[singleIdx];
   if (c) { ui.sCard = c.id; saveUi(); }
   const bar = `<div class="bar">
-      <select id="sFilter">${[['attention', 'Needs single review'], ['question', 'Has open question'], ['unresolved', 'Anything unresolved'], ['reviewed', 'Reviewed'], ['auto', 'Auto-cleared'], ['all', 'All cards'], ['group', 'By group…']].map(([v, l]) => `<option value="${v}"${v === f ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <select id="sFilter">${[['attention', 'Needs single review'], ['question', 'Has open question'], ['unresolved', 'Anything unresolved'], ['reviewed', 'Reviewed'], ['agent', 'Agent: no concern'], ['auto', 'Auto-cleared'], ['all', 'All cards'], ['group', 'By group…']].map(([v, l]) => `<option value="${v}"${v === f ? ' selected' : ''}>${l}</option>`).join('')}</select>
       ${f === 'group' ? `<select id="sGroup">${DATA.groups.map((g) => `<option value="${g.id}"${g.id === ui.sGroup ? ' selected' : ''}>${esc(g.label)}</option>`).join('')}</select>` : ''}
       <select id="sSet"><option value="all">All sets</option>${DATA.sets.map((s) => `<option value="${s}"${s === set ? ' selected' : ''}>${s}</option>`).join('')}</select>
       <input id="sSearch" type="search" placeholder="Search name/text" value="${esc(ui.sQuery || '')}">
+      <label class="src"><input type="checkbox" id="sHideRe"${ui.hideReprints ? ' checked' : ''}> Hide reprints</label>
       <span class="src">${singleList.length ? `${singleIdx + 1} of ${singleList.length}` : ''}</span></div>`;
   if (!c) { $('app').innerHTML = bar + '<div class="empty">No cards match this filter.</div>'; wireSingleBar(); updateHeader(); return; }
   const r = rec(c), tags = effTags(c), manualHits = c.hits.filter(isManual);
@@ -403,7 +440,7 @@ function drawSingle() {
     <div>
       <div class="panel">
         <h2>${esc(c.name)}${c.subtitle ? ' — ' + esc(c.subtitle) : ''}</h2>
-        <div class="meta">${c.set} #${c.num} · ${esc(c.type)} · ${status}</div>
+        <div class="meta">${c.set} #${c.num} · ${esc(c.type)} · ${status}${c.reprint ? ' ' + reprintChip(c) : ''}</div>
         ${c.auto ? '' : `<div class="chips">${hitChips}</div>
         ${manualHits.length ? '<div class="banner" style="margin-top:10px">Special attention: ' + manualHits.map((h) => esc(groupById[h].label)).join(', ') + '. Check the interaction with both formats.</div>' : ''}
         <h4>Review tags</h4>
@@ -457,6 +494,7 @@ function drawSingle() {
 function goSingle(d) { singleIdx = Math.min(Math.max(singleIdx + d, 0), singleList.length - 1); drawSingle(); }
 function wireSingleBar() {
   if (!$('sFilter')) { return; }
+  $('sHideRe').onchange = (e) => { ui.hideReprints = e.target.checked; ui.sCard = null; saveUi(); renderSingle(); };
   $('sFilter').onchange = (e) => { ui.sFilter = e.target.value; if (e.target.value === 'group' && !ui.sGroup) { ui.sGroup = DATA.groups[0].id; } ui.sCard = null; saveUi(); renderSingle(); };
   if ($('sGroup')) { $('sGroup').onchange = (e) => { ui.sGroup = e.target.value; ui.sCard = null; saveUi(); renderSingle(); }; }
   $('sSet').onchange = (e) => { ui.sSet = e.target.value; ui.sCard = null; saveUi(); renderSingle(); };
@@ -493,7 +531,10 @@ $('tagForm').onsubmit = async (e) => {
 async function loadData() {
   const r = await fetch('/api/data', { cache: 'no-store' });
   if (!r.ok) { throw new Error('server returned ' + r.status); }
-  DATA = await r.json(); reviews = DATA.reviews; groupById = Object.fromEntries(DATA.groups.map((g) => [g.id, g])); byId = Object.fromEntries(DATA.cards.map((c) => [c.id, c]));
+  DATA = await r.json(); reviews = DATA.reviews;
+  // A read-only list of every card the drafting agent cleared (empty draft), including ones already marked.
+  DATA.groups.push({ id: AGENT_GROUP, label: 'Agent: no concern (all)', kind: 'watch', desc: 'Every card where the drafting agent found nothing format-specific, including cards you have already marked (their marks are shown on the tile). Applying marks every group the card matched as no concern; deselected cards go to follow-up in every group they matched. Cards you already sent to follow-up start deselected.', re: null });
+  groupById = Object.fromEntries(DATA.groups.map((g) => [g.id, g])); byId = Object.fromEntries(DATA.cards.map((c) => [c.id, c]));
 }
 function show() { if (ui.mode === 'single') { renderSingle(); } else { renderBulk(); } }
 $('tabBulk').onclick = () => { ui.mode = 'bulk'; saveUi(); selKey = ''; show(); };

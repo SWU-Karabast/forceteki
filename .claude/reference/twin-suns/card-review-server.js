@@ -40,7 +40,7 @@ const KEYWORDS_ONLY = new RegExp(String.raw`^(?:(?:${KEYWORDS})[\s,.:]*)+$`, 'i'
 
 function loadGroups() {
     const raw = JSON.parse(fs.readFileSync(GROUPS_FILE, 'utf8'));
-    const groups = raw.groups.map((g) => ({ id: g.id, label: g.label, kind: g.kind, desc: g.desc, re: g.re }));
+    const groups = raw.groups.map((g) => ({ id: g.id, label: g.label, kind: g.kind, desc: g.desc, re: g.re, exclude: g.exclude }));
     groups.push({ id: raw.passfail.id, label: raw.passfail.label, kind: 'passfail', desc: raw.passfail.desc, re: null });
     return groups;
 }
@@ -100,7 +100,13 @@ function loadCards() {
         } else if (stripped.every((t) => KEYWORDS_ONLY.test(t))) {
             auto = 'Keywords only';
         }
+        // A card printed in more than one set is a reprint (printings inside the same set, such as showcase
+        // versions, do not count). The card is listed once, under the set of its listed printing.
+        const printedIn = [...new Set((d.setCodes || []).map((p) => p.set))];
+        const alsoIn = printedIn.filter((s) => s !== (d.setId && d.setId.set));
         cards.push({
+            reprint: printedIn.length > 1,
+            alsoIn,
             id: d.internalName,
             name: d.title,
             subtitle: d.subtitle || '',
@@ -122,11 +128,16 @@ function loadCards() {
 
 function buildData() {
     const groups = loadGroups();
-    const compiled = groups.filter((g) => g.re).map((g) => ({ id: g.id, re: new RegExp(g.re, 'i') }));
+    // An optional "exclude" regex is removed from the card text before the group's phrase is looked for.
+    const compiled = groups.filter((g) => g.re).map((g) => ({
+        id: g.id,
+        re: new RegExp(g.re, 'i'),
+        exclude: g.exclude ? new RegExp(g.exclude, 'gi') : null
+    }));
     const cards = loadCards().map((c) => {
         let hits = [];
         if (!c.auto) {
-            hits = compiled.filter((g) => g.re.test(c.scan)).map((g) => g.id);
+            hits = compiled.filter((g) => g.re.test(g.exclude ? c.scan.replace(g.exclude, ' ') : c.scan)).map((g) => g.id);
             if (!hits.length) {
                 hits = ['nohit'];
             }

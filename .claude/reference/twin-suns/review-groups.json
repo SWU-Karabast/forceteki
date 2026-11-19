@@ -24,7 +24,7 @@
     {"id":"w-take-control","label":"Take control","kind":"watch","desc":"Takes or gains control of a card.","re":"\\b(?:take|takes|gain|gains) control\\b"},
     {"id":"w-compare","label":"Most / fewest / compare","kind":"watch","desc":"Comparisons between players, resolved per card.","re":"\\b(?:the most|fewest|fewer|more [\\w ]{0,30}than|less [\\w ]{0,30}than|the same (?:number|amount)|least)\\b"},
     {"id":"w-a-player","label":"A / any player","kind":"watch","desc":"Chooses any one player, including the controller.","re":"\\b(?:a|any|that|target|chosen|another) (?:other )?player\\b"},
-    {"id":"w-resources","label":"Resources / aspects / paying","kind":"watch","desc":"You cannot spend a teammate's resources or use their aspects.","re":"\\b(?:resources?|aspects?|pay|paying)\\b"},
+    {"id":"w-resources","label":"Resources / aspects (effects only)","kind":"watch","desc":"Effects that act on resources or aspects (ready a resource, ignore aspect penalties...). Ordinary costs (bracketed costs, \"pay N resources\") are ignored: paying only with your own resources is an engine-level rule.","re":"\\b(?:resources?|aspects?)\\b","exclude":"\\[[^\\]]*\\]|\\bpay(?:s|ing)? [^.:;]*|\\bcosts? (?:\\d+|X) resources? less\\b"},
     {"id":"w-defending","label":"Defending / attacker","kind":"watch","desc":"Refers to the defending player, defender or attacker.","re":"\\b(?:defending|defender|attacker)\\b"},
     {"id":"w-capture","label":"Capture / rescue","kind":"watch","desc":"Captures or rescues units.","re":"\\b(?:captures?|captured|rescues?|rescued|captive)\\b"},
     {"id":"w-owner","label":"Own / owner","kind":"watch","desc":"Ownership versus control.","re":"\\b(?:own|owns|owned|owner)\\b"},

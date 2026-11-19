@@ -46,6 +46,9 @@ Every agent that drafts Twin Suns / Always Two notes for cards must read this fi
 - Any card that initiates an attack gets this Always Two line: "Ensure the attack can only be initiated with a unit you control, never with the teammate's unit." (No shared control.)
 - Always Two Coordinate counts only units controlled by the same player, not the team (R31), and Sentinel (shared by teammates in Always Two) is tested as described in `engine-test-notes.md`. Both are engine-level: do not write per-card notes about them.
 - Unqualified "a base" (no "enemy", "friendly", "your" or "defending") can target any base in play, in both formats (R32). Do not write a line saying so ("can be your own, the teammate's or either enemy's"); mention a base only when the card does something specific with it (remaining-HP condition, elimination, who draws, the defending player).
+- "Another unit", "another Unique unit", "a unit" and similar with no control qualifier need no note: any unit can be chosen exactly as in 1v1, which the existing 1v1 suite covers (R33). Do not write a line saying the target "can be a teammate's or an opponent's unit". Write a note only when the card names who controls the card or does something 1v1 cannot show.
+- Always Two: an upgrade can be played on any unit, including the teammate's, unless the card restricts it ("Attach to a friendly unit"). A discount applies to whoever plays the card unless the text says "you" (Guardian of the Whills): then an upgrade the teammate plays does not count. Do not raise an Open line about this (R34).
+- Never write a ruling number (R5, R13, ...) or the words "ruling" / "per Anthony" in a note, an "Open:" line or a "why": the numbers are only for this file and mean nothing to later contributors. State the behavior itself in plain words.
 - Do not write an "Open:" line for any of the questions above; apply the ruling.
 
 ## Format reminders
