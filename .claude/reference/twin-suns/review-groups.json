@@ -29,7 +29,7 @@
     {"id":"w-capture","label":"Capture / rescue","kind":"watch","desc":"Captures or rescues units.","re":"\\b(?:captures?|captured|rescues?|rescued|captive)\\b"},
     {"id":"w-owner","label":"Own / owner","kind":"watch","desc":"Ownership versus control.","re":"\\b(?:own|owns|owned|owner)\\b"},
     {"id":"w-bounty","label":"Bounty","kind":"watch","desc":"Bounty: who collects it.","re":"\\bbounty\\b"},
-    {"id":"w-base","label":"Base","kind":"watch","desc":"Mentions a base (yours, a teammate's, or an enemy's).","re":"\\bbases?\\b"},
+    {"id":"w-base","label":"Base","kind":"watch","desc":"Mentions a base other than \"your base\" (a teammate's, an enemy's, or any base). \"Your base\" alone needs no Twin Suns handling. Always Two probably needs none either, if the code looks for a base the player controls and not just a friendly base; that is still to be checked in a later scan, and the existing Always Two notes on those cards stay for now.","re":"\\bbases?\\b","exclude":"\\byour (?:own )?bases?\\b"},
     {"id":"w-leader","label":"Leader (other)","kind":"watch","desc":"Mentions leaders (not \"non-leader\").","re":"(?<!non-)\\bleaders?\\b"},
     {"id":"w-each-unit","label":"Each unit","kind":"watch","desc":"\"each unit\" / \"all units\": both teams' units.","re":"\\beach (?:other )?unit\\b|\\ball units\\b"},
     {"id":"tag-always-two-rules-unknown","label":"Always Two: Rules Unknown","kind":"tag","desc":"Always Two behavior for this card cannot be decided yet: the rules or an official ruling are missing. Revisit when more is known.","re":null},

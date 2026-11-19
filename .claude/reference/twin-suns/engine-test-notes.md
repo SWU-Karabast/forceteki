@@ -34,11 +34,15 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - Shared turns: one action per team per turn by either teammate; shared initiative; no passing.
 
 ## Twin Suns (3-4 players)
+- A player whose base takes damage equal to its health is eliminated, whatever dealt the damage. This core rule is tested once here, not per card; per-card notes only cover what a card does differently.
 - Sentinel protects only its own controller's units and base. Saboteur ignores it.
 - Attack targeting is per opponent: the attacker chooses which opponent's unit or base to attack.
 - Ambush and effects that say "attack with a unit" let the controller choose the defender among every opponent's units, not only one opponent's. The defending player is the controller of the chosen defender.
 - "An opponent" is chosen by the controller and the choice persists through the ability; "each opponent" is all non-eliminated opponents (R1, R18).
 - Elimination, mid-effect elimination, controlled-not-owned cards and the end of the game are still being settled (cards tagged "Twin Suns: Elimination Unclear").
+
+## To check later (code scan)
+- Scan every card that says "your base" or "friendly base" and check the code finds the base controlled by the player, not just any friendly base (in Always Two the teammate's base is friendly too). If it does, the Always Two notes about "your own base, not the teammate's" on those cards can go. Until then they stay.
 
 ## Both formats
 - "Choose any number of players / opponents / bases" must support every subset, including none and all, and the controller (and the teammate in Always Two) where the card allows it (R30). The current engine is not set up for this.

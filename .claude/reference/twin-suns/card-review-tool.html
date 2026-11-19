@@ -226,6 +226,8 @@ const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in mor
 const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
 const groupCount = (g, set) => {
   const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set));
+  // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
+  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !rec(c).reviewed && c.hits.some((h) => !res(c, h))).length, total: cs.length }; }
   return { open: cs.filter((c) => !rec(c).reviewed && !res(c, g.id)).length, total: cs.length };
 };
 function viewMatch(c, gid) {
