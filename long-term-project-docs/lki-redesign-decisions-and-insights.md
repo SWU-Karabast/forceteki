@@ -81,7 +81,10 @@ These are the conventions the work so far followed. Keep to them so that the evi
 - **"Verified" means a committed test backs the claim.** Where a spec would assert a bug, write an
   `xit` that asserts the correct behavior and record the finding. The Maul spec is the model.
 - **No benchmarking or performance measurement anywhere in this project** (project decision,
-  2026-10-23). Design rationale about cost stays qualitative.
+  2026-10-23). Design rationale about cost stays qualitative. One exception so far: a rough profiling pass
+  of the LKI changes, approved by a maintainer on 2026-11-19 (register §G.3). The rule still stands, and
+  each further pass needs a maintainer's explicit approval, because passes take a long time to run.
+  Optimizations such as memoizing derived values belong to a separate project, not this one.
 - **`file:line` anchors drift.** They were checked by reading the line each one points at, against
   `445792e61`. The linked file and the quoted content are the authority, not the number.
 - **Gates for an LKI PR:** `npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`,

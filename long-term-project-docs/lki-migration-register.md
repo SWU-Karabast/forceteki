@@ -503,6 +503,86 @@ controller and type, and step 3.1 added the rest, with every other characteristi
 - It wraps `Card` members, so it measures card code that reads cards directly. Once the sweep (phase 3)
   routes card code through the getter, the helper has to wrap the properties classes instead.
 
+### G.3 Rough profiling, 2026-11-19 — the CPU cost of LKI, measured and estimated
+
+A maintainer approved this one pass as an exception to the working agreement against performance
+measurement (plan, "Working agreements"). Any further pass needs its own approval.
+
+**The question.** Does LKI, as built and as planned, have a major CPU cost? "As built" means everything
+on the branch at `6c45b907e`: records, the registry, and the getter that seven opted-in cards read
+through. "As planned" means three further changes: the codemod (step 3.2) routes card-code reads through
+the getter, D-38's option (a) builds a current view for each selector candidate, and phase 4 sends every
+read through the registry-backed getter.
+
+**Workload.** The game test suite, run serially, is the only workload available. Nothing replays real
+games yet: the game-notation branches can record games but not replay them, and are not merged. The
+suite's games are short and much of its time is test setup, so the shares below leave that setup out
+("play"). The suite also never builds client state (`getState`), which production does after every
+action, so in real games LKI's share is smaller than here.
+
+**Method.**
+
+- **What runs today, measured.** `node --cpu-prof` (sampling every 0.5 ms) on the branch and on its
+  merge base `ee4daabb1`, which is `main` without the branch's commits. A script totalled the samples with
+  any LKI frame on the stack: anything in `core/lki/`, and `LastKnownInformation.ts`. The merge-base run
+  was about twice as slow across the board, in garbage collection and setup as much as in game code. The
+  cause was the machine, probably scanning of the freshly checked-out worktree, not the code, so the two
+  runs are compared by share. The legacy struct's code is the same on both, and takes the same share in
+  both (0.33% and 0.32%), which suggests the shares compare well.
+- **What is planned, estimated.** The cost is the number of card-code reads in the suite times the
+  extra cost of one read through the getter.
+  - A jasmine helper counted every read of the 57 card members the audit tracks. For one read in 16 it
+    looked at the caller, to tell reads written in card code from engine reads.
+  - A timing spec measured each read path inside a harness game, over a mixed list of cards so that call
+    sites see several classes. It reports the median of five runs.
+
+**Results, as built.**
+
+| Share of CPU time | Branch | Merge base |
+|---|---|---|
+| All LKI code, of busy time | 0.73% (608 ms of 83.3 s) | 0.50% |
+| All LKI code, of play | 1.05% | 0.74% |
+| Building records | 0.28% | 0.06% |
+| The legacy `event.lastKnownInformation` struct | 0.32% | 0.33% |
+| Registry bookkeeping (commit, flush, identity) | 0.04% | 0.05% |
+| Reads through the getter (seven opted-in cards) | 0.03% | 0.02% |
+| Other LKI code | 0.06% | 0.05% |
+
+Step 3.1's fuller record raised the cost of building records from 0.06% to 0.28% of busy time. The legacy
+struct predates this work, and phase 4 removes it.
+
+**Results, for the estimate.**
+
+- **Reads.** The suite read the tracked members 300 million times. About 554,000 of those reads, 0.18%,
+  were written in card code, and about half of them in selector callbacks. The rest are the engine's own
+  reads, which the codemod does not touch.
+- **Cost of one read** (nanoseconds):
+
+  | Path | `title` | `isUnit()` | `controller` | `hasSomeTrait()` |
+  |---|---|---|---|---|
+  | Direct, on the `Card` | 19 | 13 | 20 | 84 |
+  | Live-only getter | 202 | 175 | 208 | 290 |
+  | Registry-backed getter | 204 | 175 | 202 | 287 |
+
+  - The getter adds about 180 ns per read. About 56 ns of that is `getIdentity` finding the card's
+    reference: a read from a reference instead of a card costs 85 ns. The rest is the view object.
+  - A current view costs 160–190 ns per read.
+  - Reading a recorded characteristic is cheaper than reading the live card: 88 against 171 ns for
+    `title`, and 160 against 991 ns for `power`.
+- **Estimate.**
+  - **The codemod** adds about 554,000 × 180 ns ≈ 0.1 s to the suite's 56.7 s of play, 0.2%. Doubling it,
+    for members the count does not track, makes 0.4%.
+  - **D-38's option (a)** builds one view per candidate rather than one per read, so it costs no more
+    than that.
+  - **Phase 4** adds nothing measurable per read, because the two getters cost the same. It also removes
+    the legacy struct, 0.47% of play.
+
+**Conclusion.** LKI has no major CPU cost. As built, it takes about 1% of game-play CPU in the suite, and
+half of that is the legacy struct. The planned work adds a few tenths of a percent at most, and phase 4
+then removes the legacy struct, so the total ends up near where it is today. Once step 3.2 lands, and
+again in phase 4, a re-profile would replace the estimate with a measurement. Each needs a maintainer's
+approval.
+
 ---
 
 ## G. Legality gaps to close before card implementations rely on fizzling
