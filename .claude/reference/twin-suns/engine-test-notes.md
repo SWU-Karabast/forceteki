@@ -19,6 +19,9 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 ### Attacks and shared control
 - An attack can only be initiated with a unit you control, never with the teammate's unit.
 - You cannot play a teammate's cards or pay with their resources. (Teammate resources are friendly for effects that do not spend them: R21, R26.)
+- An Action ability is used by the controller of the card, unless the card says otherwise (for example C-3PO, "Die, Jedi Dogs": "Only opponents may use this ability"). The teammate cannot use it or help pay.
+- "Your hand", "your deck" and "your discard pile" mean the player's own zones only, never the teammate's, even though hands are visible.
+- A player can never attack a teammate's unit or base. This covers Ambush and effects that say "attack with a unit".
 
 ### Keywords whose result depends on whose cards are involved
 - **Restore:** heals the base of the controller of the unit with the keyword, however it was gained (R19).
@@ -33,6 +36,7 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 ## Twin Suns (3-4 players)
 - Sentinel protects only its own controller's units and base. Saboteur ignores it.
 - Attack targeting is per opponent: the attacker chooses which opponent's unit or base to attack.
+- Ambush and effects that say "attack with a unit" let the controller choose the defender among every opponent's units, not only one opponent's. The defending player is the controller of the chosen defender.
 - "An opponent" is chosen by the controller and the choice persists through the ability; "each opponent" is all non-eliminated opponents (R1, R18).
 - Elimination, mid-effect elimination, controlled-not-owned cards and the end of the game are still being settled (cards tagged "Twin Suns: Elimination Unclear").
 
@@ -40,4 +44,4 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - "Choose any number of players / opponents / bases" must support every subset, including none and all, and the controller (and the teammate in Always Two) where the card allows it (R30). The current engine is not set up for this.
 - "Choose N players" (an exact count) must work for any N legal players.
 - Choices made in turn by each player go clockwise starting with the player who played the card; "in player order" starts to the active player's left (R9). Cards that depend on this are reviewed manually.
-- Bounty collection when a teammate defeats the unit, and the Pilot attach rules, are unknown for Always Two (tagged "Always Two: Rules Unknown").
+- Pilots can be attached to, or deployed onto, a teammate's Vehicle in Always Two (to be tested). The player who plays or deploys the Pilot controls the upgrade, and the Vehicle keeps its controller. Whose triggers apply to the Pilot's own text and to what it grants is still unknown, as is Bounty collection when a teammate defeats the unit (tagged "Always Two: Rules Unknown").
