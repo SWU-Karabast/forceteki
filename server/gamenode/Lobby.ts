@@ -2670,22 +2670,59 @@ export class Lobby {
                 chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
-            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            // Player reports are stored for the mod tools dashboard and, while the dashboard is rolling out,
+            // also sent to Discord as a backup. The report counts as sent if either of them takes it.
             if (reportType === ReportType.PlayerReport) {
-                await this.server.playerReportService.createReportAsync({
-                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
-                    reportedPlayer: opponent,
-                    offense: playerReportType ?? PlayerReportType.Other,
-                    description: parsedDescription,
-                    lobbyId: this.id,
-                    gameId: this.game?.id,
-                    gameFormat: String(this.gameFormat),
-                    matchType: String(this.matchmakingType),
-                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
-                    // Screen and viewport size are only kept for bug reports; a player report does not need them
-                    gameMessages,
-                    chatMessages: chatMessages ?? [],
-                });
+                const [storeResult, discordResult] = await Promise.allSettled([
+                    this.server.playerReportService.createReportAsync({
+                        reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                        reportedPlayer: opponent,
+                        offense: playerReportType ?? PlayerReportType.Other,
+                        description: parsedDescription,
+                        lobbyId: this.id,
+                        gameId: this.game?.id,
+                        gameFormat: String(this.gameFormat),
+                        matchType: String(this.matchmakingType),
+                        gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                        // Screen and viewport size are only kept for bug reports; a player report does not need them
+                        gameMessages,
+                        chatMessages: chatMessages ?? [],
+                    }),
+                    // async so that a throw while formatting rejects this leg alone instead of the whole report
+                    (async () => await this.discordDispatcher.formatAndSendReportAsync(
+                        this.discordDispatcher.formatReport(
+                            parsedDescription,
+                            gameState,
+                            playerReportType,
+                            socket.user,
+                            opponent,
+                            // The Discord copy keeps its original layout: the game log with the chat interleaved
+                            (this.game ? this.game.gameChat : this.gameChat).messages,
+                            this.id,
+                            this.gameFormat,
+                            this.matchmakingType,
+                            this.game?.snapshotManager.gameStepsSinceLastUndo,
+                            this.game?.id,
+                            screenResolution,
+                            viewport,
+                            chatMessages
+                        ),
+                        reportType
+                    ))(),
+                ]);
+
+                if (storeResult.status === 'rejected') {
+                    logger.error('Lobby (submitReport): failed to store player report for the mod tools', {
+                        error: { message: storeResult.reason?.message, stack: storeResult.reason?.stack },
+                        lobbyId: this.id,
+                        userId: socket.user.getId(),
+                    });
+                }
+                // the dispatcher logs its own failures
+                const sentToDiscord = discordResult.status === 'fulfilled' && !!discordResult.value;
+                if (storeResult.status === 'rejected' && !sentToDiscord) {
+                    throw new Error(`${reportLabel} could neither be stored nor sent to Discord. See logs for details.`);
+                }
 
                 socket.send(resultEvent, {
                     id: uuid(),
@@ -2699,6 +2736,7 @@ export class Lobby {
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
+                null,
                 socket.user,
                 opponent,
                 gameMessages,
@@ -2711,7 +2749,7 @@ export class Lobby {
                 viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendBugReportAsync(report);
+            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
