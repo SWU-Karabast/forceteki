@@ -169,5 +169,39 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('should leave Luke in play as a normal unit when the vehicle he is piloting is defeated, so he can still be defeated later', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'snowspeeder', upgrades: ['luke-skywalker#you-still-with-me'] }],
+                },
+                player2: {
+                    groundArena: ['hk47#exclamation-die-meatbag'],
+                    hand: ['rivals-fall'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.snowspeeder);
+
+            expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.lukeSkywalker).toBeInZone('groundArena');
+            expect(context.snowspeeder).toBeInZone('discard');
+            expect(context.p1Base.damage).toBe(1); // HK-47, for Snowspeeder only
+
+            context.player1.passAction();
+
+            context.player2.clickCard(context.hk47);
+            context.player2.clickCard(context.lukeSkywalker);
+
+            expect(context.lukeSkywalker).toBeInZone('discard');
+            expect(context.p1Base.damage).toBe(2); // HK-47, for Luke
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });
