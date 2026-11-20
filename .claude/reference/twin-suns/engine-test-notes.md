@@ -28,6 +28,9 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - **Overwhelm:** excess damage goes to the base of the controller of the defending unit (official overview).
 - **Exploit:** can only use the player's own units (R15).
 
+### Fortify (test under the keyword, not per card)
+- A Fortify upgrade can only be attached to a base you control: in Always Two never the teammate's base, in Twin Suns never an opponent's. Tested once here; the per-card notes for Fortify upgrades do not repeat it.
+
 ### Bases and winning
 - A base's damage counts up and can exceed its health. A base at or past its health is not eliminated and has 0 remaining HP (R10, R28).
 - A team wins only when both enemy bases have reached their health. If one teammate wins through a card ability, both win.
@@ -39,7 +42,9 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - Attack targeting is per opponent: the attacker chooses which opponent's unit or base to attack.
 - Ambush and effects that say "attack with a unit" let the controller choose the defender among every opponent's units, not only one opponent's. The defending player is the controller of the chosen defender.
 - "An opponent" is chosen by the controller and the choice persists through the ability; "each opponent" is all non-eliminated opponents (R1, R18).
-- Elimination, mid-effect elimination, controlled-not-owned cards and the end of the game are still being settled (cards tagged "Twin Suns: Elimination Unclear").
+- When a player is eliminated, every card they own is removed from the game immediately, even if another player controls it (to be tested once here).
+- Cards removed from the game by an elimination are not counted as leaving play. If an effect eliminates a player partway through, the rest of the effect that refers to that player's cards fizzles (to be tested once here).
+- Cards the eliminated player controls but does not own, the effects that do not fizzle mid-effect, and the end of the game are still being settled (cards tagged "Twin Suns: Elimination Unclear").
 
 ## To check later (code scan)
 - Scan every card that says "your base" or "friendly base" and check the code finds the base controlled by the player, not just any friendly base (in Always Two the teammate's base is friendly too). If it does, the Always Two notes about "your own base, not the teammate's" on those cards can go. Until then they stay.

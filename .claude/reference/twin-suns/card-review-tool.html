@@ -129,7 +129,10 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&
 const rec = (c) => reviews[c.id] || {};
 const res = (c, g) => (rec(c).r || {})[g];
 const isManual = (gid) => groupById[gid].kind === 'manual';
-const needsSingle = (c) => !c.auto && !rec(c).reviewed && (c.hits.some(isManual) || c.hits.some((g) => res(c, g) === 'followup'));
+// A card that matches more than one group would show up in several bulk lists, and marking it in one does not mark it in the
+// others, so it is reviewed once in Single instead (until every group it matched has a result).
+const multiHit = (c) => c.hits.length > 1;
+const needsSingle = (c) => !c.auto && !rec(c).reviewed && (c.hits.some(isManual) || c.hits.some((g) => res(c, g) === 'followup') || (multiHit(c) && c.hits.some((g) => !res(c, g))));
 const isComplete = (c) => c.auto || rec(c).reviewed || (!needsSingle(c) && c.hits.every((g) => ['tag', 'ok'].includes(res(c, g))));
 const effTags = (c) => {
   const r = rec(c);
@@ -225,7 +228,7 @@ const shown = (c) => !(ui.hideReprints && c.reprint);
 const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in more than one set. Listed here once.">Reprint${c.alsoIn.length ? ': also ' + esc(c.alsoIn.join(', ')) : ''}</span>` : '');
 const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
 const groupCount = (g, set) => {
-  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set));
+  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || !multiHit(c) || rec(c).reviewed));
   // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
   if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !rec(c).reviewed && c.hits.some((h) => !res(c, h))).length, total: cs.length }; }
   return { open: cs.filter((c) => !rec(c).reviewed && !res(c, g.id)).length, total: cs.length };
@@ -239,6 +242,8 @@ function viewMatch(c, gid) {
     if (v === 'follow') { return !done && c.hits.some((h) => res(c, h) === 'followup'); }
     return true;
   }
+  // Multi-group cards are reviewed in Single, so the bulk lists that are still being worked through leave them out.
+  if ((v === 'agent' || v === 'open') && multiHit(c) && !done) { return false; }
   if (v === 'agent') { return agentClear(c) && !r; }
   if (v === 'open') { return !done && !r; }
   if (v === 'done') { return done || r === 'tag' || r === 'ok'; }
