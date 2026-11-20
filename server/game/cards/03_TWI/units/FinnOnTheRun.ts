@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, DamageModificationType, WildcardCardType } from '../../../core/Constants';
+import { DamageModificationType, WildcardCardType } from '../../../core/Constants';
 
 export default class FinnOnTheRun extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -19,9 +19,8 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.unique,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.gainAbility({
+                    effect: AbilityHelper.ongoingEffects.modifyDamage({
                         title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
-                        type: AbilityType.DamageModification,
                         modificationType: DamageModificationType.Reduce,
                         amount: 1
                     })

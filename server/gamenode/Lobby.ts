@@ -5,6 +5,7 @@ import { Contract } from '../game/core/utils/Contract';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
+import type { IChatPlayer } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
 import type { IUser } from '../Settings';
 import { getUserWithDefaultsSet } from '../Settings';
@@ -19,6 +20,7 @@ import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
+    ChatObjectType,
     GameEndReason,
     GameErrorSeverity,
     GamesToWinMode,
@@ -53,6 +55,16 @@ interface LobbySpectatorWrapper {
     state: 'connected' | 'disconnected';
     socket?: Socket;
     user?: User;
+}
+
+/**
+ * Who is watching a lobby's game, as sent to its players and spectators. It counts spectators rather than naming
+ * them, so that nobody learns who is watching.
+ */
+export interface ISpectatorSummary {
+
+    /** Spectators connected now. One inside the reconnect grace window is not counted. */
+    count: number;
 }
 
 enum LobbySettingKeys {
@@ -148,6 +160,12 @@ export class Lobby {
      */
     public static readonly QuickLobbyCountdownMs = (Lobby.QuickLobbyCountdownStartSeconds + 1) * Lobby.QuickLobbyCountdownTickMs;
 
+    /**
+     * The shortest time between two pushes of a change in who is watching. The first change is pushed at once, and
+     * any more within this time are combined into one push when it ends.
+     */
+    public static readonly SpectatorSummaryPushIntervalMs = 2000;
+
     private readonly _id: string;
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
@@ -190,6 +208,8 @@ export class Lobby {
     private bo3TransitionTask?: IScheduledTask;
     private bo3LobbyReadyTimer?: SimpleActionTimer;
     private bo3LobbyLoadedAt?: Date;
+    private spectatorSummaryCooldownTask?: IScheduledTask;
+    private spectatorSummaryPushPending = false;
 
     public constructor(
         lobbyName: string,
@@ -359,10 +379,7 @@ export class Lobby {
             id: this._id,
             lobbyName: this._lobbyName,
             users: this.users.map((u) => this.buildLobbyUserData(u, user?.id === u.id)),
-            spectators: this.spectators.map((s) => ({
-                id: s.id,
-                username: s.username,
-            })),
+            spectatorCount: this.getSpectatorSummary().count,
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
@@ -550,7 +567,7 @@ export class Lobby {
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
-        this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
+        this.gameChat.addMessage('{0} has created and joined the lobby', this.lobbyChatPlayer({ id: user.getId(), username: user.getUsername() }));
 
         this.updateUserLastActivity(user.getId());
     }
@@ -573,6 +590,7 @@ export class Lobby {
         // Limited lobby message handling for spectators
         socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
 
+        const countBefore = this.getSpectatorSummary().count;
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -585,11 +603,15 @@ export class Lobby {
             existingSpectator.state = 'connected';
             this.checkUpdateSocket(existingSpectator, socket);
         }
-        // If game is ongoing, send the current state to the spectator
-        if (this.game) {
-            this.sendGameStateToSpectator(socket, user.getId());
-        } else {
+
+        const pushedToEveryone = this.onSpectatorCountMaybeChanged(countBefore);
+
+        // between games a push reaches only the players, and during a game one made now has already sent this
+        // spectator the game state
+        if (!this.game) {
             this.sendLobbyStateToSpectator(socket);
+        } else if (!pushedToEveryone) {
+            this.sendGameStateToSpectator(socket, user.getId());
         }
         logger.info(`Lobby: adding spectator: ${user.getUsername()}, id: ${user.getId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
     }
@@ -610,9 +632,10 @@ export class Lobby {
             // logger.info(`Attempted to remove spectator from Lobby ${this.id}, but they were not found`);
             return;
         }
+        const countBefore = this.getSpectatorSummary().count;
         this.spectators = this.spectators.filter((s) => s.id !== id);
         logger.info(`Lobby: removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
-        this.sendLobbyState();
+        this.onSpectatorCountMaybeChanged(countBefore);
     }
 
     public async addLobbyUserAsync(user: User, socket: Socket): Promise<void> {
@@ -650,7 +673,7 @@ export class Lobby {
                 reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
-            this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
+            this.gameChat.addMessage('{0} has joined the lobby', this.lobbyChatPlayer({ id: user.getId(), username: user.getUsername() }));
         }
 
         this.updateUserLastActivity(user.getId());
@@ -736,7 +759,7 @@ export class Lobby {
         }
         currentUser.ready = args[0];
         logger.info(`Lobby: user ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
-        this.gameChat.addAlert(AlertType.ReadyStatus, `${currentUser.username} is ${args[0] ? 'ready to start' : 'not ready to start'}`);
+        this.gameChat.addAlert(AlertType.ReadyStatus, `{0} is ${args[0] ? 'ready to start' : 'not ready to start'}`, this.lobbyChatPlayer(currentUser));
         this.updateUserLastActivity(currentUser.id);
 
         // For Bo3 games after game 1, manage the lobby ready timer based on ready state
@@ -842,25 +865,25 @@ export class Lobby {
             let alertMessage: string;
             switch (mode) {
                 case RematchMode.Reset:
-                    alertMessage = `${user.username} has requested a quick rematch!`;
+                    alertMessage = '{0} has requested a quick rematch!';
                     break;
                 case RematchMode.Bo1ConvertToBo3:
-                    alertMessage = `${user.username} has requested to convert to a best-of-three match!`;
+                    alertMessage = '{0} has requested to convert to a best-of-three match!';
                     break;
                 case RematchMode.NewBo3:
-                    alertMessage = `${user.username} has requested a new best-of-three match!`;
+                    alertMessage = '{0} has requested a new best-of-three match!';
                     break;
                 case RematchMode.Regular:
-                    alertMessage = `${user.username} has requested a rematch!`;
+                    alertMessage = '{0} has requested a rematch!';
                     break;
                 default:
                     Contract.fail(`Unknown rematch mode: ${mode}`);
             }
 
             if (this.game) {
-                this.game.addAlert(AlertType.Notification, alertMessage);
+                this.game.addAlert(AlertType.Notification, alertMessage, this.game.getPlayerById(user.id));
             } else {
-                this.gameChat.addAlert(AlertType.Notification, alertMessage);
+                this.gameChat.addAlert(AlertType.Notification, alertMessage, this.lobbyChatPlayer(user));
             }
         }
         this.sendLobbyState();
@@ -936,7 +959,7 @@ export class Lobby {
         if (this.bo3NextGameConfirmedBy.size >= 2) {
             this.transitionToNextBo3Game('Both players confirmed');
         } else {
-            this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
+            this.gameChat.addAlert(AlertType.Notification, '{0} is ready for the next game.', this.lobbyChatPlayer(user));
             this.sendLobbyState();
         }
     }
@@ -983,7 +1006,7 @@ export class Lobby {
             this.game.gameChat.addMessage('{0} concedes the best-of-three set', this.game.getPlayerById(userId));
             this.sendGameState(this.game);
         } else {
-            this.gameChat.addMessage(`${user.username} has conceded the set.`);
+            this.gameChat.addMessage('{0} has conceded the set.', this.lobbyChatPlayer(user));
         }
 
         logger.info(`Lobby: user ${user.username} conceded the Bo3 set`, { lobbyId: this.id, userName: user.username, userId: user.id });
@@ -1148,6 +1171,15 @@ export class Lobby {
         return user;
     }
 
+    /**
+     * Names a user in a lobby chat message as a player part, the way the engine names a `Player` in the game
+     * chat. Pass it for a `{0}` placeholder rather than writing the username into the text, so that a client
+     * can show the player by seat to someone who should not see their name.
+     */
+    private lobbyChatPlayer(user: Pick<LobbyUserWrapper, 'id' | 'username'>): IChatPlayer {
+        return { id: user.id, name: user.username, type: ChatObjectType.Player };
+    }
+
     public setUserDisconnected(id: string, socketId: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
@@ -1166,8 +1198,10 @@ export class Lobby {
                 return;
             }
 
+            const countBefore = this.getSpectatorSummary().count;
             spectator.state = 'disconnected';
             logger.info(`Lobby: setting spectator ${spectator.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
+            this.onSpectatorCountMaybeChanged(countBefore);
         }
     }
 
@@ -1233,7 +1267,7 @@ export class Lobby {
     public removeUser(id: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
-            this.gameChat.addMessage(`${user.username} has left the lobby`);
+            this.gameChat.addMessage('{0} has left the lobby', this.lobbyChatPlayer(user));
         } else {
             return;
         }
@@ -1330,6 +1364,10 @@ export class Lobby {
             this.matchingCountdownTask.cancel();
             this.matchingCountdownTask = undefined;
         }
+
+        this.spectatorSummaryCooldownTask?.cancel();
+        this.spectatorSummaryCooldownTask = undefined;
+        this.spectatorSummaryPushPending = false;
 
         this.replaceGame(null);
         this.users = [];
@@ -1515,7 +1553,8 @@ export class Lobby {
         });
         this.gameChat.addAlert(
             AlertType.Danger,
-            `Cannot start game: ${names} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`
+            `Cannot start game: {0} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`,
+            usersWithInvalidDeckSize.map((user) => this.lobbyChatPlayer(user))
         );
         this.sendLobbyState();
     }
@@ -1605,7 +1644,6 @@ export class Lobby {
 
         return {
             id: uuidv4(),
-            allowSpectators: false,
             owner: 'Order66',
             format: this.gameFormat,
             players,
@@ -2176,7 +2214,62 @@ export class Lobby {
 
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
-            socket.send('gamestate', this.game.getState(spectatorId));
+            socket.send('gamestate', this.buildGameState(this.game, spectatorId, this.getSpectatorSummary()));
+        }
+    }
+
+    /** What the lobby sends as `gamestate` to one participant: the engine's state for them, plus who is watching. */
+    private buildGameState(game: Game, participantId: string, spectatorSummary: ISpectatorSummary) {
+        return { ...game.getState(participantId), spectatorSummary };
+    }
+
+    public getSpectatorSummary(): ISpectatorSummary {
+        return {
+            count: this.spectators.filter((spectator) => spectator.state === 'connected').length,
+        };
+    }
+
+    /**
+     * Call after anything that may change who is watching, with the count from before. If the count changed, pushes
+     * it to the lobby's participants, at most once per {@link SpectatorSummaryPushIntervalMs}.
+     *
+     * @returns whether a push went out now
+     */
+    private onSpectatorCountMaybeChanged(countBefore: number): boolean {
+        if (this.getSpectatorSummary().count === countBefore) {
+            return false;
+        }
+
+        return this.requestSpectatorSummaryPush();
+    }
+
+    /** Pushes the spectator summary now, or at the end of the cooldown if one is running. Returns whether it went now. */
+    private requestSpectatorSummaryPush(): boolean {
+        if (this.spectatorSummaryCooldownTask) {
+            this.spectatorSummaryPushPending = true;
+            return false;
+        }
+
+        this.pushSpectatorSummary();
+        this.spectatorSummaryCooldownTask = this.buildSafeTimeout(() => {
+            this.spectatorSummaryCooldownTask = undefined;
+            if (this.spectatorSummaryPushPending) {
+                this.spectatorSummaryPushPending = false;
+                this.requestSpectatorSummaryPush();
+            }
+        }, Lobby.SpectatorSummaryPushIntervalMs, 'Lobby: error pushing the spectator summary');
+        return true;
+    }
+
+    /**
+     * During a game, the game state goes to the players and spectators. Between games, the lobby state goes to the
+     * players only: spectators are sent the lobby state once, when they arrive.
+     */
+    private pushSpectatorSummary(): void {
+        if (this.game) {
+            this.sendGameState(this.game);
+        } else {
+            this.sendLobbyState();
         }
     }
 
@@ -2389,7 +2482,7 @@ export class Lobby {
                 timeoutPlayerId: timeoutPlayer.id
             };
 
-            this.gameChat.addAlert(AlertType.Danger, `${timeoutPlayer.username} did not ready in time. The set has ended.`);
+            this.gameChat.addAlert(AlertType.Danger, '{0} did not ready in time. The set has ended.', this.lobbyChatPlayer(timeoutPlayer));
             this.sendLobbyState();
         } else {
             // Neither player is ready - both timed out
@@ -2437,14 +2530,15 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
+        const spectatorSummary = this.getSpectatorSummary();
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id));
+                user.socket.send('gamestate', this.buildGameState(game, user.id, spectatorSummary));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', game.getState(spectator.id));
+                spectator.socket.send('gamestate', this.buildGameState(game, spectator.id, spectatorSummary));
             }
         }
     }
@@ -2499,13 +2593,13 @@ export class Lobby {
             case LobbySettingKeys.RequestUndo:
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
-                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
+                this.gameChat.addAlert(AlertType.Warning, `{0} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`, this.lobbyChatPlayer(user));
                 break;
             case LobbySettingKeys.AllowSpectators:
                 Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.allowSpectators = settingValue;
-                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
+                this.gameChat.addAlert(AlertType.Warning, `{0} has ${settingValue ? 'enabled' : 'disabled'} spectation`, this.lobbyChatPlayer(user));
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
@@ -2658,22 +2752,59 @@ export class Lobby {
                 chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
-            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            // Player reports are stored for the mod tools dashboard and, while the dashboard is rolling out,
+            // also sent to Discord as a backup. The report counts as sent if either of them takes it.
             if (reportType === ReportType.PlayerReport) {
-                await this.server.playerReportService.createReportAsync({
-                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
-                    reportedPlayer: opponent,
-                    offense: playerReportType ?? PlayerReportType.Other,
-                    description: parsedDescription,
-                    lobbyId: this.id,
-                    gameId: this.game?.id,
-                    gameFormat: String(this.gameFormat),
-                    matchType: String(this.matchmakingType),
-                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
-                    // Screen and viewport size are only kept for bug reports; a player report does not need them
-                    gameMessages,
-                    chatMessages: chatMessages ?? [],
-                });
+                const [storeResult, discordResult] = await Promise.allSettled([
+                    this.server.playerReportService.createReportAsync({
+                        reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                        reportedPlayer: opponent,
+                        offense: playerReportType ?? PlayerReportType.Other,
+                        description: parsedDescription,
+                        lobbyId: this.id,
+                        gameId: this.game?.id,
+                        gameFormat: String(this.gameFormat),
+                        matchType: String(this.matchmakingType),
+                        gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                        // Screen and viewport size are only kept for bug reports; a player report does not need them
+                        gameMessages,
+                        chatMessages: chatMessages ?? [],
+                    }),
+                    // async so that a throw while formatting rejects this leg alone instead of the whole report
+                    (async () => await this.discordDispatcher.formatAndSendReportAsync(
+                        this.discordDispatcher.formatReport(
+                            parsedDescription,
+                            gameState,
+                            playerReportType,
+                            socket.user,
+                            opponent,
+                            // The Discord copy keeps its original layout: the game log with the chat interleaved
+                            (this.game ? this.game.gameChat : this.gameChat).messages,
+                            this.id,
+                            this.gameFormat,
+                            this.matchmakingType,
+                            this.game?.snapshotManager.gameStepsSinceLastUndo,
+                            this.game?.id,
+                            screenResolution,
+                            viewport,
+                            chatMessages
+                        ),
+                        reportType
+                    ))(),
+                ]);
+
+                if (storeResult.status === 'rejected') {
+                    logger.error('Lobby (submitReport): failed to store player report for the mod tools', {
+                        error: { message: storeResult.reason?.message, stack: storeResult.reason?.stack },
+                        lobbyId: this.id,
+                        userId: socket.user.getId(),
+                    });
+                }
+                // the dispatcher logs its own failures
+                const sentToDiscord = discordResult.status === 'fulfilled' && !!discordResult.value;
+                if (storeResult.status === 'rejected' && !sentToDiscord) {
+                    throw new Error(`${reportLabel} could neither be stored nor sent to Discord. See logs for details.`);
+                }
 
                 socket.send(resultEvent, {
                     id: uuid(),
@@ -2687,6 +2818,7 @@ export class Lobby {
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
+                null,
                 socket.user,
                 opponent,
                 gameMessages,
@@ -2699,7 +2831,7 @@ export class Lobby {
                 viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendBugReportAsync(report);
+            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
@@ -2715,7 +2847,7 @@ export class Lobby {
             this.game.addAlert(
                 AlertType.Notification,
                 `{0} has submitted a ${reportLabel}`,
-                existingUser.username
+                this.game.getPlayerById(existingUser.id)
             );
 
             this.sendLobbyState();
