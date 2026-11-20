@@ -1,6 +1,34 @@
+import type FormData from 'form-data';
+import * as Util from '../../../../../server/Util';
 import { seedRoleHolders } from '../../../../helpers/server/RoleHolders';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import type { TestClient } from '../../../../helpers/server/TestClient';
+
+const roleAssignmentWebhookUrl = 'https://discord.invalid/role-assignment-webhook';
+
+interface IPostedRoleChange {
+    url: string;
+    content: string;
+    fields: Record<string, string>;
+    allowedMentions: { parse: string[] };
+}
+
+/** Records what the server posts to Discord instead of sending it; with `discordDown`, every post fails. */
+function capturePostedRoleChanges({ discordDown = false } = {}): IPostedRoleChange[] {
+    const posted: IPostedRoleChange[] = [];
+    spyOn(Util, 'httpPostFormData').and.callFake((url: string, formData: FormData) => {
+        const body = formData.getBuffer().toString('utf8');
+        const payload = JSON.parse((/name="payload_json"\r\n\r\n(.*)\r\n/).exec(body)[1]);
+        posted.push({
+            url,
+            content: payload.content,
+            fields: Object.fromEntries(payload.embeds[0].fields.map((field: { name: string; value: string }) => [field.name, field.value])),
+            allowedMentions: payload.allowed_mentions,
+        });
+        return discordDown ? Promise.reject(new Error('webhook unavailable')) : Promise.resolve('');
+    });
+    return posted;
+}
 
 async function isDeveloperAsync(client: TestClient): Promise<boolean> {
     const response = await client.requestAsync('get', '/api/user-is-developer');
@@ -138,4 +166,56 @@ describe('Server role management', function () {
             expect(response.status).toBe(400);
         });
     }, { database: roles.seed });
+
+    describe('posting each change to the role assignment channel on Discord', function () {
+        serverIntegration(function (contextRef) {
+            it('posts a granted role with the user, the role and the admin who granted it', async function () {
+                const admin = contextRef.harness.createAccountClient(roles.accounts.admin);
+                const posted = capturePostedRoleChanges();
+
+                await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
+
+                expect(posted.length).toBe(1);
+                expect(posted[0].url).toBe(roleAssignmentWebhookUrl);
+                expect(posted[0].content).toBe('`adminUser` granted the **moderator** role to `nobodyUser`');
+                expect(posted[0].fields).toEqual({
+                    User: `\`nobodyUser\` (${roles.accounts.nobody.id})`,
+                    Role: 'moderator',
+                    'Changed by': `\`adminUser\` (${roles.accounts.admin.id})`,
+                });
+                // a username can never ping anyone in the channel
+                expect(posted[0].allowedMentions).toEqual({ parse: [] });
+            });
+
+            it('posts a removed role', async function () {
+                const admin = contextRef.harness.createAccountClient(roles.accounts.admin);
+                const posted = capturePostedRoleChanges();
+
+                await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.developer.id, role: 'developer', granted: false });
+
+                expect(posted.map((post) => post.content)).toEqual(['`adminUser` removed the **developer** role from `developerUser`']);
+            });
+
+            it('posts nothing when nothing changed', async function () {
+                const admin = contextRef.harness.createAccountClient(roles.accounts.admin);
+                const posted = capturePostedRoleChanges();
+
+                await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.developer.id, role: 'developer', granted: true });
+                await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'admin', granted: true });
+
+                expect(posted).toEqual([]);
+            });
+
+            it('still makes the change when Discord is down', async function () {
+                const { harness } = contextRef;
+                const admin = harness.createAccountClient(roles.accounts.admin);
+                capturePostedRoleChanges({ discordDown: true });
+
+                const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
+
+                expect(response.status).toBe(200);
+                expect(harness.db.roleUsers.moderators.map((holder) => holder.id)).toContain(roles.accounts.nobody.id);
+            });
+        }, { database: roles.seed, env: { DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL: roleAssignmentWebhookUrl } });
+    });
 });

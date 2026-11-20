@@ -66,12 +66,13 @@ export class ServerRoleUsersCache {
      * made to the lists as stored now, not to this cache's copy, so it keeps any edit made since the last refresh.
      * @param note stored beside a newly granted user, to say who they are to whoever reads the lists
      * @param changedBy the admin making the change; checked against the stored lists, and their username recorded on them
-     * @returns the lists as they now stand
+     * @returns the lists as they now stand, and whether this changed them (false if the user already had the role, or
+     * already did not)
      * @throws a {@link NotStoredAdminError} if `changedBy` is not an admin in the stored lists, in which case the cache
      * is refreshed so they lose their admin access at once
      * @throws a `ConditionalCheckFailedException` if the lists changed between being read and written
      */
-    public async setUserRoleAsync(userId: string, role: ServerRole, granted: boolean, note: string, changedBy: { id: string; username: string }): Promise<IServerRoleUsersListsEntity> {
+    public async setUserRoleAsync(userId: string, role: ServerRole, granted: boolean, note: string, changedBy: { id: string; username: string }): Promise<{ lists: IServerRoleUsersListsEntity; changed: boolean }> {
         const db = await getDynamoDbServiceAsync();
         const stored = await db.getServerRoleUsersAsync({ consistentRead: true });
 
@@ -84,7 +85,7 @@ export class ServerRoleUsersCache {
         const listKey = ServerRoleListKeys[role];
         const holders = stored[listKey];
         if (holders.some((holder) => holder.id === userId) === granted) {
-            return stored;
+            return { lists: stored, changed: false };
         }
 
         const updated = {
@@ -97,7 +98,7 @@ export class ServerRoleUsersCache {
 
         await this.cache.forceRefreshAsync();
 
-        return updated;
+        return { lists: updated, changed: true };
     }
 
     /**

@@ -469,7 +469,8 @@ export class GameServer {
         // check if NEXTAUTH variable is set
         requireEnvVars(
             ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
-                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'],
+                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL',
+                'DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -2265,9 +2266,9 @@ export class GameServer {
                     return res.status(404).json({ success: false, message: 'Player not found' });
                 }
 
-                let updated: IServerRoleUsersListsEntity;
+                let result: { lists: IServerRoleUsersListsEntity; changed: boolean };
                 try {
-                    updated = await this.serverRoleUsersCache.setUserRoleAsync(userId, role, granted, username, { id: req.user.getId(), username: req.user.getUsername() });
+                    result = await this.serverRoleUsersCache.setUserRoleAsync(userId, role, granted, username, { id: req.user.getId(), username: req.user.getUsername() });
                 } catch (error) {
                     if (error instanceof NotStoredAdminError) {
                         logger.warn(`GameServer: ${req.user.getUsername()} tried to change a server role after losing the admin role`, { userId: req.user.getId() });
@@ -2279,14 +2280,32 @@ export class GameServer {
                     throw error;
                 }
 
-                logger.info(`GameServer: ${req.user.getUsername()} ${granted ? 'granted' : 'removed'} the ${role} role ${granted ? 'to' : 'from'} ${username}`, {
-                    changedBy: req.user.getId(),
-                    userId,
-                    role,
-                    granted
-                });
+                if (result.changed) {
+                    logger.info(`GameServer: ${req.user.getUsername()} ${granted ? 'granted' : 'removed'} the ${role} role ${granted ? 'to' : 'from'} ${username}`, {
+                        changedBy: req.user.getId(),
+                        userId,
+                        role,
+                        granted
+                    });
 
-                return res.status(200).json(await this.buildServerRolesResponseAsync(updated));
+                    // not awaited: the change is already stored, so a Discord outage must not fail the request
+                    this.discordDispatcher.formatAndSendServerRoleChangeAsync({
+                        user: { id: userId, username },
+                        role,
+                        granted,
+                        changedBy: { id: req.user.getId(), username: req.user.getUsername() }
+                    }).catch((error) => {
+                        logger.error('GameServer: failed to send a server role change to Discord', {
+                            error: { message: error.message, stack: error.stack },
+                            changedBy: req.user.getId(),
+                            userId,
+                            role,
+                            granted
+                        });
+                    });
+                }
+
+                return res.status(200).json(await this.buildServerRolesResponseAsync(result.lists));
             } catch (err) {
                 logger.error('GameServer (mod-server-roles-change) Server error:', err);
                 next(err);
