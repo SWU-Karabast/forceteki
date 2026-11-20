@@ -45,7 +45,7 @@ type FakedMethod =
   | 'savePlayerReportAsync' | 'getPlayerReportMetaAsync' | 'getPlayerReportAsync' | 'getPlayerReportsByGsiKeyAsync'
   | 'getPlayerReportIndexAsync' | 'transitionPlayerReportAsync' | 'queryAttributesByGsiAsync'
   | 'deletePlayerReportLogsAsync' | 'deletePlayerReportAsync' | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync'
-  | 'getServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
+  | 'getServerRoleUsersAsync' | 'saveServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
   | 'getCosmeticsAsync' | 'saveCosmeticAsync' | 'initializeCosmeticsAsync' | 'deleteCosmeticAsync' | 'clearAllCosmeticsAsync';
 
 /** What {@link FakeDynamoDbService.seedAccount} can set; everything is generated when omitted. */
@@ -73,7 +73,7 @@ export interface ISeededAccount {
     email: string;
 }
 
-export type ServerRoleLists = Partial<Record<keyof IServerRoleUsersListsEntity, string[]>>;
+export type ServerRoleLists = Partial<Record<'admins' | 'developers' | 'moderators' | 'contributors', string[]>>;
 
 /** A stored player report record, plus the GSI bucket it is filed under (open, or closed in a month). */
 export interface IStoredPlayerReport {
@@ -253,7 +253,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     /** Replaces the given role lists; roles not named keep their current members. */
     public seedRoles(roles: ServerRoleLists): void {
-        for (const [role, userIds] of Object.entries(roles) as [keyof IServerRoleUsersListsEntity, string[]][]) {
+        for (const [role, userIds] of Object.entries(roles) as [keyof ServerRoleLists, string[]][]) {
             this.roleUsers[role] = userIds.map((id) => ({ id }));
         }
     }
@@ -586,13 +586,33 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     // ---- Server roles and settings ----
 
-    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+    public getServerRoleUsersAsync(_options: { consistentRead?: boolean } = {}): Promise<IServerRoleUsersListsEntity> {
         return Promise.resolve({
-            admins: [...this.roleUsers.admins],
-            developers: [...this.roleUsers.developers],
-            moderators: [...this.roleUsers.moderators],
-            contributors: [...this.roleUsers.contributors],
+            admins: this.roleUsers.admins.map((holder) => ({ ...holder })),
+            developers: this.roleUsers.developers.map((holder) => ({ ...holder })),
+            moderators: this.roleUsers.moderators.map((holder) => ({ ...holder })),
+            contributors: this.roleUsers.contributors.map((holder) => ({ ...holder })),
+            // set only once an admin has changed the lists through the server
+            ...(this.roleUsers.updatedAt !== undefined ? { updatedAt: this.roleUsers.updatedAt, updatedBy: this.roleUsers.updatedBy } : {}),
         });
+    }
+
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, previousUpdatedAt: string | undefined): Promise<UpdateCommandOutput> {
+        // like the real service, the write is refused if the lists changed since they were read
+        if (this.roleUsers.updatedAt !== previousUpdatedAt) {
+            return Promise.reject(conditionalCheckFailed());
+        }
+
+        const { admins, developers, moderators, contributors, updatedAt, updatedBy } = lists;
+        this.roleUsers = {
+            admins: admins.map((holder) => ({ ...holder })),
+            developers: developers.map((holder) => ({ ...holder })),
+            moderators: moderators.map((holder) => ({ ...holder })),
+            contributors: contributors.map((holder) => ({ ...holder })),
+            updatedAt,
+            updatedBy,
+        };
+        return Promise.resolve(updateResult);
     }
 
     public getServerSettingsAsync(): Promise<IServerSettingsEntity> {

@@ -39,7 +39,7 @@ import { getMatchmakingSearchContext } from './MatchmakingRules';
 import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware, getSessionToken } from '../middleware/AuthMiddleWare';
-import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
+import { NotStoredAdminError, ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { signInRefusalCode, UserFactory } from '../utils/user/UserFactory';
 import { validateUsernameFormat } from '../utils/user/UsernameRules';
@@ -56,11 +56,13 @@ import type { ICosmeticEntity } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IModerationAction,
     IReportingDisabledState,
+    IServerRoleUsersListsEntity,
     IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
     ServerRole,
+    ServerRoleListKeys,
     UsernameChangeSource
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
@@ -84,6 +86,7 @@ import {
     PlayerReportListQuerySchema,
     PlayerReportUpdateSchema,
     SaveDeckRequestSchema,
+    ServerRoleChangeSchema,
     ServerSettingsUpdateSchema
 } from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
@@ -2214,6 +2217,81 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.get('/api/mod/server-roles', this.buildAuthMiddleware('mod-server-roles', ServerRole.Admin), async (req, res, next) => {
+            try {
+                if (!this.serverRoleUsersCache) {
+                    return res.status(503).json({
+                        success: false,
+                        message: 'Server roles are unavailable because there is no database connection'
+                    });
+                }
+
+                const stored = await this.serverRoleUsersCache.getStoredRoleUsersAsync();
+                return res.status(200).json(await this.buildServerRolesResponseAsync(stored));
+            } catch (err) {
+                logger.error('GameServer (mod-server-roles) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/server-roles', this.buildAuthMiddleware('mod-server-roles-change', ServerRole.Admin), async (req, res, next) => {
+            try {
+                const parseResult = ServerRoleChangeSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                if (!this.serverRoleUsersCache) {
+                    return res.status(503).json({
+                        success: false,
+                        message: 'Server roles are unavailable because there is no database connection'
+                    });
+                }
+
+                const { userId, role, granted } = parseResult.data;
+
+                // so the server is never left without an admin to undo a mistake
+                if (role === ServerRole.Admin && !granted && userId === req.user.getId()) {
+                    return res.status(400).json({ success: false, message: 'You cannot remove your own admin role' });
+                }
+
+                const username = (await this.userFactory.getUsernamesAsync([userId])).get(userId);
+                if (username === undefined) {
+                    return res.status(404).json({ success: false, message: 'Player not found' });
+                }
+
+                let updated: IServerRoleUsersListsEntity;
+                try {
+                    updated = await this.serverRoleUsersCache.setUserRoleAsync(userId, role, granted, username, { id: req.user.getId(), username: req.user.getUsername() });
+                } catch (error) {
+                    if (error instanceof NotStoredAdminError) {
+                        logger.warn(`GameServer: ${req.user.getUsername()} tried to change a server role after losing the admin role`, { userId: req.user.getId() });
+                        return res.status(403).json({ success: false, message: error.message });
+                    }
+                    if (error.name === 'ConditionalCheckFailedException') {
+                        return res.status(409).json({ success: false, message: 'The roles were changed by someone else at the same time. Reload them and try again.' });
+                    }
+                    throw error;
+                }
+
+                logger.info(`GameServer: ${req.user.getUsername()} ${granted ? 'granted' : 'removed'} the ${role} role ${granted ? 'to' : 'from'} ${username}`, {
+                    changedBy: req.user.getId(),
+                    userId,
+                    role,
+                    granted
+                });
+
+                return res.status(200).json(await this.buildServerRolesResponseAsync(updated));
+            } catch (err) {
+                logger.error('GameServer (mod-server-roles-change) Server error:', err);
+                next(err);
+            }
+        });
     }
 
     /**
@@ -2257,6 +2335,26 @@ export class GameServer {
     /**
      * The subset of server settings that is safe to expose to any client.
      */
+    /** The role lists as the admin role editor shows them: each role's users with their usernames. */
+    private async buildServerRolesResponseAsync(lists: IServerRoleUsersListsEntity) {
+        const roles = Object.values(ServerRole);
+        const usernames = await this.userFactory.getUsernamesAsync(roles.flatMap((role) => lists[ServerRoleListKeys[role]].map((holder) => holder.id)));
+
+        return {
+            success: true,
+            roles: Object.fromEntries(roles.map((role) => [
+                role,
+                lists[ServerRoleListKeys[role]].map((holder) => ({
+                    id: holder.id,
+                    username: usernames.get(holder.id) ?? null,
+                    note: holder.note ?? null
+                }))
+            ])),
+            updatedAt: lists.updatedAt ?? null,
+            updatedBy: lists.updatedBy ?? null
+        };
+    }
+
     private getPublicServerSettings() {
         const settings = this.serverSettingsCache?.getSettings();
         return {
