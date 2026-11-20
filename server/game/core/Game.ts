@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 
 import type { IScheduler } from '../../utils/IScheduler';
+import { ByoyomiTimer } from './actionTimer/ByoyomiTimer';
 import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
@@ -251,6 +252,11 @@ export class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
+    /** Whether the lobby is done with this game (see {@link dispose}). */
+    public get isDisposed(): boolean {
+        return this._disposed;
+    }
+
     public get isEnded(): boolean {
         return this.state.winnerNames.length > 0;
     }
@@ -407,15 +413,15 @@ export class Game extends EventEmitter {
      * instead of restarting it. Not part of the game state, since it must survive the rollback.
      */
     private _resumeActionTimerAfterRollback = false;
+    private _disposed = false;
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
 
     /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
     public readonly scheduler: IScheduler;
-    public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
-    public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
+    public readonly onBo3SetForfeit?: (losingPlayerId: string, game: Game) => void;
     public manualMode: boolean;
     public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
@@ -483,7 +489,6 @@ export class Game extends EventEmitter {
         this.playerHasBeenPrompted = new Map();
 
         this.scheduler = details.scheduler;
-        this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
         this.onBo3SetForfeit = details.onBo3SetForfeit;
 
@@ -880,33 +885,40 @@ export class Game extends EventEmitter {
         return this._resumeActionTimerAfterRollback;
     }
 
-    public restartAllActionTimers(): void {
-        this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
-    }
-
-    public onPlayerAction(playerId: string): void {
-        const player = this.getPlayerById(playerId);
-
-        player.incrementActionId();
+    /**
+     * Stops what this game has scheduled (its players' action timers), for a lobby that is done with it. Nothing a disposed
+     * game scheduled acts afterwards.
+     */
+    public dispose(): void {
+        this._disposed = true;
+        for (const player of this.getPlayers()) {
+            player.actionTimer.stop();
+        }
     }
 
     public onGameTimerExpired(player: Player): null {
-        if (this.isEnded) {
+        if (this.isEnded || this._disposed) {
             // Stale timer fired after game already ended (e.g. for a previous game in a Bo3 set).
             // Skip to avoid spurious endGame / onBo3SetForfeit side effects on the wrong game.
             return null;
         }
 
-        player.opponent.actionTimer.stop();
+        // A draw if the opponent was about to time out too: their timer running (or running out at this same moment), and
+        // no more than the margin left, counting turn and main time. A waiting opponent wins however little time they have.
+        // Read before their timer is stopped, which would drop their turn time.
+        const opponentTimer = player.opponent.actionTimer;
+        const isDraw = opponentTimer.isCountingDown && opponentTimer.msUntilTimeout <= ByoyomiTimer.TimeoutDrawMarginSeconds * 1000;
+
+        opponentTimer.stop();
         this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);
 
-        if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
+        if (isDraw) {
             // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
             this.endGame([player, player.opponent], GameEndReason.Timeout);
         } else {
             // Single player timeout - forfeit Bo3 set if applicable
             if (this.onBo3SetForfeit) {
-                this.onBo3SetForfeit(player.id);
+                this.onBo3SetForfeit(player.id, this);
             }
             this.endGame(player.opponent, GameEndReason.Timeout);
         }
@@ -978,7 +990,7 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
-        this._router.handleGameEnd();
+        this._router.handleGameEnd(this);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
         if (typeof this._router.sendGameState === 'function') {
@@ -995,7 +1007,7 @@ export class Game extends EventEmitter {
      * which can otherwise cause stale state pushes from a prior game in a Bo3 set.
      */
     public sendTimerUpdatedGameStateToPlayers() {
-        if (this.isEnded) {
+        if (this.isEnded || this._disposed) {
             return;
         }
         if (typeof this._router?.sendGameState === 'function') {

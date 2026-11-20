@@ -294,5 +294,14 @@ export default tseslint.config(
         rules: {
             'forceteki/no-lki-engine-access': 'error',
         }
+    },
+    {
+        // The production image installs only `dependencies` (npm ci --omit=dev), so anything server code imports
+        // at runtime must be declared there, not only as a devDependency or reached through another package's
+        // dependencies. Type-only imports are exempt because they're erased at compile time.
+        files: ["server/**/*.ts", "server/**/*.js"],
+        rules: {
+            "import-x/no-extraneous-dependencies": ["error", { devDependencies: false }],
+        }
     }
 );

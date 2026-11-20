@@ -5,6 +5,7 @@ import { Contract } from '../game/core/utils/Contract';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
+import type { IChatPlayer } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
 import type { IUser } from '../Settings';
 import { getUserWithDefaultsSet } from '../Settings';
@@ -19,6 +20,7 @@ import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
+    ChatObjectType,
     GameEndReason,
     GameErrorSeverity,
     GamesToWinMode,
@@ -38,6 +40,7 @@ import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
+import { ReportDimensionsSchema } from '../services/DynamoDBInterfaceSchemas';
 import {
     createStatsMessage,
     StatsMessageKey,
@@ -519,10 +522,6 @@ export class Lobby {
 
         const now = this.scheduler.currentDate();
         this.userLastActivity.set(id, now);
-
-        if (this.game) {
-            this.game.onPlayerAction(id);
-        }
     }
 
     public hasPlayer(id: string) {
@@ -553,7 +552,7 @@ export class Lobby {
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
-        this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
+        this.gameChat.addMessage('{0} has created and joined the lobby', this.lobbyChatPlayer({ id: user.getId(), username: user.getUsername() }));
 
         this.updateUserLastActivity(user.getId());
     }
@@ -653,7 +652,7 @@ export class Lobby {
                 reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
-            this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
+            this.gameChat.addMessage('{0} has joined the lobby', this.lobbyChatPlayer({ id: user.getId(), username: user.getUsername() }));
         }
 
         this.updateUserLastActivity(user.getId());
@@ -739,7 +738,7 @@ export class Lobby {
         }
         currentUser.ready = args[0];
         logger.info(`Lobby: user ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
-        this.gameChat.addAlert(AlertType.ReadyStatus, `${currentUser.username} is ${args[0] ? 'ready to start' : 'not ready to start'}`);
+        this.gameChat.addAlert(AlertType.ReadyStatus, `{0} is ${args[0] ? 'ready to start' : 'not ready to start'}`, this.lobbyChatPlayer(currentUser));
         this.updateUserLastActivity(currentUser.id);
 
         // For Bo3 games after game 1, manage the lobby ready timer based on ready state
@@ -845,25 +844,25 @@ export class Lobby {
             let alertMessage: string;
             switch (mode) {
                 case RematchMode.Reset:
-                    alertMessage = `${user.username} has requested a quick rematch!`;
+                    alertMessage = '{0} has requested a quick rematch!';
                     break;
                 case RematchMode.Bo1ConvertToBo3:
-                    alertMessage = `${user.username} has requested to convert to a best-of-three match!`;
+                    alertMessage = '{0} has requested to convert to a best-of-three match!';
                     break;
                 case RematchMode.NewBo3:
-                    alertMessage = `${user.username} has requested a new best-of-three match!`;
+                    alertMessage = '{0} has requested a new best-of-three match!';
                     break;
                 case RematchMode.Regular:
-                    alertMessage = `${user.username} has requested a rematch!`;
+                    alertMessage = '{0} has requested a rematch!';
                     break;
                 default:
                     Contract.fail(`Unknown rematch mode: ${mode}`);
             }
 
             if (this.game) {
-                this.game.addAlert(AlertType.Notification, alertMessage);
+                this.game.addAlert(AlertType.Notification, alertMessage, this.game.getPlayerById(user.id));
             } else {
-                this.gameChat.addAlert(AlertType.Notification, alertMessage);
+                this.gameChat.addAlert(AlertType.Notification, alertMessage, this.lobbyChatPlayer(user));
             }
         }
         this.sendLobbyState();
@@ -874,7 +873,7 @@ export class Lobby {
 
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
-        this.game = null;
+        this.replaceGame(null);
         if (this.matchmakingType === MatchmakingType.Quick) {
             this.matchmakingType = MatchmakingType.PublicLobby;
         }
@@ -939,7 +938,7 @@ export class Lobby {
         if (this.bo3NextGameConfirmedBy.size >= 2) {
             this.transitionToNextBo3Game('Both players confirmed');
         } else {
-            this.gameChat.addAlert(AlertType.Notification, `${user.username} is ready for the next game.`);
+            this.gameChat.addAlert(AlertType.Notification, '{0} is ready for the next game.', this.lobbyChatPlayer(user));
             this.sendLobbyState();
         }
     }
@@ -986,7 +985,7 @@ export class Lobby {
             this.game.gameChat.addMessage('{0} concedes the best-of-three set', this.game.getPlayerById(userId));
             this.sendGameState(this.game);
         } else {
-            this.gameChat.addMessage(`${user.username} has conceded the set.`);
+            this.gameChat.addMessage('{0} has conceded the set.', this.lobbyChatPlayer(user));
         }
 
         logger.info(`Lobby: user ${user.username} conceded the Bo3 set`, { lobbyId: this.id, userName: user.username, userId: user.id });
@@ -1151,6 +1150,15 @@ export class Lobby {
         return user;
     }
 
+    /**
+     * Names a user in a lobby chat message as a player part, the way the engine names a `Player` in the game
+     * chat. Pass it for a `{0}` placeholder rather than writing the username into the text, so that a client
+     * can show the player by seat to someone who should not see their name.
+     */
+    private lobbyChatPlayer(user: Pick<LobbyUserWrapper, 'id' | 'username'>): IChatPlayer {
+        return { id: user.id, name: user.username, type: ChatObjectType.Player };
+    }
+
     public setUserDisconnected(id: string, socketId: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
@@ -1236,7 +1244,7 @@ export class Lobby {
     public removeUser(id: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
-            this.gameChat.addMessage(`${user.username} has left the lobby`);
+            this.gameChat.addMessage('{0} has left the lobby', this.lobbyChatPlayer(user));
         } else {
             return;
         }
@@ -1312,6 +1320,17 @@ export class Lobby {
         this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, this.scheduler.now());
     }
 
+    /**
+     * Makes `game` the lobby's game (or leaves it with none), disposing of the one it had, so that nothing the old game
+     * scheduled can act on the lobby afterwards.
+     */
+    private replaceGame(game: Game | null): void {
+        if (this.game && this.game !== game) {
+            this.game.dispose();
+        }
+        this.game = game;
+    }
+
     public cleanLobby(): void {
         this.clearBo3TransitionTimer();
         this.bo3LobbyReadyTimer?.stop();
@@ -1323,7 +1342,7 @@ export class Lobby {
             this.matchingCountdownTask = undefined;
         }
 
-        this.game = null;
+        this.replaceGame(null);
         this.users = [];
         this.spectators = [];
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
@@ -1361,7 +1380,7 @@ export class Lobby {
             legalCardTitles
         );
 
-        this.game = game;
+        this.replaceGame(game);
 
         for (const player of this.game.getPlayers()) {
             const userWrapper = this.getUser(player.user.id);
@@ -1387,7 +1406,7 @@ export class Lobby {
             this.statsUpdateStatus.clear();
 
             const game = new Game(this.buildGameSettings(), { router: this });
-            this.game = game;
+            this.replaceGame(game);
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
 
@@ -1507,7 +1526,8 @@ export class Lobby {
         });
         this.gameChat.addAlert(
             AlertType.Danger,
-            `Cannot start game: ${names} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`
+            `Cannot start game: {0} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`,
+            usersWithInvalidDeckSize.map((user) => this.lobbyChatPlayer(user))
         );
         this.sendLobbyState();
     }
@@ -1608,26 +1628,14 @@ export class Lobby {
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
             scheduler: this.scheduler,
-            userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
             onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
-                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                ? (losingPlayerId: string, game: Game) => {
+                    if (game === this.game) {
+                        this.concedeBo3ByUserId(losingPlayerId);
+                    }
+                }
                 : undefined,
         };
-    }
-
-    private userTimeoutDisconnect(userId: string) {
-        const socket = this.users.find((u) => u.id === userId)?.socket;
-
-        Contract.assertNotNullLike(socket, `Unable to find socket for user ${userId} in lobby ${this.id} while attempting to disconnect`);
-
-        socket.socket.data.forceDisconnect = true;
-
-        socket.send('inactiveDisconnect');
-        socket.disconnect();
-
-        this.server.handleIntentionalDisconnect(userId, false, this);
-
-        logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
 
     private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
@@ -1714,7 +1722,8 @@ export class Lobby {
 
             this.updateUserLastActivity(socket.user.getId());
 
-            // this command is a no-op since we reset the timer just above
+            // A player's messages do not affect their action timer. Clients still send this when a report dialog opens, so
+            // it is accepted and ignored until they stop.
             if (command === 'resetActionTimer') {
                 return;
             }
@@ -2187,7 +2196,12 @@ export class Lobby {
         socket.send('lobbystate', this.getLobbyState());
     }
 
-    public handleGameEnd(): void {
+    public handleGameEnd(game: Game): void {
+        // only the lobby's current game decides its results
+        if (game !== this.game) {
+            return;
+        }
+
         // Record winner based on game mode
         this.recordGameResult(this.gamesToWinMode);
 
@@ -2311,7 +2325,7 @@ export class Lobby {
         this.winHistory.currentGameNumber++;
 
         // Reset for next game (winner was already recorded in handleGameEnd)
-        this.game = null;
+        this.replaceGame(null);
         this.bo3NextGameConfirmedBy?.clear();
 
         // Clear the 'ready' state for all users
@@ -2387,7 +2401,7 @@ export class Lobby {
                 timeoutPlayerId: timeoutPlayer.id
             };
 
-            this.gameChat.addAlert(AlertType.Danger, `${timeoutPlayer.username} did not ready in time. The set has ended.`);
+            this.gameChat.addAlert(AlertType.Danger, '{0} did not ready in time. The set has ended.', this.lobbyChatPlayer(timeoutPlayer));
             this.sendLobbyState();
         } else {
             // Neither player is ready - both timed out
@@ -2497,13 +2511,13 @@ export class Lobby {
             case LobbySettingKeys.RequestUndo:
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
-                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
+                this.gameChat.addAlert(AlertType.Warning, `{0} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`, this.lobbyChatPlayer(user));
                 break;
             case LobbySettingKeys.AllowSpectators:
                 Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.allowSpectators = settingValue;
-                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
+                this.gameChat.addAlert(AlertType.Warning, `{0} has ${settingValue ? 'enabled' : 'disabled'} spectation`, this.lobbyChatPlayer(user));
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
@@ -2621,11 +2635,12 @@ export class Lobby {
             let viewport = null;
 
             if (reportMessage && typeof reportMessage === 'object') {
-                parsedDescription = reportMessage.description || '';
-                screenResolution = reportMessage.screenResolution || null;
-                viewport = reportMessage.viewport || null;
+                parsedDescription = typeof reportMessage.description === 'string' ? reportMessage.description : '';
+                // Sent by the client as-is (bug reports only); anything that is not a plain size is dropped
+                screenResolution = ReportDimensionsSchema.safeParse(reportMessage.screenResolution).data ?? null;
+                viewport = ReportDimensionsSchema.safeParse(reportMessage.viewport).data ?? null;
             } else {
-                parsedDescription = reportMessage;
+                parsedDescription = typeof reportMessage === 'string' ? reportMessage : '';
             }
 
             const gameState = this.game
@@ -2638,7 +2653,8 @@ export class Lobby {
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
-                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                // A player report keeps chat in its own log, so its game log leaves the chat out
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.getGameLogMessages();
                 if (reportType === ReportType.PlayerReport) {
                     chatMessages = this.game.gameChat.getPlayerChatMessages();
                 }
@@ -2650,14 +2666,39 @@ export class Lobby {
                 } else {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
-                gameMessages = this.gameChat.messages;
+                gameMessages = reportType === ReportType.BugReport ? this.gameChat.messages : this.gameChat.getGameLogMessages();
                 chatMessages = this.gameChat.getPlayerChatMessages();
+            }
+
+            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            if (reportType === ReportType.PlayerReport) {
+                await this.server.playerReportService.createReportAsync({
+                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                    reportedPlayer: opponent,
+                    offense: playerReportType ?? PlayerReportType.Other,
+                    description: parsedDescription,
+                    lobbyId: this.id,
+                    gameId: this.game?.id,
+                    gameFormat: String(this.gameFormat),
+                    matchType: String(this.matchmakingType),
+                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                    // Screen and viewport size are only kept for bug reports; a player report does not need them
+                    gameMessages,
+                    chatMessages: chatMessages ?? [],
+                });
+
+                socket.send(resultEvent, {
+                    id: uuid(),
+                    success: true,
+                    message: `Successfully sent ${reportLabel}`
+                });
+                this.sendLobbyState();
+                return;
             }
 
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
-                playerReportType,
                 socket.user,
                 opponent,
                 gameMessages,
@@ -2667,18 +2708,15 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport,
-                chatMessages
+                viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
+            const success = await this.discordDispatcher.formatAndSendBugReportAsync(report);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
             const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            if (reportType === ReportType.BugReport) {
-                existingUser.reportedBugs += 1;
-            }
+            existingUser.reportedBugs += 1;
 
             socket.send(resultEvent, {
                 id: uuid(),
@@ -2686,14 +2724,11 @@ export class Lobby {
                 message: `Successfully sent ${reportLabel}`
             });
 
-            // we report the alert only if its a bug report
-            if (reportType === ReportType.BugReport) {
-                this.game.addAlert(
-                    AlertType.Notification,
-                    `{0} has submitted a ${reportLabel}`,
-                    existingUser.username
-                );
-            }
+            this.game.addAlert(
+                AlertType.Notification,
+                `{0} has submitted a ${reportLabel}`,
+                this.game.getPlayerById(existingUser.id)
+            );
 
             this.sendLobbyState();
         } catch (error) {

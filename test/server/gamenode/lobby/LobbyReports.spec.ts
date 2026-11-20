@@ -22,7 +22,7 @@ describe('Lobby reports', function () {
             const lobby = harness.server.testLobbyFor(reporter.id) as any;
             lobby.discordDispatcher = {
                 formatReport: (...args: unknown[]) => ({ args }),
-                formatAndSendReportAsync: (report: unknown) => {
+                formatAndSendBugReportAsync: (report: unknown) => {
                     sent.push(report);
                     return Promise.resolve(true);
                 },
@@ -38,6 +38,20 @@ describe('Lobby reports', function () {
             await reporter.submitBugReportAsync('a real bug');
 
             expect(sent.length).toBe(1);
+        });
+
+        it('tells the game chat who sent a report, naming them as a player part rather than in the text', async function () {
+            const { harness } = contextRef;
+            const { first: reporter, second: opponent } = await harness.startQuickGameAsync({ ...loggedIn, username: 'Alice' }, loggedIn);
+            captureDiscordReports(harness, reporter);
+
+            await reporter.submitBugReportAsync('a real bug');
+
+            // a client finds a player part by id, so it can show a spectator the player's seat rather than their name
+            expect(opponent.gameChat).toContain(jasmine.objectContaining({
+                text: 'Alice has submitted a bug report',
+                playerIds: [reporter.id],
+            }));
         });
 
         it('drops a bug report from an anonymous player', async function () {

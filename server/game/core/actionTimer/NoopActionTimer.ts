@@ -16,11 +16,6 @@ export class NoopActionTimer implements IByoyomiTimer {
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public get timeRemainingSeconds(): number | null {
-        return null;
-    }
-
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
         return PlayerTimeRemainingStatus.NoAlert;
     }
@@ -36,16 +31,18 @@ export class NoopActionTimer implements IByoyomiTimer {
         return ByoyomiTimer.MainTimeLimitSeconds;
     }
 
-    public get totalTimeRemainingSeconds(): number {
-        // Return full main timer when disabled (no pressure on player)
-        return ByoyomiTimer.MainTimeLimitSeconds;
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get isCountingDown(): boolean {
+        return false;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get msUntilTimeout(): number {
+        // a disabled timer never times anyone out
+        return Number.POSITIVE_INFINITY;
     }
 
     public start() {
-        return;
-    }
-
-    public restartIfRunning() {
         return;
     }
 

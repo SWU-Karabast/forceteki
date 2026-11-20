@@ -277,6 +277,7 @@ export class ModActionService {
         moderatorUsername: string,
         note: string,
         durationDays?: number,
+        relatedReportId?: string,
     ): Promise<IModActionEntity> {
         try {
             const dbService = await this.dbServicePromise;
@@ -294,6 +295,7 @@ export class ModActionService {
                 moderatorId,
                 moderatorUsername,
                 createdAt: this.scheduler.currentDate().toISOString(),
+                relatedReportId,
             };
 
             await dbService.saveModActionAsync(modAction);
@@ -519,14 +521,14 @@ export class ModActionService {
      * Called after a new mod action is submitted.
      * Upserts the cache entry for the relevant action type.
      *
-     * For Mute: if an existing Mute is in cache it prevents the user from submitting a new one.
-     * stays active and the shorter one is deactivated in DB (GSI_PK removed).
+     * An active action of the same type blocks a new one; the moderator has to cancel the existing one first.
      */
     public async onActionSubmitted(playerId: string, actionType: ModActionType,
         moderatorId: string,
         moderatorUsername: string,
         note: string,
-        durationDays?: number
+        durationDays?: number,
+        relatedReportId?: string
     ): Promise<{ success: boolean; message: string; modActionId?: string }> {
         if (actionType === ModActionType.Rename && this.isUsernameChangesBlocked(playerId)) {
             logger.info(`ModActionService: Refusing Force Rename for player ${playerId} while username changes are blocked`, {
@@ -547,7 +549,7 @@ export class ModActionService {
             };
         }
 
-        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays);
+        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays, relatedReportId);
 
         if (!isTrackedModAction(modAction.actionType)) {
             return {

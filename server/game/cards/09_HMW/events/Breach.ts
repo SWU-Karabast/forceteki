@@ -37,7 +37,8 @@ export default class Breach extends EventCard {
                     immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
                         amount: context.targets.friendlyUnit.getPower(),
                         target: context.targets.enemyUnit,
-                        source: context.targets.friendlyUnit
+                        source: context.targets.friendlyUnit,
+                        excessDamageRedirected: context.targets.friendlyUnit.hasSomeKeyword(KeywordName.Overwhelm)
                     })),
                 },
             },

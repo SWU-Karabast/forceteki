@@ -49,9 +49,7 @@ describe('In-game connections', function () {
             });
 
             // No spec for the inactivity kick: it is a dead feature, to be removed (open finding #11, in the game-timer
-            // area's step d).
-            // TODO (open finding #11): if the action timer is made to read player activity again, add specs that
-            // `resetActionTimer` and other game messages hold it off.
+            // area's step d). That a player's messages leave their action timer alone is covered with the timers.
         });
     });
 });

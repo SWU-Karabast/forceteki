@@ -79,6 +79,9 @@ export class GameEvent {
     private _window: EventWindow = null;
     private _replacesEvent?: GameEvent;
 
+    /** The event whose contingent events generator created this one, if any. See {@link generateContingentEvents}. */
+    private _contingentSourceEvent?: GameEvent;
+
     /** A unique ID which can be captured in state if necessary. */
     private readonly _eventId: number;
 
@@ -210,9 +213,27 @@ export class GameEvent {
         if (!this.canResolve) {
             return;
         }
-        if (!this.condition(this)) {
+        if (this.contingentSourceWasCancelledOrReplaced() || !this.condition(this)) {
             this.cancel();
         }
+    }
+
+    /**
+     * A contingent event only happens as part of the event it was generated from, so it must not resolve if that
+     * event (or any event further up the chain) was cancelled or replaced. For example, if a pilot upgrade's defeat
+     * is replaced (Luke Skywalker, You Still With Me?), the pilot must not also leave play or be unattached.
+     *
+     * This matters for contingent events nested more than one level deep: those are generated together with their
+     * source event, before any replacement effect has had a chance to replace it.
+     */
+    private contingentSourceWasCancelledOrReplaced(): boolean {
+        for (let source = this._contingentSourceEvent; source != null; source = source._contingentSourceEvent) {
+            if (source.isCancelledOrReplaced) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor
@@ -267,6 +288,9 @@ export class GameEvent {
 
     public generateContingentEvents(): any[] {
         const contingentEvents = this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+        for (const contingentEvent of contingentEvents) {
+            contingentEvent._contingentSourceEvent = this;
+        }
 
         // recursively generate contingent events in case the new contingent events also have contingent events
         let i = 0;

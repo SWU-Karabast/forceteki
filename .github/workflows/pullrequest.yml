@@ -9,6 +9,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   lint:
     if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
@@ -22,6 +24,31 @@ jobs:
       - run: npm install
 
       - run: npx eslint --quiet
+
+  # Builds the production Docker image and checks it the same way `npm run docker-prod-test` does locally:
+  # no dev-only packages, runs as non-root, and the server starts and answers /api/health. This catches a
+  # broken Dockerfile, and runtime code that loads a devDependency in a way the lint rule can't see.
+  prod-image:
+    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: "npm"
+      - run: npm install
+
+      - name: cache card data json files
+        id: cache-card-data
+        uses: actions/cache@v5
+        with:
+          path: ./test/json
+          key: card-data-${{ hashFiles('card-data-version.txt', 'scripts/fetchdata.js', 'scripts/mockdata.js') }}
+      - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
+        run: npm run get-cards
+
+      - run: npm run docker-prod-test
 
   validate-cards:
     if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
@@ -102,4 +129,3 @@ jobs:
         run: npm run get-cards
 
       - run: npm run capture-states -- --check
-
