@@ -120,7 +120,7 @@ describe('Spectator connections', function () {
 
             await guest.concedeAsync();
 
-            expect(spectator.gameState.winners).toEqual([owner.username]);
+            expect(spectator.gameState.winners).toEqual([owner.spectatorSeat.name]);
         });
 
         it('admits a spectator between the games of a rematch, sending them the lobby and then the next game', async function () {

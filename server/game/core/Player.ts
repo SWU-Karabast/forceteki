@@ -1196,7 +1196,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     public getStateSummary(activePlayer) {
         const isActivePlayer = activePlayer === this;
         const promptState = isActivePlayer ? this._promptState.getState() : {};
-        const { ...safeUser } = this.user;
 
         let isActionPhaseActivePlayer = null;
         if (this.game.actionPhaseActivePlayer != null) {
@@ -1229,7 +1228,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             phase: this.game.currentPhase,
             promptedActionWindows: this.promptedActionWindows,
             // stats: this.getStats(),
-            user: safeUser,
+            // only what the client shows: an opponent has no need for this player's settings or block list
+            user: { id: this.user.id, username: this.user.username, cosmetics: this.user.cosmetics },
             promptState: promptState,
             isActionPhaseActivePlayer,
             clock: undefined,
