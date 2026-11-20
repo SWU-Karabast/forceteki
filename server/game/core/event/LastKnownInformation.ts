@@ -109,8 +109,7 @@ export function addLastKnownInformationToEvent(event: GameEvent, card: Card): vo
  * As {@link addLastKnownInformationToEvent}, but also writes a registry record.
  *
  * Only for events that actually remove the card from its zone. Recording for an event the card
- * survives would freeze a live unit at its pre-event values for the rest of the action, and would
- * then tombstone its still-current identity at the action boundary.
+ * survives would freeze a live unit at its pre-event values for the rest of the action.
  */
 export function addDepartureRecordToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {

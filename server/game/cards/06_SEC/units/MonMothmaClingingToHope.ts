@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import type { CardRef } from '../../../core/lki/CardRef';
+import type { ICardReference } from '../../../core/lki/CardRef';
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
@@ -27,7 +27,7 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
      * back counts as a different unit and may be chosen again (`SWU 8.5.4`).
      */
     private attackWithUnitAbility(
-        alreadyAttacked: readonly CardRef[],
+        alreadyAttacked: readonly ICardReference[],
         AbilityHelper: IAbilityHelper,
         cardStates: ICardStateGetter
     ): Omit<IThenAbilityPropsWithSystems<TriggeredAbilityContext<NonLeaderUnitCard>>, 'title'> {

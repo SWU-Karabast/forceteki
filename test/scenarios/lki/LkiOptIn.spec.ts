@@ -39,17 +39,25 @@ describe('Last known information opt-in', function () {
 
                 // Opted in: reads the record, so it still sees the unit as it was in play, modifiers included.
                 const recorded = cardStates.forCard(context.helgait).getLastKnownProperties(context.helgait)
-                    .asUnitCard();
-                expect(recorded.zoneName as string).toBe('groundArena');
+                    .asUnit();
+                expect(recorded.arena as string).toBe('groundArena');
                 expect(recorded.asInPlay().power).toBe(7);
 
                 // Not opted in: reads the card as it is right now, exactly as reading it directly would.
                 const live = cardStates.forCard(context.wampa).getLastKnownProperties(context.helgait)
-                    .asUnitCard();
-                expect(live.zoneName as string).toBe('discard');
-                expect(live.isInPlay()).toBeFalse();
+                    .asUnit();
+                expect(live.arena).toBeNull();
+                expect(live.wasInPlay()).toBeFalse();
                 expect(live.printedPower).toBe(6);
                 expect(() => live.asInPlay()).toThrowError(/to be in play/);
+
+                // Where the card is now is asked of the current view, which both getters answer from the
+                // live card (D-37).
+                for (const getter of [cardStates.forCard(context.helgait), cardStates.forCard(context.wampa)]) {
+                    const now = getter.getCurrentProperties(context.helgait);
+                    expect(now.zoneName as string).toBe('discard');
+                    expect(now.isInPlay()).toBeFalse();
+                }
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 7]
@@ -92,7 +100,7 @@ describe('Last known information opt-in', function () {
         });
 
         describe('A card that has not opted in', function () {
-            it('reads live state for a card whose record has been flushed, where the registry-backed getter refuses', async function () {
+            it('reads a card whose record has been flushed as it is now, as an opted-in card does', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -113,14 +121,19 @@ describe('Last known information opt-in', function () {
                     [context.wampa, 7]
                 ]));
 
-                // The action that caused the defeat has ended, so the record is gone and its identity is
-                // tombstoned. An opted-in card is refused rather than served stale data...
-                expect(() => cardStates.forCard(context.helgait).getLastKnownProperties(context.helgait))
-                    .toThrowError(/was flushed at an action boundary/);
+                // The action that caused the defeat has ended, so the record is gone. Helgait is still the
+                // same identity, sitting in the discard pile, and an opted-in card reads it there as it is
+                // now (D-39): card code picks cards up from the discard pile all the time.
+                const optedIn = cardStates.forCard(context.helgait).getLastKnownProperties(context.helgait)
+                    .asUnit();
+                expect(optedIn.arena).toBeNull();
+                expect(optedIn.wasInPlay()).toBeFalse();
 
-                // ...but a card that has not opted in never reaches the registry's records or tombstones.
-                const live = cardStates.forCard(context.wampa).getLastKnownProperties(context.helgait);
-                expect(live.zoneName as string).toBe('discard');
+                // A card that has not opted in never reaches the records at all, and reads the same.
+                const live = cardStates.forCard(context.wampa).getLastKnownProperties(context.helgait)
+                    .asUnit();
+                expect(live.arena).toBeNull();
+                expect(live.wasInPlay()).toBeFalse();
             });
 
             it('reads the card as it is now when given a reference to an earlier identity of it', async function () {
@@ -148,8 +161,23 @@ describe('Last known information opt-in', function () {
                     .toThrowError(/names an identity that no longer exists/);
 
                 // ...whereas reading the card directly never cared which identity it was asked about.
-                const live = cardStates.forCard(context.battlefieldMarine).getLastKnownProperties(whileInHand);
-                expect(live.zoneName as string).toBe('groundArena');
+                // The view describes the card as it is now, so it names the identity it has now.
+                const liveOnly = cardStates.forCard(context.battlefieldMarine);
+                const live = liveOnly.getLastKnownProperties(whileInHand);
+                expect(live.arena as string).toBe('groundArena');
+                expect(live.ref).toBe(cardStates.getIdentity(context.wampa));
+
+                // The same holds for its current view: the live-only getter reads the card as it is now,
+                // as the same copy. The registry-backed getter answers that the copy the reference names,
+                // the one that was in hand, no longer exists, so it is not in play (SWU 8.5.4).
+                const liveNow = liveOnly.getCurrentProperties(whileInHand);
+                expect(liveNow.isSameCopy()).toBeTrue();
+                expect(liveNow.isInPlay()).toBeTrue();
+                expect(liveNow.ref).toBe(cardStates.getIdentity(context.wampa));
+
+                const registryBackedNow = cardStates.forCard(context.hk47).getCurrentProperties(whileInHand);
+                expect(registryBackedNow.isSameCopy()).toBeFalse();
+                expect(registryBackedNow.isInPlay()).toBeFalse();
             });
 
             it('still gets the same canonical identity references as a card that has opted in', async function () {
