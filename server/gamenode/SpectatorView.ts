@@ -48,7 +48,10 @@ export class SpectatorView {
         return { id: `player-${index + 1}`, name: `Player ${index + 1}` };
     }
 
-    /** The view of `game`, with seats in the order the game lists its players (the order the client numbers them in). */
+    /**
+     * The view of `game`, with seats in the order the game lists its players (the order the client numbers them in).
+     * Between games, the view of the last game still seats its players, so the score is told by the same seats.
+     */
     public static of(game: ISpectatedGame): SpectatorView {
         return new SpectatorView(game.getPlayers());
     }
@@ -75,6 +78,47 @@ export class SpectatorView {
     /** Game log entries for a spectator, as `retransmitGameMessages` sends them. */
     public messages(messages: readonly ISerializedMessage[]): ISerializedMessage[] {
         return this.withSeatIds(messages) as ISerializedMessage[];
+    }
+
+    /**
+     * A `lobbystate` for a spectator, from `Lobby.getLobbyState` with no user. A spectator takes no part in the lobby
+     * (no decks, no lobby chat, no settings, no rematch), so it is sent only the facts its client reads while
+     * watching: whether a game is on and what kind of game it is, and the score so far, by seat. Anything added to
+     * the lobby state reaches a spectator only once it is added here.
+     */
+    public lobbyState(lobbyState: Record<string, any>): Record<string, unknown> {
+        return {
+            id: lobbyState.id,
+            gameOngoing: lobbyState.gameOngoing,
+            gameType: lobbyState.gameType,
+            gameFormat: lobbyState.gameFormat,
+            cardPool: lobbyState.cardPool,
+            isPrivate: lobbyState.isPrivate,
+            winHistory: this.winHistory(lobbyState.winHistory),
+            settings: { allowSpectators: lobbyState.settings?.allowSpectators },
+
+            // the client reads these without checking they are there, so they are sent, empty
+            users: [],
+            gameChat: { messages: [], typingState: {} },
+        };
+    }
+
+    /** A lobby's `winHistory` with the players by seat: ids as seat ids, and `playerNames` naming each seat. */
+    private winHistory(winHistory: Record<string, any> | undefined): Record<string, any> | undefined {
+        if (!winHistory) {
+            return winHistory;
+        }
+
+        const projected = this.withSeatIds(winHistory) as Record<string, any>;
+        if (projected.playerNames) {
+            const seatsById = new Map([...this.seatsByPlayerId.values()].map((seat) => [seat.id, seat]));
+            projected.playerNames = Object.fromEntries(
+                Object.keys(projected.playerNames)
+                    .filter((seatId) => seatsById.has(seatId))
+                    .map((seatId) => [seatId, seatsById.get(seatId).name])
+            );
+        }
+        return projected;
     }
 
     /**
