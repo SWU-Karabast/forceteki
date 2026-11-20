@@ -27,6 +27,9 @@ export enum SnapshotType {
 
 export enum ChatObjectType {
     Player = 'player',
+
+    /** The player who wrote a chat line, as its first part. */
+    PlayerChat = 'playerChat',
     Card = 'card',
 }
 
