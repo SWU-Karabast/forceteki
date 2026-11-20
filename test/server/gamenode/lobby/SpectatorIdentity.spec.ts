@@ -19,8 +19,8 @@ const bob: ITestClientOptions = { authenticated: true, username: 'Bob' };
  */
 describe('Spectator identity', function () {
     /** A logged-in spectator, connected to the game in `lobbyId`. */
-    async function connectedSpectatorAsync(harness: ServerTestHarness, lobbyId: string): Promise<TestClient> {
-        const spectator = harness.createClient(loggedIn);
+    async function connectedSpectatorAsync(harness: ServerTestHarness, lobbyId: string, options: ITestClientOptions = loggedIn): Promise<TestClient> {
+        const spectator = harness.createClient(options);
         const response = await spectator.spectateGameAsync(lobbyId);
         expect(response.status).withContext(JSON.stringify(response.body))
             .toBe(200);
@@ -98,6 +98,29 @@ describe('Spectator identity', function () {
                     text: 'Alice is ready for the next game.',
                     playerIds: [owner.id],
                 }));
+            });
+        });
+
+        describe('in what the players are sent', function () {
+            it('never names a spectator or gives their id, in the game or the lobby state', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+                const spectator = await connectedSpectatorAsync(harness, lobbyId, { ...loggedIn, username: 'DistinctiveSpectatorName' });
+
+                // a lobby command makes the lobby send its state again, while the spectator is still watching
+                await owner.typingStateAsync(false);
+                const countInLobbyState = owner.lobbyState.spectatorCount;
+                await spectator.manualDisconnectAsync();
+
+                for (const player of [owner, guest]) {
+                    const everythingSent = JSON.stringify(player.receivedEvents());
+                    expect(everythingSent).withContext(`${player === owner ? 'owner' : 'guest'}: username`)
+                        .not.toContain(spectator.username);
+                    expect(everythingSent).withContext(`${player === owner ? 'owner' : 'guest'}: id`)
+                        .not.toContain(spectator.id);
+                }
+                expect(countInLobbyState).withContext('a lobby state reached the owner while the spectator watched')
+                    .toBe(1);
             });
         });
     });

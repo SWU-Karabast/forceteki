@@ -57,6 +57,16 @@ interface LobbySpectatorWrapper {
     user?: User;
 }
 
+/**
+ * Who is watching a lobby's game, as sent to its players and spectators. It counts spectators rather than naming
+ * them, so that nobody learns who is watching.
+ */
+export interface ISpectatorSummary {
+
+    /** Spectators connected now. One inside the reconnect grace window is not counted. */
+    count: number;
+}
+
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
     AllowSpectators = 'allowSpectators',
@@ -150,6 +160,12 @@ export class Lobby {
      */
     public static readonly QuickLobbyCountdownMs = (Lobby.QuickLobbyCountdownStartSeconds + 1) * Lobby.QuickLobbyCountdownTickMs;
 
+    /**
+     * The shortest time between two pushes of a change in who is watching. The first change is pushed at once, and
+     * any more within this time are combined into one push when it ends.
+     */
+    public static readonly SpectatorSummaryPushIntervalMs = 2000;
+
     private readonly _id: string;
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
@@ -192,6 +208,8 @@ export class Lobby {
     private bo3TransitionTask?: IScheduledTask;
     private bo3LobbyReadyTimer?: SimpleActionTimer;
     private bo3LobbyLoadedAt?: Date;
+    private spectatorSummaryCooldownTask?: IScheduledTask;
+    private spectatorSummaryPushPending = false;
 
     public constructor(
         lobbyName: string,
@@ -361,10 +379,7 @@ export class Lobby {
             id: this._id,
             lobbyName: this._lobbyName,
             users: this.users.map((u) => this.buildLobbyUserData(u, user?.id === u.id)),
-            spectators: this.spectators.map((s) => ({
-                id: s.id,
-                username: s.username,
-            })),
+            spectatorCount: this.getSpectatorSummary().count,
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
@@ -575,6 +590,7 @@ export class Lobby {
         // Limited lobby message handling for spectators
         socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
 
+        const countBefore = this.getSpectatorSummary().count;
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -587,11 +603,15 @@ export class Lobby {
             existingSpectator.state = 'connected';
             this.checkUpdateSocket(existingSpectator, socket);
         }
-        // If game is ongoing, send the current state to the spectator
-        if (this.game) {
-            this.sendGameStateToSpectator(socket, user.getId());
-        } else {
+
+        const pushedToEveryone = this.onSpectatorCountMaybeChanged(countBefore);
+
+        // between games a push reaches only the players, and during a game one made now has already sent this
+        // spectator the game state
+        if (!this.game) {
             this.sendLobbyStateToSpectator(socket);
+        } else if (!pushedToEveryone) {
+            this.sendGameStateToSpectator(socket, user.getId());
         }
         logger.info(`Lobby: adding spectator: ${user.getUsername()}, id: ${user.getId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
     }
@@ -612,9 +632,10 @@ export class Lobby {
             // logger.info(`Attempted to remove spectator from Lobby ${this.id}, but they were not found`);
             return;
         }
+        const countBefore = this.getSpectatorSummary().count;
         this.spectators = this.spectators.filter((s) => s.id !== id);
         logger.info(`Lobby: removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
-        this.sendLobbyState();
+        this.onSpectatorCountMaybeChanged(countBefore);
     }
 
     public async addLobbyUserAsync(user: User, socket: Socket): Promise<void> {
@@ -1177,8 +1198,10 @@ export class Lobby {
                 return;
             }
 
+            const countBefore = this.getSpectatorSummary().count;
             spectator.state = 'disconnected';
             logger.info(`Lobby: setting spectator ${spectator.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
+            this.onSpectatorCountMaybeChanged(countBefore);
         }
     }
 
@@ -1341,6 +1364,10 @@ export class Lobby {
             this.matchingCountdownTask.cancel();
             this.matchingCountdownTask = undefined;
         }
+
+        this.spectatorSummaryCooldownTask?.cancel();
+        this.spectatorSummaryCooldownTask = undefined;
+        this.spectatorSummaryPushPending = false;
 
         this.replaceGame(null);
         this.users = [];
@@ -1617,7 +1644,6 @@ export class Lobby {
 
         return {
             id: uuidv4(),
-            allowSpectators: false,
             owner: 'Order66',
             format: this.gameFormat,
             players,
@@ -2188,7 +2214,62 @@ export class Lobby {
 
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
-            socket.send('gamestate', this.game.getState(spectatorId));
+            socket.send('gamestate', this.buildGameState(this.game, spectatorId, this.getSpectatorSummary()));
+        }
+    }
+
+    /** What the lobby sends as `gamestate` to one participant: the engine's state for them, plus who is watching. */
+    private buildGameState(game: Game, participantId: string, spectatorSummary: ISpectatorSummary) {
+        return { ...game.getState(participantId), spectatorSummary };
+    }
+
+    public getSpectatorSummary(): ISpectatorSummary {
+        return {
+            count: this.spectators.filter((spectator) => spectator.state === 'connected').length,
+        };
+    }
+
+    /**
+     * Call after anything that may change who is watching, with the count from before. If the count changed, pushes
+     * it to the lobby's participants, at most once per {@link SpectatorSummaryPushIntervalMs}.
+     *
+     * @returns whether a push went out now
+     */
+    private onSpectatorCountMaybeChanged(countBefore: number): boolean {
+        if (this.getSpectatorSummary().count === countBefore) {
+            return false;
+        }
+
+        return this.requestSpectatorSummaryPush();
+    }
+
+    /** Pushes the spectator summary now, or at the end of the cooldown if one is running. Returns whether it went now. */
+    private requestSpectatorSummaryPush(): boolean {
+        if (this.spectatorSummaryCooldownTask) {
+            this.spectatorSummaryPushPending = true;
+            return false;
+        }
+
+        this.pushSpectatorSummary();
+        this.spectatorSummaryCooldownTask = this.buildSafeTimeout(() => {
+            this.spectatorSummaryCooldownTask = undefined;
+            if (this.spectatorSummaryPushPending) {
+                this.spectatorSummaryPushPending = false;
+                this.requestSpectatorSummaryPush();
+            }
+        }, Lobby.SpectatorSummaryPushIntervalMs, 'Lobby: error pushing the spectator summary');
+        return true;
+    }
+
+    /**
+     * During a game, the game state goes to the players and spectators. Between games, the lobby state goes to the
+     * players only: spectators are sent the lobby state once, when they arrive.
+     */
+    private pushSpectatorSummary(): void {
+        if (this.game) {
+            this.sendGameState(this.game);
+        } else {
+            this.sendLobbyState();
         }
     }
 
@@ -2449,14 +2530,15 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
+        const spectatorSummary = this.getSpectatorSummary();
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id));
+                user.socket.send('gamestate', this.buildGameState(game, user.id, spectatorSummary));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', game.getState(spectator.id));
+                spectator.socket.send('gamestate', this.buildGameState(game, spectator.id, spectatorSummary));
             }
         }
     }
