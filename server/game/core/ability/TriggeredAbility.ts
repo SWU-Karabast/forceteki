@@ -147,7 +147,10 @@ export abstract class TriggeredAbilityBase extends CardAbility {
     private isActiveForEvents(events: GameEvent[], window: TriggeredAbilityWindow): boolean {
         Contract.assertTrue(this.card.canRegisterTriggeredAbilities());
 
-        if (!this.card.getTriggeredAbilities().includes(this) || this.isLostWhenDefeatedTrigger(events)) {
+        // an ability held by a lasting effect isn't on its card's ability list, and stays active for as long as the effect applies
+        const isOnCard = this.lastingEffectSource != null || this.card.getTriggeredAbilities().includes(this);
+
+        if (!isOnCard || this.isLostWhenDefeatedTrigger(events)) {
             for (const event of events) {
                 window.markTriggerMissed(this, event);
             }
