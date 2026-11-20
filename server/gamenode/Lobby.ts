@@ -212,6 +212,12 @@ export class Lobby {
     private spectatorSummaryCooldownTask?: IScheduledTask;
     private spectatorSummaryPushPending = false;
 
+    /**
+     * How spectators see the players of the lobby's latest game, by seat. Kept after the game is gone, so a spectator
+     * sent the lobby state between games is told the score by the same seats it watched.
+     */
+    private spectatorView: SpectatorView | null = null;
+
     public constructor(
         lobbyName: string,
         matchmakingType: MatchmakingType,
@@ -1353,6 +1359,9 @@ export class Lobby {
             this.game.dispose();
         }
         this.game = game;
+        if (game) {
+            this.spectatorView = SpectatorView.of(game);
+        }
     }
 
     public cleanLobby(): void {
@@ -2226,7 +2235,18 @@ export class Lobby {
 
     /** What the lobby sends as `gamestate` to one spectator: as for a player, but seen through {@link SpectatorView}. */
     private buildSpectatorGameState(game: Game, spectatorId: string, spectatorSummary: ISpectatorSummary) {
-        return { ...SpectatorView.of(game).gameState(game.getState(spectatorId)), spectatorSummary };
+        return { ...this.getSpectatorView().gameState(game.getState(spectatorId)), spectatorSummary };
+    }
+
+    /** What the lobby sends as `lobbystate` to a spectator: only what its client reads, seen through {@link SpectatorView}. */
+    private buildSpectatorLobbyState() {
+        return this.getSpectatorView().lobbyState(this.getLobbyState());
+    }
+
+    /** There is a spectator only once a game has started, and so a view of its players. */
+    private getSpectatorView(): SpectatorView {
+        Contract.assertNotNullLike(this.spectatorView, 'Lobby: a spectator is being sent a state before any game has started');
+        return this.spectatorView;
     }
 
     private isSpectator(userId: string): boolean {
@@ -2284,7 +2304,7 @@ export class Lobby {
     }
 
     private sendLobbyStateToSpectator(socket: Socket): void {
-        socket.send('lobbystate', this.getLobbyState());
+        socket.send('lobbystate', this.buildSpectatorLobbyState());
     }
 
     public handleGameEnd(game: Game): void {
@@ -2571,7 +2591,7 @@ export class Lobby {
 
         const userId = socket.user.getId();
         const rawMessages = allMessages.slice(safeStart, safeEnd);
-        const requestedMessages = this.isSpectator(userId) ? SpectatorView.of(this.game).messages(rawMessages) : rawMessages;
+        const requestedMessages = this.isSpectator(userId) ? this.getSpectatorView().messages(rawMessages) : rawMessages;
 
         logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
 

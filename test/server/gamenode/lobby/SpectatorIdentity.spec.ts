@@ -16,11 +16,10 @@ const wyvernquill: ITestClientOptions = { authenticated: true, username: 'Wyvern
 const marrowpike: ITestClientOptions = { authenticated: true, username: 'Marrowpike' };
 
 /**
- * A spectator is shown the players by seat ("Player 1", "Player 2"), never by name or account. During a game the
- * server sends a spectator the players by seat (`SpectatorView`). Every line that names a player must name them as
- * a part (`IChatEntry.playerIds`) for that to work, since a username written into the text of a line cannot be
- * swapped; the lobby chat, which a spectator can be sent between the games of a rematch, is still swapped by the
- * client.
+ * A spectator is shown the players by seat ("Player 1", "Player 2"), never by name or account: everything the server
+ * sends a spectator goes through `SpectatorView`. Every line of the game log that names a player must name them as a
+ * part (`IChatEntry.playerIds`) for that to work, since a username written into the text of a line cannot be
+ * swapped. The lobby chat names the players the same way, though a spectator is never sent it.
  */
 describe('Spectator identity', function () {
     /** A logged-in spectator, connected to the game in `lobbyId`. */
@@ -31,6 +30,12 @@ describe('Spectator identity', function () {
             .toBe(200);
         await spectator.connectAsync({ spectator: true });
         return spectator;
+    }
+
+    /** Drops and restores `spectator`'s connection; between games, that is when a spectator is sent the lobby state. */
+    async function reconnectSpectatorAsync(spectator: TestClient): Promise<void> {
+        await spectator.disconnectTransportAsync();
+        await spectator.connectAsync({ spectator: true });
     }
 
     serverIntegration(function (contextRef) {
@@ -122,7 +127,7 @@ describe('Spectator identity', function () {
                 }
             });
 
-            it('never names a player or gives their account id, in any game state or resent message', async function () {
+            it('never names a player or gives their account id, in anything it is sent across a set of games', async function () {
                 const { harness } = contextRef;
                 const { owner, guest, lobbyId } = await harness.startLiveGameAsync(wyvernquill, marrowpike);
                 await harness.playThroughSetupAsync(owner, guest);
@@ -130,18 +135,43 @@ describe('Spectator identity', function () {
 
                 // joining mid-game, the spectator is sent everything said and logged so far
                 const spectator = await connectedSpectatorAsync(harness, lobbyId);
+                const framesSent: unknown[] = [];
+                const reconnectAsync = async () => {
+                    framesSent.push(...spectator.receivedEvents());
+                    await reconnectSpectatorAsync(spectator);
+                };
                 await guest.sendGameChatAsync('you too');
-                await owner.concedeAsync();
-                await guest.requestRematchAsync(RematchMode.Regular);
                 await spectator.retransmitGameMessagesAsync(0, 1000);
-
-                // TODO: once a spectator is sent its own lobby state (spectator projection, part 2), search every frame
-                // a spectator receives, the lobby state included, rather than these two events
-                const frames = [...spectator.receivedEvents('gamestate'), ...spectator.receivedEvents('retransmitResponse')];
                 expect(spectator.receivedEvents('retransmitResponse')[0]?.args[0]?.messages.length)
                     .withContext('the resend was answered with messages')
                     .toBeGreaterThan(0);
-                const everythingSent = JSON.stringify(frames);
+
+                // a best-of-one won, then carried into a best-of-three
+                await owner.concedeAsync();
+                await guest.requestRematchAsync(RematchMode.Bo1ConvertToBo3);
+                await owner.rematchAsync();
+                await reconnectAsync();
+                expect(spectator.lobbyState?.winHistory.currentGameNumber).withContext('sent the lobby state between games')
+                    .toBe(2);
+
+                // the next game of the set
+                await owner.setReadyStatusAsync(true);
+                await guest.setReadyStatusAsync(true);
+                await owner.startGameAsync();
+                expect(spectator.gameState?.players[guest.spectatorSeat.id]).withContext('watching the next game')
+                    .toBeDefined();
+                await guest.concedeAsync();
+                await owner.proceedToNextBo3GameAsync();
+                await guest.proceedToNextBo3GameAsync();
+                await reconnectAsync();
+
+                // the set conceded between games
+                await guest.concedeBo3Async();
+                await reconnectAsync();
+                expect(spectator.lobbyState?.winHistory.setEndResult?.concedingPlayerId).withContext('sent the conceded set')
+                    .toBe(guest.spectatorSeat.id);
+
+                const everythingSent = JSON.stringify([...framesSent, ...spectator.receivedEvents()]);
                 for (const player of [owner, guest]) {
                     expect(everythingSent).withContext(`${player.username}: username`)
                         .not.toContain(player.username);
@@ -164,6 +194,53 @@ describe('Spectator identity', function () {
                 const chatLine = resent.find((entry) => Array.isArray(entry.message) && entry.message[1] === ' good luck');
                 expect(chatLine?.message[0]).toEqual(jasmine.objectContaining({ id: owner.id, name: 'Wyvernquill' }));
                 expect(guest.gameState.players[owner.id].name).toBe('Wyvernquill');
+            });
+        });
+
+        describe('in what a spectator is sent between games', function () {
+            it('is sent of the lobby only whether a game is on, what kind of game it is and the score, by seat', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync(wyvernquill, marrowpike, { config: premierBestOfThree });
+                const spectator = await connectedSpectatorAsync(harness, lobbyId);
+                await guest.concedeAsync();
+                await owner.proceedToNextBo3GameAsync();
+                await guest.proceedToNextBo3GameAsync();
+
+                await reconnectSpectatorAsync(spectator);
+
+                const playersSent = owner.lobbyState;
+                expect(spectator.lobbyState).toEqual({
+                    id: lobbyId,
+                    gameOngoing: false,
+                    gameType: playersSent.gameType,
+                    gameFormat: playersSent.gameFormat,
+                    cardPool: playersSent.cardPool,
+                    isPrivate: playersSent.isPrivate,
+                    winHistory: {
+                        ...playersSent.winHistory,
+                        winsPerPlayer: { [owner.spectatorSeat.id]: 1, [guest.spectatorSeat.id]: 0 },
+                        playerNames: { [owner.spectatorSeat.id]: owner.spectatorSeat.name, [guest.spectatorSeat.id]: guest.spectatorSeat.name },
+                    },
+                    settings: { allowSpectators: true },
+                    users: [],
+                    gameChat: { messages: [], typingState: {} },
+                });
+                expect(playersSent.winHistory.currentGameNumber).withContext('between the first and second game')
+                    .toBe(2);
+            });
+
+            it('is told who won a best-of-one by seat', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync(wyvernquill, marrowpike);
+                const spectator = await connectedSpectatorAsync(harness, lobbyId);
+                await owner.concedeAsync();
+                await guest.requestRematchAsync(RematchMode.Regular);
+                await owner.rematchAsync();
+
+                await reconnectSpectatorAsync(spectator);
+
+                expect(owner.lobbyState.winHistory.lastWinnerId).toBe(guest.id);
+                expect(spectator.lobbyState.winHistory.lastWinnerId).toBe(guest.spectatorSeat.id);
             });
         });
 
