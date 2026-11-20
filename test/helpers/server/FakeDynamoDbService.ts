@@ -175,6 +175,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     /** The next this many transitions fail as if another write changed the report first. */
     public failNextPlayerReportTransitions = 0;
 
+    /** While set, storing a new player report throws, as a throttled or unavailable table would. */
+    public failPlayerReportSaves = false;
+
     /** Reports whose retention deletes throw, as a throttled request would. */
     public readonly failingPlayerReportCleanupIds = new Set<string>();
 
@@ -459,6 +462,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     // ---- Player reports ----
 
     public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], indexEntries: IPlayerReportIndexEntity[]): Promise<TransactWriteCommandOutput> {
+        if (this.failPlayerReportSaves) {
+            return Promise.reject(new Error('player report table unavailable'));
+        }
         if (this.playerReports.has(report.id)) {
             return Promise.reject(Object.assign(new Error('Transaction cancelled'), { name: 'TransactionCanceledException' }));
         }
