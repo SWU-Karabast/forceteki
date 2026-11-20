@@ -27,7 +27,7 @@ export default class TheMandalorianDevotedRescuer extends NonLeaderUnitCard {
                 // a distinct shield.
                 const shields = context.isReplacement()
                     ? context.replacementEffectWindow.getShieldsNotQueuedForDefeat(context.source)
-                    : (context.source.isUnit()
+                    : (context.source.isUnit() && context.source.isInPlay()
                         ? context.source.upgrades.filter((u): u is Shield => u.isShield())
                         : []);
                 const target = shields.find((s) => s.highPriorityRemoval) ?? shields[0];
