@@ -16,6 +16,9 @@ export interface IOptionalTriggerPromptProperties {
     /** Text of the decline button; defaults to 'Pass'. */
     passButtonText?: string;
 
+    /** Optional warning shown above the buttons, e.g. from the ability's `customConfirmation`. */
+    warningText?: string;
+
     onTrigger: () => void;
     onPass: () => void;
 }
@@ -41,7 +44,7 @@ export class OptionalTriggerPrompt extends UiPrompt {
     }
 
     public override activePromptInternal(): IPlayerPromptStateProperties {
-        const { sourceCard, abilityText, passButtonText } = this.properties;
+        const { sourceCard, abilityText, passButtonText, warningText } = this.properties;
 
         const triggerButton: IButtonWithSourceCard = {
             text: 'Trigger',
@@ -60,7 +63,8 @@ export class OptionalTriggerPrompt extends UiPrompt {
             // truthiness to tint the board prompt banner as "card-sourced". Reuse the summary's title.
             promptTitle: sourceCard?.name,
             promptUuid: this.uuid,
-            promptType: PromptType.OptionalTrigger
+            promptType: PromptType.OptionalTrigger,
+            warningText
         };
     }
 
