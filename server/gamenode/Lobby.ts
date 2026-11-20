@@ -5,6 +5,7 @@ import { Contract } from '../game/core/utils/Contract';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
+import { SpectatorView } from './SpectatorView';
 import type { IChatPlayer } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
 import type { IUser } from '../Settings';
@@ -2230,13 +2231,22 @@ export class Lobby {
 
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
-            socket.send('gamestate', this.buildGameState(this.game, spectatorId, this.getSpectatorSummary()));
+            socket.send('gamestate', this.buildSpectatorGameState(this.game, spectatorId, this.getSpectatorSummary()));
         }
     }
 
-    /** What the lobby sends as `gamestate` to one participant: the engine's state for them, plus who is watching. */
+    /** What the lobby sends as `gamestate` to one player: the engine's state for them, plus who is watching. */
     private buildGameState(game: Game, participantId: string, spectatorSummary: ISpectatorSummary) {
         return { ...game.getState(participantId), spectatorSummary };
+    }
+
+    /** What the lobby sends as `gamestate` to one spectator: as for a player, but seen through {@link SpectatorView}. */
+    private buildSpectatorGameState(game: Game, spectatorId: string, spectatorSummary: ISpectatorSummary) {
+        return { ...SpectatorView.of(game).gameState(game.getState(spectatorId)), spectatorSummary };
+    }
+
+    private isSpectator(userId: string): boolean {
+        return this.spectators.some((spectator) => spectator.id === userId);
     }
 
     public getSpectatorSummary(): ISpectatorSummary {
@@ -2554,7 +2564,7 @@ export class Lobby {
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', this.buildGameState(game, spectator.id, spectatorSummary));
+                spectator.socket.send('gamestate', this.buildSpectatorGameState(game, spectator.id, spectatorSummary));
             }
         }
     }
@@ -2575,9 +2585,10 @@ export class Lobby {
         const safeStart = Math.max(0, Math.min(startIndex, totalCount));
         const safeEnd = Math.max(safeStart, Math.min(endIndex, totalCount));
 
-        const requestedMessages = allMessages.slice(safeStart, safeEnd);
-
         const userId = socket.user.getId();
+        const rawMessages = allMessages.slice(safeStart, safeEnd);
+        const requestedMessages = this.isSpectator(userId) ? SpectatorView.of(this.game).messages(rawMessages) : rawMessages;
+
         logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
 
         socket.send('retransmitResponse', {
