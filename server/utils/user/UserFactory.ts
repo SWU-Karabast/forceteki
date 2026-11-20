@@ -1050,6 +1050,21 @@ export class UserFactory {
     }
 
     /**
+     * The username of each of the given users, for showing who they are. A user with no profile is left out.
+     */
+    public async getUsernamesAsync(userIds: string[]): Promise<Map<string, string>> {
+        const dbService = await this.requireDbServiceAsync();
+        const usernames = new Map<string, string>();
+        await Promise.all([...new Set(userIds)].map(async (userId) => {
+            const profile = await dbService.getUserProfileAsync(userId);
+            if (profile) {
+                usernames.set(userId, profile.username);
+            }
+        }));
+        return usernames;
+    }
+
+    /**
      * Get the full mod action history for a player (all actions, including cancelled/expired).
      * Sorted by createdAt descending (newest first).
      */

@@ -149,6 +149,8 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
 
     { method: 'get', path: '/api/server-settings', access: 'public', unauthenticated: served(200) },
     { method: 'post', path: '/api/mod/server-settings', access: 'admin', unauthenticated: refused },
+    { method: 'get', path: '/api/mod/server-roles', access: 'admin', unauthenticated: refused },
+    { method: 'post', path: '/api/mod/server-roles', access: 'admin', unauthenticated: refused },
 
     // development only: the local test-game tooling, and the two destructive cosmetics routes
     { method: 'get', path: '/api/test-game-setups', access: 'public', devOnly: true, unauthenticated: served(200) },

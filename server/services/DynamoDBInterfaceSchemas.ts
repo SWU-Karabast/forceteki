@@ -9,6 +9,7 @@ import {
     PlayerReportOutcome,
     PlayerReportRole,
     PlayerReportStatus,
+    ServerRole,
     UsernameChangeSource
 } from './DynamoDBInterfaces';
 import { validateUsernameFormat } from '../utils/user/UsernameRules';
@@ -173,6 +174,14 @@ export const ModActionCancelSchema = z.object({
 
 export const FindUserSchema = z.object({
     searchQuery: z.string().min(1, 'searchQuery is required'),
+});
+
+/** An admin granting a server role to a user, or taking it away. */
+export const ServerRoleChangeSchema = z.object({
+    userId: z.string().min(1)
+        .max(100),
+    role: z.enum(ServerRole),
+    granted: z.boolean(),
 });
 
 export const ServerSettingsUpdateSchema = z.object({

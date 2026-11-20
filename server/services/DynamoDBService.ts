@@ -402,7 +402,10 @@ export class DynamoDBService {
         }, 'DynamoDB queryItems error');
     }
 
-    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>) {
+    /**
+     * @param conditionExpression if given, the update only happens when this holds for the item already stored
+     */
+    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>, conditionExpression?: string) {
         return this.executeDbOperationAsync(() => {
             const commandParams: any = {
                 TableName: this.tableName,
@@ -413,6 +416,9 @@ export class DynamoDBService {
             };
             if (expressionAttributeNames) {
                 commandParams.ExpressionAttributeNames = expressionAttributeNames;
+            }
+            if (conditionExpression) {
+                commandParams.ConditionExpression = conditionExpression;
             }
             const command = new UpdateCommand(commandParams);
             return this.client.send(command);
@@ -825,9 +831,13 @@ export class DynamoDBService {
     }
 
     // Admin user methods
-    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+    /**
+     * @param options.consistentRead read the lists as last written, rather than a possibly older copy; for a change
+     * made from them, so a recent edit is not lost
+     */
+    public getServerRoleUsersAsync(options: { consistentRead?: boolean } = {}): Promise<IServerRoleUsersListsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES');
+            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES', options);
             if (!result.Item) {
                 return {
                     admins: [],
@@ -841,9 +851,39 @@ export class DynamoDBService {
                 admins: result.Item.admins || [],
                 developers: result.Item.developers || [],
                 moderators: result.Item.moderators || [],
-                contributors: result.Item.contributors || []
+                contributors: result.Item.contributors || [],
+                updatedAt: result.Item.updatedAt,
+                updatedBy: result.Item.updatedBy
             };
         }, 'Error getting admin users');
+    }
+
+    /**
+     * Writes the four role lists and who changed them, leaving any other field on the item as it is. The write only
+     * happens if the lists have not changed since they were read, so two changes made at once cannot lose either.
+     * @param lists the lists to store, with `updatedAt` and `updatedBy` set
+     * @param previousUpdatedAt the `updatedAt` of the lists the change was made from; undefined if they had none
+     * @throws a `ConditionalCheckFailedException` if the stored lists have changed since
+     */
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, previousUpdatedAt: string | undefined) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                'SERVER_ROLE_USERS',
+                'ROLES',
+                'SET admins = :admins, developers = :developers, moderators = :moderators, contributors = :contributors, updatedAt = :updatedAt, updatedBy = :updatedBy',
+                {
+                    ':admins': lists.admins,
+                    ':developers': lists.developers,
+                    ':moderators': lists.moderators,
+                    ':contributors': lists.contributors,
+                    ':updatedAt': lists.updatedAt,
+                    ':updatedBy': lists.updatedBy,
+                    ...(previousUpdatedAt !== undefined ? { ':previousUpdatedAt': previousUpdatedAt } : {})
+                },
+                undefined,
+                previousUpdatedAt !== undefined ? 'updatedAt = :previousUpdatedAt' : 'attribute_not_exists(updatedAt)'
+            );
+        }, 'Error saving server role users');
     }
 
     // Server settings methods
