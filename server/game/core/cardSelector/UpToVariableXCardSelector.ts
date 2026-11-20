@@ -21,7 +21,7 @@ export class UpToVariableXCardSelector<TContext extends AbilityContext = Ability
     public override defaultPromptString(context: TContext) {
         const numCards = this.numCardsFunc(context);
         const verb = numCards === 1 ? 'Choose' : 'Select';
-        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, numCards > 1);
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilterForDescription(context), numCards > 1);
 
         return `${verb} ${numCards === 1 ? article : `up to ${numCards}`} ${description}`;
     }

@@ -59,6 +59,60 @@ describe('From a Certain Point of View', function() {
             });
         });
 
+        it('should not allow selecting a card that cannot be played from hand and still offer Choose nothing', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['from-a-certain-point-of-view', 'one-in-a-million', 'wampa'],
+                    leader: 'leia-organa#alliance-general',
+                    base: 'echo-base',
+                    resources: 10
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.fromACertainPointOfView);
+
+            // One in a Million cannot be played from hand, so it is not selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickPrompt('Choose nothing');
+
+            expect(context.wampa).toBeInZone('hand');
+            expect(context.oneInAMillion).toBeInZone('hand');
+            expect(context.fromACertainPointOfView).toBeInZone('discard');
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should offer the no-effect confirmation when no card in hand can be played', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['from-a-certain-point-of-view', 'one-in-a-million'],
+                    leader: 'leia-organa#alliance-general',
+                    base: 'echo-base',
+                    resources: 10
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.fromACertainPointOfView);
+
+            // no legal targets: the engine confirms before resolving a no-op effect
+            expect(context.player1).toHaveEnabledPromptButtons(['Play anyway', 'Cancel']);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.oneInAMillion).toBeInZone('hand');
+            expect(context.fromACertainPointOfView).toBeInZone('discard');
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('should do nothing when choosing nothing', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
