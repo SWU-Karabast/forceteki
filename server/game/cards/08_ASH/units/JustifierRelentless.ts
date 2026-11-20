@@ -25,7 +25,7 @@ export default class JustifierRelentless extends NonLeaderUnitCard {
             },
             ifYouDo: {
                 title: 'Give an Advantage token to a unit',
-                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.resolvedEvents[0].willDefeat,
+                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.resolvedEvents[0]?.willDefeat,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: abilityHelper.immediateEffects.giveAdvantage()
