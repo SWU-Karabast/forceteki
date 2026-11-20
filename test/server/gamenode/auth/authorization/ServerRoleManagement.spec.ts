@@ -9,7 +9,8 @@ async function isDeveloperAsync(client: TestClient): Promise<boolean> {
 }
 
 /**
- * Admins granting and removing the server roles from the mod page, instead of editing the stored lists by hand.
+ * Admins granting and removing the server roles other than admin from the mod page, instead of editing the stored
+ * lists by hand. The admin role is still changed only by hand.
  * Who may call these routes is in `RouteAuthManifest.ts`; these specs check what a change does.
  */
 describe('Server role management', function () {
@@ -81,15 +82,27 @@ describe('Server role management', function () {
                 .toEqual([roles.accounts.moderator.id, latecomer.id, roles.accounts.nobody.id]);
         });
 
-        it('refuses an admin removing their own admin role', async function () {
+        it('refuses granting the admin role, which is changed only by hand', async function () {
             const { harness } = contextRef;
             const admin = harness.createAccountClient(roles.accounts.admin);
 
-            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.admin.id, role: 'admin', granted: false });
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'admin', granted: true });
 
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({ success: false, message: 'You cannot remove your own admin role' });
+            expect(response.status).toBe(403);
+            expect(response.body).toEqual({ success: false, message: 'The admin role cannot be changed here' });
             expect(harness.db.roleUsers.admins).toEqual([{ id: roles.accounts.admin.id }]);
+        });
+
+        it('refuses removing the admin role, which is changed only by hand', async function () {
+            const { harness } = contextRef;
+            const admin = harness.createAccountClient(roles.accounts.admin);
+            const otherAdmin = harness.db.seedAccount({ username: 'otherAdmin' });
+            harness.db.seedRoles({ admins: [roles.accounts.admin.id, otherAdmin.id] });
+
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: otherAdmin.id, role: 'admin', granted: false });
+
+            expect(response.status).toBe(403);
+            expect(harness.db.roleUsers.admins).toEqual([{ id: roles.accounts.admin.id }, { id: otherAdmin.id }]);
         });
 
         it('refuses an admin whose admin role was removed by hand since the server last read the roles', async function () {
@@ -97,10 +110,10 @@ describe('Server role management', function () {
             const formerAdmin = harness.createAccountClient(roles.accounts.admin);
             harness.db.seedRoles({ admins: [roles.accounts.developer.id] });
 
-            const response = await formerAdmin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'admin', granted: true });
+            const response = await formerAdmin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
 
             expect(response.status).toBe(403);
-            expect(harness.db.roleUsers.admins).toEqual([{ id: roles.accounts.developer.id }]);
+            expect(harness.db.roleUsers.moderators).toEqual([{ id: roles.accounts.moderator.id }]);
 
             // and the server now knows, so they lose their admin access at once rather than at the next refresh
             const listResponse = await formerAdmin.requestAsync('get', '/api/mod/server-roles');

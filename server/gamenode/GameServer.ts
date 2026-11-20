@@ -2255,9 +2255,9 @@ export class GameServer {
 
                 const { userId, role, granted } = parseResult.data;
 
-                // so the server is never left without an admin to undo a mistake
-                if (role === ServerRole.Admin && !granted && userId === req.user.getId()) {
-                    return res.status(400).json({ success: false, message: 'You cannot remove your own admin role' });
+                // admins are changed only by hand in the database, so one admin account cannot take over or lock out the others
+                if (role === ServerRole.Admin) {
+                    return res.status(403).json({ success: false, message: 'The admin role cannot be changed here' });
                 }
 
                 const username = (await this.userFactory.getUsernamesAsync([userId])).get(userId);
