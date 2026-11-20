@@ -109,14 +109,22 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
+        const lastingEffectSource = context.ability && context.ability.isCardAbility() && context.ability.lastingEffectSource;
 
-        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `, context.source];
-        if (gainAbilitySource) {
-            if (gainAbilitySource !== context.source) {
-                messageArgs.push('\'s gained ability from ', gainAbilitySource);
+        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `];
+        if (lastingEffectSource) {
+            // e.g. "player1 uses Shien Flurry's effect to prevent 2 damage to Obi-Wan Kenobi"
+            messageArgs.push(lastingEffectSource, '\'s effect');
+        } else {
+            messageArgs.push(context.source);
+
+            if (gainAbilitySource) {
+                if (gainAbilitySource !== context.source) {
+                    messageArgs.push('\'s gained ability from ', gainAbilitySource);
+                }
+            } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
+                messageArgs.push(` using ${TextHelper.Smuggle}`);
             }
-        } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
-            messageArgs.push(` using ${TextHelper.Smuggle}`);
         }
         const costMessages = this.getCostsMessages(context);
 

@@ -252,6 +252,36 @@ describe('Simultaneous triggers', function() {
                 expect(context.devotion).toBeInZone('discard');
                 expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
             });
+
+            it('should end the window when "Resolve all" is chosen and none of the grouped triggers has a legal effect any more', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine', 'battlefield-marine'],
+                        base: { card: 'kestro-city', damage: 5, upgrades: ['sinister-war-memorial'] }
+                    },
+                    player2: {
+                        hand: ['bombing-run'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // both Battlefield Marines are defeated at once: Sinister War Memorial triggers twice
+                context.player2.clickCard(context.bombingRun);
+                context.player2.clickPrompt('Ground');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+
+                // the base is healed while the prompt is open (set up directly, the prompt offers no way to do it), so neither trigger can do anything
+                context.p1Base.removeDamage(5);
+                expect(context.p1Base.damage).toBe(0);
+
+                context.player1.clickPrompt('Resolve all (2)');
+
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });

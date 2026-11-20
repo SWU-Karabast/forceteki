@@ -1,8 +1,20 @@
 import type { GameObject } from '../GameObject';
 import type { ISerializedMessage } from '../../Interfaces';
+import type { ChatObjectType } from '../Constants';
 import { ChatHelpers } from './ChatHelpers';
 
-export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
+/**
+ * A player named in a message, in the same shape as a `Player`'s short summary. For a chat with no engine
+ * `Player` to pass (the lobby chat). A client finds the player by `id`, so it can show them by seat rather than
+ * by name to someone who should not see names, which it cannot do for a name written into the text.
+ */
+export interface IChatPlayer {
+    id: string;
+    name: string;
+    type: ChatObjectType.Player;
+}
+
+export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | IChatPlayer | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];

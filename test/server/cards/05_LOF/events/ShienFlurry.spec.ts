@@ -37,7 +37,7 @@ describe('Shien Flurry', function() {
 
                 // 2 damages should have been prevented
                 expect(context.obiwanKenobi.damage).toBe(2);
-                expect(context.getChatLogs(5)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi');
+                expect(context.getChatLogs(5)).toContain('player1 uses Shien Flurry\'s effect to prevent 2 damage to Obi-Wan Kenobi');
             });
 
             it('should allow playing a Force unit from hand, give it Ambush, and prevent 2 damage the next time it would be dealt damage (no damage from ambush)', function() {
@@ -131,7 +131,7 @@ describe('Shien Flurry', function() {
             expect(context.getChatLogs(3)).toEqual([
                 'player2 uses The Legacy Run to distribute 6 damage among enemy units',
                 'player2 uses The Legacy Run to deal 6 damage to Obi-Wan Kenobi',
-                'player1 uses Obi-Wan Kenobi\'s gained ability from Shien Flurry to prevent 2 damage to Obi-Wan Kenobi'
+                'player1 uses Shien Flurry\'s effect to prevent 2 damage to Obi-Wan Kenobi'
             ]);
         });
 
@@ -174,6 +174,41 @@ describe('Shien Flurry', function() {
             context.player1.clickCard(context.obiwanKenobi);
 
             expect(context.obiwanKenobi.damage).toBe(4);
+        });
+
+        // The prevention is a lasting effect, not an ability the unit gains, so losing all abilities doesn't remove it
+        it('Shien Flurry\'s ability should still prevent 2 damage if the unit loses all abilities', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['shien-flurry', 'obiwan-kenobi#following-fate', 'luke-skywalker#jedi-knight'],
+                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                    resources: 20,
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.shienFlurry);
+            context.player1.clickCard(context.obiwanKenobi);
+            expect(context.player1).toHavePassAbilityPrompt('Ambush');
+            context.player1.clickPrompt('Pass');
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.kazudaXiono);
+            context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.passAction();
+
+            context.player2.clickCard(context.battlefieldMarine);
+            context.player2.clickCard(context.obiwanKenobi);
+
+            expect(context.obiwanKenobi.damage).toBe(1);
+            expect(context.player1).toBeActivePlayer();
         });
     });
 });

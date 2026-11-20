@@ -1,4 +1,5 @@
 import { RematchMode } from '../../../../server/game/core/Constants';
+import { Lobby } from '../../../../server/gamenode/Lobby';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import type { ITestClientOptions, TestClient } from '../../../helpers/server/TestClient';
@@ -144,65 +145,117 @@ describe('Spectator connections', function () {
                 .toBeDefined();
         });
 
-        describe('in the players\' lobby state', function () {
-            /** The ids of the spectators the lobby lists, as of a fresh lobby state for `player`. */
-            async function listedSpectatorsAsync(player: TestClient): Promise<string[]> {
-                // any lobby command makes the lobby send its state again
-                await player.typingStateAsync(false);
-                return player.lobbyState.spectators.map((spectator: { id: string }) => spectator.id);
+        describe('the spectator count', function () {
+            /** The number watching, as of the latest game state `client` was sent. */
+            function countInGameState(client: TestClient): number {
+                return client.gameState.spectatorSummary.count;
             }
 
-            it('lists an admitted spectator, and stops listing them when they leave', async function () {
+            /** How many game states `client` has been sent. */
+            function gameStatesSent(client: TestClient): number {
+                return client.receivedEvents('gamestate').length;
+            }
+
+            it('is sent to the players and the spectator in every game state, including the spectator\'s first', async function () {
                 const { harness } = contextRef;
-                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
                 const spectator = await registeredSpectatorAsync(harness, lobbyId);
+
                 await spectator.connectAsync({ spectator: true });
-                const listedWhileWatching = await listedSpectatorsAsync(owner);
 
-                await spectator.manualDisconnectAsync();
-
-                expect(listedWhileWatching).toEqual([spectator.id]);
-                expect(owner.lobbyState.spectators).toEqual([]);
+                expect(spectator.receivedEvents('gamestate')[0].args[0].spectatorSummary).toEqual({ count: 1 });
+                expect(owner.gameState.spectatorSummary).toEqual({ count: 1 });
+                expect(guest.gameState.spectatorSummary).toEqual({ count: 1 });
             });
 
-            it('lists a spectator under their username', async function () {
+            it('drops when a spectator drops, without waiting for the grace window, and comes back when they return inside it', async function () {
                 const { harness } = contextRef;
                 const { owner, lobbyId } = await harness.startLiveGameAsync();
                 const spectator = await registeredSpectatorAsync(harness, lobbyId);
                 await spectator.connectAsync({ spectator: true });
-
-                await listedSpectatorsAsync(owner);
-
-                expect(owner.lobbyState.spectators).toEqual([{ id: spectator.id, username: spectator.username }]);
-            });
-
-            it('keeps listing a spectator who drops and comes back inside the grace window', async function () {
-                const { harness } = contextRef;
-                const { owner, lobbyId } = await harness.startLiveGameAsync();
-                const spectator = await registeredSpectatorAsync(harness, lobbyId);
-                await spectator.connectAsync({ spectator: true });
+                await harness.clock.advanceAsync(Lobby.SpectatorSummaryPushIntervalMs);
 
                 await spectator.disconnectTransportAsync();
+                const countAfterDrop = countInGameState(owner);
                 await harness.clock.advanceAsync(10_000);
                 await spectator.connectAsync({ spectator: true });
+                const countAfterReturn = countInGameState(owner);
                 await harness.clock.advanceAsync(20_000);
 
-                expect(await listedSpectatorsAsync(owner)).toEqual([spectator.id]);
+                expect(countAfterDrop).toBe(0);
+                expect(countAfterReturn).toBe(1);
+                expect(countInGameState(owner)).withContext('past the grace window')
+                    .toBe(1);
             });
 
-            it('stops listing a spectator who drops and stays away past the grace window', async function () {
+            it('stays down for a spectator who drops and stays away past the grace window', async function () {
                 const { harness } = contextRef;
                 const { owner, lobbyId } = await harness.startLiveGameAsync();
                 const spectator = await registeredSpectatorAsync(harness, lobbyId);
                 await spectator.connectAsync({ spectator: true });
+                await harness.clock.advanceAsync(Lobby.SpectatorSummaryPushIntervalMs);
 
                 await spectator.disconnectTransportAsync();
-                await harness.clock.advanceAsync(20_000 - 1);
-                const listedJustBefore = await listedSpectatorsAsync(owner);
+                await harness.clock.advanceAsync(20_000);
+                await owner.sendGameChatAsync('still there?');
+
+                expect(countInGameState(owner)).toBe(0);
+            });
+
+            it('combines the changes from a burst of arrivals into one push at the end of the interval', async function () {
+                const { harness } = contextRef;
+                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const spectators: TestClient[] = [];
+                for (let i = 0; i < 3; i++) {
+                    spectators.push(await registeredSpectatorAsync(harness, lobbyId));
+                }
+                const sentBefore = gameStatesSent(owner);
+
+                await spectators[0].connectAsync({ spectator: true });
+                const sentForFirstArrival = gameStatesSent(owner) - sentBefore;
+                await spectators[1].connectAsync({ spectator: true });
+                await spectators[2].connectAsync({ spectator: true });
+                await harness.clock.advanceAsync(Lobby.SpectatorSummaryPushIntervalMs - 1);
+                const sentWithinInterval = gameStatesSent(owner) - sentBefore;
                 await harness.clock.advanceAsync(1);
 
-                expect(listedJustBefore).toEqual([spectator.id]);
-                expect(owner.lobbyState.spectators).toEqual([]);
+                expect(sentForFirstArrival).withContext('the first arrival is pushed at once')
+                    .toBe(1);
+                expect(sentWithinInterval).withContext('later arrivals wait for the interval to end')
+                    .toBe(1);
+                expect(gameStatesSent(owner) - sentBefore).toBe(2);
+                expect(countInGameState(owner)).toBe(3);
+                expect(spectators[2].gameState.spectatorSummary).toEqual({ count: 3 });
+            });
+
+            it('is in the players\' lobby state, and drops when a spectator leaves', async function () {
+                const { harness } = contextRef;
+                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const spectator = await registeredSpectatorAsync(harness, lobbyId);
+                await spectator.connectAsync({ spectator: true });
+                // any lobby command makes the lobby send its state again
+                await owner.typingStateAsync(false);
+                const countWhileWatching = owner.lobbyState.spectatorCount;
+
+                await spectator.manualDisconnectAsync();
+                await owner.typingStateAsync(false);
+
+                expect(countWhileWatching).toBe(1);
+                expect(owner.lobbyState.spectatorCount).toBe(0);
+            });
+
+            it('is pushed to the players in the lobby state between the games of a rematch', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+                await guest.concedeAsync();
+                await owner.requestRematchAsync(RematchMode.Regular);
+                await guest.rematchAsync();
+                const spectator = await registeredSpectatorAsync(harness, lobbyId);
+
+                await spectator.connectAsync({ spectator: true });
+
+                expect(owner.lobbyState.spectatorCount).toBe(1);
+                expect(guest.lobbyState.spectatorCount).toBe(1);
             });
         });
     });
