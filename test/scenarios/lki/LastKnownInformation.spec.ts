@@ -308,9 +308,10 @@ describe('Last known information', function () {
                 expect(recordAtFlush.flushes).toBeGreaterThan(0);
                 expect(recordAtFlush.sawRecord).toBeFalse();
 
-                const properties = registry.getProperties(registry.getIdentity(context.chewbacca)).asUnit();
+                const cardStates = context.game.cardStates;
+                const properties = cardStates.getLastKnownProperties(cardStates.getIdentity(context.chewbacca)).asUnit();
                 expect(properties.wasInPlay()).toBeTrue();
-                expect(properties.asWasInPlay().power).toBe(context.chewbacca.getPower());
+                expect(properties.asInPlay().power).toBe(context.chewbacca.getPower());
             });
         });
 
@@ -341,13 +342,13 @@ describe('Last known information', function () {
                 // Moving discard -> hand loses the information the game had about the card, so it is
                 // now a new copy and the old reference no longer names the live card.
                 expect(registry.getIdentity(context.wampa)).not.toBe(beforeMove);
-                expect(registry.deref(beforeMove)).toBeNull();
+                expect(context.game.cardStates.deref(beforeMove)).toBeNull();
 
                 // Its state was recorded before the move, so the old reference stayed readable for the
                 // rest of the action. The flush has cleared that record by now, so the probe checks it as
                 // the flush happens. Afterwards the old reference names an identity that no longer exists.
                 expect(recordAtFlush.sawRecord).toBeTrue();
-                expect(() => registry.getProperties(beforeMove))
+                expect(() => context.game.cardStates.getLastKnownProperties(beforeMove))
                     .toThrowError(/names an identity that no longer exists/);
             });
         });
@@ -448,7 +449,6 @@ describe('Last known information', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
 
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.wampa);
@@ -458,7 +458,8 @@ describe('Last known information', function () {
                 // Wampa is still the same identity, in the discard pile, and card code reads it there
                 // as it is now (D-39): out of play, in no arena. The record would still answer that it
                 // was in play, in the ground arena.
-                const afterFlush = registry.getProperties(registry.getIdentity(context.wampa)).asUnit();
+                const cardStates = context.game.cardStates;
+                const afterFlush = cardStates.getLastKnownProperties(cardStates.getIdentity(context.wampa)).asUnit();
                 expect(afterFlush.wasInPlay()).toBeFalse();
                 expect(afterFlush.arena).toBeNull();
             });

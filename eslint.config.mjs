@@ -9,6 +9,17 @@ import unusedImports from "eslint-plugin-unused-imports";
 import noRawTokenText from './eslint-rules/no-raw-token-text.mjs';
 import stateRefArrayRequiresIStateArray from './eslint-rules/state-ref-array-requires-istatearray.mjs';
 import noEventGeneratedTokens from './eslint-rules/no-event-generated-tokens.mjs';
+import noLkiEngineAccess from './eslint-rules/no-lki-engine-access.mjs';
+
+// One object for every block that uses it: flat config refuses a plugin redefined with a different object.
+const forcetekiPlugin = {
+    rules: {
+        'no-raw-token-text': noRawTokenText,
+        'state-ref-array-requires-istatearray': stateRefArrayRequiresIStateArray,
+        'no-event-generated-tokens': noEventGeneratedTokens,
+        'no-lki-engine-access': noLkiEngineAccess,
+    }
+};
 
 export default tseslint.config(
     {
@@ -265,18 +276,23 @@ export default tseslint.config(
         files: ["server/game/**/*.ts"],
         ignores: ["server/game/core/utils/TextHelper.ts"],
         plugins: {
-            forceteki: {
-                rules: {
-                    'no-raw-token-text': noRawTokenText,
-                    'state-ref-array-requires-istatearray': stateRefArrayRequiresIStateArray,
-                    'no-event-generated-tokens': noEventGeneratedTokens,
-                }
-            }
+            forceteki: forcetekiPlugin
         },
         rules: {
             'forceteki/no-raw-token-text': 'error',
             'forceteki/state-ref-array-requires-istatearray': 'error',
             'forceteki/no-event-generated-tokens': 'error',
+        }
+    },
+    {
+        // Card code reads a card through the getter its setup receives and holds references as `ICardReference`,
+        // which has no way back to the card. This catches the engine-side escape hatches around that (D-28).
+        files: ["server/game/cards/**/*.ts"],
+        plugins: {
+            forceteki: forcetekiPlugin
+        },
+        rules: {
+            'forceteki/no-lki-engine-access': 'error',
         }
     }
 );

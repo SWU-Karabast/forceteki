@@ -3,7 +3,7 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { EventWindow } from './EventWindow';
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { CardRef } from '../lki/CardRef';
+import type { CardRef, ICardReference } from '../lki/CardRef';
 import type { ILastKnownInformation } from './LastKnownInformation';
 
 export enum EventResolutionStatus {
@@ -28,7 +28,7 @@ export class GameEvent {
      * Set only via {@link setLastKnownInformation}, so it is present on exactly the events that
      * carry last known information.
      */
-    public get cardRef(): CardRef | undefined {
+    public get cardRef(): ICardReference | undefined {
         return this._cardRef;
     }
 

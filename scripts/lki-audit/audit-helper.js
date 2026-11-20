@@ -559,6 +559,28 @@ const PROPERTIES_MEMBER = {
 };
 
 /**
+ * Fails at load if the audit would ask the getter about a member the views do not have, so a member renamed
+ * or removed there is caught here rather than read as `undefined` in every comparison. The current view
+ * of a card's current copy has every member either view has.
+ */
+function assertMembersOnViewSurface() {
+    const { CurrentFromCard } = requireBuilt('server/game/core/lki/CurrentFromCard.js');
+    const surface = new Set();
+    for (let prototype = CurrentFromCard.prototype; prototype && prototype !== Object.prototype; prototype = Object.getPrototypeOf(prototype)) {
+        Object.getOwnPropertyNames(prototype).forEach((name) => surface.add(name));
+    }
+
+    const missing = [...ALL_NAMES]
+        .map((name) => (name in PROPERTIES_MEMBER ? PROPERTIES_MEMBER[name] : name))
+        .filter((member) => member !== null && !surface.has(member));
+    if (missing.length > 0) {
+        throw new Error(`The LKI audit asks the card state getter about members the views do not have: ${missing.join(', ')}. ` +
+          'Map each to its view member, or to null, in PROPERTIES_MEMBER in scripts/lki-audit/audit-helper.js.');
+    }
+}
+assertMembersOnViewSurface();
+
+/**
  * Asks the built card state getter the question card code just asked the card, through the read named
  * by `read` (`getLastKnownProperties` or `getCurrentProperties`), so the answer can be checked against
  * the one the rules give.

@@ -41,7 +41,7 @@ describe('Last known information opt-in', function () {
                 const recorded = cardStates.forCard(context.helgait).getLastKnownProperties(context.helgait)
                     .asUnit();
                 expect(recorded.arena as string).toBe('groundArena');
-                expect(recorded.asWasInPlay().power).toBe(7);
+                expect(recorded.asInPlay().power).toBe(7);
 
                 // Not opted in: reads the card as it is right now, exactly as reading it directly would.
                 const live = cardStates.forCard(context.wampa).getLastKnownProperties(context.helgait)
@@ -49,7 +49,7 @@ describe('Last known information opt-in', function () {
                 expect(live.arena).toBeNull();
                 expect(live.wasInPlay()).toBeFalse();
                 expect(live.printedPower).toBe(6);
-                expect(() => live.asWasInPlay()).toThrowError(/to be in play/);
+                expect(() => live.asInPlay()).toThrowError(/to be in play/);
 
                 // Where the card is now is asked of the current view, which both getters answer from the
                 // live card (D-37).
@@ -167,11 +167,17 @@ describe('Last known information opt-in', function () {
                 expect(live.arena as string).toBe('groundArena');
                 expect(live.ref).toBe(cardStates.getIdentity(context.wampa));
 
-                // The same holds for its current view. The registry-backed getter answers that the copy
-                // the reference names, the one that was in hand, is in play nowhere (SWU 8.5.4).
-                expect(liveOnly.getCurrentProperties(whileInHand).isInPlay()).toBeTrue();
-                const registryBacked = cardStates.forCard(context.hk47);
-                expect(registryBacked.getCurrentProperties(whileInHand).isInPlay()).toBeFalse();
+                // The same holds for its current view: the live-only getter reads the card as it is now,
+                // as the same copy. The registry-backed getter answers that the copy the reference names,
+                // the one that was in hand, no longer exists, so it is not in play (SWU 8.5.4).
+                const liveNow = liveOnly.getCurrentProperties(whileInHand);
+                expect(liveNow.isSameCopy()).toBeTrue();
+                expect(liveNow.isInPlay()).toBeTrue();
+                expect(liveNow.ref).toBe(cardStates.getIdentity(context.wampa));
+
+                const registryBackedNow = cardStates.forCard(context.hk47).getCurrentProperties(whileInHand);
+                expect(registryBackedNow.isSameCopy()).toBeFalse();
+                expect(registryBackedNow.isInPlay()).toBeFalse();
             });
 
             it('still gets the same canonical identity references as a card that has opted in', async function () {

@@ -854,3 +854,97 @@ landed on `main` since `445792e61`.
   site fewer than before is Poe's. The audit instruments `Card` reads made from card code, and Poe now
   reads through the getter, so his spec covers the read instead (the Poe mutation above). Option (c)
   is unchanged: 127 sites checked, 26 differ. `--self-check` passes.
+
+**2026-11-19 — branch `ammayberry1/lki-refactor-3`, two fixes from a maintainer's review.**
+
+- **Built** (the plan's step 3.1, "Two fixes from a maintainer's review"):
+  - `PlayableOrDeployableCard.canHaveExhaustedState()`, declared on `ICardWithExhaustProperty`, answers
+    from the field the zone gate checks. The record builder asks it before reading `exhausted`, in place of
+    `readIfEnabled`, which caught the gate's failure and matched its message.
+  - New classes, one per view and backing, replace `LiveCardProperties.ts` and
+    `RecordedCardProperties.ts`:
+    - `LastKnownFromRecord.ts`, `LastKnownFromCard.ts` and `CurrentFromCard.ts`;
+    - `ViewFromCard.ts`, the base the two card-backed classes share;
+    - `ViewHelpers.ts`, with `narrowView`, `notOfKind` and `refusePresence`.
+
+    The unit and upgrade subclasses and the role flag are gone, and the registry builds the three
+    classes directly.
+- **Mutation checks** (fourteen runs), each failing the spec meant to catch it:
+  - the gate query answering wrongly either way;
+  - either last-known class without its presence refusal;
+  - the current view ignoring a copy that no longer exists, and that copy's arena, attack and in-play
+    answers;
+  - the in-play guard wrong on each last-known class;
+  - narrowing without its check;
+  - the record's kind check;
+  - Poe asking the last-known view.
+
+  The open gate showed that an upgrade attached to a unit has no exhausted state either, not only a card
+  in the discard pile; the comments say so.
+- **Gates:** `npm test` 10,356 specs (71 pending) and `npm run test-undo` 9,256 (78 pending), 0 failures:
+  the same counts as before the fixes. `eslint --quiet`, `validate-cards`, `validate-specs` and
+  `capture-states -- --check` pass.
+- **The audit:** 9,445 game specs, 0 failures; the getter check is unchanged at 237 sites and 0
+  disagreements, and `--self-check` passes.
+- **Environment.** `build/` again held compiled files from another branch (player reports, action
+  timers, socket commands). They failed 109 specs in `npm test`, and the audit refused to run. After
+  deleting `build/` and rebuilding, everything passed.
+
+**2026-11-19 — branch `ammayberry1/lki-refactor-3`, the second review's fixes.**
+
+- **Why.** A second rubber-duck review of the branch, after the two fixes above, made ten findings, F1
+  to F10 (not this register's §B.3 F1 to F3). A maintainer chose to leave F1 as it is, decided F4, F7 and
+  F10, and asked for the rest to be built. The plan's step 3.1, "The second review", has each.
+- **Built:**
+  - Each view class declares that it implements every kind's interface, and `narrowView` is gone (F2).
+  - `buildCardRecord(card, ref)` reads through a `LastKnownFromCard`, into groups typed from the
+    characteristic interfaces; `readIfEnabled` is gone (F3).
+  - Through a reference, `getCurrentProperties` returns `ICurrentRefProperties`, and for a copy that no
+    longer exists, the new `CurrentOfFormerCopy` (F4). Its overload is declared before the `Card` one, so
+    an untyped argument gets it.
+  - The last-known family is `ILastKnown…`. `LkiRegistry` only stores references and records
+    (`getIdentity`, `recordFor`), and each getter builds its views (F5).
+  - `hasCost()` narrows to `cost` and `printedCost` (F6).
+  - `ICardReference` is the card-facing reference type, on the getter, the card-valued members and
+    `GameEvent.cardRef`. The `forceteki/no-lki-engine-access` lint rule covers `server/game/cards/**`
+    (F7). Mon Mothma's list is `ICardReference[]`. The plan's step 3.2 records the decision on system
+    targets.
+  - The audit takes its presence list from the build's `presenceMembers`, and checks at load that every
+    member it asks the getter about exists on the views (F8).
+  - `isExhaustedEnabledForZone()` and `isActiveAttackEnabledForZone()`, declared on
+    `ICardWithExhaustProperty` and `ICardWithDamageProperty` (F9).
+  - An upgrade's `parentCard`, `parentUnit` and `parentCardController` sit behind the in-play guard (F10).
+  - `asWasInPlay()` is `asInPlay()`; Helgait is updated.
+- **Specs** in [LkiProperties.spec.ts](../test/scenarios/lki/LkiProperties.spec.ts):
+  - the two former-copy specs, rewritten for `CurrentOfFormerCopy`;
+  - a new spec for the `cost` and upgrade-parent guards;
+  - `@ts-expect-error` checks for `zoneName`, `arena` and `asUnit()` before `isSameCopy()`, the same
+    through an untyped `event.cardRef`, `cost` before `hasCost()`, `parentCard` before the in-play guard,
+    and `isSameCopy()` / `asSameCopy()` on the last-known view.
+
+  The specs that read through the registry now read through `context.game.cardStates`.
+  [LkiOptIn.spec.ts](../test/scenarios/lki/LkiOptIn.spec.ts) pins `isSameCopy()` on both getters.
+- **Mutation checks** (thirteen runs), each caught:
+  - by a spec:
+    - the former copy answering `isSameCopy()` true;
+    - the getter never building it;
+    - the former copy without its refusals;
+    - a live view's `parentCard` read without the in-play check;
+    - `cost` read without the `hasCost()` check;
+    - the record ignoring the exhaust gate (25 specs fail);
+    - the record dropping its unit-in-play group and its upgrade-in-play group (19 and 3 fail).
+  - by the compiler:
+    - the `Card` overload declared first, caught by the untyped `event.cardRef` check;
+    - `zoneName` on `ICurrentRefProperties`;
+    - the reference overload typed as the full view;
+    - the parent members on the upgrade interface;
+    - `cost` on the characteristics.
+
+  Two of the first attempts did not compile, so they tested nothing. They were rewritten to compile.
+  Separately, the lint rule flagged all ten violations planted in a throwaway card file (since deleted),
+  and the audit refused a mapping to a member the views lack.
+- **Gates:** `npm test` 10,357 specs (71 pending) and `npm run test-undo` 9,257 (78 pending), 0 failures:
+  one spec more than before, the new guard spec. `tsc`, `eslint --quiet`, `validate-cards`,
+  `validate-specs` and `capture-states -- --check` pass.
+- **The audit:** 9,446 game specs, 0 failures. The getter check is unchanged at 237 sites and 0
+  disagreements. Option (c) is unchanged: 127 sites checked, 26 differ. `--self-check` passes.

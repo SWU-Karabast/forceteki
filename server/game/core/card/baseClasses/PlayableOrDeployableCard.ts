@@ -87,6 +87,9 @@ export interface ICardWithExhaustProperty extends Card {
     set exhausted(value: boolean);
     exhaust();
     ready();
+
+    /** Whether the card's zone gives it a ready or exhausted state, so that `exhausted` can be read. */
+    isExhaustedEnabledForZone(): boolean;
 }
 
 export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty, ICardCanChangeControllers {
@@ -144,6 +147,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public set exhausted(val: boolean) {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = val;
+    }
+
+    /**
+     * Whether the card's zone gives it a ready or exhausted state, so that {@link exhausted} can be read
+     * without failing: a unit in an arena, a leader, or any card in the resource zone, but not a card in
+     * hand or the discard pile, nor an upgrade attached to a unit. For code that has to ask without
+     * knowing the zone, such as a last-known-information record.
+     */
+    public isExhaustedEnabledForZone(): boolean {
+        return this._exhausted != null;
     }
 
     // see Card constructor for list of expected args

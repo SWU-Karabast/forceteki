@@ -3,11 +3,23 @@
  */
 'use strict';
 
+const path = require('path');
+
 /**
  * Members that answer where a card is now, which only the current view has under D-37, and which read
- * the present under option (c).
+ * the present under option (c): the engine's own list, from the build, so the two cannot drift apart,
+ * plus `captureZone`, which `Card` has and neither view exposes.
  */
-const PRESENCE = new Set(['isInPlay', 'zoneName', 'zone', 'isAttacking', 'isDefending', 'activeAttack', 'isAttached', 'isResource', 'captureZone']);
+const PRESENCE = new Set([...builtPresenceMembers(), 'captureZone']);
+
+function builtPresenceMembers() {
+    const file = path.join(process.cwd(), 'build', 'server', 'game', 'core', 'lki', 'ViewHelpers.js');
+    try {
+        return Object.keys(require(file).presenceMembers);
+    } catch (error) {
+        throw new Error(`Cannot read the presence members from ${file}. Run \`npm run build-test\` first.\n${error.message}`);
+    }
+}
 
 /** Members that name a copy rather than describe it, which the properties object does not carry. */
 const IDENTITY = new Set(['inPlayId', 'mostRecentInPlayId']);

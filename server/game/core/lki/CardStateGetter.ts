@@ -1,6 +1,11 @@
 import type { Card } from '../card/Card';
+import type { ICardReference } from './CardRef';
 import { CardRef } from './CardRef';
-import type { ICardProperties, ICurrentCardProperties } from './CardPropertiesInterfaces';
+import type { ICurrentCardProperties, ICurrentRefProperties, ILastKnownCardProperties } from './CardPropertiesInterfaces';
+import { CurrentFromCard } from './CurrentFromCard';
+import { CurrentOfFormerCopy } from './CurrentOfFormerCopy';
+import { LastKnownFromCard } from './LastKnownFromCard';
+import { LastKnownFromRecord } from './LastKnownFromRecord';
 import type { LkiRegistry } from './LkiRegistry';
 import { Contract } from '../utils/Contract';
 
@@ -30,9 +35,23 @@ export interface ICardStateGetter {
      *
      * A live {@link Card} is accepted transitionally, while events and contexts still carry card
      * objects rather than references. Once they carry references this overload goes away and the
-     * parameter narrows to {@link CardRef}.
+     * parameter narrows to {@link ICardReference}.
      */
-    getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties;
+    getLastKnownProperties(refOrCard: ICardReference | Card): ILastKnownCardProperties;
+
+    /**
+     * Returns the current view of the copy the reference names: the card as it is right now, never last
+     * known information.
+     *
+     * The copy may no longer exist: the card has since re-entered play or moved into a hidden zone, which
+     * makes it a new copy (SWU 8.5.4). So the view answers only whether the copy is in play, attached or a
+     * resource until {@link ICurrentRefProperties.isSameCopy} or `asSameCopy()` narrows it to the full
+     * current view, as the in-play guard narrows a unit to its stats.
+     *
+     * Declared before the `Card` overload so that an untyped argument (an `any` event's `cardRef`) gets
+     * this, the view that asks first.
+     */
+    getCurrentProperties(ref: ICardReference): ICurrentRefProperties;
 
     /**
      * Returns the current view of the card: the card as it is right now, never last known information.
@@ -40,9 +59,9 @@ export interface ICardStateGetter {
      * The only view with presence: whether the card is in play now, where it is, and whether it is
      * attached, a resource, attacking or defending. Also the view for a card a selector is choosing
      * from, which was found in a zone and is asked about as it is there (D-38). Ignores records
-     * entirely.
+     * entirely. A card is always its own current copy, so this is the full view without asking.
      */
-    getCurrentProperties(refOrCard: CardRef | Card): ICurrentCardProperties;
+    getCurrentProperties(card: Card): ICurrentCardProperties;
 
     /**
      * Returns the canonical reference for a card's current identity.
@@ -51,7 +70,7 @@ export interface ICardStateGetter {
      * compare by identity, so a card that left play and returned is correctly treated as a
      * different one (`SWU 8.5.4`). Available to every card, whether or not it has opted in.
      */
-    getIdentity(card: Card): CardRef;
+    getIdentity(card: Card): ICardReference;
 }
 
 /** Adds engine-only capabilities that card implementations must not have. */
@@ -61,7 +80,7 @@ export interface ICardStateInternal extends ICardStateGetter {
      * Resolves a reference to the live card, or `null` if it no longer names the card's current
      * identity.
      */
-    deref(ref: CardRef): Card | null;
+    deref(ref: ICardReference): Card | null;
 
     /**
      * Returns the getter that `card`'s ability setup should receive.
@@ -77,17 +96,15 @@ export interface ICardStateInternal extends ICardStateGetter {
     forCard(card: Card): ICardStateGetter;
 }
 
-function assertSubjectSupplied(refOrCard: CardRef | Card): void {
+function toRef(registry: LkiRegistry, refOrCard: ICardReference | Card): CardRef {
     Contract.assertNotNullLike(
         refOrCard,
         'No card or reference supplied. If this came from `event.cardRef`, that event never had ' +
         'last known information captured — see LastKnownInformation.addDepartureRecordToEvent.'
     );
-}
 
-function toRef(registry: LkiRegistry, refOrCard: CardRef | Card): CardRef {
-    assertSubjectSupplied(refOrCard);
-    return refOrCard instanceof CardRef ? refOrCard : registry.getIdentity(refOrCard);
+    // Every reference is a `CardRef`, because only the registry makes them, so anything else is a card.
+    return refOrCard instanceof CardRef ? refOrCard : registry.getIdentity(refOrCard as Card);
 }
 
 /**
@@ -104,24 +121,35 @@ function toRef(registry: LkiRegistry, refOrCard: CardRef | Card): CardRef {
 export class LiveOnlyCardStateGetter implements ICardStateGetter {
     public constructor(private readonly getRegistry: () => LkiRegistry) {}
 
-    public getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties {
-        const registry = this.getRegistry();
-        return registry.getLiveProperties(toRef(registry, refOrCard));
+    public getLastKnownProperties(refOrCard: ICardReference | Card): ILastKnownCardProperties {
+        const ref = this.currentIdentityOf(refOrCard);
+        return new LastKnownFromCard(ref, ref.getCardForEngine());
     }
 
-    public getCurrentProperties(refOrCard: CardRef | Card): ICurrentCardProperties {
-        // The card as it is now, whichever identity the reference names, as reading the card would.
-        const registry = this.getRegistry();
-        return registry.getCurrentProperties(registry.getIdentity(toRef(registry, refOrCard).getCardForEngine()));
+    public getCurrentProperties(ref: ICardReference): ICurrentRefProperties;
+    public getCurrentProperties(card: Card): ICurrentCardProperties;
+    public getCurrentProperties(refOrCard: ICardReference | Card): ICurrentCardProperties {
+        // Always the full view, so `isSameCopy()` answers true, as reading the card would.
+        const ref = this.currentIdentityOf(refOrCard);
+        return new CurrentFromCard(ref, ref.getCardForEngine());
     }
 
-    public getIdentity(card: Card): CardRef {
+    public getIdentity(card: Card): ICardReference {
         return this.getRegistry().getIdentity(card);
+    }
+
+    /**
+     * The card's current identity, whichever identity the caller named: the views describe the card as
+     * it is now, so they name the identity it has now.
+     */
+    private currentIdentityOf(refOrCard: ICardReference | Card): CardRef {
+        const registry = this.getRegistry();
+        return registry.getIdentity(toRef(registry, refOrCard).getCardForEngine());
     }
 }
 
 /**
- * Concrete facade over the registry, for cards that have opted in to last known information.
+ * The getter for cards that have opted in to last known information, over the registry's records.
  *
  * Resolves the registry lazily through the game rather than holding it, because a card's setup runs
  * once at construction while the registry belongs to the current game state.
@@ -137,21 +165,41 @@ export class CardStateGetter implements ICardStateInternal {
         return card.usesLkiRegistry ? this : this.liveOnly;
     }
 
-    public getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties {
+    /**
+     * The record if the identity left play during the current action, otherwise the card as it is now
+     * (D-37).
+     */
+    public getLastKnownProperties(refOrCard: ICardReference | Card): ILastKnownCardProperties {
         const registry = this.getRegistry();
-        return registry.getProperties(toRef(registry, refOrCard));
+        const ref = toRef(registry, refOrCard);
+
+        const record = registry.recordFor(ref);
+        if (record) {
+            return new LastKnownFromRecord(ref, record);
+        }
+
+        Contract.assertTrue(
+            ref.isCurrent,
+            `${ref} names an identity that no longer exists and has no record, so nothing can be ` +
+            'read from it. Long-lived holders must store the values they need rather than a reference.'
+        );
+
+        return new LastKnownFromCard(ref, ref.getCardForEngine());
     }
 
-    public getCurrentProperties(refOrCard: CardRef | Card): ICurrentCardProperties {
-        const registry = this.getRegistry();
-        return registry.getCurrentProperties(toRef(registry, refOrCard));
+    public getCurrentProperties(ref: ICardReference): ICurrentRefProperties;
+    public getCurrentProperties(card: Card): ICurrentCardProperties;
+    public getCurrentProperties(refOrCard: ICardReference | Card): ICurrentRefProperties {
+        const ref = toRef(this.getRegistry(), refOrCard);
+        return ref.isCurrent ? new CurrentFromCard(ref, ref.getCardForEngine()) : new CurrentOfFormerCopy(ref);
     }
 
-    public deref(ref: CardRef): Card | null {
-        return this.getRegistry().deref(ref);
+    public deref(ref: ICardReference): Card | null {
+        const engineRef = CardRef.fromCardReference(ref);
+        return engineRef.isCurrent ? engineRef.getCardForEngine() : null;
     }
 
-    public getIdentity(card: Card): CardRef {
+    public getIdentity(card: Card): ICardReference {
         return this.getRegistry().getIdentity(card);
     }
 }

@@ -31,7 +31,7 @@ says where each one stands now.
 | Entry | Topic | Where it stands |
 |---|---|---|
 | SC-1 | Two LKI producers capture at different timepoints | Open until phase 4. Both still feed the legacy `event.lastKnownInformation` and go when it does (register §D). The registry itself is written at one point only, `preResolutionEffects` |
-| SC-2 | LKI fields used as live mutation targets | Open, phase 4. The record has held an upgrade's `parentCard` since step 3.1 |
+| SC-2 | LKI fields used as live mutation targets | Open, phase 4. The record has held an upgrade's `parentCard` since step 3.1. Decided 2026-11-19: the codemod (step 3.2) leaves a card expression handed to a system on the live card, and phase 2 designs systems that accept a reference and resolve it, fizzling on a copy that no longer exists |
 | SC-3 | Live-object hops through `lki.card` | Open, phase 4 (register §B) |
 | SC-4 | Shallow capture and the cyclic card graph | Resolved by design: `upgrades` are `CardRef`s, so nothing recurses (D-18, D-26) |
 | SC-5 | Window-batched capture preserves simultaneity | Built: records are staged at `preResolutionEffects` (D-30) |
@@ -968,8 +968,10 @@ already past the flush. The scenario has to make the *game* observe the differen
 > **Status (2026-11-18).** The split stands, and step 3.1 renamed its guard (D-37). `isInPlay()` means "in
 > play now", as it does on `Card`, because that is how card code uses it, and it is only on the current
 > view. On the last-known view the guard that unlocks `power`, `hp`, `damage`, `exhausted` and `upgrades`
-> is `wasInPlay()`, with `asWasInPlay()` as the asserting form; on the current view it is `isInPlay()`,
-> with `asInPlay()`. The code and examples below use the old names.
+> is `wasInPlay()`, with `asInPlay()` as the asserting form (`asWasInPlay()` until 2026-11-19); on the
+> current view it is `isInPlay()`, with `asInPlay()`. Since 2026-11-19 an upgrade's `parentCard`,
+> `parentUnit` and `parentCardController` sit behind the same guard, because an upgrade in play is
+> attached. The code and examples below use the old names.
 
 The throwing accessors are **not a defect to be smoothed over**. They encode a real semantic
 distinction that the design must preserve.

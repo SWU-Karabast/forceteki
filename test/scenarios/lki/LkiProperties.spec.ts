@@ -97,7 +97,7 @@ describe('Last known information properties', function () {
                 expect(helgait.isNonLeaderUnit()).toBeTrue();
                 expect(helgait.arena as string).toBe('groundArena');
                 expect(helgait.wasInPlay()).toBeTrue();
-                const inPlay = helgait.asWasInPlay();
+                const inPlay = helgait.asInPlay();
                 expect(inPlay.power).toBe(8);
                 expect(inPlay.hp).toBe(6);
                 expect(inPlay.damage).toBe(0);
@@ -175,7 +175,7 @@ describe('Last known information properties', function () {
                 expect(helgait.canBeExhausted()).toBeTrue();
                 expect(helgait.canBeDamaged()).toBeTrue();
 
-                const inPlay = helgait.asWasInPlay();
+                const inPlay = helgait.asInPlay();
                 expect(inPlay.power).toBe(8);
                 expect(inPlay.hp).toBe(6);
                 expect(inPlay.damage).toBe(1);
@@ -188,7 +188,8 @@ describe('Last known information properties', function () {
                 expect(inPlay.hasWeakness()).toBeFalse();
 
                 // The Shield token left play with it, and its record holds what it was attached to.
-                const shield = cardStates.getLastKnownProperties(shieldRef).asUpgrade();
+                const shield = cardStates.getLastKnownProperties(shieldRef).asUpgrade()
+                    .asInPlay();
                 expect(shield.isShield()).toBeTrue();
                 expect(shield.isToken()).toBeTrue();
                 expect(shield.isTokenUpgrade()).toBeTrue();
@@ -213,11 +214,11 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
-                const asDefeated = registry.getIdentity(context.deathStarStormtrooper);
+                const cardStates = context.game.cardStates;
+                const asDefeated = cardStates.getIdentity(context.deathStarStormtrooper);
 
-                const recorded = readAtNextFlush(registry, () => {
-                    const stormtrooper = registry.getProperties(asDefeated);
+                const recorded = readAtNextFlush(context.game.lkiRegistry, () => {
+                    const stormtrooper = cardStates.getLastKnownProperties(asDefeated);
                     return { owner: stormtrooper.owner, controller: stormtrooper.controller };
                 });
 
@@ -255,12 +256,15 @@ describe('Last known information properties', function () {
                 expect(context.academyTraining).toBeInZone('discard');
                 const upgrade = cardStates.getLastKnownProperties(context.academyTraining).asUpgrade();
 
-                expect(upgrade.wasInPlay()).toBeTrue();
-                expect(upgrade.parentCard).toBe(cardStates.getIdentity(context.helgait));
-                expect(upgrade.parentUnit).toBe(cardStates.getIdentity(context.helgait));
-                expect(upgrade.parentCardController).toBe(context.player1.player);
                 expect(upgrade.printedUpgradePower).toBe(2);
                 expect(upgrade.arena as string).toBe('groundArena');
+
+                // What it was attached to is an in-play member, as a unit's stats are.
+                expect(upgrade.wasInPlay()).toBeTrue();
+                const attached = upgrade.asInPlay();
+                expect(attached.parentCard).toBe(cardStates.getIdentity(context.helgait));
+                expect(attached.parentUnit).toBe(cardStates.getIdentity(context.helgait));
+                expect(attached.parentCardController).toBe(context.player1.player);
 
                 // Whether it is attached now is asked of the current view.
                 expect(cardStates.getCurrentProperties(context.academyTraining).isAttached()).toBeFalse();
@@ -268,6 +272,46 @@ describe('Last known information properties', function () {
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 8]
                 ]));
+            });
+
+            it('withholds the members a card might not have until a check narrows to them', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['entrenched'],
+                        groundArena: [{ card: 'wampa', upgrades: ['academy-training'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Typed explicitly, because the harness hands out the game untyped and the compiler is
+                // half of this test. Each directive fails the build if its line starts compiling.
+                const cardStates: ICardStateGetter = context.game.cardStates;
+
+                // A base has no cost, so `cost` needs hasCost() first, and fails if forced through.
+                const base = cardStates.getLastKnownProperties(context.p1Base);
+                expect(base.hasCost()).toBeFalse();
+                // @ts-expect-error - cost needs hasCost() first
+                expect(() => base.cost).toThrowError(/Check hasCost\(\) first/);
+
+                const wampa = cardStates.getLastKnownProperties(context.wampa);
+                expect(wampa.hasCost() && wampa.cost).toBe(context.wampa.cost);
+
+                // A unit always has a cost, so its view has `cost` without asking.
+                expect(wampa.asUnit().cost).toBe(context.wampa.cost);
+
+                // What an upgrade is attached to needs the in-play guard first, as a unit's stats do.
+                const attached = cardStates.getLastKnownProperties(context.academyTraining).asUpgrade();
+                // @ts-expect-error - parentCard needs the in-play guard first
+                expect(attached.parentCard).toBe(cardStates.getIdentity(context.wampa));
+                expect(attached.asInPlay().parentCard).toBe(cardStates.getIdentity(context.wampa));
+
+                // An upgrade in hand is attached to nothing, so the read fails if forced through.
+                const inHand = cardStates.getLastKnownProperties(context.entrenched).asUpgrade();
+                expect(inHand.wasInPlay()).toBeFalse();
+                // @ts-expect-error - parentCard needs the in-play guard first
+                expect(() => inHand.parentCard).toThrowError(/Narrow with wasInPlay\(\) first/);
             });
 
             it('has no presence members, so where a card is now has to be asked of the current view', async function () {
@@ -316,6 +360,10 @@ describe('Last known information properties', function () {
                     expect(() => view.isDefending()).toThrowError(/getCurrentProperties/);
                     // @ts-expect-error - presence is only on the current view
                     expect(() => view.activeAttack).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.isSameCopy()).toThrowError(/getCurrentProperties/);
+                    // @ts-expect-error - presence is only on the current view
+                    expect(() => view.asSameCopy()).toThrowError(/getCurrentProperties/);
                 }
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
@@ -363,7 +411,7 @@ describe('Last known information properties', function () {
                 ]));
             });
 
-            it('answers that the copy a reference names is nowhere, once the card has become a new copy', async function () {
+            it('answers only whether a copy that no longer exists is in play, attached or a resource, until isSameCopy() confirms it', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -376,7 +424,10 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const cardStates = context.game.cardStates.forCard(context.helgait);
+
+                // Typed explicitly, because the harness hands out the game untyped and the compiler is
+                // half of this test.
+                const cardStates: ICardStateGetter = context.game.cardStates.forCard(context.helgait);
 
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.helgait);
@@ -390,25 +441,46 @@ describe('Last known information properties', function () {
                 expect(context.helgait).toBeInZone('groundArena');
                 expect(cardStates.getIdentity(context.helgait)).not.toBe(asDefeated);
 
-                // The defeated copy is in play nowhere, whatever the new copy is doing (SWU 8.5.4). Its
-                // zone is where the physical card is.
-                const defeatedNow = cardStates.getCurrentProperties(asDefeated).asUnit();
+                // The defeated copy no longer exists, so it is not in play, whatever the new copy is
+                // doing (SWU 8.5.4)...
+                const defeatedNow = cardStates.getCurrentProperties(asDefeated);
+                expect(defeatedNow.isSameCopy()).toBeFalse();
                 expect(defeatedNow.isInPlay()).toBeFalse();
-                expect(defeatedNow.isAttacking()).toBeFalse();
-                expect(defeatedNow.activeAttack).toBeNull();
-                expect(defeatedNow.arena).toBeNull();
-                expect(defeatedNow.zoneName as string).toBe('groundArena');
+                expect(defeatedNow.isAttached()).toBeFalse();
+                expect(defeatedNow.isResource()).toBeFalse();
 
-                // Its last-known view still reads from its record.
+                // ...and has nothing else to answer about now. Without isSameCopy() first, a read does
+                // not compile (each directive fails the build if its line starts compiling), and fails
+                // if it is forced through, rather than answer about the new copy.
+                // @ts-expect-error - a reference's current view needs isSameCopy() first
+                expect(() => defeatedNow.zoneName).toThrowError(/isSameCopy\(\) first/);
+                // @ts-expect-error - a reference's current view needs isSameCopy() first
+                expect(() => defeatedNow.arena).toThrowError(/isSameCopy\(\) first/);
+                // @ts-expect-error - a reference's current view needs isSameCopy() first
+                expect(() => defeatedNow.asUnit()).toThrowError(/isSameCopy\(\) first/);
+                expect(() => defeatedNow.asSameCopy()).toThrowError(/no longer exists/);
+
+                // Card code gets its events untyped, so an event's `cardRef` reaches the getter as `any`.
+                // An untyped argument gets the view that asks first.
+                const event: any = { cardRef: asDefeated };
+                // @ts-expect-error - a reference's current view needs isSameCopy() first
+                expect(() => cardStates.getCurrentProperties(event.cardRef).zoneName).toThrowError(/isSameCopy\(\) first/);
+
+                // The new copy's reference is the same copy, and reads everything.
+                const newCopyNow = cardStates.getCurrentProperties(cardStates.getIdentity(context.helgait)).asSameCopy();
+                expect(newCopyNow.zoneName as string).toBe('groundArena');
+                expect(newCopyNow.isInPlay()).toBeTrue();
+
+                // The defeated copy's last-known view still reads from its record.
                 expect(cardStates.getLastKnownProperties(asDefeated).asUnit()
-                    .asWasInPlay().power).toBe(8);
+                    .asInPlay().power).toBe(8);
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 8]
                 ]));
             });
 
-            it('answers that a copy gone into a hidden zone is in no attack, where the card itself would fail', async function () {
+            it('treats a card that moved into a hidden zone as a new copy', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -432,17 +504,17 @@ describe('Last known information properties', function () {
                 context.player1.moveCard(context.helgait, 'hand');
                 expect(cardStates.getIdentity(context.helgait)).not.toBe(inDiscard);
 
-                // The card in hand cannot be asked about attacks, on the card or on its current view...
-                expect(() => cardStates.getCurrentProperties(context.helgait).asUnit()
-                    .isAttacking()).toThrowError();
-
-                // ...but the copy that went to the discard pile is in no attack, so it answers.
-                const gone = cardStates.getCurrentProperties(inDiscard).asUnit();
+                // The copy that went to the discard pile is gone.
+                const gone = cardStates.getCurrentProperties(inDiscard);
+                expect(gone.isSameCopy()).toBeFalse();
                 expect(gone.isInPlay()).toBeFalse();
-                expect(gone.isAttacking()).toBeFalse();
-                expect(gone.isDefending()).toBeFalse();
-                expect(gone.activeAttack).toBeNull();
-                expect(gone.zoneName as string).toBe('hand');
+                expect(() => gone.zoneName).toThrowError(/isSameCopy\(\) first/);
+
+                // The card in hand is read as it is there, and fails where the card itself fails: it
+                // cannot be asked about attacks outside the arenas.
+                const inHand = cardStates.getCurrentProperties(context.helgait).asUnit();
+                expect(inHand.zoneName as string).toBe('hand');
+                expect(() => inHand.isAttacking()).toThrowError();
 
                 context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.wampa, 8]
@@ -499,16 +571,16 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
-                const awingRef = registry.getIdentity(context.greenSquadronAwing);
-                const nienRef = registry.getIdentity(context.nienNunb);
+                const cardStates = context.game.cardStates;
+                const awingRef = cardStates.getIdentity(context.greenSquadronAwing);
+                const nienRef = cardStates.getIdentity(context.nienNunb);
 
-                const recorded = readAtNextFlush(registry, () => {
-                    const nien = registry.getProperties(nienRef);
+                const recorded = readAtNextFlush(context.game.lkiRegistry, () => {
+                    const nien = cardStates.getLastKnownProperties(nienRef);
                     return {
                         type: nien.type as string,
                         isUnit: nien.isUnit(),
-                        parentCard: nien.isUpgrade() ? nien.parentCard : null,
+                        parentCard: nien.isUpgrade() && nien.wasInPlay() ? nien.parentCard : null,
                         arena: nien.arena as string
                     };
                 });
@@ -541,13 +613,13 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
+                const cardStates = context.game.cardStates;
 
                 // What an opted-in card's getter does with a card it took from a zone: resolve the card's
                 // identity now, and read it.
-                const fromDiscard = readAtNextFlush(registry, () => {
+                const fromDiscard = readAtNextFlush(context.game.lkiRegistry, () => {
                     const nien = context.player1.player.discardZone.cards.find((card) => card === context.nienNunb);
-                    return registry.getProperties(registry.getIdentity(nien)).isUnit();
+                    return cardStates.getLastKnownProperties(cardStates.getIdentity(nien)).isUnit();
                 });
 
                 context.player2.clickCard(context.rivalsFall);
@@ -573,11 +645,11 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
-                const asUnit = registry.getIdentity(context.p1Leader);
+                const cardStates = context.game.cardStates;
+                const asUnit = cardStates.getIdentity(context.p1Leader);
 
-                const recorded = readAtNextFlush(registry, () => {
-                    const luke = registry.getProperties(asUnit);
+                const recorded = readAtNextFlush(context.game.lkiRegistry, () => {
+                    const luke = cardStates.getLastKnownProperties(asUnit);
                     return {
                         isUnit: luke.isUnit(),
                         isLeaderUnit: luke.isLeaderUnit(),
@@ -611,10 +683,10 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
+                const cardStates = context.game.cardStates;
 
-                const afterDefeat = readAtNextFlush(registry, () => {
-                    const luke = registry.getProperties(registry.getIdentity(context.p1Leader));
+                const afterDefeat = readAtNextFlush(context.game.lkiRegistry, () => {
+                    const luke = cardStates.getLastKnownProperties(cardStates.getIdentity(context.p1Leader));
                     return { isUnit: luke.isUnit(), exhausted: luke.canBeExhausted() ? luke.exhausted : null };
                 });
 
@@ -682,12 +754,12 @@ describe('Last known information properties', function () {
                 });
 
                 const { context } = contextRef;
-                const registry = context.game.lkiRegistry;
+                const cardStates = context.game.cardStates;
 
                 let fromMove = null;
                 context.game.on('onCardMoved:postResolve', (event) => {
                     if (fromMove === null && event.card === context.deathStarStormtrooper && event.cardRef) {
-                        const stormtrooper = registry.getProperties(event.cardRef);
+                        const stormtrooper = cardStates.getLastKnownProperties(event.cardRef);
                         fromMove = {
                             controller: stormtrooper.controller,
                             arena: stormtrooper.arena,

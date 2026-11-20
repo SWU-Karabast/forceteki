@@ -546,7 +546,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public override takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null) {
             const changedController = super.takeControl(newController, moveTo);
 
-            if (changedController && this.isInPlay() && this.canHaveActiveAttack() && this.activeAttack) {
+            if (changedController && this.isInPlay() && this.isActiveAttackEnabledForZone() && this.activeAttack) {
                 this.activeAttack.unitChangedController(this);
             }
 

@@ -1,15 +1,11 @@
 import type { Card } from '../card/Card';
 import { CardRef } from './CardRef';
-import type { ICardProperties, ICurrentCardProperties } from './CardPropertiesInterfaces';
 import type { IRecordedCardState } from './CardRecord';
 import { buildCardRecord } from './CardRecord';
-import { RecordedCardProperties, RecordedUnitProperties, RecordedUpgradeProperties } from './RecordedCardProperties';
-import type { LiveViewRole } from './LiveCardProperties';
-import { LiveCardProperties, LiveUnitProperties, LiveUpgradeProperties } from './LiveCardProperties';
-import { Contract } from '../utils/Contract';
 
 /**
- * Serves card properties, resolving each read against the moment the caller's reference names.
+ * Holds the references and records last known information is read from. Storage only: the card state
+ * getter builds the views over it (see `CardStateGetter`).
  *
  * Two structures with two different lifetimes (D-29):
  *
@@ -34,84 +30,20 @@ export class LkiRegistry {
 
     /** Returns the canonical reference for a card's current identity. */
     public getIdentity(card: Card): CardRef {
-        return this.internIdentity(card, card.identityId);
-    }
-
-    /** Returns the canonical reference for a specific identity of a card. */
-    private internIdentity(card: Card, identityId: number): CardRef {
-        const key = CardRef.buildKey(card, identityId);
+        const key = CardRef.buildKey(card, card.identityId);
         const existing = this.interned.get(key);
         if (existing) {
             return existing;
         }
 
-        const ref = CardRef.createForRegistry(card, identityId);
+        const ref = CardRef.createForRegistry(card, card.identityId);
         this.interned.set(key, ref);
         return ref;
     }
 
-    /**
-     * Returns the last-known view for the reference: the recorded characteristics if the identity has a
-     * record, otherwise the card's characteristics as they are now (D-37).
-     */
-    public getProperties(ref: CardRef): ICardProperties {
-        const record = this.records.get(ref.key);
-        if (record) {
-            return LkiRegistry.recordedView(ref, record);
-        }
-
-        Contract.assertTrue(
-            ref.isCurrent,
-            `${ref} names an identity that no longer exists and has no record, so nothing can be ` +
-            'read from it. Long-lived holders must store the values they need rather than a reference.'
-        );
-
-        return LkiRegistry.liveView(ref, 'lastKnown', false);
-    }
-
-    /**
-     * Returns the last-known view as a card that has not opted in reads it: the card as it is right
-     * now, whichever identity the reference names (see `Card.usesLkiRegistry`).
-     *
-     * Deliberately ignores records and identity, so it can never fail the way {@link getProperties}
-     * does and reads exactly what reading the card directly would.
-     */
-    public getLiveProperties(ref: CardRef): ICardProperties {
-        // The view describes the card as it is now, so it names the identity the card has now, even when
-        // the caller's reference names an earlier one.
-        return LkiRegistry.liveView(this.getIdentity(ref.getCardForEngine()), 'lastKnown', false);
-    }
-
-    /**
-     * Returns the current view of the copy the reference names: the card as it is now, never a record.
-     *
-     * If that copy no longer exists, because the card has since re-entered play or moved into a hidden
-     * zone, the view answers that it is nowhere: not in play, attached, a resource or in an attack
-     * (SWU 8.5.4).
-     */
-    public getCurrentProperties(ref: CardRef): ICurrentCardProperties {
-        return LkiRegistry.liveView(ref, 'current', !ref.isCurrent);
-    }
-
-    private static liveView(ref: CardRef, role: LiveViewRole, copyGone: boolean): LiveCardProperties {
-        const card = ref.getCardForEngine();
-        if (card.isUnit()) {
-            return new LiveUnitProperties(ref, card, role, copyGone);
-        }
-        if (card.isUpgrade()) {
-            return new LiveUpgradeProperties(ref, card, role, copyGone);
-        }
-        return new LiveCardProperties(ref, card, role, copyGone);
-    }
-
-    private static recordedView(ref: CardRef, record: IRecordedCardState): ICardProperties {
-        if (record.checks.isUnit) {
-            return new RecordedUnitProperties(ref, record);
-        }
-        if (record.checks.isUpgrade) {
-            return new RecordedUpgradeProperties(ref, record);
-        }
-        return new RecordedCardProperties(ref, record);
+    /** The committed record for the identity the reference names, if it left play during the current action. */
+    public recordFor(ref: CardRef): IRecordedCardState | undefined {
+        return this.records.get(ref.key);
     }
 
     /**
@@ -139,15 +71,6 @@ export class LkiRegistry {
     }
 
     /**
-     * Resolves a reference to the live card, for engine use.
-     *
-     * Returns `null` when the reference no longer names the card's current identity.
-     */
-    public deref(ref: CardRef): Card | null {
-        return ref.isCurrent ? ref.getCardForEngine() : null;
-    }
-
-    /**
      * Records a card's characteristics into the pending set for `eventId`.
      *
      * Called from the event window's pre-resolution step so that every card leaving play in the same
@@ -162,7 +85,8 @@ export class LkiRegistry {
             this.pending.set(eventId, forEvent);
         }
 
-        forEvent.set(CardRef.buildKey(card, card.identityId), buildCardRecord(card, (related) => this.getIdentity(related)));
+        const ref = this.getIdentity(card);
+        forEvent.set(ref.key, buildCardRecord(card, ref));
     }
 
     /**

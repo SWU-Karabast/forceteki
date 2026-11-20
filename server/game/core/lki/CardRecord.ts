@@ -1,195 +1,159 @@
-import type { Arena, Aspect, CardType, Trait } from '../Constants';
-import { ZoneName } from '../Constants';
+import type { Trait, ZoneName } from '../Constants';
 import type { Card } from '../card/Card';
 import type { NumericKeywordName } from '../../Interfaces';
-import type { Player } from '../Player';
-import { EnumHelpers } from '../utils/EnumHelpers';
 import type { CardRef } from './CardRef';
-import type { ICardKeyword } from './CardPropertiesInterfaces';
+import type {
+    ICardCharacteristicValues,
+    ICostCharacteristics,
+    IExhaustableCharacteristics,
+    ILastKnownCardProperties,
+    IUnitCharacteristics,
+    IUnitInPlayCharacteristics,
+    IUpgradeCharacteristics,
+    IUpgradeInPlayCharacteristics
+} from './CardPropertiesInterfaces';
+import { LastKnownFromCard } from './LastKnownFromCard';
 
-/** The kind checks a record answers, each as the card answered it at the moment of recording. */
-export const recordedKindChecks = [
-    'isUnit', 'isUpgrade', 'isBase', 'canBeExhausted', 'canBeDamaged', 'canBeInPlay', 'isEvent', 'isLeader',
-    'isLeaderUnit', 'isNonLeaderUnit', 'isToken', 'isTokenUnit', 'isTokenUpgrade', 'isShield', 'isExperience',
-    'isAdvantage', 'isWeakness', 'isCreditToken', 'isForceToken'
-] as const;
+/** A group of characteristics as a record holds them: each member's value, with a method as its result. */
+export type Recorded<T> = { readonly [K in keyof T]: T[K] extends () => infer TResult ? TResult : T[K] };
 
-export type RecordedKindCheck = typeof recordedKindChecks[number];
+type ZeroArgBooleanMethods<T> = { [K in keyof T]: T[K] extends () => boolean ? K : never }[keyof T];
+
+/** The kind checks a record answers (`isUnit()`, `isLeader()`, …), each as the card answered it as it left. */
+export type RecordedKindCheck = Exclude<ZeroArgBooleanMethods<ILastKnownCardProperties>, 'wasInPlay' | 'hasCost'>;
+
+/**
+ * Every kind check, by name. Typed by the interface, so a kind check added to the last-known view fails to
+ * compile here until it is recorded.
+ */
+const recordedKindChecks: Readonly<Record<RecordedKindCheck, true>> = Object.freeze({
+    isUnit: true, isUpgrade: true, isBase: true, canBeExhausted: true, canBeDamaged: true, canBeInPlay: true,
+    isEvent: true, isLeader: true, isLeaderUnit: true, isNonLeaderUnit: true, isToken: true, isTokenUnit: true,
+    isTokenUpgrade: true, isShield: true, isExperience: true, isAdvantage: true, isWeakness: true,
+    isCreditToken: true, isForceToken: true
+});
 
 /**
  * The characteristics recorded for one identity of a card, at the moment it left play or moved from a
  * visible zone into a hidden one. Frozen once written and never mutated (D-17).
  *
- * Holds every characteristic the properties interface exposes (D-36), so a card that has opted in can
- * never ask for a characteristic that was not recorded. Members marked optional are only present when
- * the card had them at that moment: a unit's in-play stats only if it was in play, an upgrade's parent
- * only if it was attached. Presence (where the card is, whether it is in play, attached or attacking)
- * is never recorded: only the current view answers it, from the live card (D-37).
+ * Holds every characteristic the last-known view exposes (D-36), in groups typed by the characteristic
+ * interfaces: a characteristic added to an interface fails to compile in {@link buildCardRecord} until it
+ * is recorded. A group is present only when the card had those characteristics as it left: a unit's
+ * in-play stats only if it was in play, an upgrade's parent only if it was attached. Presence (where the
+ * card is, whether it is in play, attached or attacking) is never recorded: only the current view answers
+ * it, from the live card (D-37).
  */
-export interface IRecordedCardState {
-    readonly title: string;
-    readonly subtitle: string | null;
-    readonly type: CardType;
-    readonly controller: Player;
-    readonly owner: Player;
+export interface IRecordedCardState extends Recorded<Omit<ICardCharacteristicValues, 'traits'>> {
+
+    /** A frozen array rather than the view's set, because a `Set` cannot be frozen (D-17). */
     readonly traits: readonly Trait[];
-    readonly aspects: readonly Aspect[];
-    readonly keywords: readonly ICardKeyword[];
     readonly numericKeywordTotals: Readonly<Partial<Record<NumericKeywordName, number>>>;
-    readonly unique: boolean;
-    readonly cost: number | null;
-    readonly printedCost: number | null;
+    readonly checks: Readonly<Record<RecordedKindCheck, boolean>>;
 
     /** The zone the card was recorded in, which is where it left from. */
     readonly zoneName: ZoneName;
 
-    /** True if the card was in play when this was recorded, which gates the in-play stats below. */
+    /** Whether the card was in play when this was recorded, which gates the in-play groups. */
     readonly wasInPlay: boolean;
 
-    readonly checks: Readonly<Record<RecordedKindCheck, boolean>>;
+    readonly cost?: Recorded<ICostCharacteristics>;
+    readonly exhaustable?: Recorded<IExhaustableCharacteristics>;
+    readonly unit?: Recorded<Omit<IUnitCharacteristics, keyof ICostCharacteristics>>;
+    readonly unitInPlay?: Recorded<IUnitInPlayCharacteristics>;
+    readonly upgrade?: Recorded<Omit<IUpgradeCharacteristics, keyof ICostCharacteristics>>;
 
-    readonly exhausted?: boolean;
-    readonly damage?: number;
-    readonly hp?: number;
-    readonly remainingHp?: number;
-
-    // units
-    readonly printedPower?: number;
-    readonly printedHp?: number;
-    readonly defaultArena?: Arena;
-    readonly power?: number;
-    readonly upgrades?: readonly CardRef[];
-    readonly capturedUnits?: readonly CardRef[];
-    readonly hasShield?: boolean;
-    readonly hasExperience?: boolean;
-    readonly hasWeakness?: boolean;
-
-    // upgrades
-    readonly printedUpgradePower?: number;
-    readonly printedUpgradeHp?: number;
-    readonly parentCard?: CardRef;
-    readonly parentUnit?: CardRef;
-    readonly parentCardController?: Player;
+    /** `parentUnit` is `null` for a Fortify upgrade, whose parent is a base. */
+    readonly upgradeInPlay?: Recorded<IUpgradeInPlayCharacteristics>;
 }
 
-/** The members of a record that hold a single value, for reading them generically. */
-export type RecordedField = Exclude<keyof IRecordedCardState, 'checks'>;
+/** The groups of a record, each present only when the card had those characteristics as it left. */
+export type RecordedGroup = 'cost' | 'exhaustable' | 'unit' | 'unitInPlay' | 'upgrade' | 'upgradeInPlay';
 
-type Writable<T> = { -readonly [K in keyof T]: T[K] };
-
-/**
- * Reads a zone-gated member, returning `undefined` where the card's zone disables it.
- *
- * Only the zone gate's own failure is swallowed (see `Card.buildPropertyDisabledForZoneStr`). Anything
- * else is a real failure and is rethrown.
- */
-function readIfEnabled<T>(read: () => T): T | undefined {
-    try {
-        return read();
-    } catch (error) {
-        if (
-            error instanceof Error &&
-            error.message.startsWith('Contract assertion failure') &&
-            error.message.includes('where the property does not apply')
-        ) {
-            return undefined;
-        }
-        throw error;
-    }
-}
-
-function freezeKeywords(card: Card): readonly ICardKeyword[] {
-    return Object.freeze(card.keywords.map((keyword) => Object.freeze({
-        name: keyword.name,
-        value: keyword.hasNumericValue() ? keyword.value : null
-    })));
-}
-
-function numericKeywordTotals(card: Card): Readonly<Partial<Record<NumericKeywordName, number>>> {
+function numericKeywordTotals(view: LastKnownFromCard): Readonly<Partial<Record<NumericKeywordName, number>>> {
     const totals: Partial<Record<NumericKeywordName, number>> = {};
-    if (card.canBeExhausted()) {
-        for (const keyword of card.keywords) {
-            if (keyword.hasNumericValue() && totals[keyword.name] === undefined) {
-                const total = card.getNumericKeywordTotal(keyword.name);
-                if (total != null) {
-                    totals[keyword.name] = total;
-                }
+    for (const keyword of view.keywords) {
+        // A keyword with a numeric value is a numeric keyword.
+        const name = keyword.name as NumericKeywordName;
+        if (keyword.value != null && totals[name] === undefined) {
+            const total = view.getNumericKeywordTotal(name);
+            if (total != null) {
+                totals[name] = total;
             }
         }
     }
     return Object.freeze(totals);
 }
 
-function readKindChecks(card: Card): Readonly<Record<RecordedKindCheck, boolean>> {
-    const entries = recordedKindChecks.map((check) => [check, (card[check] as () => boolean).call(card)]);
+function kindChecks(view: LastKnownFromCard): Readonly<Record<RecordedKindCheck, boolean>> {
+    const entries = Object.keys(recordedKindChecks).map((check) => [check, view[check as RecordedKindCheck]()]);
     return Object.freeze(Object.fromEntries(entries) as Record<RecordedKindCheck, boolean>);
 }
 
 /**
- * Builds the record for `card` as it is right now.
- *
- * @param getIdentity resolves a related card to its interned reference
+ * Builds the record for `card` as it is right now, by reading it through a last-known view: the record
+ * then answers exactly what that view answered at the moment of recording.
  */
-export function buildCardRecord(card: Card, getIdentity: (card: Card) => CardRef): IRecordedCardState {
-    const wasInPlay = EnumHelpers.isArena(card.zoneName) ||
-      (card.zoneName === ZoneName.Base && card.isUpgrade());
+export function buildCardRecord(card: Card, ref: CardRef): IRecordedCardState {
+    const view = new LastKnownFromCard(ref, card);
+    const wasInPlay = view.wasInPlay();
 
-    const record: Writable<IRecordedCardState> = {
-        title: card.title,
-        subtitle: card.subtitle ?? null,
-        type: card.type,
-        controller: card.controller,
-        owner: card.owner,
-        // Copy the collections into frozen arrays: the record must not hand out anything a caller could
-        // mutate for every other reader (D-17), and a Set or Map cannot be frozen.
-        traits: Object.freeze([...card.traits]),
-        aspects: Object.freeze([...card.aspects]),
-        keywords: freezeKeywords(card),
-        numericKeywordTotals: numericKeywordTotals(card),
-        unique: card.unique,
-        cost: card.hasCost() ? card.cost : null,
-        printedCost: card.hasCost() ? card.printedCost : null,
+    return Object.freeze({
+        title: view.title,
+        subtitle: view.subtitle,
+        type: view.type,
+        controller: view.controller,
+        owner: view.owner,
+        traits: Object.freeze([...view.traits]),
+        aspects: Object.freeze([...view.aspects]),
+        keywords: Object.freeze(view.keywords.map((keyword) => Object.freeze(keyword))),
+        unique: view.unique,
+        arena: view.arena,
+        numericKeywordTotals: numericKeywordTotals(view),
+        checks: kindChecks(view),
         zoneName: card.zoneName,
         wasInPlay,
-        checks: readKindChecks(card)
-    };
 
-    if (card.canBeExhausted()) {
-        record.exhausted = readIfEnabled(() => card.exhausted);
-    }
+        cost: view.hasCost()
+            ? Object.freeze({ cost: view.cost, printedCost: view.printedCost })
+            : undefined,
 
-    if (card.isUnit()) {
-        record.printedPower = card.getPrintedPower();
-        record.printedHp = card.getPrintedHp();
-        record.defaultArena = card.defaultArena;
+        // A card of a kind that can be exhausted has no exhausted state in some zones (a unit in the discard
+        // pile, an upgrade attached to a unit), so ask the zone first rather than read and fail.
+        exhaustable: card.canBeExhausted() && card.isExhaustedEnabledForZone()
+            ? Object.freeze({ exhausted: view.exhausted })
+            : undefined,
 
-        if (wasInPlay) {
-            const upgrades = card.isAttached() ? [] : card.upgrades;
-            record.power = card.getPower();
-            record.hp = card.getHp();
-            record.damage = card.damage;
-            record.remainingHp = card.remainingHp;
-            record.upgrades = Object.freeze(upgrades.map(getIdentity));
-            record.capturedUnits = Object.freeze(card.capturedUnits.map(getIdentity));
-            record.hasShield = upgrades.some((upgrade) => upgrade.isShield());
-            record.hasExperience = upgrades.some((upgrade) => upgrade.isExperience());
-            record.hasWeakness = upgrades.some((upgrade) => upgrade.isWeakness());
-        }
-    }
+        unit: view.isUnit()
+            ? Object.freeze({ printedPower: view.printedPower, printedHp: view.printedHp, defaultArena: view.defaultArena })
+            : undefined,
 
-    if (card.isUpgrade()) {
-        record.printedUpgradePower = card.printedUpgradePower;
-        record.printedUpgradeHp = card.printedUpgradeHp;
+        unitInPlay: view.isUnit() && wasInPlay
+            ? Object.freeze({
+                power: view.power,
+                hp: view.hp,
+                damage: view.damage,
+                remainingHp: view.remainingHp,
+                exhausted: view.exhausted,
+                upgrades: Object.freeze(view.upgrades),
+                capturedUnits: Object.freeze(view.capturedUnits),
+                isUpgraded: view.isUpgraded(),
+                hasShield: view.hasShield(),
+                hasExperience: view.hasExperience(),
+                hasWeakness: view.hasWeakness()
+            })
+            : undefined,
 
-        if (wasInPlay && card.isAttached()) {
-            const parent = card.parentCard;
-            record.parentCard = getIdentity(parent);
-            record.parentCardController = parent.controller;
-            if (parent.isUnit()) {
-                record.parentUnit = getIdentity(parent);
-            }
-        }
-    }
+        upgrade: view.isUpgrade()
+            ? Object.freeze({ printedUpgradePower: view.printedUpgradePower, printedUpgradeHp: view.printedUpgradeHp })
+            : undefined,
 
-    return Object.freeze(record);
+        upgradeInPlay: card.isUpgrade() && wasInPlay
+            ? Object.freeze({
+                parentCard: view.parentCard,
+                parentUnit: card.parentCard.isUnit() ? view.parentUnit : null,
+                parentCardController: view.parentCardController
+            })
+            : undefined
+    });
 }
