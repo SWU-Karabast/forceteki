@@ -129,5 +129,35 @@ describe('Raddus', function () {
                 expect(context.devastatorInescapable.damage).toBe(9);
             });
         });
+
+        it('should deal damage to a unit of the original owner when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['raddus#holdos-final-command', 'devastator#inescapable'],
+                    groundArena: ['wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['atst'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.raddusHoldosFinalCommand);
+
+            // player2 controlled Raddus when it was defeated, so enemy units are player1's units
+            expect(context.player2).toHavePrompt('Deal 8 damage to an enemy unit');
+            expect(context.player2).toBeAbleToSelectExactly([context.devastatorInescapable, context.wampa]);
+            context.player2.clickCard(context.devastatorInescapable);
+
+            expect(context.devastatorInescapable.damage).toBe(8);
+            expect(context.atst.damage).toBe(0);
+            expect(context.raddusHoldosFinalCommand).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

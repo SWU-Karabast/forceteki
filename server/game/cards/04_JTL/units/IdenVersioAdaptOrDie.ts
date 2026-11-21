@@ -19,7 +19,7 @@ export default class IdenVersioAdaptOrDie extends NonLeaderUnitCard {
                 onUpgradeAttached: (event, context) => event.upgradeCard === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.giveShield((context) => ({
-                target: context.source.parentCard
+                target: context.event.parentCard
             }))
         });
     }

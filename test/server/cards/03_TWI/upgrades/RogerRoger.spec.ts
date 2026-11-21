@@ -142,5 +142,42 @@ describe('Roger Roger\'s when defeated ability', function() {
             expect(p1BattleDroid).toHaveExactUpgradeNames([]);
             expect(context.wampa).toHaveExactUpgradeNames([]);
         });
+
+        it('should stay with its controller\'s Battle Droid when the attached unit is defeated with No Glory, Only Results', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [
+                        'battle-droid',
+                        { card: 'super-battle-droid', upgrades: ['roger-roger'] },
+                    ]
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['battle-droid'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            const p1BattleDroid = context.player1.findCardByName('battle-droid');
+            const p2BattleDroid = context.player2.findCardByName('battle-droid');
+            const rogerRoger = context.player1.findCardByName('roger-roger');
+
+            // Player 2 takes control of the Super Battle Droid and defeats it. Roger Roger stays
+            // under player 1's control, so player 1 resolves its When Defeated ability
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.superBattleDroid);
+
+            expect(context.superBattleDroid).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeAbleToSelectExactly([p1BattleDroid]);
+            context.player1.clickCard(p1BattleDroid);
+
+            expect(p1BattleDroid).toHaveExactUpgradeNames(['roger-roger']);
+            expect(p2BattleDroid).toHaveExactUpgradeNames([]);
+            expect(rogerRoger.controller).toBe(context.player1Object);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

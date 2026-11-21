@@ -1,8 +1,20 @@
 import type { GameObject } from '../GameObject';
 import type { ISerializedMessage } from '../../Interfaces';
+import type { ChatObjectType } from '../Constants';
 import { ChatHelpers } from './ChatHelpers';
 
-export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
+/**
+ * A player named in a message, in the same shape as a `Player`'s short summary. For a chat with no engine
+ * `Player` to pass (the lobby chat). A client finds the player by `id`, so it can show them by seat rather than
+ * by name to someone who should not see names, which it cannot do for a name written into the text.
+ */
+export interface IChatPlayer {
+    id: string;
+    name: string;
+    type: ChatObjectType.Player;
+}
+
+export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | IChatPlayer | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];
@@ -48,23 +60,25 @@ export class GameChat {
      * Returns only player chat messages, excluding game log messages and alerts.
      */
     public getPlayerChatMessages(): ISerializedMessage[] {
-        return this.messages.filter((messageEntry) => {
-            const message = messageEntry.message;
+        return this.messages.filter((messageEntry) => GameChat.isPlayerChatMessage(messageEntry));
+    }
 
-            // Exclude alert messages
-            if (typeof message === 'object' && message !== null && 'alert' in message) {
-                return false;
-            }
+    /**
+     * Returns the game log and alerts, without player chat messages.
+     */
+    public getGameLogMessages(): ISerializedMessage[] {
+        return this.messages.filter((messageEntry) => !GameChat.isPlayerChatMessage(messageEntry));
+    }
 
-            // Include only messages whose first element is a playerChat marker
-            if (Array.isArray(message) && message.length > 0) {
-                const firstElement = message[0];
-                if (typeof firstElement === 'object' && firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat') {
-                    return true;
-                }
-            }
+    /** A message is player chat if its first element is a playerChat marker; alerts never are */
+    private static isPlayerChatMessage(messageEntry: ISerializedMessage): boolean {
+        const message = messageEntry.message;
+        if (!Array.isArray(message) || message.length === 0) {
             return false;
-        });
+        }
+
+        const firstElement = message[0];
+        return typeof firstElement === 'object' && !!firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat';
     }
 
     private formatMessage(format: string, args: MsgArg[]): string | string[] {
@@ -92,7 +106,7 @@ export class GameChat {
                     continue;
                 }
 
-                const prevFragmentType = typeof formatOutput.at(-1);
+                const prevFragmentType = typeof formatOutput[formatOutput.length - 1];
                 const thisFragmentType = typeof formattedFragment;
 
                 if (prevFragmentType === 'string' && (thisFragmentType === 'string' || thisFragmentType === 'number')) {

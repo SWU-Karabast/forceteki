@@ -37,6 +37,41 @@ describe('The Desolation of Hoth', function() {
                 expect(context.wampa).toBeInZone('groundArena', context.player2);
             });
 
+            it('should not allow selecting a third unit once 2 are selected', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-desolation-of-hoth'],
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel', 'battlefield-marine', 'admiral-piett#captain-of-the-executor']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theDesolationOfHoth);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine, context.admiralPiett]);
+
+                context.player1.clickCard(context.pykeSentinel);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Only the 2 selected units remain selectable (to unselect)
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine]);
+
+                // Unselecting one makes the third unit selectable again
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine, context.admiralPiett]);
+
+                context.player1.clickCard(context.admiralPiett);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.admiralPiett]);
+
+                context.player1.clickDone();
+
+                expect(context.pykeSentinel).toBeInZone('discard', context.player2);
+                expect(context.admiralPiett).toBeInZone('discard', context.player2);
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+            });
+
             it('should allow defeating only 1 unit if desired', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

@@ -67,5 +67,40 @@ describe('Val, It\'s Been a Ride, Babe', function() {
             expect(context.rebelPathfinder).toHaveExactUpgradeNames([]);
             expect(context.wampa).toHaveExactUpgradeNames(['shield']);
         });
+
+        it('should give a Shield token to a unit that is enemy to the player who controlled her when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['val#its-been-a-ride-babe', 'battlefield-marine', 'pyke-sentinel']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['wampa'],
+                    spaceArena: ['awing'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.valItsBeenARideBabe);
+
+            // player2 controlled Val when she was defeated, so player2 chooses one of player1's units
+            expect(context.player2).toHavePrompt('Give a Shield token to an enemy unit');
+            expect(context.player1).toHavePrompt('Waiting for opponent to select a unit for Val\'s ability');
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.pykeSentinel]);
+            expect(context.player2).not.toHavePassAbilityButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
+            context.player2.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+            expect(context.pykeSentinel).toHaveExactUpgradeNames([]);
+            expect(context.wampa).toHaveExactUpgradeNames([]);
+            expect(context.awing).toHaveExactUpgradeNames([]);
+            expect(context.valItsBeenARideBabe).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

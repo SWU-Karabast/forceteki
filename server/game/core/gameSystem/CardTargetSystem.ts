@@ -5,7 +5,7 @@ import { EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneN
 import type { IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
-import { addLastKnownInformationToEvent, buildLastKnownInformation } from '../event/LastKnownInformation';
+import { addDepartureRecordToEvent, addLastKnownInformationNow } from '../event/LastKnownInformation';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
@@ -153,7 +153,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
 
         const event = this.createEvent(nonArrayTarget, context, additionalProperties);
         if (addLastKnownInformation) {
-            (event as any).lastKnownInformation = buildLastKnownInformation(nonArrayTarget);
+            // Synchronous because events built here never enter an EventWindow, so no
+            // pre-resolution hook would run.
+            addLastKnownInformationNow(event, nonArrayTarget);
         }
         this.updateEvent(event, nonArrayTarget, context, additionalProperties);
         return event;
@@ -196,7 +198,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`
         );
 
-        addLastKnownInformationToEvent(event, card);
+        addDepartureRecordToEvent(event, card);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
@@ -204,7 +206,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 card
             });
 
-            addLastKnownInformationToEvent(onCardLeavesPlayEvent, card);
+            addDepartureRecordToEvent(onCardLeavesPlayEvent, card);
 
             let contingentEvents = [onCardLeavesPlayEvent];
 

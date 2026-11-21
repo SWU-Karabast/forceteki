@@ -21,4 +21,33 @@ describe('Event window recursion guard', function() {
 
         expect(() => createRecursiveWindow().continue()).toThrowError(/Event window depth has reached 50/);
     });
+
+    it('should stop contingent event generation that never runs out of new events', function() {
+        const game = {
+            currentEventWindow: null,
+            emit: jasmine.createSpy('emit'),
+            reportError: (error: Error) => {
+                throw error;
+            }
+        } as unknown as Game;
+
+        const window = new EventWindow(game, [], TriggerHandlingMode.CannotHaveTriggers);
+
+        const createEndlessEvent = () => ({
+            name: 'onCardsDrawn',
+            canResolve: true,
+            isCancelledOrReplaced: false,
+            setWindow: () => undefined,
+            checkCondition: () => undefined,
+            generateReplacementEvents: () => [],
+            generateContingentEvents: () => {
+                window.addEvent(createEndlessEvent());
+                return [];
+            }
+        });
+
+        window.addEvent(createEndlessEvent());
+
+        expect(() => window.continue()).toThrowError(/Contingent event generation .* has repeated 50 times/);
+    });
 });

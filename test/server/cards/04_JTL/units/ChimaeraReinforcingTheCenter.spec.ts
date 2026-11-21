@@ -397,8 +397,98 @@ describe('Chimaera, Reinforcing the Center', function() {
             //     expect(context.wampa).toBeInZone('groundArena');
             // });
 
-            // TODO: Add a test that ensures Chimaera doesn't trigger Shadow Caster
-            // TODO: Add a test that ensures Chimaera triggers JTL Thrawn
+            it('should not trigger Shadow Caster, since no friendly unit is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                        spaceArena: ['shadow-caster#just-business', 'rhokai-gunship']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                expect(context.player1).toBeAbleToSelectExactly([context.rhokaiGunship]);
+                context.player1.clickCard(context.rhokaiGunship);
+
+                // Rhokai Gunship's When Defeated
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                // Shadow Caster does not offer to use the ability again
+                expect(context.player1).not.toHavePassAbilityPrompt('Use Rhokai Gunship\'s "When Defeated" ability again');
+                expect(context.rhokaiGunship).toBeInZone('spaceArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger Grand Admiral Thrawn\'s undeployed ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        hand: ['chimaera#reinforcing-the-center'],
+                        spaceArena: ['rhokai-gunship']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.rhokaiGunship);
+
+                // Rhokai Gunship's When Defeated
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                // Thrawn lets us use it again
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Rhokai Gunship\'s "When Defeated" ability again');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(2);
+                expect(context.grandAdmiralThrawn.exhausted).toBeTrue();
+                expect(context.rhokaiGunship).toBeInZone('spaceArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger Grand Admiral Thrawn\'s deployed ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'grand-admiral-thrawn#how-unfortunate', deployed: true },
+                        hand: ['chimaera#reinforcing-the-center'],
+                        spaceArena: ['rhokai-gunship']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.rhokaiGunship);
+
+                // Rhokai Gunship's When Defeated
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                // Thrawn lets us use it again
+                expect(context.player1).toHavePassAbilityPrompt('Use Rhokai Gunship\'s "When Defeated" ability again');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(2);
+                expect(context.rhokaiGunship).toBeInZone('spaceArena');
+                expect(context.player2).toBeActivePlayer();
+            });
 
             it('does not throw an error when evaluating When Defeated abilities on Count Dooku, Fallen Jedi', async function () {
                 await contextRef.setupTestAsync({
@@ -446,6 +536,32 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(tieFighters).toAllBeInZone('spaceArena');
                 expect(tieFighters.every((tieFighter) => tieFighter.exhausted)).toBeTrue();
                 expect(context.player2.getArenaCards().length).toBe(0);
+            });
+
+            it('should create 2 TIE Fighters for the new controller when defeated by No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['chimaera#reinforcing-the-center'],
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.chimaera);
+
+                const tieFighters = context.player2.findCardsByName('tie-fighter');
+                expect(tieFighters.length).toBe(2);
+                expect(tieFighters).toAllBeInZone('spaceArena', context.player2);
+                expect(tieFighters.every((tieFighter) => tieFighter.exhausted)).toBeTrue();
+                expect(context.player1.findCardsByName('tie-fighter').length).toBe(0);
+                expect(context.chimaera).toBeInZone('discard', context.player1);
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

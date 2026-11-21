@@ -112,5 +112,60 @@ describe('The Emprerors Legion', function () {
             expect(context.atst).toBeInZone('discard');
             expect(context.wampa).toBeInZone('hand');
         });
+
+        it('should return a unit in your discard pile that was taken and defeated by the opponent with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-emperors-legion'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // the unit is defeated while player2 controls it, but goes to its owner's discard pile
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+
+            context.player1.clickCard(context.theEmperorsLegion);
+
+            expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should not return an enemy unit that was taken and defeated with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results', 'the-emperors-legion']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // the unit is defeated while player1 controls it, but goes to player2's discard pile
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // nothing in player1's discard pile was defeated this phase
+            context.player1.clickCard(context.theEmperorsLegion);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.wampa).toBeInZone('discard', context.player2);
+            expect(context.theEmperorsLegion).toBeInZone('discard', context.player1);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

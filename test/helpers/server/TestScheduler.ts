@@ -17,6 +17,16 @@ export interface ICapturedSchedulerError {
     context?: ISchedulerErrorContext;
 }
 
+/** What {@link TestScheduler.advanceToDeadlineAsync} checks either side of a deadline. */
+export interface IDeadlineChecks {
+
+    /** Runs 1 ms before the deadline: what must not have happened yet. */
+    justBefore: () => void | Promise<void>;
+
+    /** Runs once the deadline is reached: what must have happened by then. */
+    atDeadline: () => void | Promise<void>;
+}
+
 /**
  * An {@link IScheduler} that never creates real timers.
  *
@@ -135,6 +145,22 @@ export class TestScheduler implements IScheduler {
 
         this.currentTimeMs = targetTimeMs;
         await this.settlePendingWorkAsync();
+    }
+
+    /**
+     * Moves the clock `durationMs` forward in two steps, running `checks.justBefore` 1 ms short of the deadline and
+     * `checks.atDeadline` once it is reached: the "advance to T−1, assert not yet, advance 1, assert now" idiom, which
+     * pins a deadline to the millisecond.
+     */
+    public async advanceToDeadlineAsync(durationMs: number, checks: IDeadlineChecks): Promise<void> {
+        if (!Number.isInteger(durationMs) || durationMs < 1) {
+            throw new Error(`TestScheduler: a deadline must be a whole number of milliseconds, at least 1 away, got ${durationMs}`);
+        }
+
+        await this.advanceAsync(durationMs - 1);
+        await checks.justBefore();
+        await this.advanceAsync(1);
+        await checks.atDeadline();
     }
 
     /**

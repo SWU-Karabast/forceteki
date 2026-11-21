@@ -8,7 +8,7 @@ import { AbilityType, CardType, ZoneName, WildcardCardType, WildcardRelativePlay
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
+import type { IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationAbilityProps, IDamageModificationEffectAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../ongoingEffect/effectImpl/GainAbilityDescription';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -20,6 +20,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import { registerStateBase } from '../GameObjectUtils';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
@@ -131,7 +132,23 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }, registrar);
     }
 
-    private addDamageModificationAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    /**
+     * Adds a damage modification ability to this upgrade that applies to the attached card, as in "if attached unit
+     * would be dealt damage, ...". The attached card does not gain an ability, so this still applies if it loses all abilities.
+     */
+    private addDamageModificationAbilityTargetingAttached(properties: Omit<IDamageModificationAbilityProps<UpgradeCard>, 'shouldCardHaveDamageModification'>, registrar: IBasicAbilityRegistrar<UpgradeCard>) {
+        registrar.addDamageModificationAbility({
+            ...properties,
+            shouldCardHaveDamageModification: (card, context) =>
+                context.source.isUpgrade() && context.source.isInPlay() && card === context.source.parentCard
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is a damage modification ability. You can provide a gain condition
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    private addGainDamageModificationAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const gainedAbility = { type: AbilityType.DamageModification as const, ...gainedAbilityProperties };
 
@@ -261,7 +278,8 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             addGainConstantAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainConstantAbilityTargetingAttached<TTarget>(properties, registrar),
             addGainTriggeredAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainTriggeredAbilityTargetingAttached<TTarget>(properties, registrar),
             addReplacementEffectAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addReplacementEffectAbilityTargetingAttached<TTarget>(properties, registrar),
-            addDamageModificationAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addDamageModificationAbilityTargetingAttached<TTarget>(properties, registrar),
+            addDamageModificationAbilityTargetingAttached: (properties: Omit<IDamageModificationAbilityProps<UpgradeCard>, 'shouldCardHaveDamageModification'>) => this.addDamageModificationAbilityTargetingAttached(properties, registrar),
+            addGainDamageModificationAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainDamageModificationAbilityTargetingAttached<TTarget>(properties, registrar),
             addGainActionAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainActionAbilityTargetingAttached<TTarget>(properties, registrar),
             addGainOnAttackAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
             addGainOnDefenseAbilityTargetingAttached: (properties) => this.addGainOnDefenseAbilityTargetingAttached(properties, registrar),
@@ -273,9 +291,9 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 }

@@ -50,7 +50,6 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
                         target: this.getRevealedCard(outerContext),
                         playAsType: WildcardCardType.Any,
                         adjustCost: { costAdjustType: CostAdjustType.Free },
-                        canPlayFromAnyZone: true,
                     }),
                     ifYouDo: {
                         title: `Create ${this.getRevealedCard(outerContext).cost} Credit tokens`,
@@ -74,7 +73,6 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
             target: card,
             playAsType: WildcardCardType.Any,
             adjustCost: { costAdjustType: CostAdjustType.Free },
-            canPlayFromAnyZone: true,
         });
 
         return this.game.getPlayers().some((player) => {
