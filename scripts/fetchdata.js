@@ -118,6 +118,11 @@ function populateMissingData(attributes, id) {
                 data: []
             };
             break;
+        case '5495312929': // Omega - Close Your Eyes and Focus (HMW): official data lists Grit as a keyword, but it is granted by the deploy box text, not printed
+            attributes.keywords = {
+                data: []
+            };
+            break;
         case '5683908835': // Count Dooku - Face of the Confederacy
             attributes.keywords = {
                 data: [{

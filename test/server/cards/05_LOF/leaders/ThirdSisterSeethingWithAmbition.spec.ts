@@ -110,6 +110,8 @@ describe('Third Sister, Seething With Ambition', function () {
 
                 context.moveToNextActionPhase();
 
+                // Ruling 2025-09-29 (erratum): Third Sister does not grant Hidden permanently — the keyword
+                // is gone after the phase, including for abilities that check for the existence of keywords.
                 expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeFalse();
             });
 

@@ -15,11 +15,6 @@ export abstract class User {
     public abstract isAnonymousUser(): boolean;
 
     /**
-     * Checks if the user is a local dev test user
-     */
-    public abstract isDevTestUser(): boolean;
-
-    /**
      * Gets the user's ID (either authenticated user ID or anonymous ID)
      */
     public abstract getId(): string;
@@ -104,10 +99,6 @@ export class AuthenticatedUser extends User {
         return false;
     }
 
-    public isDevTestUser(): boolean {
-        return false;
-    }
-
     public getId(): string {
         return this.userData.id;
     }
@@ -168,6 +159,14 @@ export class AuthenticatedUser extends User {
  * Represents an anonymous user without an account
  */
 export class AnonymousUser extends User {
+    /**
+     * The display name for an anonymous user, derived from their id. Must stay in step with the
+     * format the client shows (`anonymous ` plus the first 6 characters of the id).
+     */
+    public static usernameForId(id: string): string {
+        return `anonymous ${id.substring(0, 6)}`;
+    }
+
     public id: string;
     public username: string;
     private readonly _hasClientProvidedId: boolean;
@@ -189,13 +188,6 @@ export class AnonymousUser extends User {
 
     public isAnonymousUser(): boolean {
         return true;
-    }
-
-    public isDevTestUser(): boolean {
-        if (process.env.ENVIRONMENT === 'development') {
-            return this.id === 'exe66' || this.id === 'th3w4y';
-        }
-        return false;
     }
 
     public getId(): string {

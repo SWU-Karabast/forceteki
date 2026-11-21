@@ -48,6 +48,10 @@ export class ExactlyVariableXCardSelector<TContext extends AbilityContext = Abil
         return numMatchingCards >= this.numCardsFunc(context);
     }
 
+    public override wouldExceedLimit(selectedCards: Card[], card: Card, context: TContext) {
+        return !selectedCards.includes(card) && selectedCards.length >= this.numCardsFunc(context, selectedCards);
+    }
+
     public override hasReachedLimit(selectedCards: Card[], context: TContext) {
         return selectedCards.length >= this.numCardsFunc(context, selectedCards);
     }

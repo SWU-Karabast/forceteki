@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { Arena } from '../../../core/Constants';
-import { KeywordName, TargetMode, ZoneName } from '../../../core/Constants';
+import { KeywordName, ZoneName } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUnitCard {
@@ -15,16 +15,18 @@ export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUn
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Choose an arena. Give each unit in that arena ${TextHelper.Sentinel} and ${TextHelper.Overwhelm} for this phase`,
+            title: `Give each unit in an arena ${TextHelper.Sentinel} and ${TextHelper.Overwhelm} for this phase`,
             cost: abilityHelper.costs.exhaustSelf(),
-            targetResolver: {
-                mode: TargetMode.Select,
-                activePromptTitle: 'Choose an arena',
+            immediateEffect: abilityHelper.immediateEffects.chooseModalEffects({
+                amountOfChoices: 1,
+                // Space is listed first to match the client's arena layout (space on the left, ground on the right)
                 choices: {
-                    ['Space']: this.giveArenaUnitsKeywordsForThisPhase(ZoneName.SpaceArena, abilityHelper),
-                    ['Ground']: this.giveArenaUnitsKeywordsForThisPhase(ZoneName.GroundArena, abilityHelper),
+                    [`Give each space unit ${TextHelper.Sentinel} and ${TextHelper.Overwhelm} for this phase`]:
+                        this.giveArenaUnitsKeywordsForThisPhase(ZoneName.SpaceArena, abilityHelper),
+                    [`Give each ground unit ${TextHelper.Sentinel} and ${TextHelper.Overwhelm} for this phase`]:
+                        this.giveArenaUnitsKeywordsForThisPhase(ZoneName.GroundArena, abilityHelper),
                 }
-            }
+            })
         });
     }
 

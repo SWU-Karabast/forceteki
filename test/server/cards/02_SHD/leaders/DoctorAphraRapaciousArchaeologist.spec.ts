@@ -50,7 +50,7 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 expect(context.player1).toBeAbleToSelectExactly([milleniumFalconPieceOfJunk, context.warzoneLieutenant, context.devotion, context.separatistSuperTank]);
 
                 context.player1.clickCard(context.devotion);
-                expect(context.player1).toBeAbleToSelectExactly([milleniumFalconPieceOfJunk, context.warzoneLieutenant, context.devotion, context.separatistSuperTank]);
+                expect(context.player1).toBeAbleToSelectExactly([milleniumFalconPieceOfJunk, context.warzoneLieutenant, context.devotion]);
 
                 // After the selection, one "random" card is returned to the hand and Doctor Aphra loses the +3/+0 bonus because there are no longer 5 different cost cards in the discard
                 context.player1.clickDone();

@@ -248,6 +248,20 @@ export default tseslint.config(
         }
     },
     {
+        // The connection-layer specs drive the server through its two entry points, HTTP and sockets. Casting to
+        // `any` to reach into it (a private field, a method replaced on the instance) is how earlier specs got
+        // around missing seams, and such specs keep passing after the thing they replaced has changed. Add the
+        // seam instead - a protected member, a harness accessor, an injected collaborator. Not
+        // `no-explicit-any`: that is a warning repo-wide and CI runs `--quiet`, and the harmful form is the cast.
+        files: ["test/server/gamenode/**/*.ts", "test/helpers/server/**/*.ts"],
+        rules: {
+            "no-restricted-syntax": ["error", {
+                selector: "TSAsExpression[typeAnnotation.type='TSAnyKeyword']",
+                message: "Do not cast to `any` to reach into the server or the harness. Add a seam instead (a protected member, a harness accessor, an injected collaborator). If the reach cannot be avoided yet, disable this rule on that line and say what removes the need."
+            }],
+        }
+    },
+    {
         files: ["server/game/**/*.ts"],
         ignores: ["server/game/core/utils/TextHelper.ts"],
         plugins: {
@@ -263,6 +277,15 @@ export default tseslint.config(
             'forceteki/no-raw-token-text': 'error',
             'forceteki/state-ref-array-requires-istatearray': 'error',
             'forceteki/no-event-generated-tokens': 'error',
+        }
+    },
+    {
+        // The production image installs only `dependencies` (npm ci --omit=dev), so anything server code imports
+        // at runtime must be declared there, not only as a devDependency or reached through another package's
+        // dependencies. Type-only imports are exempt because they're erased at compile time.
+        files: ["server/**/*.ts", "server/**/*.js"],
+        rules: {
+            "import-x/no-extraneous-dependencies": ["error", { devDependencies: false }],
         }
     }
 );

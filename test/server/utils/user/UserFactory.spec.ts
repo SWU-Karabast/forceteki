@@ -1,9 +1,8 @@
 import * as DynamoDBServiceModule from '../../../../server/services/DynamoDBService';
+import type { DynamoDBService } from '../../../../server/services/DynamoDBService';
 import type { IUserProfileDataEntity } from '../../../../server/services/DynamoDBInterfaces';
 import { UsernameChangeSource } from '../../../../server/services/DynamoDBInterfaces';
 import { UserFactory } from '../../../../server/utils/user/UserFactory';
-
-type DynamoDBService = Awaited<ReturnType<typeof DynamoDBServiceModule.getDynamoDbServiceAsync>>;
 
 describe('UserFactory username changes', function() {
     const MS_PER_DAY = 24 * 60 * 60 * 1000;

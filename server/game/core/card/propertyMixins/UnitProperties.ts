@@ -219,7 +219,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private accessor _upgrades: readonly IUpgradeCard[] = null;
 
         @statePrimitive()
-        private accessor _expiredLastingEffectChangedRemainingHp: boolean = false;
+        private accessor _expiredLastingEffectChangedRemainingHp = false;
 
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');

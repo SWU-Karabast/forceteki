@@ -8,7 +8,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class MillenniumFalconYahoo extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'millennium-falcon#yahoo-id',
+            id: '9667389021',
             internalName: 'millennium-falcon#yahoo',
         };
     }

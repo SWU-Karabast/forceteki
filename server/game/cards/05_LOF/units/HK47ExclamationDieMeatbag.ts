@@ -4,6 +4,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 
 export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId() {
         return {
             id: '2407397504',
@@ -17,7 +19,9 @@ export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
             when: {
                 onCardDefeated: (event, context) => {
                     const defeated = cardStates.getLastKnownProperties(event.cardRef);
-                    return defeated.isUnitCard() && defeated.controller !== context.player;
+                    return defeated.isUnitCard() &&
+                      defeated.isInPlay() &&
+                      defeated.controller !== context.player;
                 }
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({

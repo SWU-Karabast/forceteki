@@ -64,7 +64,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

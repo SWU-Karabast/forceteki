@@ -21,7 +21,7 @@ export default class DarthMaulsLightsaber extends UpgradeCard {
             title: 'Attack with Darth Maul. For this attack, he gains overwhelm and can\'t attack bases.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentCard?.title === 'Darth Maul',
+                condition: (context) => context.source.isAttached() && context.source.parentCard.title === 'Darth Maul',
                 onTrue: AbilityHelper.immediateEffects.attack((attackCtx) => ({
                     target: attackCtx.source.parentCard,
                     targetCondition: (target) => target.isUnit(),

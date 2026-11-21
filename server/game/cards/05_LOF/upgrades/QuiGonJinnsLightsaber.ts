@@ -23,7 +23,7 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
             title: 'Exhaust any number of units with combined cost 6 or less.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentCard?.title === 'Qui-Gon Jinn',
+                condition: (context) => context.source.isAttached() && context.source.parentCard.title === 'Qui-Gon Jinn',
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Exhaust any number of units with combined cost 6 or less',
                     mode: TargetMode.Unlimited,

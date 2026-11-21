@@ -95,6 +95,31 @@ describe('Improvised Identity', function() {
                 });
             });
 
+            it('should not keep the discarded unit\'s keywords if the attack is passed', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['improvised-identity'] }],
+                        deck: ['echo-base-defender', 'cartel-spacer', 'takedown']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt(abilityTitle);
+                context.player1.clickCardInDisplayCardPrompt(context.echoBaseDefender);
+
+                expect(context.echoBaseDefender).toBeInZone('discard');
+                expect(context.wampa.hasSomeKeyword('sentinel')).toBeTrue();
+
+                context.player1.clickPrompt('Pass attack');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa.exhausted).toBeFalse();
+                expect(context.wampa.hasSomeKeyword('sentinel')).toBeFalse();
+            });
+
             it('should show only "Take nothing" when no ground units are in the top 3 cards', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

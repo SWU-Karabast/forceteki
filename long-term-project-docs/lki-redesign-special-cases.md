@@ -393,7 +393,7 @@ a single counter, `_mostRecentInPlayId`, exposed through two mutually exclusive 
 - `mostRecentInPlayId` — asserts the card is *not* in play and not in a hidden zone
 
 The counter is incremented on two occasions
-([InPlayCard.ts:420-440](../server/game/core/card/baseClasses/InPlayCard.ts)):
+([InPlayCard.ts:433-454](../server/game/core/card/baseClasses/InPlayCard.ts)):
 
 1. the card enters play (new copy per SWU 8.5.4)
 2. the card moves into a hidden zone — `Hand`, `Resource` or `Deck` per
@@ -554,6 +554,9 @@ automatically.
 **Action:** all seven should collapse to a plain property read during migration. They are good
 first migration candidates and good regression tests — the behavior must not change.
 
+**Status.** `CalculatedLethality` and `AsajjVentressIWorkAlone` were migrated in phase 1 and no
+longer contain the fallback; the line numbers above are from before that. The other five still do.
+
 ---
 
 ### SC-12 — Inventory: where card implementations read *current location*
@@ -581,9 +584,9 @@ Filtering to reads where the subject can actually be a departed card with a foot
 | [OldDakaOldestAndWisest.ts:33](../server/game/cards/05_LOF/units/OldDakaOldestAndWisest.ts) | `getTarget(thenContext)?.zone === context.player.discardZone` |
 | [OneMustDestroyToCreate.ts:29](../server/game/cards/08_ASH/events/OneMustDestroyToCreate.ts) | `getTarget(thenContext)?.zone === context.player.discardZone` |
 | [AFineAddition.ts:41](../server/game/cards/03_TWI/events/AFineAddition.ts) | `context.target.zoneName === ZoneName.Discard` |
-| [BogaLoyalVaractyl.ts:34](../server/game/cards/09_HMW/units/BogaLoyalVaractyl.ts) | `card === context.target && card.zoneName === ZoneName.Discard` |
+| [BogaLoyalVaractyl.ts](../server/game/cards/09_HMW/units/BogaLoyalVaractyl.ts) | *none now — rewritten by #2997, see below* |
 | [GideonsLightCruiserDarkTroopersStation.ts:26](../server/game/cards/02_SHD/units/GideonsLightCruiserDarkTroopersStation.ts) | `context.target.zoneName === ZoneName.Hand ? ... : ...` |
-| [APrecariousPredicament.ts:41](../server/game/cards/05_LOF/events/APrecariousPredicament.ts) | `context.target?.zoneName === ZoneName.Resource ? ... : ...` |
+| [APrecariousPredicament.ts:40](../server/game/cards/05_LOF/events/APrecariousPredicament.ts) | `context.target?.zoneName === ZoneName.Resource ? ... : ...` |
 
 Shape: *"defeat/move X, then confirm it actually ended up in zone Z, then act on it there."*
 
@@ -597,7 +600,7 @@ the effect's resolution. Re-classified:
 | `DisplayPiece.ts:24` | Fizzle hack |
 | `OldDakaOldestAndWisest.ts:33` | Fizzle hack |
 | `OneMustDestroyToCreate.ts:29` | Fizzle hack |
-| `BogaLoyalVaractyl.ts:34` | Fizzle hack, **phase-scoped variant** — the predicate lives inside a cost adjuster that persists for the phase, so it is re-evaluated repeatedly and outlives the LKI flush boundary |
+| `BogaLoyalVaractyl.ts` | **Gone.** It was a fizzle hack inside a cost adjuster that persisted for the phase, so it outlived the LKI flush boundary. #2997 modelled play-from-discard as a play permission, and the card now just grants one with `canPlayFromDiscard`, so the predicate no longer exists |
 | `AFineAddition.ts:41` | **Play-origin branching** — `PlayFromOutOfPlay` vs `PlayFromHand` |
 | `GideonsLightCruiserDarkTroopersStation.ts:26` | **Play-origin branching** |
 | `APrecariousPredicament.ts:41` | **Play-origin branching** |
@@ -605,7 +608,7 @@ the effect's resolution. Re-classified:
 The three play-origin sites involve targets that **never left play**, so no footprint exists and
 read-through gives live values. **Zero impact.**
 
-The five fizzle hacks decompose into (1) reference validity — free from copy-id comparison under
+The four fizzle hacks that remain decompose into (1) reference validity — free from copy-id comparison under
 D-5 — and (2) the ability's own zone requirement, which is a framework concern.
 
 **These checks are load-bearing today, not redundant.**
@@ -623,7 +626,8 @@ card that had since moved to hand.
 
 **Important:** ~5 of these exist *only* to choose between a live read and an LKI read — they are the
 SC-11 hand-rolled fallbacks (`CalculatedLethality.ts:23`, `TheGreatProgenitorFirstOfTheDrengir.ts:44`,
-`MonMothmaClingingToHope.ts:38`, `LattsRazziDeadlyWhipmaster.ts:34`). Under read-through these
+`MonMothmaClingingToHope.ts:38`, `LattsRazziDeadlyWhipmaster.ts:34`; the first and third have since
+been migrated, so those line numbers are from before). Under read-through these
 guards **disappear entirely** along with the branch. Only genuine "did it survive" guards remain.
 
 **Note:** the current code already distinguishes these two concepts ad hoc — `ILastKnownInformation`
@@ -725,12 +729,13 @@ well defined, and a footprint is minted whenever **information is lost**:
 
 The second row is R4's correction. An earlier draft said *"everything else: instance does not
 change"*, contradicting SC-15 Path 2 in this same document.
-[InPlayCard.initializeForCurrentZone](../server/game/core/card/baseClasses/InPlayCard.ts:432-435)
-increments on `isHiddenFromOpponent(newZone) && !isHiddenFromOpponent(prevZone)` — a visible →
-hidden move, which is not a leave-play and so minted nothing under D-22's original wording.
+[InPlayCard.initializeForCurrentZone](../server/game/core/card/baseClasses/InPlayCard.ts)
+increments when `EnumHelpers.zoneMoveLosesCardInformation(prevZone, zoneName)` is true — a hidden
+destination reached from a visible zone. That is not a leave-play, and so minted nothing under D-22's
+original wording.
 
 **The out-of-play footprint already exists in concept.**
-[buildLastKnownInformation](../server/game/core/event/LastKnownInformation.ts:34-42) has a
+[buildLastKnownInformation](../server/game/core/event/LastKnownInformation.ts) has a
 non-arena branch returning a reduced field set (`title`, `cost`, `controller`, `arena`, `traits`) —
 exactly the shape D-27's not-in-play properties type describes.
 
@@ -792,8 +797,8 @@ card never left play. A handle to the in-hand instance is orphaned the moment th
 - **State watchers are phase-scoped.** A unit defeated in action 1 produces a handle plus
   footprint[N]; the action ends and footprints flush; in action 2 the unit is played from the
   discard, advancing to N+1. Any later query against that watcher entry is case ④.
-- [BogaLoyalVaractyl](../server/game/cards/09_HMW/units/BogaLoyalVaractyl.ts) re-evaluates a
-  predicate inside a phase-long cost adjuster (SC-12).
+- Phase-long cost adjusters outlive an action too. [BogaLoyalVaractyl](../server/game/cards/09_HMW/units/BogaLoyalVaractyl.ts)
+  used to re-evaluate a predicate inside one (SC-12); #2997 replaced that with a play permission.
 
 **Why watchers do not hit this today:** they store their own *extracted copy* of the LKI data in
 tracked state (`IStateWatcherLKIEntry`), not a reference to the event's LKI. Per D-16 this is
@@ -991,22 +996,49 @@ public isTargetStillInPlay(target: IAttackableCard): boolean {
 ```
 
 `Attack` captures `attackerInPlayId` and a `targetInPlayMap` at construction and re-checks them
-before applying damage. **No game system does the equivalent.** A search for `inPlayId` across
-`server/` finds it only in `Attack`, in state watchers, in `LastKnownInformation`, and hand-rolled
-inside ~10 individual cards. `server/game/gameSystems/` contains **zero** occurrences.
+before applying damage. **No game system does the equivalent.** `server/game/gameSystems/` contains
+no identity check of any kind (`inPlayId`, `identityId`, `getIdentity`). Outside `Attack`, identity
+appears in the state watchers, in `LastKnownInformation`, in `AttackHelpers.attackerSurvived` (which
+reads the identity `Attack` captured), and hand-rolled in 12 card files (register §E).
 
-So a delayed system such as `sequential([playCardFromHand, defeat()])` re-derives legality purely
-from `hasLegalTarget`, which is zone-based. A replayed copy is in play, so it passes, and the effect
-lands on the wrong unit.
+So a multi-step system whose later step runs after the target has left play and come back would
+re-derive legality purely from `hasLegalTarget`, which is zone-based. A replayed copy is in play, so
+it would pass, and the effect would land on the wrong unit. That is the mechanism. Whether a printed
+card reaches it is a separate question, answered below.
 
 **Why it is a special case.** It shares the identity machinery with LKI but sits on the write path,
-so it is not fixed by anything in the properties layer. D-6/D-7 already route it correctly — instance
-validation belongs in `checkEventCondition`, which is universal — and `Attack`'s existing guard is
-the proof that the check is both necessary and sufficient. Phase 2 should be able to delete
-`Attack`'s bespoke version once the generic one exists.
+so it is not fixed by anything in the properties layer. D-6 and D-7 planned a generic check in which
+events validate their subject's identity, with `Attack`'s guard as the model. D-34 records why that
+was not built: the shadow audit found 23 events whose subject has a new identity when the event
+resolves, and every one is meant to (SC-21). So `Attack`'s guard is not a prototype waiting for a
+generic replacement. It stays, and nothing is planned to replace it.
 
-**Decision / action.** Out of scope for phase 1; no registry component changes. Flagged here because
-it is easy to mistake for an LKI bug when it surfaces.
+**Measured status.** The delayed-effect cards earlier flagged for this, checked against the engine
+rather than inferred (specs and detail in register §B.1):
+
+- **Commandeer is correct today.** The engine removes a default-duration delayed effect when its
+  target leaves play (`OngoingEffectEngine.removeLastingEffects`, added by #689), so a bounced and
+  replayed unit is not returned a second time.
+  [Commandeer.spec.ts](../test/server/cards/04_JTL/events/Commandeer.spec.ts) pins it.
+- **Maul, Master of the Shadow Collective has the bug.** That same cleanup skips
+  `Duration.WhileSourceInPlay` effects, which is the duration of Maul's "return control" effect. The
+  effect survives the stolen unit being bounced and replayed, and when Maul leaves play it acts on
+  the new copy. A pending spec in
+  [MaulMasterOfTheShadowCollective.spec.ts](../test/server/cards/07_LAW/units/MaulMasterOfTheShadowCollective.spec.ts)
+  reproduces it.
+- **DJ - Blatant Thief uses the same duration and has not been reproduced.** #2955 guards the crash
+  case, a stolen card that is no longer a resource, with a zone check. Whether a replacement copy
+  that is a resource again slips through is unverified.
+
+The only other regression coverage in this family is
+[MoveBetweenZones.spec.ts](../test/scenarios/ability/MoveBetweenZones.spec.ts), for two earlier bugs
+that were fixed individually: Unrefusable Offer with Superlaser Technician, and Commandeer with
+Tobias and Chewbacca.
+
+**Decision / action.** Out of scope for the registry itself; no registry component changes. Flagged
+here because it is easy to mistake for an LKI bug when it surfaces. The one confirmed bug is tracked
+in register §B.1, with a candidate fix in the lasting-effect cleanup rather than in the identity
+layer.
 
 **Test note.** An attempt to build a regression case via *Maul, Old Master* ("Play a unit from your
 hand. It costs 1 resource less. Then, defeat it.") plus Stolen Landspeeder and Snoke does **not**
@@ -1023,8 +1055,9 @@ work, for an ordering reason worth recording:
   entry via state check, which still happens under player1's control
 
 The construction therefore needs a trigger window *between* capture and application, which
-`sequential` does not provide. The realistic shapes are an attack (already guarded) or two triggers
-in one window, as in SC-16.
+`sequential` does not provide. The realistic shapes are an attack (already guarded), two triggers
+in one window as in SC-16, or a delayed effect that spans actions — which is how Maul, Master of the
+Shadow Collective was reproduced.
 
 ---
 
@@ -1063,7 +1096,7 @@ private playedUnitPower(context): number {
 to:
 
 ```ts
-private playedUnitPower(context, gameState: ICardStateGetter): number {
+private playedUnitPower(context, cardStates: ICardStateGetter): number {
     const played = cardStates.getLastKnownProperties(context.event.card).asUnitCard();
     return played.isInPlay() ? played.power : played.printedPower;
 }
@@ -1073,13 +1106,20 @@ The three-way fallback collapses to two, and the surviving branch is exactly SC-
 `power` for a unit that was in play, `printedPower` for one that never was. The state-watcher
 dependency disappears entirely, along with `setupStateWatchers`.
 
+**Status.** Ravager reads through the getter with the event's `Card`, which resolves by the card's
+*current* identity. That is right while the unit is in play or has just left it, and wrong once it
+has moved on again. The event's bound reference is the correct input, but an `onCardPlayed` event
+carries none yet, and binding it when the event is created would name the identity from before the
+unit entered play (SC-14). The binding has to happen after the window's events resolve and before its
+triggers do, which is phase 2.
+
 **Mutation-verified.** Making the registry miss its records turns the existing spec's "Deal 4 damage"
 prompt into "Deal 3 damage" — General Veers's +1 collapsing back to printed power — so the card
 demonstrably reads the record and not live state.
 
 **Decision / action.** Watchers keep their own copy for now; they are phase-scoped and the registry
 is action-scoped, so there is no shared lifetime to unify (D-20). But the *cards* reading LKI through
-a watcher should migrate to the registry, and the audit for phase 3 should look for the Ravager shape
+a watcher should migrate to the registry, and the audit in phase 4 should look for the Ravager shape
 specifically: a watcher lookup used to answer a within-action question.
 
 ---
@@ -1108,17 +1148,20 @@ to read them later. The tombstone assertion message already says this.
 
 **Not migratable at card level in phase 1.** The identity-sensitive part of these cards is not in
 card code. `Commandeer` passes its target to `delayedCardEffect`, and the engine's `matchTarget`
-resolves it at fire time; the card never touches it again. Fixing that means teaching target
-resolution to compare references, which is phase 2. The two cards that *do* hold a reference in card
-code — [MaulMasterOfTheShadowCollective](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts)
+resolves it at fire time; the card never touches it again. The two cards that *do* hold a reference
+in card code — [MaulMasterOfTheShadowCollective](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts)
 and [DjBlatantThief](../server/game/cards/02_SHD/units/DjBlatantThief.ts) — capture it in a closure
 and hand it back as a `target`, which again needs `deref`, an engine-only capability.
 
-**Latent bugs flagged, not fixed.** Neither `Commandeer` nor `Maul, Master of the Shadow Collective`
-revalidates copy identity. If the affected unit leaves play and returns before the delayed effect
-fires, the effect applies to the new copy, which by `SWU 8.5.4` is a different unit. This is the same
-class of bug as SC-18 and the same fix resolves both. `Commandeer` has an existing spec; the others
-do not.
+**Whether the effect still applies is decided by the lasting-effect cleanup, not by identity.** When
+a card moves to anything but an arena, or out of the discard pile or captivity,
+`OngoingEffectEngine.removeLastingEffects` removes every delayed effect that targets it, so a card
+that leaves play and returns is not acted on by an effect aimed at its previous copy. That is why
+Commandeer is correct. The cleanup has one exemption, `Duration.WhileSourceInPlay`, which only
+`whenSourceLeavesPlayDelayedCardEffect` creates and only Maul and DJ use. For Maul the exemption is a
+confirmed bug of the SC-18 kind (register §B.1). A candidate fix is to drop the exemption: the full
+suite stays green without it. DJ's replayed-resource case is unverified, so it needs a spec of its
+own before that change is made.
 
 **Counter-example worth keeping.** `DjBlatantThief` carries this comment:
 
@@ -1131,6 +1174,46 @@ readyResource: !sequentialContext.events[0]?.card.exhausted
 It deliberately wants **live** state at fire time, not last known information. A blanket codemod that
 rewrote every delayed-effect property read into a recorded read would break it. Delayed effects have
 to be migrated by hand.
+
+---
+
+### SC-21 — Follow-through events resolve after their subject has moved on
+
+**What.** Some events are built for a card under one identity and are *meant* to resolve once it has
+become another. The usual shape is an instruction that moves a card and then acts on it again — "put
+it into play as a resource, then ready it". The identity changed because the instruction's own first
+half moved the card, so the event is not stale.
+
+**Where.** D-34's audit compared each card-targeted event's target identity at creation
+(`GameSystem.updateEvent`) with its identity when `GameEvent.checkCondition` ran, across the full
+9,633-spec suite. It fired 23 times, and every hit has this shape:
+
+- **`onCardReadied` from [ResourceCardSystem](../server/game/gameSystems/ResourceCardSystem.ts) (20).**
+  With `readyResource`, `updateEvent` sets a contingent-events generator that builds the `ReadySystem`
+  event. Contingent events are generated by the window's `generateContingentEventsAndReplacementWindow`
+  step, before any handler runs, so the ready event is built for the card under its pre-move
+  identity. Superlaser Technician, and a Clone of it, account for all 20.
+- **`onBountyCollected` from [SpareTheTarget](../server/game/cards/02_SHD/events/SpareTheTarget.ts) (3).**
+  `simultaneous([returnToHand(), collectBounty(...)])` builds both events in one window for the same
+  unit, and the bounty event resolves after the unit has gone to hand.
+
+`EventWindow.resolveEvents` calls `checkCondition` immediately before each event's own handler, after
+the earlier events in the window have resolved. That is the first point at which the new identity is
+visible to the event.
+
+**Why it is a special case.** It is the counter-example to SC-18. An identity check on events — the
+obvious generalisation of `Attack`'s guard — would fizzle every one of these, and all of them behave
+correctly today. So "the subject's identity changed" cannot by itself mean "the event is stale". What
+separates them from the SC-18 cases is what changed the identity: the event's own window, rather than
+something earlier.
+
+**Decision / action.** Not built (D-34). If an event-level check is wanted later:
+
+- It ships in shadow mode first, logging every hit across the full suite, as the D-34 audit did.
+- An event needs an explicit way to declare that it follows its subject, so these two shapes stay
+  legal.
+- It cannot live in `checkEventCondition`, which seven systems override (see the status note under
+  D-28 in the decisions document).
 
 ---
 
