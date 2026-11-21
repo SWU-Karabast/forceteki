@@ -1549,6 +1549,19 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return { card: this.internalName };
     }
 
+    /**
+     * Adds a card's upgrades and captured units to its captured state, leaving out empty lists like the test setup does.
+     * Shared by the card types that can hold both: units and bases.
+     */
+    protected addAttachedCardsToSerializedState(state: ISerializedCardState, upgrades: readonly { internalName: string }[], capturedUnits: readonly { internalName: string }[]): void {
+        if (upgrades.length > 0) {
+            state.upgrades = upgrades.map((upgrade) => upgrade.internalName);
+        }
+        if (capturedUnits.length > 0) {
+            state.capturedUnits = capturedUnits.map((unit) => unit.internalName);
+        }
+    }
+
     public override toString() {
         return this.internalName;
     }

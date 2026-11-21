@@ -1198,12 +1198,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         protected override buildSerializedCardState(): ISerializedCardState {
             const state = super.buildSerializedCardState();
             if (this.isInPlay()) {
-                if (this.upgrades.length > 0) {
-                    state.upgrades = this.upgrades.map((upgrade) => upgrade.internalName);
-                }
-                if (this.capturedUnits.length > 0) {
-                    state.capturedUnits = this.capturedUnits.map((unit) => unit.internalName);
-                }
+                this.addAttachedCardsToSerializedState(state, this.upgrades, this.capturedUnits);
             }
             return state;
         }

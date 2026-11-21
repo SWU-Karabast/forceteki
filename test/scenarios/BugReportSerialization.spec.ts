@@ -68,7 +68,7 @@ describe('Bug report game state serialization', function () {
         describe('with cards in different states', function () {
             const player1Setup = {
                 leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
-                base: { card: 'echo-base', damage: 3 },
+                base: { card: 'echo-base', damage: 3, upgrades: ['alliance-shield-generator'], capturedUnits: ['consular-security-force'] },
                 groundArena: [
                     'wampa',
                     { card: 'battlefield-marine', damage: 1, exhausted: true, upgrades: ['academy-training'] }
