@@ -363,6 +363,7 @@ fails earlier, in that middleware, with `Authentication error` (covered, `Socket
 | L3 | the `Lobby timed out` path after 5 users have left and 5 minutes have passed | covered (`LobbyLifecycle`) |
 | L4 | the inactivity kick (`inactiveDisconnect`, then a forced disconnect that the disconnect handler skips) and `resetActionTimer` | waived: nothing reaches the kick any more, and it is a dead feature to remove (the game-timer area's step d). `resetActionTimer` does not reach the action timer either, by design (open finding #11, decided 2026-11-08); the game-timer area's row T12 covers it |
 | L5 | shutdown with a grace timer pending, and with a live game's action timers, counted from a baseline | covered (`GameServerScheduling`) |
+| L6 | the stale-game sweep: every 30 minutes, a lobby whose game (running or ended) has had no player activity for 2 hours is removed and its players told | covered (`LobbyLifecycle`: removal, an ended game left open, under 2 hours, activity resetting the clock, a lobby without a game left alone) |
 
 ## Topic areas
 
