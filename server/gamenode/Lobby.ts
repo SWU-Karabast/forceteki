@@ -1326,6 +1326,11 @@ export class Lobby {
         return this.users.length === 0;
     }
 
+    /** Whether the user has lost their connection to this lobby (e.g. closed the tab) while no other player is in it */
+    public isAbandonedBy(userId: string): boolean {
+        return this.users.length === 1 && this.users[0].id === userId && this.users[0].state === 'disconnected';
+    }
+
     /**
      * Records a matchmaking entry if this is a quick match, to prevent immediate rematches.
      * Uses the current time as the entry timestamp.

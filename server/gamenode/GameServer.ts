@@ -2458,7 +2458,8 @@ export class GameServer {
             this.playerMatchmakingDisconnectedTime.delete(userId);
         }
 
-        // Active lobbies retain the 60s activity guard. Completed matches can be left immediately.
+        // Active lobbies retain the 60s activity guard. Completed matches can be left immediately, and so can a lobby
+        // the user was alone in and has lost their connection to (e.g. closed the tab), since nobody is waiting on them.
         // Stale memberships, including users who never connected, fall through to cleanup.
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
@@ -2467,7 +2468,7 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (previousRole === UserRole.Player && !previousLobby.isMatchComplete && userLastActivity != null) {
+                if (previousRole === UserRole.Player && !previousLobby.isMatchComplete && !previousLobby.isAbandonedBy(userId) && userLastActivity != null) {
                     const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
