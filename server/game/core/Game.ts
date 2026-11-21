@@ -105,7 +105,7 @@ import UndoConfirmationPrompt from './gameSteps/prompts/UndoConfirmationPrompt';
 import type { AdditionalPhaseEffect } from './ongoingEffect/effectImpl/AdditionalPhaseEffect';
 import type { IStep } from './gameSteps/IStep';
 import type { ITokenCard } from './card/propertyMixins/Token';
-import type { IClientUIProperties, ISerializedGameState } from '../Interfaces';
+import type { IClientUIProperties, IGameErrorHistory, IGameErrorRecord, ISerializedGameState } from '../Interfaces';
 import type {
     IDisplayCardsWithButtonsPromptProperties,
     IDisplayCardsSelectProperties,
@@ -411,6 +411,16 @@ export class Game extends EventEmitter {
      */
     private _resumeActionTimerAfterRollback = false;
     private _disposed = false;
+
+    private static readonly MaxRecordedErrors = 5;
+
+    /**
+     * Errors reported during this game, oldest first, capped at `MaxRecordedErrors`.
+     * Intentionally not part of the game state, so that rolling back can't erase them.
+     */
+    private readonly recordedErrors: IGameErrorRecord[] = [];
+    private readonly recordedErrorObjects = new WeakSet<Error>();
+    private recordedErrorCount = 0;
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
@@ -561,7 +571,46 @@ export class Game extends EventEmitter {
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
      */
     public reportError(error: Error, severity: GameErrorSeverity = GameErrorSeverity.Normal): void {
-        this._router.handleError(this, error, severity);
+        try {
+            this._router.handleError(this, error, severity);
+        } finally {
+            // recorded after the router has handled it, so that a server error report built from the
+            // history holds only the errors before this one (the report carries this one itself)
+            this.recordError(error, severity);
+        }
+    }
+
+    /**
+     * Records an error so that bug and server error reports can show whether something already went wrong in this game.
+     * Recording the same error object again (e.g. when it is rethrown after being reported) is a no-op.
+     */
+    public recordError(error: Error, severity: GameErrorSeverity = GameErrorSeverity.Normal): void {
+        if (error != null && typeof error === 'object') {
+            if (this.recordedErrorObjects.has(error)) {
+                return;
+            }
+            this.recordedErrorObjects.add(error);
+        }
+
+        this.recordedErrorCount++;
+        this.recordedErrors.push({
+            timestamp: this.scheduler.currentDate().toISOString(),
+            severity,
+            message: error?.message ?? String(error),
+            stack: error?.stack,
+        });
+
+        if (this.recordedErrors.length > Game.MaxRecordedErrors) {
+            this.recordedErrors.shift();
+        }
+    }
+
+    /** The most recent errors recorded in this game, oldest first */
+    public getErrorHistory(): IGameErrorHistory {
+        return {
+            totalCount: this.recordedErrorCount,
+            errors: [...this.recordedErrors],
+        };
     }
 
     /**
