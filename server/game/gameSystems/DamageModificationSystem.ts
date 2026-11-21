@@ -151,6 +151,12 @@ export class DamageModificationSystem<
                 properties.isUnpreventable = event.isUnpreventable;
             }
 
+            // keep where the excess damage goes (e.g. Breach with an Overwhelm unit), so the target is still dealt only
+            // enough damage to defeat it after the amount changes (CR 9.0 1.9.11.A)
+            if (event.type === DamageType.Ability) {
+                properties.excessDamageRedirected = event.excessDamageRedirected;
+            }
+
             // keep the link to the event the excess damage came from, so that the excess counts as used up once dealt.
             // only set when present, since DamageSystem checks whether the key exists at all
             if (event.type === DamageType.Excess && event.sourceEventForExcessDamage != null) {

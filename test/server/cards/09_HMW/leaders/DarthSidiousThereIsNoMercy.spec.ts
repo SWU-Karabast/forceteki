@@ -530,6 +530,37 @@ describe('Darth Sidious, There is No Mercy', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should trigger only for the base when a damage modification effect changes the damage that Breach divides between the enemy unit and the base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        hand: ['breach'],
+                        groundArena: ['babwa-venomor#burning-kashyyyk'] // 4/4 Overwhelm
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wicket#yub-nub', upgrades: ['deadly-vulnerability'] }] // 3 HP
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deadly Vulnerability doubles Babwa Venomor's 4 damage to 8, which is divided: 3 to Wicket and 5 to the base
+                context.player1.clickCard(context.breach);
+                context.player1.clickCard(context.babwaVenomor);
+                context.player1.clickCard(context.wicket);
+                expect(context.wicket).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(5);
+
+                // The ability triggers once, for the 5 excess damage dealt to P2's base, so that base is not selectable
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.darthSidious, context.babwaVenomor]);
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should trigger when Breach has a unit without Overwhelm deal 4+ damage to an enemy unit with less HP remaining', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
