@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BogaLoyalVaractyl extends NonLeaderUnitCard {
@@ -24,16 +25,12 @@ export default class BogaLoyalVaractyl extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Discard,
                 cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle) && card.title !== 'Boga',
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => [
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        target: context.target,
-                        effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({ player: context.player })
-                    }),
-                    AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                        target: context.player,
-                        effect: AbilityHelper.ongoingEffects.decreaseCost({ amount: 1, match: (card) => card === context.target && card.zoneName === ZoneName.Discard })
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({
+                        player: RelativePlayer.Self,
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
                     })
-                ])
+                })
             }
         });
     }

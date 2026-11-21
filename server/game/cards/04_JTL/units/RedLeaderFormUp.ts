@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RedLeaderFormUp extends NonLeaderUnitCard {
@@ -16,10 +16,9 @@ export default class RedLeaderFormUp extends NonLeaderUnitCard {
         registrar.addDecreaseCostAbility({
             title: `This unit costs ${TextHelper.resource(1)} less to play for each friendly ${TextHelper.Trait.Pilot} unit and upgrade`,
             amount: (_card, player) =>
-                player.getArenaUnits({
-                    condition: (card) => card.hasSomeTrait(Trait.Pilot)
-                }).length + player.getArenaUpgrades({
-                    condition: (card) => card.hasSomeTrait(Trait.Pilot)
+                player.getInPlayCards({
+                    type: [WildcardCardType.Unit, WildcardCardType.Upgrade],
+                    trait: Trait.Pilot
                 }).length
         });
 

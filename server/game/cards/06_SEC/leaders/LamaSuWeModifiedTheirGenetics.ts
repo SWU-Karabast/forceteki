@@ -57,7 +57,6 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
-                    canPlayFromAnyZone: true,
                     attachTargetCondition: (target, context) =>
                         target.isUnit() &&
                         target.controller === context.player &&

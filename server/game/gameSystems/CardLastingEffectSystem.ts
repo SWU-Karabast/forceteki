@@ -109,7 +109,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     private getEffectFactoriesAndProperties(target: Card | Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingCardEffectGenerator[]; effectProperties: IOngoingCardEffectProps | IOngoingCardEffectProps[] } {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const effectProperties: (card: Card) => IOngoingCardEffectProps = (card) => ({ matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties });
+        const effectProperties: (card: Card) => IOngoingCardEffectProps = (card) => ({ matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, createdByPlayer: context.player, ...otherProperties });
 
         if (Array.isArray(target)) {
             return { effectFactories: Helpers.asArray(effect), effectProperties: target.map((card) => effectProperties(card)) };

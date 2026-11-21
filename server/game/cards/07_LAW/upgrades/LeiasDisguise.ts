@@ -23,7 +23,7 @@ export default class LeiasDisguise extends UpgradeCard {
         registrar.addWhenPlayedAbility({
             title: 'Give a Shield token to a friendly unit',
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentCard?.title === 'Leia Organa',
+                condition: (context) => context.source.isAttached() && context.source.parentCard.title === 'Leia Organa',
                 onTrue: abilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     immediateEffect: abilityHelper.immediateEffects.giveShield()

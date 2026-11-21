@@ -68,5 +68,57 @@ describe('Nightbrother, Maul\'s Gauntlet', function () {
                 context.player2.passAction();
             });
         });
+
+        describe('Nightbrother\'s when played ability, playing a copy of a unique unit that is already in play,', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['nightbrother#mauls-gauntlet'],
+                        groundArena: ['chopper#metal-menace'],
+                        discard: ['chopper#metal-menace'],
+                    },
+                });
+
+                const { context } = contextRef;
+                const choppers = context.player1.findCardsByName('chopper#metal-menace');
+                context.chopperInPlay = choppers.find((chopper) => chopper.zoneName === 'groundArena');
+                context.chopperInDiscard = choppers.find((chopper) => chopper.zoneName === 'discard');
+            });
+
+            it('should not throw at the regroup phase when the unique rule defeated the copy that was just played', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.nightbrother);
+                context.player1.clickCard(context.chopperInDiscard);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Chopper, Metal Menace to defeat');
+                context.player1.clickCard(context.chopperInDiscard);
+                expect(context.chopperInDiscard).toBeInZone('discard');
+                expect(context.chopperInPlay).toBeInZone('groundArena');
+
+                // the delayed defeat was applied to a card that has already left play: nothing is left to defeat
+                context.moveToRegroupPhase();
+
+                expect(context.chopperInDiscard).toBeInZone('discard');
+                expect(context.chopperInPlay).toBeInZone('groundArena');
+            });
+
+            it('should still defeat the copy that was just played at the regroup phase when the other copy was defeated', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.nightbrother);
+                context.player1.clickCard(context.chopperInDiscard);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Chopper, Metal Menace to defeat');
+                context.player1.clickCard(context.chopperInPlay);
+                expect(context.chopperInPlay).toBeInZone('discard');
+                expect(context.chopperInDiscard).toBeInZone('groundArena');
+
+                context.moveToRegroupPhase();
+
+                expect(context.chopperInDiscard).toBeInZone('discard');
+            });
+        });
     });
 });

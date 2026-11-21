@@ -5,6 +5,8 @@ import { AbilityType, KeywordName, RelativePlayer, WildcardCardType } from '../.
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 
 export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId() {
         return {
             id: '4179470615',

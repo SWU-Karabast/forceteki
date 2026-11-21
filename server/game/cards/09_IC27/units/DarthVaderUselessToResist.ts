@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DarthVaderUselessToResist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-vader#useless-to-resist-id',
+            id: '8149559202',
             internalName: 'darth-vader#useless-to-resist',
         };
     }

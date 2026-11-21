@@ -5,6 +5,7 @@ import type { Card, CardConstructor } from '../Card';
 import { Contract } from '../../utils/Contract';
 import DamageModificationAbility from '../../ability/DamageModificationAbility';
 import { registerStateBase } from '../../GameObjectUtils';
+import { EffectName } from '../../Constants';
 
 export interface ITriggeredAbilityRegistrar<T extends Card> {
     addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbilityBase;
@@ -20,6 +21,7 @@ export interface ICardWithTriggeredAbilities<T extends Card> {
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
     addGainedDamageModificationAbility(properties: IDamageModificationAbilityProps<T>): string;
     getTriggeredAbilities(): TriggeredAbilityBase[];
+    getWhenDefeatedAbilities(): TriggeredAbilityBase[];
     removeGainedTriggeredAbility(removeAbilityUuid: string): void;
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
     removeGainedDamageModificationAbility(removeAbilityUuid: string): void;
@@ -40,7 +42,20 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
                 return [];
             }
 
+            // a combined trigger (e.g. "When Played/When Defeated") is kept; only its When Defeated half is blocked, in TriggeredAbility
+            if (this.hasOngoingEffect(EffectName.LoseWhenDefeatedAbilities)) {
+                return (this.triggeredAbilities as TriggeredAbilityBase[]).filter((ability) => !ability.isOnlyWhenDefeated);
+            }
+
             return this.triggeredAbilities as TriggeredAbilityBase[];
+        }
+
+        public getWhenDefeatedAbilities(): TriggeredAbilityBase[] {
+            if (this.hasOngoingEffect(EffectName.LoseWhenDefeatedAbilities)) {
+                return [];
+            }
+
+            return this.getTriggeredAbilities().filter((ability) => ability.isWhenDefeated);
         }
 
         public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {

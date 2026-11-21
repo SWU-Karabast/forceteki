@@ -15,7 +15,7 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
 
     @stateRefMap()
-    private accessor values: Map<string, OngoingEffectValueWrapperBase<TValue>> = new Map();
+    private accessor values = new Map<string, OngoingEffectValueWrapperBase<TValue>>();
 
     public constructor(game: Game,
         type: EffectName,

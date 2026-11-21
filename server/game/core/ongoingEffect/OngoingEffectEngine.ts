@@ -109,7 +109,7 @@ const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
  * Effect types that only matter while their source card is in a zone it can be played from, mapped to
  * those zones. Such an effect is included only when its source is in a listed zone, and suppressed once
  * the card moves elsewhere (e.g. R2-D2's "can be played on a Vehicle with a Pilot" is only relevant in
- * hand). Effects that are only ever created in the zone they matter in (e.g. CanPlayFromDiscard) don't
+ * hand). Effects that are only ever created in the zone they matter in (e.g. GainPlayPermission) don't
  * need an entry.
  */
 const playModifierEffectRelevantZones: ReadonlyMap<EffectName, ReadonlySet<ZoneName>> = new Map([
@@ -199,7 +199,7 @@ class EffectEventListener extends GameObjectBase {
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered = false;
 
     public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
         super(game);
@@ -376,11 +376,19 @@ export class OngoingEffectEngine extends GameObjectBase {
                     // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
                     properties.immediateEffect.setDefaultTargetFn(() => targets);
 
+                    // CardTargetSystem.queueGenerateEventGameSteps builds events without asking canAffect, so a delayed effect whose
+                    // target is no longer a legal target (e.g. a card that left play before the effect was applied, such as a unit
+                    // defeated by the unique rule right after Nightbrother played it: removeLastingEffects had nothing to remove yet)
+                    // must not build its events. A card that left play is a new object (CR 8.5.4), so there is nothing to act on.
+                    const hasLegalTarget = properties.immediateEffect.hasLegalTarget(context);
+
                     const actionEvents = [];
-                    properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                    if (hasLegalTarget) {
+                        properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                    }
                     properties.limit.increment(context.player);
 
-                    if (properties.immediateEffect.hasLegalTarget(context)) {
+                    if (hasLegalTarget) {
                         const messageArgs: MsgArg[] = [context.player, ' uses a delayed effect applied by ', context.source, ' to '];
                         const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
                         messageArgs.push({ format: effectMessage, args: effectArgs });

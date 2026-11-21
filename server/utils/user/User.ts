@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, IUserPreferences, ModerationFieldState } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -13,11 +13,6 @@ export abstract class User {
      * Checks if the user isn't authenticated (is anonymous)
      */
     public abstract isAnonymousUser(): boolean;
-
-    /**
-     * Checks if the user is a local dev test user
-     */
-    public abstract isDevTestUser(): boolean;
 
     /**
      * Gets the user's ID (either authenticated user ID or anonymous ID)
@@ -61,7 +56,10 @@ export abstract class User {
 
     public abstract needsUsernameChange(): boolean;
 
-    public abstract mustRequestUsernameChange(): ModerationFieldState | null;
+    /**
+     * Id of the UsernameChangesBlocked mod action whose one-time notice this user has acknowledged.
+     */
+    public abstract usernameChangesBlockedSeenActionId(): string | null;
 
     /**
      * Id of the ReportingDisabled mod action whose one-time notice this user has acknowledged.
@@ -101,10 +99,6 @@ export class AuthenticatedUser extends User {
         return false;
     }
 
-    public isDevTestUser(): boolean {
-        return false;
-    }
-
     public getId(): string {
         return this.userData.id;
     }
@@ -138,8 +132,8 @@ export class AuthenticatedUser extends User {
         return !!this.userData.needsUsernameChange;
     }
 
-    public mustRequestUsernameChange(): ModerationFieldState | null {
-        return this.userData.mustRequestUsernameChange ?? null;
+    public usernameChangesBlockedSeenActionId(): string | null {
+        return this.userData.usernameChangesBlockedSeenActionId ?? null;
     }
 
     public reportingDisabledSeenActionId(): string | null {
@@ -165,6 +159,14 @@ export class AuthenticatedUser extends User {
  * Represents an anonymous user without an account
  */
 export class AnonymousUser extends User {
+    /**
+     * The display name for an anonymous user, derived from their id. Must stay in step with the
+     * format the client shows (`anonymous ` plus the first 6 characters of the id).
+     */
+    public static usernameForId(id: string): string {
+        return `anonymous ${id.substring(0, 6)}`;
+    }
+
     public id: string;
     public username: string;
     private readonly _hasClientProvidedId: boolean;
@@ -188,13 +190,6 @@ export class AnonymousUser extends User {
         return true;
     }
 
-    public isDevTestUser(): boolean {
-        if (process.env.ENVIRONMENT === 'development') {
-            return this.id === 'exe66' || this.id === 'th3w4y';
-        }
-        return false;
-    }
-
     public getId(): string {
         return this.id;
     }
@@ -203,7 +198,7 @@ export class AnonymousUser extends User {
         return false;
     }
 
-    public mustRequestUsernameChange(): ModerationFieldState | null {
+    public usernameChangesBlockedSeenActionId(): string | null {
         return null;
     }
 

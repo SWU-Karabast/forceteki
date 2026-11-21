@@ -1,6 +1,7 @@
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 import type { IServerRoleUsersListsEntity } from '../services/DynamoDBInterfaces';
+import type { IScheduler } from './IScheduler';
 
 /**
  * Cache for server role users that provides synchronous role checking.
@@ -9,14 +10,18 @@ import type { IServerRoleUsersListsEntity } from '../services/DynamoDBInterfaces
 export class ServerRoleUsersCache {
     private readonly cache: TimedCache<IServerRoleUsersListsEntity>;
 
-    public static async createAsync(refreshIntervalMinutes: number): Promise<ServerRoleUsersCache> {
+    /**
+     * @param scheduler Drives the periodic refresh; defaults to real timers
+     */
+    public static async createAsync(refreshIntervalMinutes: number, scheduler?: IScheduler): Promise<ServerRoleUsersCache> {
         const cache = new TimedCache<IServerRoleUsersListsEntity>(
             refreshIntervalMinutes,
             async () => {
                 const db = await getDynamoDbServiceAsync();
                 return await db.getServerRoleUsersAsync();
             },
-            'ServerRoleUsersCache'
+            'ServerRoleUsersCache',
+            scheduler
         );
 
         await cache.initializeAsync();
@@ -28,6 +33,13 @@ export class ServerRoleUsersCache {
 
     private constructor(cache: TimedCache<IServerRoleUsersListsEntity>) {
         this.cache = cache;
+    }
+
+    /**
+     * Stops the periodic refresh. Role checks keep answering from the last fetched lists.
+     */
+    public stop(): void {
+        this.cache.stop();
     }
 
     /**

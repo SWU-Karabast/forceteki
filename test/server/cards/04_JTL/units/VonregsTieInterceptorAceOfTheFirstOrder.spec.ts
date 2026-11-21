@@ -53,5 +53,18 @@ describe('Vonreg\'s Tie Interceptor, Ace of the First Order', () => {
             expect(context.tielnFighter).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(6);
         });
+
+        // Ruling 2025-11-25: conditional modifiers are applied simultaneously when calculating a unit's
+        // power; the unit never actually holds the intermediate value used during calculation. So a unit
+        // does not "pass through" a power threshold (to gain a further conditional keyword) if a negative
+        // modifier brings it back down at the same time.
+        xit('does not gain the 6-power Raid when attacking Gold Leader brings its power back below 6', function () {
+            pending('Not yet implemented');
+            // Vonreg's TIE is printed 3/4, so the setup must explicitly buff it to 5 power (e.g. +2/+0).
+            // With a further "+1/+0 while attacking" effect it would reach 6 (gaining its own "6 or more
+            // power" Raid 1), but it attacks Gold Leader ("while defending, the attacker gets -1/-0").
+            // The +1 and -1 apply simultaneously, so its power stays at 5 — it never reaches 6, and does
+            // not gain the additional Raid 1 from its own "6 or more power" conditional ability.
+        });
     });
 });

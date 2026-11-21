@@ -17,15 +17,16 @@ export default class TeekaYoureInLuck extends NonLeaderUnitCard {
             title: `Give a unit ${TextHelper.Sentinel} for this phase or a unit loses ${TextHelper.Sentinel} for this phase`,
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects(() => ({
                 amountOfChoices: 1,
-                activePromptTitle: 'Choose one',
                 choices: {
                     [`Give a unit ${TextHelper.Sentinel} for this phase`]: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: `Give a unit ${TextHelper.Sentinel} for this phase`,
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
                         })
                     }),
                     [`A unit loses ${TextHelper.Sentinel} for this phase`]: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: `Choose a unit to lose ${TextHelper.Sentinel} for this phase`,
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             effect: AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel)

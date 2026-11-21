@@ -96,6 +96,12 @@ buildMockCard({
 })
 ```
 
+If the card is a **reprint** of an already-released card, do not add a `buildMockCard` entry — the mock would shadow the official card data and drop the card's other printings. Instead, add an entry to `mockReprints` in `scripts/mockdata.js`, which grafts the new set code onto the official card's `setCodes` so the real card data and existing implementation are reused unchanged:
+
+```javascript
+{ internalName: 'wampa', setId: { set: 'IC27', number: 200 } }
+```
+
 ## Implement card abilities (quickstart)
 
 The below is a quickstart guide on how to implement each ability type with some examples without going into too much detail on the components. 
