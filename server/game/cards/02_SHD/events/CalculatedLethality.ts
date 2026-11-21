@@ -6,6 +6,8 @@ import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class CalculatedLethality extends EventCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId() {
         return {
             id: '0302968596',

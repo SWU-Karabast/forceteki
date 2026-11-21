@@ -32,7 +32,7 @@ describe('Anakin\'s Podracer, So Wizard', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.anakinsPodracer).toBeInZone('groundArena');
                 expect(context.anakinsPodracer.damage).toBe(0);
-                expect(context.getChatLogs(2)).toContain('player1 attacks Battlefield Marine with Anakin\'s Podracer (dealing damage before the defender)');
+                expect(context.getChatLogs(2)).toContain('Anakin\'s Podracer (attacker) deals combat damage before Battlefield Marine (defender)');
             });
 
             it('while attacking an enemy ground unit, should not deal damage first if another friendly unit has attacked.', function () {
@@ -107,7 +107,7 @@ describe('Anakin\'s Podracer, So Wizard', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.anakinsPodracer).toBeInZone('groundArena');
                 expect(context.anakinsPodracer.damage).toBe(0);
-                expect(context.getChatLogs(2)).toContain('player1 attacks Battlefield Marine with Anakin\'s Podracer (dealing damage before the defender)');
+                expect(context.getChatLogs(2)).toContain('Anakin\'s Podracer (attacker) deals combat damage before Battlefield Marine (defender)');
             });
 
             it('should not work while attacking outside of ambush if another unit has attacked', function () {
@@ -142,7 +142,7 @@ describe('Anakin\'s Podracer, So Wizard', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.anakinsPodracer).toBeInZone('groundArena');
                 expect(context.anakinsPodracer.damage).toBe(0);
-                expect(context.getChatLogs(2)).toContain('player1 attacks Battlefield Marine with Anakin\'s Podracer (dealing damage before the defender)');
+                expect(context.getChatLogs(2)).toContain('Anakin\'s Podracer (attacker) deals combat damage before Battlefield Marine (defender)');
 
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.anakinsPodracer);

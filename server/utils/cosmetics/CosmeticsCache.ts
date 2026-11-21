@@ -1,4 +1,5 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import type { IScheduler } from '../IScheduler';
 import { TimedCache } from '../TimedCache';
 import type { ICosmeticEntity } from './CosmeticsInterfaces';
 
@@ -8,14 +9,18 @@ import type { ICosmeticEntity } from './CosmeticsInterfaces';
 export class CosmeticsCache {
     private readonly cache: TimedCache<ICosmeticEntity[]>;
 
-    public constructor(refreshIntervalMinutes: number) {
+    /**
+     * @param scheduler Drives the periodic refresh; defaults to real timers
+     */
+    public constructor(refreshIntervalMinutes: number, scheduler?: IScheduler) {
         this.cache = new TimedCache<ICosmeticEntity[]>(
             refreshIntervalMinutes,
             async () => {
                 const db = await getDynamoDbServiceAsync();
                 return await db.getCosmeticsAsync();
             },
-            'CosmeticsCache'
+            'CosmeticsCache',
+            scheduler
         );
     }
 
@@ -25,6 +30,13 @@ export class CosmeticsCache {
      */
     public async initializeAsync(): Promise<void> {
         await this.cache.initializeAsync();
+    }
+
+    /**
+     * Stops the periodic refresh. Reads keep answering from the last fetched cosmetics.
+     */
+    public stop(): void {
+        this.cache.stop();
     }
 
     /**

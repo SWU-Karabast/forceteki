@@ -31,6 +31,32 @@ describe('Caught In The Crossfire', function() {
                 expect(context.sabineWren.damage).toBe(1);
             });
 
+            it('should not allow selecting a third unit once 2 are selected', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['caught-in-the-crossfire'],
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'battlefield-marine', 'pyke-sentinel'],
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.caughtInTheCrossfire);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Only the 2 selected units remain selectable (to unselect)
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
+
+                context.player1.clickDone();
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.wampa.damage).toBe(3);
+                expect(context.pykeSentinel.damage).toBe(0);
+            });
+
             it('should allow to pick 2 enemy units in the same arena and those units will deal damage to each other (space units)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

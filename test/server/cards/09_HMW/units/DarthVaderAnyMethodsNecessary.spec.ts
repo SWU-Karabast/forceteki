@@ -194,6 +194,44 @@ describe('Darth Vader Any Methods Necessary', function() {
                 expect(context.wampa.damage).toBe(2);
                 expect([context.battlefieldMarine, context.villageTender, context.rebelPathfinder, context.porg, context.protector, context.resupply, context.atst]).toAllBeInBottomOfDeck(context.player1, 7);
             });
+
+            it('should not apply the uniqueness rule to a copy of a unique unit that is defeated by the damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'ig88#ruthless-bounty-hunter',
+                        base: 'energy-conversion-lab',
+                        hand: ['darth-vader#any-methods-necessary'],
+                        groundArena: ['latts-razzi#deadly-whipmaster'],
+                        deck: ['latts-razzi#deadly-whipmaster', 'wampa', 'village-tender', 'atst', 'protector', 'rebel-pathfinder', 'resupply', 'porg', 'yoda#old-master']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const lattsInPlay = context.player1.findCardByName('latts-razzi#deadly-whipmaster', 'groundArena');
+                const lattsInDeck = context.player1.findCardByName('latts-razzi#deadly-whipmaster', 'deck');
+
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickCardInDisplayCardPrompt(lattsInDeck);
+                context.player1.clickCardInDisplayCardPrompt(context.wampa);
+                context.player1.clickDone();
+
+                // the new copy is defeated by the damage, so no copy is chosen for the uniqueness rule and its When Played still resolves
+                expect(lattsInDeck).toBeInZone('discard');
+                expect(context.player1).toHavePrompt('Deal 2 damage to an enemy ground unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(lattsInPlay).toBeInZone('groundArena');
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa.damage).toBe(2);
+                expect(context.battlefieldMarine.damage).toBe(2);
+            });
         });
     });
 });

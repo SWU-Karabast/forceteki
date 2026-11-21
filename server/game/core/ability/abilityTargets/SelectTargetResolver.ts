@@ -112,7 +112,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         });
 
         if (passPrompt) {
-            choices.push(passPrompt.buttonText);
+            legalChoices.push(passPrompt.buttonText);
             handlers.push(passPrompt.handler);
             passPrompt.hasBeenShown = true;
         }
@@ -120,10 +120,10 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         // TODO: figure out if we need these buttons
         /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
             if (!targetResults.noCostsFirstButton) {
-                choices.push('Pay costs first');
+                legalChoices.push('Pay costs first');
                 handlers.push(() => (targetResults.payCostsFirst = true));
             }
-            choices.push('Cancel');
+            legalChoices.push('Cancel');
             handlers.push(() => (targetResults.cancelled = true));
         }*/
 

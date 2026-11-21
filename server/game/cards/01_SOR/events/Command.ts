@@ -19,6 +19,7 @@ export default class Command extends EventCard {
                 amountOfChoices: 2,
                 choices: (context) => ({
                     ['Give 2 Experience tokens to a unit.']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Give 2 Experience tokens to a unit',
                         controller: WildcardRelativePlayer.Any,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
@@ -27,11 +28,13 @@ export default class Command extends EventCard {
                         })
                     }),
                     ['A friendly unit deals damage equal to its power to a non-unique enemy unit.']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Choose a friendly unit to deal damage equal to its power to a non-unique enemy unit',
                         controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
                         immediateEffect: AbilityHelper.immediateEffects.selectCard({
+                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit?.getPower()} damage to a non-unique enemy unit`,
                             controller: RelativePlayer.Opponent,
                             cardTypeFilter: WildcardCardType.Unit,
                             zoneFilter: WildcardZoneName.AnyArena,
@@ -47,6 +50,7 @@ export default class Command extends EventCard {
                         target: context.source
                     }),
                     ['Return a unit from your discard pile to your hand.']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Return a unit from your discard pile to your hand',
                         controller: RelativePlayer.Self,
                         cardTypeFilter: CardType.BasicUnit,
                         zoneFilter: ZoneName.Discard,

@@ -309,5 +309,52 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('Luke Skywalker, Hero of Yavin deployed as a pilot upgrade vs Bamboozle', function() {
+            // Ruling 2025: Luke's Piloting protection only prevents him from being *defeated* by enemy
+            // card abilities. Bamboozle *returns* upgrades to hand rather than defeating them, so the
+            // protection does not apply — Luke is removed from the vehicle anyway (the leader returns to
+            // base, undeployed). His "move to ground" / can't-be-defeated protection never fires.
+            it('is removed by Bamboozle despite the "can\'t be defeated by enemy card abilities" protection', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#hero-of-yavin',
+                        spaceArena: ['cartel-spacer'],
+                        resources: 10
+                    },
+                    player2: {
+                        hand: ['bamboozle']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.lukeSkywalker).toBeInZone('spaceArena');
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['luke-skywalker#hero-of-yavin']);
+
+                context.player2.clickCard(context.bamboozle);
+                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player2.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer.exhausted).toBeTrue();
+                expect(context.cartelSpacer.isUpgraded()).toBeFalse();
+
+                // Luke's "can't be defeated by enemy card abilities" replacement doesn't apply: Bamboozle
+                // returns upgrades to hand rather than defeating them, so Luke flips back to base undeployed
+                expect(context.lukeSkywalker).toBeInZone('base');
+                expect(context.lukeSkywalker.deployed).toBeFalse();
+
+                // Ensure Luke cannot re-deploy: clicking him only offers his no-effect leader ability
+                // (no Deploy / Deploy as Pilot buttons)
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.lukeSkywalker);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Use it anyway']);
+                context.player1.clickPrompt('Cancel');
+            });
+        });
     });
 });

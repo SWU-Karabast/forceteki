@@ -50,7 +50,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
     private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] } {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const effectProperties: (target: Player) => IOngoingPlayerEffectProps = (target) => ({ matchTarget: target, isLastingEffect: true, ability: context.ability, ...otherProperties });
+        const effectProperties: (target: Player) => IOngoingPlayerEffectProps = (target) => ({ matchTarget: target, isLastingEffect: true, ability: context.ability, createdByPlayer: context.player, ...otherProperties });
 
         if (Array.isArray(target)) {
             return { effectFactories: Helpers.asArray(effect), effectProperties: target.map((target) => effectProperties(target)) };

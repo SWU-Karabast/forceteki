@@ -25,6 +25,10 @@ export class UpToXCardSelector<TContext extends AbilityContext = AbilityContext>
         return `${verb} ${this.numCards === 1 ? article : `up to ${this.numCards}`} ${description}`;
     }
 
+    public override wouldExceedLimit(selectedCards: Card[], card: Card) {
+        return !selectedCards.includes(card) && selectedCards.length >= this.numCards;
+    }
+
     public override hasReachedLimit(selectedCards: Card[]) {
         return selectedCards.length >= this.numCards;
     }

@@ -6,16 +6,6 @@ import type { IRawGameSocket, SocketData } from '../../../server/gamenode/GameSe
 export interface IFakeEmittedEvent {
     event: string;
     args: any[];
-
-    /**
-     * If the emit included a trailing function argument (an acknowledgement request), this is it,
-     * with the ack-callback argument itself removed from {@link args}. A real client only triggers
-     * the server's ack callback if it explicitly invokes the function its own listener receives -
-     * most of this codebase's listeners do not, so the harness defaults to leaving acks unfired and
-     * a test opts in explicitly via {@link FakeIoSocket.ackEvent} when it wants to simulate a client
-     * that does.
-     */
-    ack?: (...args: any[]) => void;
 }
 
 let nextFakeSocketId = 1;
@@ -46,7 +36,6 @@ export class FakeIoSocket implements IRawGameSocket {
 
     private _connected = true;
     private readonly inboundListeners = new Map<string, ((...args: any[]) => void)[]>();
-    private readonly joinedRooms = new Set<string>();
     private readonly _emittedEvents: IFakeEmittedEvent[] = [];
     private pendingDisconnectDispatch: Promise<void> | null = null;
 
@@ -69,12 +58,11 @@ export class FakeIoSocket implements IRawGameSocket {
             return false;
         }
 
-        let ack: ((...ackArgs: any[]) => void) | undefined;
-        if (args.length > 0 && typeof args[args.length - 1] === 'function') {
-            ack = args.pop();
-        }
-
-        this._emittedEvents.push({ event, args, ack });
+        // A real socket serializes what it sends, so the client holds a copy taken at that moment. Recording
+        // the server's own objects instead would let a later change to them rewrite what a spec already
+        // received. JSON is what socket.io's encoder uses for these payloads (an `undefined` argument
+        // arrives as `null`).
+        this._emittedEvents.push({ event, args: JSON.parse(JSON.stringify(args)) });
         return true;
     }
 
@@ -97,14 +85,6 @@ export class FakeIoSocket implements IRawGameSocket {
 
     public eventNames(): (string | symbol)[] {
         return Array.from(this.inboundListeners.keys()).filter((event) => this.inboundListeners.get(event).length > 0);
-    }
-
-    public join(room: string): any {
-        this.joinedRooms.add(room);
-    }
-
-    public leave(room: string): any {
-        this.joinedRooms.delete(room);
     }
 
     public disconnect(_close?: boolean): this {
@@ -153,24 +133,5 @@ export class FakeIoSocket implements IRawGameSocket {
         for (const listener of listeners) {
             await listener(...args);
         }
-    }
-
-    /**
-     * Fires the acknowledgement callback for the most recent emit of `event` that included one and
-     * has not already been acked, as if a client had explicitly called back. Throws if there is none,
-     * since a test that asks for this almost always wants to know the ack was actually there to fire.
-     */
-    public ackEvent(event: string, ...ackArgs: any[]): void {
-        for (let i = this._emittedEvents.length - 1; i >= 0; i--) {
-            const emitted = this._emittedEvents[i];
-            if (emitted.event === event && emitted.ack) {
-                const ack = emitted.ack;
-                emitted.ack = undefined;
-                ack(...ackArgs);
-                return;
-            }
-        }
-
-        throw new Error(`FakeIoSocket: no un-acked emit of '${event}' found to acknowledge`);
     }
 }

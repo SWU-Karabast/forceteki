@@ -224,5 +224,77 @@ describe('Poe Dameron, I Can Fly Anything', function() {
                 expect(context.player1).not.toBeAbleToSelect([context.poeDameron]);
             });
         });
+
+        describe('Poe Dameron\'s interaction with change of control while attached', function() {
+            // Ruling 2025: Poe does not make attached units into leader units, so change-of-control
+            // effects can steal the host vehicle while Poe remains attached. Poe's owner still controls
+            // Poe and can activate his ability to move him to a friendly vehicle. (He can also deploy
+            // as a unit even if previously in play, e.g. via an upgrade + Eject combo.)
+            it('remains attached and controllable by its owner when the host vehicle is stolen', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'poe-dameron#i-can-fly-anything',
+                        spaceArena: ['cartel-spacer', 'tie-bomber'],
+                        resources: 10
+                    },
+                    player2: {
+                        hand: ['change-of-heart']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Flip Poe as a pilot upgrade onto the Cartel Spacer
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+                expect(context.cartelSpacer.isLeader()).toBeFalse();
+
+                // Player 2 steals the vehicle with Change of Heart; Poe stays attached and still controlled by player1
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer.controller).toBe(context.player2Object);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+                expect(context.poeDameron.controller).toBe(context.player1Object);
+                expect(context.player1).toBeActivePlayer();
+
+                // Poe's owner can still activate his ability to move him to another friendly vehicle
+                context.player1.clickCard(context.poeDameron);
+                expect(context.player1).toBeAbleToSelectExactly([context.tieBomber]);
+                context.player1.clickCard(context.tieBomber);
+
+                expect(context.cartelSpacer).toHaveExactUpgradeNames([]);
+                expect(context.tieBomber).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+                expect(context.cartelSpacer.controller).toBe(context.player2Object);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            // Ruling 2025: a vehicle can only have one Pilot at a time, so Poe cannot be attached as a
+            // pilot to a vehicle that R2 is already piloting — R2 would have to be attached after Poe.
+            it('cannot attach Poe as a pilot to a vehicle that R2 is already piloting', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'poe-dameron#i-can-fly-anything',
+                        spaceArena: [{ card: 'cartel-spacer', upgrades: ['r2d2#artooooooooo'] }, 'tie-bomber'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
+
+                // the R2-piloted Cartel Spacer already has a Pilot, so only the TIE Bomber is a legal target
+                expect(context.player1).toBeAbleToSelectExactly([context.tieBomber]);
+                context.player1.clickCard(context.tieBomber);
+
+                expect(context.tieBomber).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['r2d2#artooooooooo']);
+            });
+        });
     });
 });

@@ -177,5 +177,44 @@ describe('Sabine Wren, Bargaining On Belief', function() {
                 expect(context.wampa).toHaveExactUpgradeNames([]);
             });
         });
+
+        describe('Leader side triggered ability with a unit owned by the opponent', function() {
+            it('should give Shielded to the next unit the player plays even if it is played from the opponent\'s discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'sabine-wren#bargaining-on-belief',
+                        hand: ['takedown']
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        spaceArena: ['stolen-athauler']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+                context.player1.clickPrompt('An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase');
+                context.player2.clickCard(context.atst);
+                expect(context.atst).toHaveExactUpgradeNames(['advantage', 'advantage']);
+
+                context.player2.passAction();
+
+                // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // The opponent-owned unit played by player1 is the next unit they play, so it gains Shielded
+                context.player1.clickCard(context.stolenAthauler);
+
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.stolenAthauler).toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

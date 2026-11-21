@@ -31,7 +31,6 @@ export interface IUserDataEntity {
     swubaseRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
-    mustRequestUsernameChange?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
     timerPopupSeenDate?: string;
@@ -43,8 +42,14 @@ export interface IUserDataEntity {
      */
     reportingDisabledSeenActionId?: string;
 
-    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migrateReportingDisabled.ts. */
+    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migration/migrateReportingDisabled.ts. */
     reportingDisabled?: ModerationFieldState;
+
+    /** Same as {@link reportingDisabledSeenActionId}, for the UsernameChangesBlocked mod action. */
+    usernameChangesBlockedSeenActionId?: string;
+
+    /** @deprecated Superseded by the UsernameChangesBlocked mod action. Removed by scripts/migration/migrateMustRequestUsernameChange.ts. */
+    mustRequestUsernameChange?: ModerationFieldState;
 }
 
 /**
@@ -52,6 +57,14 @@ export interface IUserDataEntity {
  * Presence (non-null) means reporting is disabled; `hasSeen` drives the one-time notification popup.
  */
 export interface IReportingDisabledState {
+    hasSeen: boolean;
+}
+
+/**
+ * Client-facing representation of an active UsernameChangesBlocked restriction.
+ * Presence (non-null) means the player must request username changes; `hasSeen` drives the one-time popup.
+ */
+export interface IUsernameChangesBlockedState {
     hasSeen: boolean;
 }
 
@@ -84,6 +97,11 @@ export enum TimerVisibility {
     HideAll = 'hideAll',
 }
 
+export enum DateFormat {
+    MMDDYYYY = 'MMDDYYYY',
+    DDMMYYYY = 'DDMMYYYY',
+}
+
 export interface IUserPreferences {
     sound?: {
         muteAllSound?: boolean;
@@ -100,6 +118,10 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
+
+        // Currently only relevant for moderators: it is used by the mod tools (user management,
+        // server controls). Outside of those, it only affects the username-change cooldown message.
+        dateFormat?: DateFormat;
 
         // Prompt-reduction settings: auto-resolve prompts that have only one sensible outcome.
         // Grouped so future automations (e.g. auto-select opponent for indirect damage,
@@ -186,6 +208,8 @@ export enum ModActionType {
     Warning = 'Warning',
     Rename = 'Rename',
     ReportingDisabled = 'ReportingDisabled',
+    UsernameChangesBlocked = 'UsernameChangesBlocked',
+    ChangeUsername = 'ChangeUsername',
 }
 
 /**
@@ -193,8 +217,9 @@ export enum ModActionType {
  * caching and the dashboard UI all derive from it rather than enumerating action types themselves.
  *
  * `tracked` means indexed in the ACTIVE_MODACTION sparse GSI and held in the ModActionService cache.
- * That is distinct from having a duration: Mute is timed, while Rename and ReportingDisabled are
- * indefinite but still tracked. Warning is untracked (paper trail only).
+ * That is distinct from having a duration: Mute is timed, while Rename, ReportingDisabled and
+ * UsernameChangesBlocked are indefinite but still tracked. Warning and ChangeUsername are untracked
+ * (a one-off event with a paper trail only).
  */
 export interface IModActionDefinition {
     tracked: boolean;
@@ -204,6 +229,10 @@ export interface IModActionDefinition {
     /** Resolves on its own (expiry or user action) rather than requiring a moderator to cancel it. */
     selfResolving: boolean;
     cancellable: boolean;
+
+    /** The moderator supplies the username to apply to the account. */
+    requiresNewUsername: boolean;
+
 }
 
 export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
@@ -213,6 +242,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: true,
         selfResolving: true,
         cancellable: true,
+        requiresNewUsername: false,
     },
     [ModActionType.Warning]: {
         tracked: false,
@@ -220,6 +250,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: false,
         selfResolving: false,
         cancellable: false,
+        requiresNewUsername: false,
     },
     [ModActionType.Rename]: {
         tracked: true,
@@ -227,6 +258,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: false,
         selfResolving: true,
         cancellable: false,
+        requiresNewUsername: false,
     },
     [ModActionType.ReportingDisabled]: {
         tracked: true,
@@ -234,6 +266,23 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: false,
         selfResolving: false,
         cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.UsernameChangesBlocked]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.ChangeUsername]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+        requiresNewUsername: true,
     },
 };
 
@@ -254,6 +303,7 @@ export interface IModActionEntity {
     cancelledAt?: string;
     cancelledById?: string;
     cancelledByUsername?: string;
+    relatedReportId?: string; // set when the action was issued from a player report ticket
 }
 
 export interface IActiveModActionCacheEntry {
@@ -270,6 +320,7 @@ export enum UsernameChangeSource {
     Migration = 'Migration', // backfill seed for pre-existing accounts (previousUsername = null)
     UserInitiated = 'UserInitiated',
     ForcedRename = 'ForcedRename', // result of a Rename mod action
+    UsernameChangedByModerator = 'UsernameChangedByModerator', // result of a ChangeUsername action, or the reset option of UsernameChangesBlocked
 }
 
 export interface IUsernameChangeEntity {
@@ -278,6 +329,119 @@ export interface IUsernameChangeEntity {
     previousUsername: string | null; // null only for Initial
     newUsername: string;
     source: UsernameChangeSource;
-    relatedModActionId?: string; // set only when source === ForcedRename
+    relatedModActionId?: string; // set when source is ForcedRename or UsernameChangedByModerator
     createdAt: string;
+}
+
+export enum PlayerReportStatus {
+    Open = 'Open',
+    Closed = 'Closed',
+}
+
+/** How a moderator resolved a player report when closing it. */
+export enum PlayerReportOutcome {
+    ActionTaken = 'ActionTaken',
+    NoAction = 'NoAction',
+    FalseReport = 'FalseReport',
+
+    /** The player let their timer run out on purpose; only tracked, no penalty is applied */
+    TimerAbuse = 'TimerAbuse',
+}
+
+/** Which side of a report a player is on, used by the per-player report index. */
+export enum PlayerReportRole {
+    ReportSubmitter = 'ReportSubmitter',
+    ReportedPlayer = 'ReportedPlayer',
+}
+
+export enum PlayerReportLogKind {
+    Chat = 'Chat',
+    Game = 'Game',
+}
+
+export interface IPlayerReportEntity {
+    id: string;
+    createdAt: string;
+    status: PlayerReportStatus;
+
+    reporterId: string;
+    reporterUsername: string;
+    reportedPlayerId: string;
+    reportedPlayerUsername: string;
+
+    /** PlayerReportType chosen by the reporter */
+    offense: string;
+    description: string;
+
+    lobbyId: string;
+    gameId?: string;
+    gameFormat: string;
+    matchType: string;
+    gameStepsSinceLastUndo?: number;
+
+    /** Snapshots at creation time, so the ticket shows them without extra lookups */
+    reportedPlayerPriorReportCount: number;
+
+    /** False reports the reporter filed in the PlayerReportService.RecentFalseReportDays before this one */
+    reporterRecentFalseReportCount: number;
+
+    closedAt?: string;
+    closedById?: string;
+    closedByUsername?: string;
+    outcome?: PlayerReportOutcome;
+    closingNote?: string;
+
+    reopenedAt?: string;
+    reopenedByUsername?: string;
+
+    /** Set when the retention cleanup removed the chat and game logs */
+    logsDeletedAt?: string;
+}
+
+/** Progress of the player report retention cleanup, so each run only looks at new expiry buckets */
+export interface IPlayerReportCleanupCursor {
+
+    /** Last YYYY-MM-DD log expiry bucket that has been processed */
+    lastLogDay: string;
+
+    /** Last YYYY-MM closed-report bucket whose reports have been deleted */
+    lastMetadataMonth: string;
+
+    /** When the cleanup last ran, so a restart can tell whether a weekly run was missed */
+    lastRunAt?: string;
+}
+
+export interface IPlayerReportLogLine {
+    at: string;
+
+    /** Players referenced by the line (the speaker for chat lines), used to highlight a selected player */
+    playerIds: string[];
+    text: string;
+}
+
+export interface IPlayerReportLogEntity {
+    reportId: string;
+    kind: PlayerReportLogKind;
+    lines: IPlayerReportLogLine[];
+
+    /** True when the oldest lines were dropped to stay within the storage limit */
+    truncated: boolean;
+}
+
+/** Lightweight pointer stored under the player's partition so reports by/against a player can be listed. */
+export interface IPlayerReportIndexEntity {
+    reportId: string;
+    playerId: string;
+    role: PlayerReportRole;
+    createdAt: string;
+    offense: string;
+    status: PlayerReportStatus;
+    outcome?: PlayerReportOutcome;
+
+    /**
+     * The match the report was filed in, copied from the report. Lets several reports from one match be grouped
+     * (e.g. counted once for a player) without reading every report record.
+     */
+    lobbyId: string;
+    gameId?: string;
 }

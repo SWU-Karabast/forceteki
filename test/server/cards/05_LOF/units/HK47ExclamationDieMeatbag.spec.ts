@@ -126,7 +126,7 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
             });
         });
 
-        it('HK-47\'s triggered ability should be prevent by Close the Shield Gate', async function () {
+        it('HK-47\'s triggered ability should be prevented by Close the Shield Gate', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -153,7 +153,7 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
         });
 
 
-        it('a captured HK-47 should not trigger when his captor dies', async function () {
+        it('a captured HK-47 should not trigger when his captor is defeated by ability', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -174,7 +174,7 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
         });
 
 
-        it('a captured HK-47 should not trigger when his captor dies to damage', async function () {
+        it('a captured HK-47 should not trigger when his captor is defeated by damage', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -192,6 +192,38 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(0);
+        });
+
+        it('does not trigger when a resource (which is a face-down unit) is defeated', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'maz-kanata#eclectic-pirate-queen',
+                    hand: ['greater-sarlacc'],
+                    resources: [
+                        'wampa',
+                        'lurking-wampa',
+                        'rampaging-wampa'
+                    ]
+                },
+                player2: {
+                    groundArena: ['hk47#exclamation-die-meatbag']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 plays Greater Sarlacc, defeating all their resources to play it for free
+            context.player1.clickCard(context.greaterSarlacc);
+            expect(context.player1).toHavePrompt('Defeat 3 ready resources');
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.lurkingWampa);
+            context.player1.clickCard(context.rampagingWampa);
+            context.player1.clickDone();
+
+            // HK-47 should not trigger, no damage dealt to P1 base
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(0);
         });
     });
 });

@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class ImpossibleEscape extends EventCard {
     protected override getImplementationId() {
@@ -15,25 +15,24 @@ export default class ImpossibleEscape extends EventCard {
         registrar.setEventAbility({
             title: 'Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.hasSomeArenaUnit() || context.player.hasTheForce,
-                onFalse: AbilityHelper.immediateEffects.noAction(),
-                onTrue: AbilityHelper.immediateEffects.chooseModalEffects({
-                    amountOfChoices: 1,
-                    choices: {
-                        ['Use the Force']: AbilityHelper.immediateEffects.useTheForce(),
-                        ['Exhaust a friendly unit']: AbilityHelper.immediateEffects.selectCard({
-                            cardTypeFilter: WildcardCardType.Unit,
-                            controller: RelativePlayer.Self,
-                            immediateEffect: AbilityHelper.immediateEffects.exhaust(),
-                        })
-                    }
-                }),
-            }),
+            targetResolver: {
+                activePromptTitle: 'Choose an effect. If you do either, exhaust an enemy unit and draw a card',
+                mode: TargetMode.Select,
+                choices: {
+                    ['Exhaust a friendly unit']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Exhaust a friendly unit',
+                        cardTypeFilter: WildcardCardType.Unit,
+                        controller: RelativePlayer.Self,
+                        immediateEffect: AbilityHelper.immediateEffects.exhaust(),
+                    }),
+                    ['Use the Force']: AbilityHelper.immediateEffects.useTheForce(),
+                }
+            },
             ifYouDo: {
                 title: 'Exhaust an enemy unit and draw a card',
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Exhaust an enemy unit',
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
                         immediateEffect: AbilityHelper.immediateEffects.exhaust(),
