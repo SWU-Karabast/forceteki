@@ -263,4 +263,31 @@ describe('Vigil, Securing the Future', function() {
             });
         });
     });
+
+    integration(function(contextRef) {
+        it('should increase excess damage dealt to it with Wipe Them Out', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['wipe-them-out'],
+                    spaceArena: ['jedi-light-cruiser']
+                },
+                player2: {
+                    spaceArena: ['tieln-fighter', 'vigil#securing-the-future']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Vigil prevents 1 of the 6 damage to the friendly TIE/ln Fighter, so 4 of the 5 damage dealt is excess damage
+            context.player1.clickCard(context.wipeThemOut);
+            context.player1.clickCard(context.jediLightCruiser);
+            context.player1.clickCard(context.tielnFighter);
+            context.player1.clickCard(context.vigil);
+
+            // the 4 excess damage is increased by 1 because it is dealt to Vigil by another card
+            expect(context.vigil.damage).toBe(5);
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });

@@ -52,9 +52,7 @@ export default class DarthSidiousThereIsNoMercy extends LeaderUnitCard {
             return false;
         }
 
-        const amount = DamageSystem.getDamageAmountDealtToCard(event);
-
-        if (amount == null || amount < 4) {
+        if (DamageSystem.getDamageAmountDealtToCard(event) < 4) {
             return false;
         }
 
