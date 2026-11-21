@@ -124,6 +124,9 @@ class DeckBuilder {
         let deckCards = [];
         let inPlayCards = [];
 
+        // flatten a deck given by its two ends before the named cards are collected from it
+        playerCards.deck = this.flattenDeckEnds(playerCards.deck);
+
         const namedCards = this.getAllNamedCards(playerCards);
         let resources = [];
 
@@ -215,6 +218,36 @@ class DeckBuilder {
         }
 
         return [];
+    }
+
+    /**
+     * The test setup's 'deck' is either a list of cards (top card first), a number of filler cards, or
+     * { topCards, bottomCards } for a deck given by its two ends, as a captured bug report state does for a long deck.
+     * bottomCards is optional and goes below topCards, with its last card at the very bottom.
+     *
+     * Returns the two-ends form as a single list of cards, top card first, and the other forms unchanged.
+     */
+    flattenDeckEnds(deck) {
+        if (deck == null || typeof deck === 'number' || Array.isArray(deck)) {
+            return deck;
+        }
+        if (typeof deck !== 'object') {
+            throw new TestSetupError(`Test deck must be an array of cards, a number or an object with topCards and bottomCards, got '${deck}'`);
+        }
+
+        const allowedKeys = ['topCards', 'bottomCards'];
+        const unknownKeys = Object.keys(deck).filter((key) => !allowedKeys.includes(key));
+        if (unknownKeys.length > 0) {
+            throw new TestSetupError(`Test deck object has unknown properties: ${unknownKeys.join(', ')}. Allowed are topCards (required) and bottomCards`);
+        }
+        if (!Array.isArray(deck.topCards)) {
+            throw new TestSetupError('Test deck object must have a topCards array');
+        }
+        if (deck.bottomCards != null && !Array.isArray(deck.bottomCards)) {
+            throw new TestSetupError('Test deck bottomCards must be an array');
+        }
+
+        return [...deck.topCards, ...(deck.bottomCards ?? [])];
     }
 
     padCardListIfNeeded(cardList, defaultCount) {

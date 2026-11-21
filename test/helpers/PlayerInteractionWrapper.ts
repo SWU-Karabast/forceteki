@@ -504,7 +504,8 @@ export class PlayerInteractionWrapper {
         this.player.deckZone.cards.forEach(
             (card: any) => this.setupMoveCard(card, 'outsideTheGame')
         );
-        newContents.reverse().forEach((nameOrCard) => {
+        // copy before reversing so the test setup's own deck list stays as given
+        [...newContents].reverse().forEach((nameOrCard) => {
             const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.setupMoveCard(card, 'deck');
         });

@@ -75,6 +75,9 @@ export interface IPlayerState extends IGameObjectState {
 
 @registerState()
 export class Player extends GameObject implements IGameStatisticsTrackable {
+    /** How many cards from each end of the deck go into a captured game state (e.g. for bug reports) */
+    private static readonly CapturedDeckCardsPerEnd = 5;
+
     public user: IUser;
     private _lobbyUser?: User;
     public printedType: string;
@@ -1335,8 +1338,17 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 state.discard = [...this.discardZone.cards].reverse().map((card) => card.internalName);
             }
 
-            // Deck (top few cards only to avoid excessive data)
-            state.deck = this.deckZone.cards.slice(0, 5).map((card) => card.internalName);
+            // Deck, top card first. A short deck is listed completely, otherwise only a few cards from the top and the bottom
+            // to avoid excessive data, since effects mostly look at either end
+            const deckCardNames = this.deckZone.cards.map((card) => card.internalName);
+            if (deckCardNames.length > 2 * Player.CapturedDeckCardsPerEnd) {
+                state.deck = {
+                    topCards: deckCardNames.slice(0, Player.CapturedDeckCardsPerEnd),
+                    bottomCards: deckCardNames.slice(-Player.CapturedDeckCardsPerEnd)
+                };
+            } else {
+                state.deck = deckCardNames;
+            }
 
             // Resources
             if (this.resourceZone.count > 0) {

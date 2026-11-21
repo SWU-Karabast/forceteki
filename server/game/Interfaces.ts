@@ -463,6 +463,17 @@ export interface ISerializedCapturedCardState {
     owner: ISafeSerializedType<string>;
 }
 
+/**
+ * A deck given by its two ends, for a deck too long to list completely. The cards between the two ends are left out.
+ */
+export interface ISerializedDeckEndsState {
+    /** Cards at the top of the deck, top card first */
+    topCards: ISafeSerializedArrayType<string>;
+
+    /** Cards at the bottom of the deck, below `topCards`, with the last card at the very bottom */
+    bottomCards?: ISafeSerializedArrayType<string>;
+}
+
 /* Serialized state retrieving interfaces */
 export interface ISerializedCardState {
     card: string;
@@ -484,7 +495,8 @@ export interface IPlayerSerializedState {
     base?: ISafeSerializedType<string | ISerializedCardState>;
     leader?: ISafeSerializedType<string | ISerializedCardState>;
     secondLeader?: ISafeSerializedType<string | ISerializedCardState>;
-    deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
+    /** Either the cards of the deck (top card first), a number of filler cards, or the deck's top and bottom cards */
+    deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string> | ISerializedDeckEndsState;
     hasInitiative?: ISafeSerializedType<boolean>;
     hasForceToken?: ISafeSerializedType<boolean>;
     credits?: ISafeSerializedType<number>;
