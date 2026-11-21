@@ -4,7 +4,6 @@ import { AnonymousUser } from '../../../../../server/utils/user/User';
 import { UserFactory } from '../../../../../server/utils/user/UserFactory';
 import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
-import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
 import { TestClient } from '../../../../helpers/server/TestClient';
 
 /**
@@ -40,27 +39,13 @@ describe('Anonymous user identity', function () {
             expect(user.hasClientProvidedId()).toBeFalse();
         });
 
-        it('keeps the dev test users\' ids and names in development', function () {
-            const user = userFactory.createAnonymousUserFromQuery({ user: JSON.stringify({ id: 'exe66', username: 'Order66' }) });
-
-            expect(user.getId()).toBe('exe66');
-            expect(user.getUsername()).toBe('Order66');
-            expect(user.isDevTestUser()).toBeTrue();
+        it('rejects legacy dev identities without authentication', function () {
+            expect(() => userFactory.createAnonymousUserFromQuery({ user: JSON.stringify({ id: 'exe66', username: 'Order66' }) }))
+                .toThrowError(/not a valid UUID/);
         });
     });
 
     serverIntegration(function (contextRef) {
-        async function createLobbyAsync(harness: ServerTestHarness, owner: TestClient, isPrivate = false) {
-            const created = await owner.createLobbyAsync({
-                lobbyName: harness.uniqueLobbyName(),
-                deck: harness.decklists.validDecklist(),
-                isPrivate,
-                ...premierBestOfOne,
-            });
-            expect(created.status).withContext(JSON.stringify(created.body))
-                .toBe(200);
-        }
-
         describe('anonymous username', function () {
             it('shows the derived name in the lobby even if the client sent a different one', async function () {
                 const { harness } = contextRef;
@@ -100,7 +85,7 @@ describe('Anonymous user identity', function () {
             it('cannot take over their lobby seat', async function () {
                 const { harness } = contextRef;
                 const owner = harness.createClient({ authenticated: true });
-                await createLobbyAsync(harness, owner);
+                await harness.openLobbyAsync(owner, { connect: false });
                 await owner.connectAsync();
 
                 const impostor = TestClient.create(harness, owner.id);
@@ -114,7 +99,7 @@ describe('Anonymous user identity', function () {
             it('cannot claim a seat registered over HTTP before the owner\'s socket connects', async function () {
                 const { harness } = contextRef;
                 const owner = harness.createClient();
-                await createLobbyAsync(harness, owner, true);
+                await harness.openLobbyAsync(owner, { isPrivate: true, connect: false });
                 await owner.connectAsync();
                 const lobbyId = owner.lobbyId;
 
@@ -172,7 +157,7 @@ describe('Anonymous user identity', function () {
             it('is not locked out by an anonymous join-lobby call', async function () {
                 const { harness } = contextRef;
                 const host = harness.createClient();
-                await createLobbyAsync(harness, host);
+                await harness.openLobbyAsync(host, { connect: false });
                 await host.connectAsync();
                 const hostLobbyId = host.lobbyId;
 
@@ -180,7 +165,7 @@ describe('Anonymous user identity', function () {
                 const impostor = TestClient.create(harness, victim.id);
                 expect((await impostor.joinLobbyAsync(hostLobbyId)).status).toBe(200);
 
-                await createLobbyAsync(harness, victim);
+                await harness.openLobbyAsync(victim, { connect: false });
                 await victim.connectAsync();
 
                 expect(victim.connectionErrors).toEqual([]);
@@ -203,7 +188,7 @@ describe('Anonymous user identity', function () {
             it('evicts an impostor already seated under their id', async function () {
                 const { harness } = contextRef;
                 const host = harness.createClient();
-                await createLobbyAsync(harness, host, true);
+                await harness.openLobbyAsync(host, { isPrivate: true, connect: false });
                 await host.connectAsync();
                 const hostLobbyId = host.lobbyId;
 
@@ -212,7 +197,7 @@ describe('Anonymous user identity', function () {
                 await impostor.connectAsync({ lobbyId: hostLobbyId });
                 expect(host.lobbyState.users.map((u: any) => u.id)).toContain(victim.id);
 
-                await createLobbyAsync(harness, victim);
+                await harness.openLobbyAsync(victim, { connect: false });
 
                 expect(impostor.socket.connected).toBeFalse();
                 expect(host.lobbyState.users.map((u: any) => u.id)).toEqual([host.id]);
@@ -222,7 +207,7 @@ describe('Anonymous user identity', function () {
         it('does not let an anonymous caller change a logged-in player\'s deck', async function () {
             const { harness } = contextRef;
             const owner = harness.createClient({ authenticated: true });
-            await createLobbyAsync(harness, owner, true);
+            await harness.openLobbyAsync(owner, { isPrivate: true, connect: false });
             await owner.connectAsync();
             const lobbyId = owner.lobbyId;
 
@@ -234,7 +219,7 @@ describe('Anonymous user identity', function () {
         it('still lets an anonymous user reconnect to their own seat', async function () {
             const { harness } = contextRef;
             const owner = harness.createClient();
-            await createLobbyAsync(harness, owner);
+            await harness.openLobbyAsync(owner, { connect: false });
             await owner.connectAsync();
 
             await owner.connectAsync();

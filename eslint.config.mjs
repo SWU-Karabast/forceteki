@@ -278,5 +278,14 @@ export default tseslint.config(
             'forceteki/state-ref-array-requires-istatearray': 'error',
             'forceteki/no-event-generated-tokens': 'error',
         }
+    },
+    {
+        // The production image installs only `dependencies` (npm ci --omit=dev), so anything server code imports
+        // at runtime must be declared there, not only as a devDependency or reached through another package's
+        // dependencies. Type-only imports are exempt because they're erased at compile time.
+        files: ["server/**/*.ts", "server/**/*.js"],
+        rules: {
+            "import-x/no-extraneous-dependencies": ["error", { devDependencies: false }],
+        }
     }
 );

@@ -99,6 +99,8 @@ import type { IReadySystemProperties } from './ReadySystem';
 import { ReadySystem } from './ReadySystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
+import type { IReplaceAttackerProperties } from './ReplaceAttackerSystem';
+import { ReplaceAttackerSystem } from './ReplaceAttackerSystem';
 import type { IRescueProperties } from './RescueSystem';
 import { RescueSystem } from './RescueSystem';
 import type { IResourceCardProperties } from './ResourceCardSystem';
@@ -536,6 +538,12 @@ export function disclose<TContext extends AbilityContext = AbilityContext>(prope
     return new DiscloseAspectsSystem<TContext>(propertyFactory);
 }
 
+/**
+ * Makes the target unit the attacker of the attack in progress
+ */
+export function replaceAttacker<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReplaceAttackerProperties, TContext> = {}) {
+    return new ReplaceAttackerSystem<TContext>(propertyFactory);
+}
 export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
     return new RevealSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(

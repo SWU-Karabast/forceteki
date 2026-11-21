@@ -7,6 +7,8 @@ import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId() {
         return {
             id: '4828998087',

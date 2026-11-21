@@ -139,5 +139,30 @@ describe('Theed Security', function() {
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should give an experience token if the opponent controls a Fortify upgrade attached to their base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['theed-security']
+                },
+                player2: {
+                    base: {
+                        card: 'echo-base',
+                        upgrades: ['alliance-shield-generator']
+                    }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theedSecurity);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.theedSecurity]);
+            context.player1.clickCard(context.theedSecurity);
+
+            expect(context.theedSecurity).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

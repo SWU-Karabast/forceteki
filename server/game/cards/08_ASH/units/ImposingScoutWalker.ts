@@ -22,7 +22,7 @@ export default class ImposingScoutWalker extends NonLeaderUnitCard {
             },
             ifYouDo: {
                 title: 'Give 3 Advantage tokens to this unit',
-                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.resolvedEvents[0].willDefeat,
+                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.resolvedEvents[0]?.willDefeat,
                 immediateEffect: AbilityHelper.immediateEffects.giveAdvantage({ amount: 3 })
             }
         });

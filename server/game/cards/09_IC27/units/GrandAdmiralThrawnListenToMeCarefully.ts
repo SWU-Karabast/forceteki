@@ -7,7 +7,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class GrandAdmiralThrawnListenToMeCarefully extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-admiral-thrawn#listen-to-me-carefully-id',
+            id: '3850988543',
             internalName: 'grand-admiral-thrawn#listen-to-me-carefully',
         };
     }

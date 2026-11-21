@@ -99,6 +99,10 @@ describe('Timely Reinforcements', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.timelyReinforcements);
+
+                // creating 0 tokens is detected as having no effect, so the play must be confirmed
+                context.player1.clickPrompt('Play anyway');
+
                 const xwingTokens = context.player1.findCardsByName('xwing');
                 expect(xwingTokens.length).toBe(0);
                 const opponentXwingTokens = context.player2.findCardsByName('xwing');

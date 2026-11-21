@@ -26,7 +26,7 @@ export interface IServerIntegrationContextRef {
  * ```
  *
  * `options` is what each harness in the block is built with, e.g. `{ config: { allowAnonymousChat: true } }`
- * or `{ database: true }`; see {@link IServerTestOptions}.
+ * or `{ database: false }`; see {@link IServerTestOptions}.
  */
 export function serverIntegration(
     definitions: (contextRef: IServerIntegrationContextRef) => void,

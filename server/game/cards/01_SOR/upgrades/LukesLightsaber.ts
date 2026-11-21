@@ -17,10 +17,10 @@ export default class LukesLightsaber extends UpgradeCard {
         registrar.addWhenPlayedAbility({
             title: 'Heal all damage from Luke and give him a shield token',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
-                target: context.source.parentCard,
-                condition: context.source.parentCard?.title === 'Luke Skywalker',
+                target: context.source.isAttached() ? context.source.parentCard : null,
+                condition: context.source.isAttached() && context.source.parentCard.title === 'Luke Skywalker',
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.heal({ amount: context.source.parentUnit.damage }),
+                    AbilityHelper.immediateEffects.heal({ amount: context.source.isAttached() ? context.source.parentUnit.damage : 0 }),
                     AbilityHelper.immediateEffects.giveShield()]),
             }))
         });

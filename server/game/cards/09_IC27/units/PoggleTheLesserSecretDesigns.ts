@@ -8,7 +8,7 @@ import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSys
 export default class PoggleTheLesserSecretDesigns extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'poggle-the-lesser#secret-designs-id',
+            id: '7809131432',
             internalName: 'poggle-the-lesser#secret-designs',
         };
     }

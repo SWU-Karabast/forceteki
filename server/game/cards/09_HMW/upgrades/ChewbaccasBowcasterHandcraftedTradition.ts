@@ -17,7 +17,7 @@ export default class ChewbaccasBowcasterHandcraftedTradition extends UpgradeCard
         registrar.addWhenPlayedAbility({
             title: 'Resource the top card of your deck',
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentCard?.title === 'Chewbacca',
+                condition: (context) => context.source.isAttached() && context.source.parentCard.title === 'Chewbacca',
                 onTrue: abilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))
             })
         });

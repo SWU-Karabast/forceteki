@@ -230,7 +230,7 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                 });
             });
 
-            it('prompts the playing player for the additional cost, drawn from their own discard pile', function() {
+            it('prompts the playing player for the additional cost, drawn from their own discard pile, and copies the "When Played" ability', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.tearThisShipApart);
@@ -250,6 +250,15 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                 expect(context.veteranFleetOfficer).toBeInZone('deck', context.player1);
                 expect(context.repair).toBeInZone('discard', context.player1);
                 expect(context.atst).toBeInZone('discard', context.player1);
+
+                // the pre-enter-play ability resolves for player1 even though player2 still controls Vernestra
+                // while she sits in player2's resource row, so the bottomed unit's "When Played" ability fires
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 uses Vernestra Rwoh to copy the "When Played" abilities of Veteran Fleet Officer for this phase',
+                    'player1 uses Tear This Ship Apart to move the top card of player2\'s deck to their resources',
+                    'player1 uses Vernestra Rwoh to create an X-Wing token'
+                ]);
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
 
                 // Vernestra enters play under player1's control (the one who played her for free)
                 expect(context.vernestraRwoh).toBeInZone('groundArena', context.player1);

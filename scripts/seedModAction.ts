@@ -13,7 +13,7 @@
 
 import { v4 as uuid } from 'uuid';
 import '../server/env';
-import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
+import { getDynamoDbServiceAsync, type IItemKey } from '../server/services/DynamoDBService';
 import { ModActionType, isTrackedModAction } from '../server/services/DynamoDBInterfaces';
 
 const MY_USER_ID: string | null = ''; // guid of the target user to apply the action to
@@ -45,9 +45,11 @@ async function run() {
     const modActionId = uuid();
     const now = new Date();
 
-    const item: Record<string, any> = {
+    const key: IItemKey = {
         pk: `USER#${MY_USER_ID}`,
         sk: `MODACTION#${modActionId}`,
+    };
+    const item: Record<string, any> = {
         id: modActionId,
         playerId: MY_USER_ID,
         actionType: ACTION_TYPE,
@@ -69,10 +71,10 @@ async function run() {
 
     // Active action types get indexed via the sparse GSI
     if (isTrackedModAction(ACTION_TYPE)) {
-        item.GSI_PK = 'ACTIVE_MODACTION';
+        key.GSI_PK = 'ACTIVE_MODACTION';
     }
 
-    await service.putItemAsync(item);
+    await service.putItemAsync(key, item);
 
     console.log(`Seeded ${ACTION_TYPE} action for user: ${MY_USER_ID}`);
     if (EXPIRES_IN_MINUTES && ACTION_TYPE === 'Mute') {
@@ -80,7 +82,7 @@ async function run() {
     } else if (ACTION_TYPE === 'Mute') {
         console.log(`Pending mute (${DURATION_DAYS} days), will activate on user login`);
     }
-    console.log(JSON.stringify(item, null, 2));
+    console.log(JSON.stringify({ ...key, ...item }, null, 2));
 }
 
 run().catch((err) => {

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 
+import type { ITokenIdentity } from '../../../server/utils/user/UserFactory';
 import { testNextAuthSecret } from './ServerTestEnv';
 
 /**
@@ -14,22 +15,13 @@ export const secureSessionCookieName = '__Secure-next-auth.session-token';
  *
  * They are the ones the FE's NextAuth `jwt` callback puts in the token (`forceteki-client`,
  * `src/app/_utils/auth.ts`): at sign-in it sets `id` (`<provider>_<providerId>`), `provider`,
- * `providerId`, `name` and `email`; the FE adds `userId` - the game node's own id for the account -
- * only after its first `/api/get-user`, via `session.update`. The server's two ways of
- * authenticating need different subsets, which is why a token must be built for the path under test:
- *
- * - a **synced** request (the FE sends `authenticated: true` and its own copy of the profile) needs `userId`;
- * - the **DB path** (the FE's first `/api/get-user` of a session) needs `id`, `provider`, `providerId`,
- *   `email` and `name`, and finds or creates the account from them.
+ * `providerId`, `name`, `email` and `emailVerified`. The game node identifies the account from `provider` and
+ * `providerId` alone; any other claim, such as a `userId`, plays no part in who a request is.
  *
  * If the FE changes what it puts in the token, this is what needs to change with it.
  */
-export interface ISessionClaims {
+export interface ISessionClaims extends Partial<ITokenIdentity> {
     id?: string;
-    provider?: string;
-    providerId?: string;
-    name?: string;
-    email?: string;
     picture?: string;
     sub?: string;
     userId?: string;
@@ -45,6 +37,9 @@ export interface ISignInIdentity {
     provider: string;
     providerId: string;
     email: string;
+
+    /** Whether the provider has verified the email. Defaults to true, as for nearly every real sign-in. */
+    emailVerified?: boolean;
 }
 
 export interface IMintOptions {
@@ -68,7 +63,7 @@ export function mintSessionToken(claims: ISessionClaims, options: IMintOptions =
     });
 }
 
-/** The claims in a freshly signed-in session, before the FE has called `/api/get-user`: no `userId` yet. */
+/** The claims in a signed-in session. */
 export function signInClaims(identity: ISignInIdentity): ISessionClaims {
     return {
         id: `${identity.provider}_${identity.providerId}`,
@@ -77,12 +72,8 @@ export function signInClaims(identity: ISignInIdentity): ISessionClaims {
         sub: identity.providerId,
         name: identity.username,
         email: identity.email,
+        emailVerified: identity.emailVerified ?? true,
     };
-}
-
-/** {@link signInClaims} plus the `userId` the FE adds after its first sync, i.e. every later session. */
-export function syncedClaims(identity: ISignInIdentity, userId: string): ISessionClaims {
-    return { ...signInClaims(identity), userId };
 }
 
 /** A `Cookie` header carrying `token` as the NextAuth session. */

@@ -1,33 +1,50 @@
-import type { DeleteCommandOutput, PutCommandOutput, UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
+import type { DeleteCommandOutput, PutCommandOutput, TransactWriteCommandOutput, UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuid } from 'uuid';
 
 import type {
+    IDeckDataEntity,
     IModActionEntity,
+    IPlayerReportCleanupCursor,
+    IPlayerReportEntity,
+    IPlayerReportIndexEntity,
+    IPlayerReportLogEntity,
     IServerRoleUsersListsEntity,
     IServerSettingsEntity,
     IUsernameChangeEntity,
     IUserPreferences,
     IUserProfileDataEntity
 } from '../../../server/services/DynamoDBInterfaces';
-import { isTrackedModAction } from '../../../server/services/DynamoDBInterfaces';
-import { ModActionEntitySchema, UsernameChangeEntitySchema } from '../../../server/services/DynamoDBInterfaceSchemas';
-import type { DynamoDBService } from '../../../server/services/DynamoDBService';
+import { isTrackedModAction, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
+import {
+    IDeckDataEntitySchema,
+    ModActionEntitySchema,
+    PlayerReportEntitySchema,
+    PlayerReportIndexEntitySchema,
+    PlayerReportLogEntitySchema,
+    UsernameChangeEntitySchema
+} from '../../../server/services/DynamoDBInterfaceSchemas';
+import type { DynamoDBService, PlayerReportTransitionResult } from '../../../server/services/DynamoDBService';
+import { OPEN_PLAYER_REPORT_GSI_KEY } from '../../../server/services/DynamoDBService';
 import type { ICosmeticEntity } from '../../../server/utils/cosmetics/CosmeticsInterfaces';
 import { getDefaultPreferences } from '../../../server/utils/user/UserFactory';
 
 /**
  * The slice of {@link DynamoDBService} this fake supplies. Typing the class against exactly these
  * methods means a signature change in the real service fails the build here, instead of the fake
- * silently drifting from it. Deck methods are deliberately absent until the deck suite needs them.
+ * silently drifting from it. Of the deck methods, only those that saving and renaming a deck use are here so far.
  */
 type FakedMethod =
   | 'getUserProfileAsync' | 'getAllUserProfilesAsync' | 'saveUserProfileAsync' | 'updateUserProfileAsync'
+  | 'saveDeckAsync' | 'getDeckByLinkAsync' | 'updateDeckNameAsync'
   | 'removeUserProfileAttributeAsync' | 'recordNewLoginAsync' | 'saveUserSettingsAsync' | 'updateUserPreferencesAsync'
   | 'saveOAuthLinkAsync' | 'getUserIdByOAuthAsync' | 'saveEmailLinkAsync' | 'getUserIdByEmailAsync'
   | 'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'getUserIdsByUsernameAsync'
   | 'saveUsernameChangeAsync' | 'getUsernameChangesAsync'
   | 'saveModActionAsync' | 'getModActionsAsync' | 'activateMuteAsync' | 'cancelModActionAsync'
   | 'removeModActionFromActiveIndexAsync'
+  | 'savePlayerReportAsync' | 'getPlayerReportMetaAsync' | 'getPlayerReportAsync' | 'getPlayerReportsByGsiKeyAsync'
+  | 'getPlayerReportIndexAsync' | 'transitionPlayerReportAsync' | 'queryAttributesByGsiAsync'
+  | 'deletePlayerReportLogsAsync' | 'deletePlayerReportAsync' | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync'
   | 'getServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
   | 'getCosmeticsAsync' | 'saveCosmeticAsync' | 'initializeCosmeticsAsync' | 'deleteCosmeticAsync' | 'clearAllCosmeticsAsync';
 
@@ -57,6 +74,12 @@ export interface ISeededAccount {
 }
 
 export type ServerRoleLists = Partial<Record<keyof IServerRoleUsersListsEntity, string[]>>;
+
+/** A stored player report record, plus the GSI bucket it is filed under (open, or closed in a month). */
+export interface IStoredPlayerReport {
+    report: IPlayerReportEntity;
+    gsiKey: string;
+}
 
 /** A stored mod action, plus whether it is still in the sparse `ACTIVE_MODACTION` index. */
 export type StoredModAction = IModActionEntity & { active: boolean };
@@ -104,6 +127,10 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - `getUserProfileAsync` returns `undefined` for an unknown user, while `updateUserProfileAsync` and
  *   `recordNewLoginAsync` upsert, as DynamoDB's `UpdateItem` does;
  * - only tracked, uncancelled mod actions are in the active index, and cancelling is conditional;
+ * - a player report's status transition only applies while it is still in the expected status, and the
+ *   retention deletes only while it is still closed and was closed before the cutoff, as their conditions do;
+ * - a deck is stored as its schema parses it, so only a deck's own fields are kept;
+ * - creating a cosmetic with an id that is already taken fails with a `ConditionalCheckFailedException`;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
  * - everything read back through a zod schema in production goes through the same schema here.
  *
@@ -126,15 +153,45 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public readonly usernameLinks = new Set<string>();
     public readonly usernameChanges: IUsernameChangeEntity[] = [];
     public readonly modActions = new Map<string, StoredModAction>();
+
+    /** `<user id>#<deck id>` -> deck. */
+    public readonly decks = new Map<string, IDeckDataEntity>();
     public readonly cosmetics = new Map<string, ICosmeticEntity>();
+
+    /** Report id -> record and its GSI bucket. */
+    public readonly playerReports = new Map<string, IStoredPlayerReport>();
+
+    /** Report id -> its chat and game logs. */
+    public readonly playerReportLogs = new Map<string, IPlayerReportLogEntity[]>();
+
+    /** Report id -> the day bucket its logs expire in; absent while the ticket is open. */
+    public readonly playerReportLogExpiry = new Map<string, string>();
+    public playerReportIndex: IPlayerReportIndexEntity[] = [];
+    public playerReportCleanupCursor: IPlayerReportCleanupCursor | null = null;
+
+    /** Every GSI bucket the retention cleanup asked for, in order. */
+    public readonly queriedGsiKeys: string[] = [];
+
+    /** The next this many transitions fail as if another write changed the report first. */
+    public failNextPlayerReportTransitions = 0;
+
+    /** While set, storing a new player report throws, as a throttled or unavailable table would. */
+    public failPlayerReportSaves = false;
+
+    /** Reports whose retention deletes throw, as a throttled request would. */
+    public readonly failingPlayerReportCleanupIds = new Set<string>();
+
+    /** GSI buckets whose cleanup query throws. */
+    public readonly failingGsiKeys = new Set<string>();
     public roleUsers: IServerRoleUsersListsEntity = { admins: [], developers: [], moderators: [], contributors: [] };
     public serverSettings?: IServerSettingsEntity;
 
     private readonly recordedLogins: string[] = [];
 
     /**
-     * @param currentDate Supplies the time recorded in `lastLogin` and `cancelledAt`. The harness passes
-     * its virtual clock so a spec controls these timestamps.
+     * @param currentDate Supplies the time recorded in `lastLogin` and `cancelledAt`, and the "now" a
+     * seeded profile's `createdAt` and `usernameLastUpdatedAt` are dated back from. The harness passes
+     * its virtual clock, which the server's account code also reads, so a spec controls these timestamps.
      */
     public constructor(private readonly currentDate: () => Date = () => new Date()) {}
 
@@ -164,7 +221,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public addProfile(profile: Partial<IUserProfileDataEntity> & { id: string; username: string }): void {
         this.profiles.set(profile.id, {
             lastLogin: '2026-01-01T00:00:00.000Z',
-            createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+            createdAt: new Date(this.currentDate().getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
             showWelcomeMessage: false,
             ...profile,
         });
@@ -185,7 +242,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         this.addProfile({
             id: account.id,
             username: account.username,
-            usernameLastUpdatedAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+            usernameLastUpdatedAt: new Date(this.currentDate().getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
             preferences: getDefaultPreferences(),
             needsUsernameChange: false,
             moderation: undefined,
@@ -217,6 +274,11 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     public actionsOfType(actionType: IModActionEntity['actionType']): StoredModAction[] {
         return [...this.modActions.values()].filter((item) => item.actionType === actionType);
+    }
+
+    /** The decks stored for a user, in the order they were saved. */
+    public decksOf(userId: string): IDeckDataEntity[] {
+        return [...this.decks.values()].filter((deck) => deck.userId === userId);
     }
 
     /** User ids that have had a login recorded through `recordNewLoginAsync`, in order. */
@@ -272,6 +334,31 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         const merged = deepMerge(deepMerge({ ...getDefaultPreferences() }, { ...stored }), { ...preferences });
         this.profiles.set(userId, { ...this.profiles.get(userId), preferences: merged as IUserPreferences });
         return Promise.resolve();
+    }
+
+    // ---- Decks ----
+
+    public saveDeckAsync(deckData: IDeckDataEntity): Promise<PutCommandOutput> {
+        // as in production, the deck is stored as the schema parses it, and an invalid one is refused
+        const deck = IDeckDataEntitySchema.parse(deckData);
+        this.decks.set(`${deck.userId}#${deck.id}`, { ...deck, stats: deck.stats || { wins: 0, losses: 0, draws: 0 } });
+        return Promise.resolve(putResult);
+    }
+
+    public getDeckByLinkAsync(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
+        const deck = this.decksOf(userId).find((candidate) => candidate.deck.deckLinkID === deckLinkID);
+        return Promise.resolve(deck ? IDeckDataEntitySchema.parse(deck) : undefined);
+    }
+
+    public updateDeckNameAsync(userId: string, deckId: string, newName: string): Promise<UpdateCommandOutput> {
+        // setting a nested attribute of an item that does not exist fails in DynamoDB rather than creating it
+        const deck = this.decks.get(`${userId}#${deckId}`);
+        if (!deck) {
+            return Promise.reject(Object.assign(new Error('The document path provided in the update expression is invalid for update'), { name: 'ValidationException' }));
+        }
+
+        deck.deck = { ...deck.deck, name: newName };
+        return Promise.resolve(updateResult);
     }
 
     // ---- Identity links ----
@@ -372,6 +459,137 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         return Promise.resolve(updateResult);
     }
 
+    // ---- Player reports ----
+
+    public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], indexEntries: IPlayerReportIndexEntity[]): Promise<TransactWriteCommandOutput> {
+        if (this.failPlayerReportSaves) {
+            return Promise.reject(new Error('player report table unavailable'));
+        }
+        if (this.playerReports.has(report.id)) {
+            return Promise.reject(Object.assign(new Error('Transaction cancelled'), { name: 'TransactionCanceledException' }));
+        }
+        this.playerReports.set(report.id, { report: structuredClone(report), gsiKey: OPEN_PLAYER_REPORT_GSI_KEY });
+        this.playerReportLogs.set(report.id, structuredClone(logs));
+        this.playerReportIndex.push(...structuredClone(indexEntries));
+        return Promise.resolve({ $metadata: {} });
+    }
+
+    public getPlayerReportMetaAsync(reportId: string): Promise<IPlayerReportEntity | null> {
+        const stored = this.playerReports.get(reportId);
+        return Promise.resolve(stored ? PlayerReportEntitySchema.parse(structuredClone(stored.report)) : null);
+    }
+
+    public async getPlayerReportAsync(reportId: string): Promise<{ report: IPlayerReportEntity; logs: IPlayerReportLogEntity[] } | null> {
+        const report = await this.getPlayerReportMetaAsync(reportId);
+        if (!report) {
+            return null;
+        }
+        const logs = (this.playerReportLogs.get(reportId) ?? []).map((log) => PlayerReportLogEntitySchema.parse(structuredClone(log)));
+        return { report, logs };
+    }
+
+    public getPlayerReportsByGsiKeyAsync(gsiKey: string): Promise<IPlayerReportEntity[]> {
+        return Promise.resolve([...this.playerReports.values()]
+            .filter((stored) => stored.gsiKey === gsiKey)
+            .map((stored) => PlayerReportEntitySchema.parse(structuredClone(stored.report))));
+    }
+
+    public getPlayerReportIndexAsync(playerId: string): Promise<IPlayerReportIndexEntity[]> {
+        return Promise.resolve(this.playerReportIndex
+            .filter((entry) => entry.playerId === playerId)
+            .map((entry) => PlayerReportIndexEntitySchema.parse(structuredClone(entry))));
+    }
+
+    public transitionPlayerReportAsync(
+        report: IPlayerReportEntity,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string,
+        logExpiryGsiKey: string | null,
+    ): Promise<PlayerReportTransitionResult> {
+        const stored = this.playerReports.get(report.id);
+        if (this.failNextPlayerReportTransitions > 0 || !stored || stored.report.status !== expectedStatus) {
+            this.failNextPlayerReportTransitions = Math.max(0, this.failNextPlayerReportTransitions - 1);
+            return Promise.resolve({ success: false, reason: 'condition' });
+        }
+
+        const written = Object.fromEntries(
+            Object.entries({ ...stored.report, ...set }).filter(([key, value]) => value !== undefined && !remove.includes(key as keyof IPlayerReportEntity))
+        ) as unknown as IPlayerReportEntity;
+        this.playerReports.set(report.id, { report: written, gsiKey });
+
+        for (const entry of this.playerReportIndex.filter((indexEntry) => indexEntry.reportId === report.id)) {
+            entry.status = written.status;
+            entry.outcome = written.outcome;
+        }
+        if (this.playerReportLogs.has(report.id)) {
+            if (logExpiryGsiKey) {
+                this.playerReportLogExpiry.set(report.id, logExpiryGsiKey);
+            } else {
+                this.playerReportLogExpiry.delete(report.id);
+            }
+        }
+        return Promise.resolve({ success: true, report: structuredClone(written) });
+    }
+
+    /** Serves the report buckets: log expiry days by `reportId`, open and closed-month buckets by report fields. */
+    public queryAttributesByGsiAsync(gsiKey: string, attributes: string[]): Promise<Record<string, any>[]> {
+        this.queriedGsiKeys.push(gsiKey);
+        if (this.failingGsiKeys.has(gsiKey)) {
+            return Promise.reject(new Error(`throttled on ${gsiKey}`));
+        }
+
+        const pick = (item: Record<string, unknown>) => Object.fromEntries(attributes.map((attribute) => [attribute, item[attribute]]));
+        const logs = [...this.playerReportLogExpiry.entries()]
+            .filter(([, key]) => key === gsiKey)
+            .map(([reportId]) => pick({ reportId }));
+        const reports = [...this.playerReports.values()]
+            .filter((stored) => stored.gsiKey === gsiKey)
+            .map((stored) => pick({ ...stored.report }));
+        return Promise.resolve([...logs, ...reports]);
+    }
+
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string, closedBefore: string): Promise<boolean> {
+        if (!this.isPlayerReportDueForCleanup(reportId, closedBefore)) {
+            return Promise.resolve(false);
+        }
+        this.playerReportLogs.delete(reportId);
+        this.playerReportLogExpiry.delete(reportId);
+        const stored = this.playerReports.get(reportId);
+        stored.report = { ...stored.report, logsDeletedAt: deletedAt };
+        return Promise.resolve(true);
+    }
+
+    public deletePlayerReportAsync(reportId: string, _reporterId: string, _reportedPlayerId: string, closedBefore: string): Promise<boolean> {
+        if (!this.isPlayerReportDueForCleanup(reportId, closedBefore)) {
+            return Promise.resolve(false);
+        }
+        this.playerReports.delete(reportId);
+        this.playerReportLogs.delete(reportId);
+        this.playerReportLogExpiry.delete(reportId);
+        this.playerReportIndex = this.playerReportIndex.filter((entry) => entry.reportId !== reportId);
+        return Promise.resolve(true);
+    }
+
+    public getPlayerReportCleanupCursorAsync(): Promise<IPlayerReportCleanupCursor | null> {
+        return Promise.resolve(this.playerReportCleanupCursor ? { ...this.playerReportCleanupCursor } : null);
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: IPlayerReportCleanupCursor): Promise<PutCommandOutput> {
+        this.playerReportCleanupCursor = { ...cursor };
+        return Promise.resolve(putResult);
+    }
+
+    /** The condition of both retention deletes: still closed, and closed before the cutoff */
+    private isPlayerReportDueForCleanup(reportId: string, closedBefore: string): boolean {
+        if (this.failingPlayerReportCleanupIds.has(reportId)) {
+            throw new Error(`throttled on ${reportId}`);
+        }
+        const report = this.playerReports.get(reportId)?.report;
+        return report?.status === PlayerReportStatus.Closed && report.closedAt < closedBefore;
+    }
+
     // ---- Server roles and settings ----
 
     public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
@@ -411,8 +629,14 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         return Promise.resolve([...this.cosmetics.values()].map(({ id, title, type, path }) => ({ id, title, type, path })));
     }
 
-    public saveCosmeticAsync(cosmeticData: ICosmeticEntity): Promise<PutCommandOutput> {
-        this.cosmetics.set(cosmeticData.id, { ...cosmeticData });
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity, options: { createOnly?: boolean } = {}): Promise<PutCommandOutput> {
+        if (options.createOnly && this.cosmetics.has(cosmeticData.id)) {
+            return Promise.reject(conditionalCheckFailed());
+        }
+
+        // like the real service, only the cosmetic's own fields are stored
+        const { id, title, type, path } = cosmeticData;
+        this.cosmetics.set(id, { id, title, type, path });
         return Promise.resolve(putResult);
     }
 

@@ -6,6 +6,8 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 
 export default class HelgaitDookuWasAVisionary extends NonLeaderUnitCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId() {
         return {
             id: '9419144933',

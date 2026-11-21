@@ -95,7 +95,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     private _promptState: PlayerPromptState;
     public opponent: Player;
     private playableZones: PlayableZone[];
-    private _lastActionId = 0;
 
     public activeForPreviousPrompt = false;
     private _rejectedOpponentUndoRequests = 0;
@@ -176,10 +175,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.optionSettings.autoSingleTarget;
     }
 
-    public get lastActionId() {
-        return this._lastActionId;
-    }
-
     public get promptState() {
         return this._promptState;
     }
@@ -219,7 +214,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 this,
                 this.game,
                 () => this.game.onGameTimerExpired(this),
-                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
                 () => this.game.sendTimerUpdatedGameStateToPlayers(),
                 (status) => this.onMainTimerWarning(status)
             );
@@ -257,19 +251,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return true;
     }
 
-    public incrementActionId() {
-        this._lastActionId++;
-    }
-
     public setLobbyUser(lobbyUser: User): void {
         Contract.assertIsNullLike(this._lobbyUser, 'lobbyUser is already set');
         this._lobbyUser = lobbyUser;
-    }
-
-    private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
-        return this.game.getCurrentOpenPrompt().uuid === promptUuid &&
-          playerActionId === this._lastActionId &&
-          !this.game.isEnded;
     }
 
     /**
@@ -305,6 +289,10 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.getInPlayCards(filter).length > 0;
     }
 
+    public hasSomeInPlayUpgrade(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        return this.getInPlayCards({ ...filter, type: WildcardCardType.Upgrade }).length > 0;
+    }
+
     public getLeaderCards(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
         const leaderFilter = [WildcardCardType.LeaderUnit, CardType.Leader, CardType.LeaderUpgrade];
         return this.getInPlayCards({ ...filter, type: leaderFilter });
@@ -321,20 +309,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.game.allArenas.getUnitCards({ ...filter, controller: this });
     }
 
-    public getArenaUpgrades(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
-        return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
-    }
-
     public hasSomeArenaCard(filter: IAllArenasForPlayerCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
     }
 
     public hasSomeArenaUnit(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
-    }
-
-    public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
-        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
     public get hasTheForce(): boolean {
@@ -678,8 +658,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     public getStartingHandSize() {
         let startingHandSize = 6;
-        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
-            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+        if (this.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
                 startingHandSize += value.amount;
             });
         }

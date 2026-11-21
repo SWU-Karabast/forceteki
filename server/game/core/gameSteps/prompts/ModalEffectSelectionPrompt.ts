@@ -2,7 +2,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { PromptType } from '../PromptInterfaces';
-import type { IModalEffectSelectionButton, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import type { IButton, IModalEffectSelectionButton, ITriggerWindowSourceCard, ModalEffectUnavailableReason } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /** A single selectable option in the {@link ModalEffectSelectionPrompt}. */
@@ -13,6 +13,12 @@ export interface IModalEffectSelectionChoice {
     hasLegalEffects: () => boolean;
 
     handler: () => void;
+
+    /**
+     * Set when the option is shown but can't be chosen, e.g. "Already chosen". The option is rendered as a disabled
+     * button with this text as its badge, and clicks on it are rejected.
+     */
+    unavailableReason?: ModalEffectUnavailableReason;
 }
 
 export interface IModalEffectSelectionPromptProperties {
@@ -30,6 +36,9 @@ export interface IModalEffectSelectionPromptProperties {
     sourceCard: ITriggerWindowSourceCard;
 
     choices: IModalEffectSelectionChoice[];
+
+    /** Present when the player may choose none of the options; rendered as a plain button after the options. */
+    passButtonText?: string;
 }
 
 /**
@@ -55,25 +64,54 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
         return {
             menuTitle: this.properties.title,
             promptDescription: this.properties.description,
-            buttons: this.properties.choices.map((choice, index) => this.makeChoiceButton(choice, index)),
+            buttons: this.makeButtons(),
             promptTitle: this.properties.sourceCard.name,
             promptUuid: this.uuid,
             promptType: PromptType.ModalEffectSelection
         };
     }
 
+    private makeButtons(): IButton[] {
+        const buttons: IButton[] = this.properties.choices.map((choice, index) => this.makeChoiceButton(choice, index));
+
+        if (this.properties.passButtonText) {
+            buttons.push({ text: this.properties.passButtonText, arg: 'pass' });
+        }
+
+        return buttons;
+    }
+
     private makeChoiceButton(choice: IModalEffectSelectionChoice, index: number): IModalEffectSelectionButton {
         const hasLegalEffects = choice.hasLegalEffects();
-
-        // Keep the "(No effect)" prefix for tests so it's easy to tell which options have no effect
-        const noEffectPrefix = process.env.NODE_ENV === 'test' && !hasLegalEffects ? '(No effect) ' : '';
-
-        return {
-            text: `${noEffectPrefix}${choice.title}`,
+        const button: IModalEffectSelectionButton = {
+            text: `${this.getTestPrefix(choice, hasLegalEffects)}${choice.title}`,
             arg: index.toString(),
             sourceCard: this.properties.sourceCard,
             hasLegalEffects
         };
+
+        if (choice.unavailableReason) {
+            button.disabled = true;
+            button.unavailableReason = choice.unavailableReason;
+        }
+
+        return button;
+    }
+
+    /**
+     * In tests, prefix the option with its badge, e.g. "(No effect) " or "(Already chosen) ", so specs can tell the
+     * options apart by text. An unavailable option shows only its unavailable reason, as the client does.
+     */
+    private getTestPrefix(choice: IModalEffectSelectionChoice, hasLegalEffects: boolean): string {
+        if (process.env.NODE_ENV !== 'test') {
+            return '';
+        }
+
+        if (choice.unavailableReason) {
+            return `(${choice.unavailableReason}) `;
+        }
+
+        return hasLegalEffects ? '' : '(No effect) ';
     }
 
     public override waitingPrompt(): IPlayerPromptStateProperties {
@@ -84,8 +122,13 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
     }
 
     public override menuCommand(_player: Player, arg: string): boolean {
+        if (arg === 'pass' && this.properties.passButtonText) {
+            this.complete();
+            return true;
+        }
+
         const choice = this.properties.choices[Number(arg)];
-        if (!choice) {
+        if (!choice || choice.unavailableReason) {
             return false;
         }
 

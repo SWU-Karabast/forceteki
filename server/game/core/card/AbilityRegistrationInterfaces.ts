@@ -1,4 +1,4 @@
-import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IPlayCostProperties, IPlayRestrictionAbilityProps, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
+import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationAbilityProps, IDamageModificationEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IPlayCostProperties, IPlayRestrictionAbilityProps, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
 import type { BaseCard } from './BaseCard';
 import type { ICardWithUpgrades } from './CardInterfaces';
 import type { IAdjustCostAbilityProps, IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './baseClasses/PlayableOrDeployableCard';
@@ -54,8 +54,13 @@ export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard> &
       addGainTriggeredAbilityTargetingAttached<TTarget extends ICardWithUpgrades>(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, TTarget>): void;
       addReplacementEffectAbilityTargetingAttached(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addReplacementEffectAbilityTargetingAttached<TTarget extends ICardWithUpgrades>(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>): void;
-      addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;
-      addDamageModificationAbilityTargetingAttached<TTarget extends ICardWithUpgrades>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>): void;
+
+      /** "If attached unit would be dealt damage, ...": an ability of the upgrade, so it still applies if the attached card loses all abilities */
+      addDamageModificationAbilityTargetingAttached(properties: Omit<IDamageModificationAbilityProps<UpgradeCard>, 'shouldCardHaveDamageModification'>): void;
+
+      /** "Attached unit gains: '...'": the attached card gains the ability, so it loses it if it loses all abilities */
+      addGainDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;
+      addGainDamageModificationAbilityTargetingAttached<TTarget extends ICardWithUpgrades>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>): void;
       addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainActionAbilityTargetingAttached<TTarget extends ICardWithUpgrades>(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, TTarget>): void;
       addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>): void;
