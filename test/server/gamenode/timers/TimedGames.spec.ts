@@ -86,31 +86,29 @@ describe('Timed games', function () {
                     expect(active.gameChat.map((entry) => entry.text).some((text) => text.includes('main time remaining'))).toBeFalse();
                 });
 
-                it('picks the timers back up when an undo takes the game back before its end', async function () {
+                it('keeps the game over and both timers stopped when an undo request is allowed after the requesting player has left', async function () {
                     const { harness } = contextRef;
                     const { owner, guest } = await harness.startLiveGameAsync();
                     const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
-                    await harness.clock.advanceAsync(turnTimeMs + 10_000);
-                    await active.concedeAsync();
 
+                    // spend the active player's free undo, so that their next one is a request
+                    await active.clickButtonAsync('Pass');
                     await active.quickUndoAsync();
+                    await active.clickButtonAsync('Pass');
+                    await active.quickUndoAsync();
+                    expect(waiting.prompt.buttons.map((button) => button.text)).toContain('Allow');
+
+                    await active.manualDisconnectAsync();
+                    expect(waiting.gameState.winners).toEqual([waiting.username]);
+
                     await waiting.clickButtonAsync('Allow');
 
-                    expect(waiting.gameState.winners).withContext('the game goes on')
-                        .toEqual([]);
-                    expect(waiting.timerOf(active))
-                        .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 110, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
-                    expect(waiting.timerOf(waiting))
-                        .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 120, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
-                    await harness.clock.advanceToDeadlineAsync(turnTimeMs, {
-                        justBefore: () => {
-                            expect(waiting.timerOf(active).turnTimeRemainingSeconds).toBe(20);
-                        },
-                        atDeadline: () => {
-                            expect(waiting.timerOf(active)).withContext('the main time spent before the end stays spent')
-                                .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 110, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
-                        },
-                    });
+                    expect(waiting.gameState.winners).withContext('the game stays over')
+                        .toEqual([waiting.username]);
+                    expect(waiting.timerOf(active)).toEqual(notTimed);
+                    expect(waiting.timerOf(waiting)).toEqual(notTimed);
+                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
+                    expect(waiting.gameChat.map((entry) => entry.text).some((text) => text.includes('main time remaining'))).toBeFalse();
                 });
 
                 it('times a player with no main time left out again once their turn time is gone, after an undo past the end', async function () {
