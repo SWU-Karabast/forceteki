@@ -3,6 +3,7 @@ import { Contract } from '../game/core/utils/Contract';
 import type { ModActionType } from '../services/DynamoDBInterfaces';
 import { ModActionDefinitions } from '../services/DynamoDBInterfaces';
 import { validateUsernameFormat } from './user/UsernameRules';
+import type { IPlayerNoticeStore } from './PlayerNoticeService';
 
 export interface IModActionSubmission {
     playerId: string;
@@ -15,6 +16,9 @@ export interface IModActionSubmission {
 
     /** The player report ticket the action was issued from, if any. */
     reportId?: string;
+
+    /** Sent to the player as a notice along with the action, for action types that allow one. */
+    playerMessage?: string;
 }
 
 export interface IModActionSubmissionResult {
@@ -58,6 +62,7 @@ interface IRenameOutcome {
 /**
  * Entry point for every moderator action submission. Plain actions go straight to the mod action store;
  * ChangeUsername actions run here because they span the mod action store and the user profile.
+ * A message to the player (Warning) is sent as a notice once the action is recorded.
  *
  * Ordering for those: validate everything first (no writes), then save the audit record, then rename.
  * The audit record comes first so a moderator's change is never unattributed.
@@ -65,10 +70,12 @@ interface IRenameOutcome {
 export class ModActionSubmissionHandler {
     private readonly modActions: IModActionStore;
     private readonly renamer: IModeratorRenamer;
+    private readonly notices: IPlayerNoticeStore;
 
-    public constructor(modActions: IModActionStore, renamer: IModeratorRenamer) {
+    public constructor(modActions: IModActionStore, renamer: IModeratorRenamer, notices: IPlayerNoticeStore) {
         this.modActions = modActions;
         this.renamer = renamer;
+        this.notices = notices;
     }
 
     public async submitAsync(request: IModActionSubmission): Promise<IModActionSubmissionResult> {
@@ -79,7 +86,35 @@ export class ModActionSubmissionHandler {
         }
 
         const result = await this.submitAuditRecordAsync(request);
+        if (result.success && request.playerMessage !== undefined) {
+            return await this.sendPlayerNoticeAsync(request, result.modActionId, result.message);
+        }
         return { success: result.success, message: result.message };
+    }
+
+    /** Sends the action's message to the player; the action is already recorded, so a failure here does not undo it */
+    private async sendPlayerNoticeAsync(request: IModActionSubmission, modActionId: string, recordedMessage: string): Promise<IModActionSubmissionResult> {
+        const kind = ModActionDefinitions[request.actionType].playerNoticeKind;
+        Contract.assertNotNullLike(kind, `${request.actionType} actions cannot carry a message to the player`);
+
+        try {
+            await this.notices.sendNoticeAsync({
+                playerId: request.playerId,
+                kind,
+                message: request.playerMessage,
+                sender: { id: request.moderatorId, username: request.moderatorUsername },
+                relatedModActionId: modActionId,
+            });
+        } catch (error) {
+            logger.error(`ModActionSubmissionHandler: ${request.actionType} ${modActionId} was recorded, but its message to ${request.playerId} could not be saved`, {
+                error: { message: error.message, stack: error.stack },
+                userId: request.playerId,
+                moderatorId: request.moderatorId,
+            });
+            return { success: false, message: `The ${request.actionType} was recorded, but the message to the player could not be sent (see server logs).` };
+        }
+
+        return { success: true, message: `${recordedMessage} The player will see the message the next time they sign in.` };
     }
 
     private async submitChangeUsernameAsync(request: IModActionSubmission): Promise<IModActionSubmissionResult> {

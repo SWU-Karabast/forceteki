@@ -4,6 +4,7 @@ import { ModActionType, ModerationFieldState, UsernameChangeSource } from '../..
 import { ModActionService } from '../../../server/utils/ModActionService';
 import type { IModActionSubmission } from '../../../server/utils/ModActionSubmissionHandler';
 import { ModActionSubmissionHandler } from '../../../server/utils/ModActionSubmissionHandler';
+import { PlayerNoticeService } from '../../../server/utils/PlayerNoticeService';
 import { UserFactory } from '../../../server/utils/user/UserFactory';
 import { migrateMustRequestUsernameChangeAsync } from '../../../scripts/migration/usernameBlockMigration';
 import { FakeDynamoDbService } from '../../helpers/server/FakeDynamoDbService';
@@ -35,7 +36,7 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
         spyOn(DynamoDBServiceModule, 'getDynamoDbServiceAsync').and.resolveTo(db.asService());
         modActions = await ModActionService.createAsync();
         userFactory = new UserFactory();
-        handler = new ModActionSubmissionHandler(modActions, userFactory);
+        handler = new ModActionSubmissionHandler(modActions, userFactory, new PlayerNoticeService());
     });
 
     afterEach(function() {

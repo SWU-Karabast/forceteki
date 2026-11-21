@@ -203,6 +203,42 @@ export interface IServerSettingsEntity {
     updatedAt?: string;
 }
 
+/** What a notice to a player is about; the client picks its heading from this. */
+export enum PlayerNoticeKind {
+    BugReportFixed = 'BugReportFixed',
+    BugReportNotABug = 'BugReportNotABug',
+    BugReportNeedsInfo = 'BugReportNeedsInfo',
+
+    /** Only created by a Warning mod action, so every warning a player sees has an entry in their mod history */
+    Warning = 'Warning',
+    General = 'General',
+}
+
+/**
+ * A message from the Karabast team, shown to the player once, the next time they sign in, until they acknowledge it.
+ * Stored under the player's partition as `USER#<playerId> / NOTICE#<id>`.
+ */
+export interface IPlayerNoticeEntity {
+    id: string;
+    playerId: string;
+    kind: PlayerNoticeKind;
+    message: string;
+
+    /** The moderator who sent it; shown in the mod tools, never to the player */
+    senderId: string;
+    senderUsername: string;
+    createdAt: string;
+
+    /** When the player acknowledged it; unset while it is still to be shown */
+    seenAt?: string;
+
+    /** The Warning mod action the notice was sent with, if any */
+    relatedModActionId?: string;
+}
+
+/** The part of a notice the player is sent. */
+export type IPlayerNoticeView = Pick<IPlayerNoticeEntity, 'id' | 'kind' | 'message' | 'createdAt'>;
+
 export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',
@@ -233,6 +269,11 @@ export interface IModActionDefinition {
     /** The moderator supplies the username to apply to the account. */
     requiresNewUsername: boolean;
 
+    /**
+     * Set when the moderator may also write a message to the player, which is sent as a notice of this kind.
+     * The action's own `note` stays internal either way.
+     */
+    playerNoticeKind?: PlayerNoticeKind;
 }
 
 export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
@@ -251,6 +292,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: false,
         cancellable: false,
         requiresNewUsername: false,
+        playerNoticeKind: PlayerNoticeKind.Warning,
     },
     [ModActionType.Rename]: {
         tracked: true,

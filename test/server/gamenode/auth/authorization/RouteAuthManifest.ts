@@ -95,6 +95,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
     { method: 'post', path: '/api/set-moderation-seen', access: 'signed-in', unauthenticated: refused },
     { method: 'post', path: '/api/set-username-changes-blocked-seen', access: 'signed-in', unauthenticated: refused },
     { method: 'post', path: '/api/set-reporting-disabled-seen', access: 'signed-in', unauthenticated: refused },
+    { method: 'post', path: '/api/notices/:noticeId/seen', access: 'signed-in', unauthenticated: refused },
 
     // checked in the handler against INTRASERVICE_SECRET, after `authMiddleware` has identified the forwarded session (see ServiceCredentials.spec.ts)
     { method: 'post', path: '/api/link-swustats', access: 'shared-secret', unauthenticated: refused },
@@ -139,6 +140,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
 
     { method: 'post', path: '/api/mod/find-user', access: 'moderator', unauthenticated: refused },
     { method: 'post', path: '/api/mod/submit-action', access: 'moderator', unauthenticated: refused },
+    { method: 'post', path: '/api/mod/send-notice', access: 'moderator', unauthenticated: refused },
     { method: 'post', path: '/api/mod/cancel-action', access: 'moderator', unauthenticated: refused },
 
     // player report tickets

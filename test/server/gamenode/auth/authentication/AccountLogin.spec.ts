@@ -10,6 +10,7 @@ const userKeysTheFrontEndReads = [
     'id',
     'moderation',
     'needsUsernameChange',
+    'notices',
     'preferences',
     'reportingDisabled',
     'showWelcomeMessage',
