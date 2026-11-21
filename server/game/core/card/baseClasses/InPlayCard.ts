@@ -89,7 +89,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     @statePrimitive()
-    private accessor _mostRecentInPlayId: number = -1
+    private accessor _mostRecentInPlayId = -1
 
     /**
      * The identity counter for this card, readable in any zone. See {@link Card.identityId}.
@@ -540,6 +540,13 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         const numUniqueDuplicatesInPlay = uniqueDuplicatesInPlay.length;
 
         if (numUniqueDuplicatesInPlay === 0) {
+            return;
+        }
+
+        // if this copy is already being defeated (e.g. it was dealt lethal damage as it entered play), it doesn't
+        // count toward the uniqueness rule, so run the check from one of the copies that is staying in play instead
+        if (this.pendingDefeat) {
+            uniqueDuplicatesInPlay[0].checkUnique();
             return;
         }
 

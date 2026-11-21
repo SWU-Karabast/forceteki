@@ -4,6 +4,7 @@ import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { Attack } from './attack/Attack';
 import type { EventWindow } from './event/EventWindow';
+import type { Game } from './Game';
 import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
@@ -15,8 +16,6 @@ export interface GameConfiguration {
     id: string;
     owner: string;
     players: IUser[];
-    spectators?: IUser[];
-    allowSpectators: boolean;
 
     /** The deck/rules format being played. Defaults to Premier when omitted. */
     format?: SwuGameFormat;
@@ -32,14 +31,13 @@ export interface GameConfiguration {
 
     /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
     scheduler: IScheduler;
-    userTimeoutDisconnect: (userId: string) => void;
     undoMode?: UndoMode;
 
     /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
     preselectedFirstPlayerId?: string;
 
     /** Callback to forfeit a Bo3 set when a player times out during a game. Only provided for Bo3 matches. */
-    onBo3SetForfeit?: (losingPlayerId: string) => void;
+    onBo3SetForfeit?: (losingPlayerId: string, game: Game) => void;
 }
 
 export interface ICurrentlyResolving {
@@ -57,7 +55,6 @@ export function validateGameConfiguration(configuration: GameConfiguration): voi
     Contract.assertNotNullLike(configuration.cardDataGetter);
     Contract.assertNotNullLike(configuration.pushUpdate);
     Contract.assertNotNullLike(configuration.scheduler);
-    Contract.assertNotNullLike(configuration.userTimeoutDisconnect);
 }
 
 export interface GameOptions {

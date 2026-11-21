@@ -12,6 +12,7 @@ import { Contract } from '../../game/core/utils/Contract';
 import { ScoreType } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import type { ISaveDeckRequest } from '../../services/DynamoDBInterfaceSchemas';
 import * as Util from '../../Util';
 
 interface IBaseMapping {
@@ -26,6 +27,7 @@ interface IBaseMapping {
  */
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
+    private readonly inMemoryDecks = new Map<string, Map<string, IDeckDataEntity>>();
     private readonly baseMapping30: IBaseMapping = {
         aggression: '30hp-aggression-base',
         command: '30hp-command-base',
@@ -65,7 +67,9 @@ export class DeckService {
         try {
             const dbService = await this.dbServicePromise;
             // Get all decks for the user
-            const decks = await dbService.getUserDecksAsync(userId);
+            const decks = dbService
+                ? await dbService.getUserDecksAsync(userId)
+                : Array.from(this.inMemoryDecks.get(userId)?.values() ?? []);
             if (!decks || decks.length === 0) {
                 return [];
             }
@@ -96,7 +100,9 @@ export class DeckService {
         try {
             // First get existing decks
             const dbService = await this.dbServicePromise;
-            const existingDecks = await dbService.getUserDecksAsync(userId) || [];
+            const existingDecks = dbService
+                ? await dbService.getUserDecksAsync(userId) || []
+                : Array.from(this.inMemoryDecks.get(userId)?.values() ?? []);
 
             // if we create a map it will be faster to lookup.
             const existingDeckLinks = new Map();
@@ -132,7 +138,11 @@ export class DeckService {
                         statsByMatchup: []
                     }
                 };
-                await dbService.saveDeckAsync(deckData);
+                if (dbService) {
+                    await dbService.saveDeckAsync(deckData);
+                } else {
+                    this.getInMemoryUserDecks(userId).set(deckData.id, deckData);
+                }
             }
         } catch (error) {
             logger.error(`Error syncing decks ${unsyncedDecks} for user ${userId}: `, { error: { message: error.message, stack: error.stack } });
@@ -142,40 +152,59 @@ export class DeckService {
 
 
     /**
-     * Save a deck to the database, checking first if a deck with the same link already exists
-     * @param deckData The deck data to save
+     * Saves a new deck for `user`, unless they already have one with the same link id, in which case that one is
+     * returned. The stored deck is built here from the request's fields: it gets a new id, belongs to `user`, is not
+     * a favourite and starts with no results.
+     * @param deck the deck's fields, as validated by `SaveDeckRequestSchema`
      * @param user submitting user
-     * @returns Promise that resolves to the saved deck ID
+     * @returns the saved (or already existing) deck
      */
-    public async saveDeckAsync(deckData: IDeckDataEntity, user: User): Promise<IDeckDataEntity> {
+    public async saveDeckAsync(deck: ISaveDeckRequest, user: User): Promise<IDeckDataEntity> {
         try {
-            // Make sure the deck has the required fields
-            if (!deckData.userId || !deckData.deck) {
-                throw new Error('Deck data is missing required fields "userId" and "deck"');
-            }
             const dbService = await this.dbServicePromise;
             // Check if a deck with this link id already exists for this user
-            const deckLinkID = deckData.deck.deckLinkID;
-            let updatedDeckData = null;
-            const existingDeck = await dbService.getDeckByLinkAsync(user.getId(), deckLinkID);
+            const deckLinkID = deck.deckLinkID;
+            const existingDeck = dbService
+                ? await dbService.getDeckByLinkAsync(user.getId(), deckLinkID)
+                : Array.from(this.getInMemoryUserDecks(user.getId()).values()).find((candidate) =>
+                    !!deckLinkID && candidate.deck.deckLinkID === deckLinkID
+                );
             if (deckLinkID && existingDeck) {
                 // If the deck already exists don't do anything with it.
                 logger.info(`DeckService: Deck with link ${deckLinkID} already exists for user ${user.getUsername()}.`);
                 return existingDeck;
             }
+
             // If no existing deck with the same link, or no link provided, create a new deck
-            const newDeckId = uuid();
-            deckData.deck.favourite = false;
-            updatedDeckData = {
-                ...deckData,
+            const newDeck: IDeckDataEntity = {
+                id: uuid(),
                 userId: user.getId(),
-                id: newDeckId,
+                deck: {
+                    leader: { id: deck.leader.id },
+                    ...(deck.secondLeader ? { secondLeader: { id: deck.secondLeader.id } } : {}),
+                    base: { id: deck.base.id },
+                    name: deck.name,
+                    favourite: false,
+                    deckLink: deck.deckLink,
+                    deckLinkID: deck.deckLinkID,
+                    ...(deck.source !== undefined ? { source: deck.source } : {}),
+                },
+                stats: {
+                    wins: 0,
+                    losses: 0,
+                    draws: 0,
+                    statsByMatchup: []
+                }
             };
 
             // Save the new deck to the database
-            await dbService.saveDeckAsync(updatedDeckData);
-            logger.info(`DeckService: Saved new deck ${updatedDeckData.id} for user ${deckData.userId}`);
-            return updatedDeckData;
+            if (dbService) {
+                await dbService.saveDeckAsync(newDeck);
+            } else {
+                this.getInMemoryUserDecks(user.getId()).set(newDeck.id, newDeck);
+            }
+            logger.info(`DeckService: Saved new deck ${newDeck.id} for user ${newDeck.userId}`);
+            return newDeck;
         } catch (error) {
             logger.error(`Error saving deck for user ${user.getId()}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
@@ -223,7 +252,11 @@ export class DeckService {
             deck.deck.favourite = isFavorite;
 
             // Save the updated deck
-            await dbService.saveDeckAsync(deck);
+            if (dbService) {
+                await dbService.saveDeckAsync(deck);
+            } else {
+                this.getInMemoryUserDecks(userId).set(deck.id, deck);
+            }
 
             logger.info(`DeckService: Successfully ${isFavorite ? 'added' : 'removed'} deck ${deckId} as favorite for user ${userId}`);
             return deck;
@@ -247,14 +280,20 @@ export class DeckService {
                 `DeckService: Invalid parameters for delete operation. userId: ${userId}, deckId: ${deckId}`
             );
             // Verify the deck belongs to this user before deleting
-            const deck = await dbService.getDeckAsync(userId, deckId);
+            const deck = dbService
+                ? await dbService.getDeckAsync(userId, deckId)
+                : this.getInMemoryUserDecks(userId).get(deckId);
             if (!deck) {
                 logger.error(`DeckService: Deck ${deckId} not found for user ${userId}`);
                 return null;
             }
 
             // Delete the deck
-            await dbService.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+            if (dbService) {
+                await dbService.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+            } else {
+                this.getInMemoryUserDecks(userId).delete(deckId);
+            }
             logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
             return deck.deck.deckLinkID;
         } catch (error) {
@@ -318,7 +357,12 @@ export class DeckService {
 
             this.updateScore(result, opponentStat);
             // Save updated stats
-            await dbService.updateDeckStatsAsync(userId, deck.id, stats);
+            if (dbService) {
+                await dbService.updateDeckStatsAsync(userId, deck.id, stats);
+            } else {
+                deck.stats = stats;
+                this.getInMemoryUserDecks(userId).set(deck.id, deck);
+            }
             logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${JSON.stringify(stats)}`);
             return stats;
         } catch (error) {
@@ -337,7 +381,9 @@ export class DeckService {
         try {
             const dbService = await this.dbServicePromise;
             // First, try direct lookup by ID
-            let deck = await dbService.getDeckAsync(userId, deckId);
+            let deck = dbService
+                ? await dbService.getDeckAsync(userId, deckId)
+                : this.getInMemoryUserDecks(userId).get(deckId);
 
             // If found directly, return it
             if (deck) {
@@ -348,7 +394,9 @@ export class DeckService {
             logger.info(`DeckService: Deck with ID ${deckId} not found directly for user ${userId}, trying to find by deckID/deckLinkID properties`);
 
             // Get all decks for the user
-            const allDecks = await dbService.getUserDecksAsync(userId);
+            const allDecks = dbService
+                ? await dbService.getUserDecksAsync(userId)
+                : Array.from(this.getInMemoryUserDecks(userId).values());
 
             if (allDecks && allDecks.length > 0) {
                 // Find a deck where deck.deck.deckLID or deck.deck.deckID matches the provided deckId
@@ -381,13 +429,31 @@ export class DeckService {
     public async updateDeckNameAsync(userId: string, deckId: string, newName: string): Promise<boolean> {
         try {
             const dbService = await this.dbServicePromise;
-            await dbService.updateDeckNameAsync(userId, deckId, newName);
+            if (dbService) {
+                await dbService.updateDeckNameAsync(userId, deckId, newName);
+            } else {
+                const deck = await this.getDeckByIdAsync(userId, deckId);
+                if (!deck) {
+                    return false;
+                }
+                deck.deck.name = newName;
+                this.getInMemoryUserDecks(userId).set(deck.id, deck);
+            }
             logger.info(`DeckService: Updated name for deck ${deckId}, user ${userId}, new name: ${newName}`);
             return true;
         } catch (error) {
             logger.error(`Error updating deck name for deck ${deckId}, user ${userId}:`, { error: { message: error.message, stack: error.stack }, userId });
             throw error;
         }
+    }
+
+    private getInMemoryUserDecks(userId: string): Map<string, IDeckDataEntity> {
+        let decks = this.inMemoryDecks.get(userId);
+        if (!decks) {
+            decks = new Map<string, IDeckDataEntity>();
+            this.inMemoryDecks.set(userId, decks);
+        }
+        return decks;
     }
 
 

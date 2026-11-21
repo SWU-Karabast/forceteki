@@ -11,11 +11,12 @@ import { unitsEnterPlayReady } from './UnitsEnterPlayReady';
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { PhaseName, RelativePlayerFilter, Trait, StandardTriggeredAbilityType } from '../core/Constants';
-import { KeywordName, RelativePlayer } from '../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { IAbilityPropsWithType, IDamageModificationAbilityProps, IDamageModificationEffectAbilityPropsWithType, IOngoingCardEffectGenerator, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
+import { DamageModificationEffect } from '../core/ongoingEffect/effectImpl/DamageModificationEffect';
 import type { ICostAdjusterProperties, IDefeatResourcesCostAdjusterProperties, IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { ProvidedAspects } from '../core/ongoingEffect/effectImpl/ProvidedAspects';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
@@ -24,8 +25,10 @@ import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
+import type { IRegroupReadyLimitProperties } from '../core/ongoingEffect/effectImpl/RegroupReadyLimit';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
+import type { IPlayPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayPermission';
+import { PlayPermissionHelpers } from '../core/ongoingEffect/effectImpl/PlayPermission';
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
@@ -86,8 +89,14 @@ export = {
 
     canAttackBaseWhileUsingAmbush: () => OngoingEffectBuilder.card.static(EffectName.CanAttackBaseWhileUsingAmbush),
     canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
-    canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
-        .static(EffectName.CanPlayFromDiscard, properties),
+    canPlayFromDiscard: (properties: Omit<IPlayPermissionProperties, 'zone'>): IOngoingCardEffectGenerator =>
+        (game, source, effectProps) => {
+            const permissionSource = effectProps.ability?.isCardAbility() && effectProps.ability.gainAbilitySource
+                ? effectProps.ability.gainAbilitySource
+                : source;
+            const permission = PlayPermissionHelpers.create({ ...properties, zone: ZoneName.Discard }, permissionSource, effectProps.createdByPlayer);
+            return OngoingEffectBuilder.card.static(EffectName.GainPlayPermission, permission)(game, source, effectProps);
+        },
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
@@ -103,6 +112,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     cannotAttack: () => OngoingEffectBuilder.card.static(EffectName.CannotAttack),
     dealsCombatDamageFirst: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageFirst),
+    dealsCombatDamageLast: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageLast),
     cardCannot,
     playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
@@ -131,8 +141,19 @@ export = {
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+
+    /** The target gains a damage modification ability ("it gains: ..."), which it loses if it loses all abilities */
     gainDamageModificationAbility: (properties: IDamageModificationEffectAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+
+    /**
+     * For use in lasting effects only: modifies damage dealt to (or by) the target, as in "for this phase, prevent all
+     * damage that would be dealt to that unit". The target does not gain an ability, so
+     * this still applies if it loses all abilities. To add a damage modification ability,
+     * use the `gainDamageModificationAbility` effect instead.
+     */
+    modifyDamage: (properties: IDamageModificationAbilityProps) =>
+        OngoingEffectBuilder.card.static(EffectName.ModifyDamage, (game) => new DamageModificationEffect(game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
         switch (typeof keywordOrKeywordProperties) {
@@ -153,6 +174,7 @@ export = {
     loseAllAbilitiesExceptFromSource: () => OngoingEffectBuilder.card.static(EffectName.BlankExceptFromSourceCard),
     loseKeyword: (keywordOrKeywords: KeywordName | KeywordName[]) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keywordOrKeywords),
     loseAllKeywords: () => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, Object.values(KeywordName)),
+    loseAllWhenDefeatedAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseWhenDefeatedAbilities),
     overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
@@ -188,7 +210,7 @@ export = {
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
-    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
+    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyStartingHandSize, modifier),
     modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
         switch (typeof modifier) {
             case 'function':
@@ -311,6 +333,11 @@ export = {
     canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
     doubleDeckSearchCount: () => OngoingEffectBuilder.player.static(EffectName.DoubleDeckSearchCount, true),
     drawAdditionalCardsInRegroup: (amount: number) => OngoingEffectBuilder.player.static(EffectName.DrawAdditionalCardsInRegroup, amount),
+    limitReadyDuringRegroup: (properties: IRegroupReadyLimitProperties) =>
+        OngoingEffectBuilder.player.static(
+            EffectName.LimitReadyDuringRegroup,
+            (game) => new OngoingEffectValueWrapper(game, properties, 'limit readying during the regroup phase')
+        ),
     // playerCannot: (properties) =>
     //     OngoingEffectBuilder.player.static(
     //         EffectName.AbilityRestrictions,

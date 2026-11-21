@@ -225,6 +225,41 @@ describe('Fives, I Have Proof!', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(8); // Smuggle cost: 6 + 2 = 8
             });
 
+            it('should copy a When Played ability when played from an opponent\'s resources by Tear This Ship Apart', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jabba-the-hutt#crime-boss',
+                        base: 'echo-base',
+                        hand: ['tear-this-ship-apart'],
+                    },
+                    player2: {
+                        spaceArena: ['patrolling-vwing'],
+                        resources: ['fives#i-have-proof', 'wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tearThisShipApart);
+                context.player1.clickCardInDisplayCardPrompt(context.fives);
+
+                // the pre-enter-play ability resolves for player1 even though player2 still controls Fives in their resource row
+                expect(context.player1).toHavePrompt(copyPrompt);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.patrollingVwing]);
+                context.player1.clickCard(context.patrollingVwing);
+
+                expect(context.fives).toBeInZone('groundArena', context.player1);
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 uses Fives to copy the "When Played" abilities of Patrolling V-Wing',
+                    'player1 uses Tear This Ship Apart to move the top card of player2\'s deck to their resources',
+                    'player1 uses Fives to draw a card',
+                ]);
+                expect(context.player1.handSize).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should copy a "When played as a unit" ability but not piloting abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

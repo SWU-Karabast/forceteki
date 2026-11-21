@@ -27,6 +27,10 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.theMandalorian.damage).toBe(0);
                 expect(context.wampa.damage).toBe(3); // combat damage still dealt back to attacker
+
+                // Wampa has Overwhelm, but fully preventing the damage means the defender is not
+                // defeated — no excess damage is dealt to the base (CR 7.5.7.C)
+                expect(context.p1Base.damage).toBe(0);
             });
 
             it('should defeat a shield on The Mandalorian to prevent combat damage to another friendly unit (unit is attacker)', async function () {

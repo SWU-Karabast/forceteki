@@ -19,13 +19,13 @@ describe('Choose Your Path', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chooseYourPath);
-                expect(context.player1).toHavePrompt('Select one');
+                expect(context.player1).toHavePrompt('Choose an effect for Choose Your Path');
                 expect(context.player1).toHaveExactPromptButtons([
-                    'If you control a Force unit, heal 5 damage from your base',
-                    'If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it'
+                    'Heal 5 damage from your base',
+                    'Create a Mandalorian token and give an Advantage token to it'
                 ]);
 
-                context.player1.clickPrompt('If you control a Force unit, heal 5 damage from your base');
+                context.player1.clickPrompt('Heal 5 damage from your base');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p1Base.damage).toBe(5);
@@ -35,13 +35,13 @@ describe('Choose Your Path', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chooseYourPath);
-                expect(context.player1).toHavePrompt('Select one');
+                expect(context.player1).toHavePrompt('Choose an effect for Choose Your Path');
                 expect(context.player1).toHaveExactPromptButtons([
-                    'If you control a Force unit, heal 5 damage from your base',
-                    'If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it'
+                    'Heal 5 damage from your base',
+                    'Create a Mandalorian token and give an Advantage token to it'
                 ]);
 
-                context.player1.clickPrompt('If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it');
+                context.player1.clickPrompt('Create a Mandalorian token and give an Advantage token to it');
 
                 expect(context.player2).toBeActivePlayer();
 
@@ -68,13 +68,13 @@ describe('Choose Your Path', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.chooseYourPath);
-            expect(context.player1).toHavePrompt('Select one');
+            expect(context.player1).toHavePrompt('Choose an effect for Choose Your Path');
             expect(context.player1).toHaveExactPromptButtons([
-                'If you control a Force unit, heal 5 damage from your base',
-                'If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it'
+                '(No effect) Heal 5 damage from your base',
+                'Create a Mandalorian token and give an Advantage token to it'
             ]);
 
-            context.player1.clickPrompt('If you control a Force unit, heal 5 damage from your base');
+            context.player1.clickPrompt('(No effect) Heal 5 damage from your base');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(5);
@@ -98,13 +98,13 @@ describe('Choose Your Path', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.chooseYourPath);
-            expect(context.player1).toHavePrompt('Select one');
+            expect(context.player1).toHavePrompt('Choose an effect for Choose Your Path');
             expect(context.player1).toHaveExactPromptButtons([
-                'If you control a Force unit, heal 5 damage from your base',
-                'If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it'
+                'Heal 5 damage from your base',
+                '(No effect) Create a Mandalorian token and give an Advantage token to it'
             ]);
 
-            context.player1.clickPrompt('If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it');
+            context.player1.clickPrompt('(No effect) Create a Mandalorian token and give an Advantage token to it');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(10);
@@ -156,7 +156,7 @@ describe('Choose Your Path', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chooseYourPath);
-                context.player1.clickPrompt('If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it');
+                context.player1.clickPrompt('Create a Mandalorian token and give an Advantage token to it');
                 expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Mandalorian tokens instead');
                 context.player1.clickPrompt('Trigger');
 

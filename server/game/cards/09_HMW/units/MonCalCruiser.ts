@@ -16,15 +16,16 @@ export default class MonCalCruiser extends NonLeaderUnitCard {
             title: 'Attack with a unit. It gets +2/+0 for this attack or Look at an opponent\'s hand. You may discard a card from it. If you do, they draw a card.',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects(() => ({
                 amountOfChoices: 1,
-                activePromptTitle: 'Choose one',
                 choices: {
                     ['Attack with a unit']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Attack with a unit. It gets +2/+0 for this attack',
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.attack({
                             attackerLastingEffects: { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) }
                         })
                     }),
                     ['Look at an opponent\'s hand']: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                        activePromptTitle: 'You may discard a card from your opponent\'s hand. If you do, they draw a card',
                         target: context.player.opponent.hand,
                         immediateEffect: AbilityHelper.immediateEffects.sequential([
                             AbilityHelper.immediateEffects.discardSpecificCard(),

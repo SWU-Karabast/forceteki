@@ -127,6 +127,13 @@ export abstract class UiPrompt extends BaseStep {
     }
 
     public startPlayerActionTimer(player: Player) {
+        // A game that has ended is not timed, even if the players play on. Whether it has ended is part of the game state,
+        // so if a rollback takes it back before its end, the next prompt starts the timers again. A game the lobby is done
+        // with is not timed either, even if it is still setting up.
+        if (this.game.isEnded || this.game.isDisposed) {
+            return;
+        }
+
         // if the player's timer was paused instead of stop, do a resume so we don't reset their timer
         if (player.actionTimer.isPaused) {
             player.actionTimer.resume();

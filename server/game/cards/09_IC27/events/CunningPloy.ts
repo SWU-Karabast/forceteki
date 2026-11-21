@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CunningPloy extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'cunning-ploy-id',
+            id: '0897893150',
             internalName: 'cunning-ploy',
         };
     }

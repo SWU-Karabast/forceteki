@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 export default class LandoCalrissianCheckThisOut extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'lando-calrissian#check-this-out-id',
+            id: '9103994720',
             internalName: 'lando-calrissian#check-this-out',
         };
     }
