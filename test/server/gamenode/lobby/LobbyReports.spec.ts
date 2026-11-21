@@ -1,4 +1,9 @@
+import type FormData from 'form-data';
+import * as Util from '../../../../server/Util';
+import { Game } from '../../../../server/game/core/Game';
+import { GameErrorSeverity } from '../../../../server/game/core/Constants';
 import { PlayerReportType, ReportType } from '../../../../server/game/Interfaces';
+import { getDiscordEmbedFields, getDiscordFileParts } from '../../../helpers/server/DiscordWebhookForms';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import type { ITestClientOptions, TestClient } from '../../../helpers/server/TestClient';
@@ -148,5 +153,131 @@ describe('Lobby reports', function () {
             expect(harness.db.playerReports.size).toBe(0);
             expect(playerReportResults(reporter)).toEqual([false]);
         });
+    });
+
+    /**
+     * Whether a report tells the dev team about errors that happened earlier in the game. These run the real
+     * Discord dispatcher and read what it would post to the webhooks.
+     */
+    describe('earlier game errors', function () {
+        const bugReportWebhookUrl = 'https://discord.invalid/bug-report-webhook';
+        const serverErrorWebhookUrl = 'https://discord.invalid/server-error-webhook';
+
+        serverIntegration(function (contextRef) {
+            let posted: { url: string; form: FormData }[];
+
+            beforeEach(function () {
+                posted = [];
+                spyOn(Util, 'httpPostFormData').and.callFake((url: string, form: FormData) => {
+                    posted.push({ url, form });
+                    return Promise.resolve('');
+                });
+            });
+
+            function postsTo(url: string): FormData[] {
+                return posted.filter((post) => post.url === url).map((post) => post.form);
+            }
+
+            /**
+             * Makes each `menuButton` command fail inside the engine in turn: `report` has the game report the error
+             * with that severity, `throw` throws it out of the command for `Lobby` to catch.
+             */
+            function failMenuButtonCommands(failures: { message: string; how: 'throw' | GameErrorSeverity }[]): void {
+                const remaining = [...failures];
+                spyOn(Game.prototype, 'menuButton').and.callFake(function (this: Game) {
+                    const failure = remaining.shift();
+                    const error = new Error(failure.message);
+                    if (failure.how === 'throw') {
+                        throw error;
+                    }
+                    // the spy stands in for the prototype method, so `this` is the game the command was sent to
+                    // eslint-disable-next-line no-invalid-this
+                    this.reportError(error, failure.how);
+                    return true;
+                });
+            }
+
+            it('a bug report carries the errors from earlier in the game, both reported and thrown', async function () {
+                const { harness } = contextRef;
+                const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                failMenuButtonCommands([
+                    { message: 'reported by the engine', how: GameErrorSeverity.Normal },
+                    { message: 'thrown out of a command', how: 'throw' },
+                ]);
+
+                await reporter.menuButtonAsync('arg', 'prompt-uuid');
+                await reporter.menuButtonAsync('arg', 'prompt-uuid');
+                await reporter.submitBugReportAsync('something went wrong earlier');
+
+                const [bugReport] = postsTo(bugReportWebhookUrl);
+                expect(getDiscordEmbedFields(bugReport)).toContain(['Game Errors', '2']);
+                const errorsFile = getDiscordFileParts(bugReport).get('files[2]');
+                expect(errorsFile).toContain('reported by the engine');
+                expect(errorsFile).toContain('thrown out of a command');
+                expect(errorsFile.indexOf('reported by the engine')).toBeLessThan(errorsFile.indexOf('thrown out of a command'));
+            });
+
+            it('a bug report from a game without errors attaches no errors file', async function () {
+                const { harness } = contextRef;
+                const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+
+                await reporter.submitBugReportAsync('a real bug');
+
+                const [bugReport] = postsTo(bugReportWebhookUrl);
+                expect(getDiscordEmbedFields(bugReport)).toContain(['Game Errors', '0']);
+                expect(getDiscordFileParts(bugReport).has('files[2]')).toBeFalse();
+            });
+
+            it('a bug report carries only the most recent 5 errors, and says how many there were', async function () {
+                const { harness } = contextRef;
+                const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                const messages = ['error 1', 'error 2', 'error 3', 'error 4', 'error 5', 'error 6', 'error 7'];
+                failMenuButtonCommands(messages.map((message) => ({ message, how: GameErrorSeverity.Normal })));
+
+                for (const _message of messages) {
+                    await reporter.menuButtonAsync('arg', 'prompt-uuid');
+                }
+                await reporter.submitBugReportAsync('lots went wrong');
+
+                const errorsFile = getDiscordFileParts(postsTo(bugReportWebhookUrl)[0]).get('files[2]');
+                expect(errorsFile).toMatch(/^Showing the last 5 of 7 errors/);
+                expect(errorsFile).not.toContain('error 1\n');
+                expect(errorsFile).not.toContain('error 2\n');
+                expect(errorsFile).toContain('error 3');
+                expect(errorsFile).toContain('error 7');
+            });
+
+            it('a server error report carries the earlier errors, but not the one it reports', async function () {
+                const { harness } = contextRef;
+                const { first: player } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                failMenuButtonCommands([
+                    { message: 'an earlier error', how: GameErrorSeverity.Normal },
+                    { message: 'the severe error', how: GameErrorSeverity.SevereGameMessageOnly },
+                ]);
+
+                await player.menuButtonAsync('arg', 'prompt-uuid');
+                expect(postsTo(serverErrorWebhookUrl).length).toBe(0);
+                await player.menuButtonAsync('arg', 'prompt-uuid');
+
+                const [serverErrorReport] = postsTo(serverErrorWebhookUrl);
+                const files = getDiscordFileParts(serverErrorReport);
+                expect(files.get('files[2]')).toContain('the severe error');
+                expect(getDiscordEmbedFields(serverErrorReport)).toContain(['Earlier Game Errors', '1']);
+                expect(files.get('files[3]')).toContain('an earlier error');
+                expect(files.get('files[3]')).not.toContain('the severe error');
+            });
+
+            it('a server error report from a game without earlier errors attaches no earlier errors file', async function () {
+                const { harness } = contextRef;
+                const { first: player } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                failMenuButtonCommands([{ message: 'the severe error', how: GameErrorSeverity.SevereGameMessageOnly }]);
+
+                await player.menuButtonAsync('arg', 'prompt-uuid');
+
+                const [serverErrorReport] = postsTo(serverErrorWebhookUrl);
+                expect(getDiscordEmbedFields(serverErrorReport)).toContain(['Earlier Game Errors', '0']);
+                expect(getDiscordFileParts(serverErrorReport).has('files[3]')).toBeFalse();
+            });
+        }, { env: { DISCORD_BUG_REPORT_WEBHOOK_URL: bugReportWebhookUrl, DISCORD_ERROR_REPORT_WEBHOOK_URL: serverErrorWebhookUrl } });
     });
 });

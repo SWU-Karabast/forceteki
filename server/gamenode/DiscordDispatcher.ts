@@ -39,6 +39,7 @@ export interface IDiscordDispatcher {
      * @param description A brief description of the error context
      * @param error The error object to report
      * @param lobbyId The lobby ID associated with the error
+     * @param earlierGameErrors Optional errors that happened earlier in the game, not including `error` itself
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
     formatAndSendServerErrorAsync(
@@ -52,6 +53,7 @@ export interface IDiscordDispatcher {
         gameFormat: SwuGameFormat,
         matchType: MatchmakingType,
         gameStepsSinceLastUndo?: number,
+        earlierGameErrors?: IGameErrorHistory,
     ): Promise<EitherPostResponseOrBoolean>;
 
     /**
@@ -303,9 +305,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
     }
 
-    private addGameErrorsToForm(formData: FormData, gameErrors: IGameErrorHistory, lobbyId: string, timestamp: number): void {
-        const fileName = `game-errors-${lobbyId}-${timestamp}.txt`;
-        formData.append('files[2]', Buffer.from(DiscordDispatcher.formatGameErrorsToText(gameErrors)), {
+    private addGameErrorsToForm(formData: FormData, gameErrors: IGameErrorHistory, lobbyId: string, timestamp: number, fileField = 'files[2]', fileNamePrefix = 'game-errors'): void {
+        const fileName = `${fileNamePrefix}-${lobbyId}-${timestamp}.txt`;
+        formData.append(fileField, Buffer.from(DiscordDispatcher.formatGameErrorsToText(gameErrors)), {
             filename: fileName,
             contentType: 'text/plain',
         });
@@ -418,7 +420,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         player2Id: string,
         gameFormat: SwuGameFormat,
         matchType: MatchmakingType,
-        gameStepsSinceLastUndo?: number
+        gameStepsSinceLastUndo?: number,
+        earlierGameErrors?: IGameErrorHistory
     ): Promise<EitherPostResponseOrBoolean> {
         if (!this._serverErrorWebhookUrl) {
             // If no webhook URL is configured, just log it
@@ -465,6 +468,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 name: 'Match Type',
                 value: matchType.toString(),
                 inline: true
+            },
+            {
+                name: 'Earlier Game Errors',
+                value: `${earlierGameErrors?.totalCount ?? 0}`,
+                inline: true
             }
         ];
 
@@ -495,6 +503,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             filename: fileName,
             contentType: 'text/plain',
         });
+
+        if (earlierGameErrors?.totalCount > 0) {
+            this.addGameErrorsToForm(formData, earlierGameErrors, lobbyId, timestamp, 'files[3]', 'server-error-earlier-errors');
+        }
 
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }

@@ -412,7 +412,7 @@ export class Game extends EventEmitter {
     private _resumeActionTimerAfterRollback = false;
     private _disposed = false;
 
-    private static readonly MaxRecordedErrors = 20;
+    private static readonly MaxRecordedErrors = 5;
 
     /**
      * Errors reported during this game, oldest first, capped at `MaxRecordedErrors`.
@@ -571,12 +571,17 @@ export class Game extends EventEmitter {
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
      */
     public reportError(error: Error, severity: GameErrorSeverity = GameErrorSeverity.Normal): void {
-        this.recordError(error, severity);
-        this._router.handleError(this, error, severity);
+        try {
+            this._router.handleError(this, error, severity);
+        } finally {
+            // recorded after the router has handled it, so that a server error report built from the
+            // history holds only the errors before this one (the report carries this one itself)
+            this.recordError(error, severity);
+        }
     }
 
     /**
-     * Records an error so that bug reports can show whether something already went wrong in this game.
+     * Records an error so that bug and server error reports can show whether something already went wrong in this game.
      * Recording the same error object again (e.g. when it is rethrown after being reported) is a no-op.
      */
     public recordError(error: Error, severity: GameErrorSeverity = GameErrorSeverity.Normal): void {
@@ -589,7 +594,7 @@ export class Game extends EventEmitter {
 
         this.recordedErrorCount++;
         this.recordedErrors.push({
-            timestamp: new Date().toISOString(),
+            timestamp: this.scheduler.currentDate().toISOString(),
             severity,
             message: error?.message ?? String(error),
             stack: error?.stack,

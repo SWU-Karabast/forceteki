@@ -1876,7 +1876,8 @@ export class Lobby {
                 player2Id,
                 this.gameFormat,
                 this.matchmakingType,
-                this.game.gameStepsSinceLastUndo
+                this.game.gameStepsSinceLastUndo,
+                game.getErrorHistory()
             )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
@@ -1911,7 +1912,8 @@ export class Lobby {
             player2Id,
             this.gameFormat,
             this.matchmakingType,
-            this.game.gameStepsSinceLastUndo
+            this.game.gameStepsSinceLastUndo,
+            game.getErrorHistory()
         )
             .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 

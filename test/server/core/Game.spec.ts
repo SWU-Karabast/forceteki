@@ -80,6 +80,28 @@ describe('Overall game mechanics', function() {
             expect(Date.parse(history.errors[0].timestamp)).not.toBeNaN();
         });
 
+        it('should let the router see only the errors before the one it is handling', function() {
+            const { game, router } = buildGame();
+            const historiesSeenByRouter: string[][] = [];
+            router.handleError.and.callFake(() => historiesSeenByRouter.push(game.getErrorHistory().errors.map((error) => error.message)));
+
+            game.reportError(new Error('first'));
+            game.reportError(new Error('second'));
+
+            expect(historiesSeenByRouter).toEqual([[], ['first']]);
+            expect(game.getErrorHistory().totalCount).toBe(2);
+        });
+
+        it('should still record an error when the router rethrows it to halt the game', function() {
+            const { game, router } = buildGame();
+            const error = new Error('halting');
+            router.handleError.and.throwError(error);
+
+            expect(() => game.reportError(error, GameErrorSeverity.SevereHaltGame)).toThrow(error);
+
+            expect(game.getErrorHistory().errors.map((recorded) => recorded.message)).toEqual(['halting']);
+        });
+
         it('should record the same error object only once', function() {
             const { game } = buildGame();
             const error = new Error('reported, then rethrown');
@@ -107,9 +129,7 @@ describe('Overall game mechanics', function() {
 
             const history = game.getErrorHistory();
             expect(history.totalCount).toBe(25);
-            expect(history.errors.length).toBe(20);
-            expect(history.errors[0].message).toBe('error 5');
-            expect(history.errors[19].message).toBe('error 24');
+            expect(history.errors.map((error) => error.message)).toEqual(['error 20', 'error 21', 'error 22', 'error 23', 'error 24']);
         });
 
         it('should return a copy that later errors do not change', function() {
