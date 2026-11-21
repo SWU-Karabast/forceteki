@@ -276,6 +276,14 @@ export class TestClient {
         });
     }
 
+    /** Changes the caller's own username, as the real client's `setUsernameOnServer` does. */
+    public async changeUsernameAsync(newUsername: string): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.post('/api/change-username')).send({
+            newUsername,
+            ...this.identityFields(),
+        });
+    }
+
     /**
      * Saves a deck to the caller's account with the body the real client's `saveDeckToServer` sends: a deck
      * entity carrying a client-made id and the caller's id, wrapped around the deck itself.

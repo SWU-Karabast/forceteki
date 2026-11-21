@@ -699,9 +699,10 @@ The fake's remaining deck tables come first (the decks area adds them).
 ### 10. Accounts and settings — step a
 
 - **User account management.** *Done:* username-change eligibility, rate limiting, forced rename, the
-  block-username-changes flow, `UsernameRules` (service level). *Left:* `change-username` and
-  `get-change-username-info` routes, the profanity check on the route (`GameServer`), and
-  `mustRequestUsernameChange` over HTTP. Needs I-1.
+  block-username-changes flow, `UsernameRules` (service level); the `change-username` route for a signed-in
+  caller: a change, the format rules and the profanity check refusing a name, and the 30-day cooldown
+  (`account/ChangeUsername`). *Left:* the `get-change-username-info` route, a forced rename and a block over HTTP,
+  and `mustRequestUsernameChange` over HTTP. Needs I-1.
 - **The profanity filter** (`server/utils/profanityFilter/`: the term lists and the matcher) as a unit, beyond the
   username and lobby-name routes that call it (`userOrLobbyNameContainsProfanity`).
 - **Linked stat-site accounts** *(new)*. SWUStats / SWUBase link and unlink: six routes. *Done:* who may call the
