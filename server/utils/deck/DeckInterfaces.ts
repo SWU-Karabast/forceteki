@@ -102,6 +102,18 @@ export interface IDeckValidationProperties {
     cardPool: CardPool;
 }
 
+/**
+ * The cards a legal decklist for one format and card pool could use, as SWUDB set codes, split by where a decklist
+ * puts them. See {@link DeckValidator.getDeckbuildingCandidates}.
+ */
+export interface IDeckbuildingCandidates {
+    leaders: string[];
+    bases: string[];
+
+    /** Units, events and upgrades: the cards that go in the deck or the sideboard. */
+    deckCards: string[];
+}
+
 export enum DecklistLocation {
     Leader = 'leader',
     Base = 'base',

@@ -167,13 +167,12 @@ Rules:
 
 ## Manual testing against the client
 
-`npm run dev` creates a default `.env` if missing and starts the node on 9500. With `ENVIRONMENT=development` the server loads the test harness, so you can boot a scripted board:
+`npm run dev` creates a default `.env` if missing and starts the node on 9500. With `ENVIRONMENT=development` the server loads the test harness and its development-only routes:
 
-```bash
-curl -s -X POST http://localhost:9500/api/start-test-game -H "Content-Type: application/json" -d '{"filename":"myScenario.json"}'
-```
+- **Test games.** A dev user (Order66 or ThisIsTheWay, signed in through the client's dev sign-in) boots a scripted board from the client's Test tab, which calls `POST /api/start-test-game` with a file from `test/gameSetups/`, in the same setup schema as `setupTestAsync`. Those files are gitignored apart from `testGameTemplate.json`. The route needs that dev user's session, so a bare `curl` is refused.
+- **Test decks.** `GET /api/test-deck?format=<format>&cardPool=<pool>` returns a legal decklist built from the local card data by `server/utils/deck/TestDecklistBuilder.ts` (which the specs' `DecklistFixtures` also use). The client's **Use test deck** button fills it in.
 
-which reads `test/gameSetups/<filename>` using the same setup schema as `setupTestAsync`. Those files are gitignored apart from `testGameTemplate.json`.
+To drive the local site in a browser as several players at once (quick matches, lobbies, test games, action timers), use the `local-browser-testing` skill. It lives in forceteki-client, and `.claude/skills/local-browser-testing/` here points to it.
 
 ## Conventions and gotchas
 
@@ -196,4 +195,5 @@ This repo carries a depth layer for card-development work with Claude Code. It i
 - `.claude/reference/test-conventions/` — baseline spec-file conventions (read-only seed for `test-auditor`).
 - `.claude/agents/` — `card-implementer`, `card-test-writer`, `card-librarian`, `swu-rules-expert`, `test-auditor`.
 - `.claude/skills/implement-card/` — end-to-end "implement a new card" workflow that orchestrates the agents above.
+- `.claude/skills/local-browser-testing/` — points to the browser-testing skill in a sibling forceteki-client checkout, and lists the server-side facts that skill relies on (update them together).
 - `.claude/agent-memory/` — per-agent local learnings; **gitignored** (never committed), so it never shows up in feature diffs.
