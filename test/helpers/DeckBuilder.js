@@ -9,7 +9,7 @@ const { Deck } = require('../../server/utils/deck/Deck.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'deckBottom', 'discard', 'leader', 'secondLeader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'secondLeader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -124,6 +124,9 @@ class DeckBuilder {
         let deckCards = [];
         let inPlayCards = [];
 
+        // flatten a deck given by its two ends before the named cards are collected from it
+        playerCards.deck = this.flattenDeckEnds(playerCards.deck);
+
         const namedCards = this.getAllNamedCards(playerCards);
         let resources = [];
 
@@ -140,14 +143,8 @@ class DeckBuilder {
         }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
-        // 'deckBottom' lists the cards at the bottom of the deck (last card at the very bottom), below 'deck'
-        if (playerCards.deckBottom != null && !Array.isArray(playerCards.deckBottom)) {
-            throw new TestSetupError('Test deckBottom must be specified as an array');
-        }
-        const drawDeck = [...playerCards.deck, ...(playerCards.deckBottom ?? [])];
-
         deckCards.push(...this.getCardsForResources(resources));
-        deckCards.push(...drawDeck);
+        deckCards.push(...playerCards.deck);
         playerCards.opponentAttachedUpgrades.forEach((card) => {
             deckCards.push(card.card);
         });
@@ -174,7 +171,7 @@ class DeckBuilder {
         // Add all the cards already captured by the opponent
         deckCards = deckCards.concat(playerCards.unitsCapturedByOpponent);
 
-        return [this.buildDeck(deckCards, leader, base, secondLeader), namedCards, resources, drawDeck];
+        return [this.buildDeck(deckCards, leader, base, secondLeader), namedCards, resources, playerCards.deck];
     }
 
     getAllNamedCards(playerObject) {
@@ -221,6 +218,36 @@ class DeckBuilder {
         }
 
         return [];
+    }
+
+    /**
+     * The test setup's 'deck' is either a list of cards (top card first), a number of filler cards, or
+     * { topCards, bottomCards } for a deck given by its two ends, as a captured bug report state does for a long deck.
+     * bottomCards is optional and goes below topCards, with its last card at the very bottom.
+     *
+     * Returns the two-ends form as a single list of cards, top card first, and the other forms unchanged.
+     */
+    flattenDeckEnds(deck) {
+        if (deck == null || typeof deck === 'number' || Array.isArray(deck)) {
+            return deck;
+        }
+        if (typeof deck !== 'object') {
+            throw new TestSetupError(`Test deck must be an array of cards, a number or an object with topCards and bottomCards, got '${deck}'`);
+        }
+
+        const allowedKeys = ['topCards', 'bottomCards'];
+        const unknownKeys = Object.keys(deck).filter((key) => !allowedKeys.includes(key));
+        if (unknownKeys.length > 0) {
+            throw new TestSetupError(`Test deck object has unknown properties: ${unknownKeys.join(', ')}. Allowed are topCards (required) and bottomCards`);
+        }
+        if (!Array.isArray(deck.topCards)) {
+            throw new TestSetupError('Test deck object must have a topCards array');
+        }
+        if (deck.bottomCards != null && !Array.isArray(deck.bottomCards)) {
+            throw new TestSetupError('Test deck bottomCards must be an array');
+        }
+
+        return [...deck.topCards, ...(deck.bottomCards ?? [])];
     }
 
     padCardListIfNeeded(cardList, defaultCount) {

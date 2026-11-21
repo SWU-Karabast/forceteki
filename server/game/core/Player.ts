@@ -1338,12 +1338,14 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 state.discard = [...this.discardZone.cards].reverse().map((card) => card.internalName);
             }
 
-            // Deck, top card first. Only a few cards from the top and bottom to avoid excessive data, since effects
-            // mostly look at either end. A short deck goes into `deck` completely.
+            // Deck, top card first. A short deck is listed completely, otherwise only a few cards from the top and the bottom
+            // to avoid excessive data, since effects mostly look at either end
             const deckCardNames = this.deckZone.cards.map((card) => card.internalName);
             if (deckCardNames.length > 2 * Player.CapturedDeckCardsPerEnd) {
-                state.deck = deckCardNames.slice(0, Player.CapturedDeckCardsPerEnd);
-                state.deckBottom = deckCardNames.slice(-Player.CapturedDeckCardsPerEnd);
+                state.deck = {
+                    topCards: deckCardNames.slice(0, Player.CapturedDeckCardsPerEnd),
+                    bottomCards: deckCardNames.slice(-Player.CapturedDeckCardsPerEnd)
+                };
             } else {
                 state.deck = deckCardNames;
             }

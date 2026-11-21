@@ -5,6 +5,7 @@
         "groundArena": [{ "card": "pyke-sentinel", "damage": 1 }, "blizzard-assault-atat"],
         "spaceArena": [{ "card": "cartel-spacer", "upgrades": ["academy-training"] }],
         "discard": ["keep-fighting", "disarm"],
+        "deck": { "topCards": ["battlefield-marine", "cartel-spacer"], "bottomCards": ["snowspeeder"] },
         "base": "echo-base",
         "leader": "luke-skywalker#faithful-friend"
     },
