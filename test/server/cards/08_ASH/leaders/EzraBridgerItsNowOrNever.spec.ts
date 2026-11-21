@@ -329,7 +329,7 @@ describe('Ezra Bridger, Its Now or Never', function() {
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['Give an Advantage token to a different unit than Ezra Bridger', '(No effect) If the defending unit was defeated, deal 2 damage to a base']);
+                expect(context.player1).toHaveEnabledPromptButtons(['Give an Advantage token to a different unit than Ezra Bridger', 'If the defending unit was defeated, deal 2 damage to a base']);
                 context.player1.clickPrompt('Give an Advantage token to a different unit than Ezra Bridger');
 
                 context.player1.clickCard(context.yoda);

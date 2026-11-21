@@ -27,14 +27,8 @@ describe('Rogue Squadron Skirmisher', function () {
                     'Ambush',
                     'Return a unit that costs 2 or less from your discard pile to your hand.'
                 ]);
+                expect(context.player1).toHavePassableTriggerPrompt('Ambush');
                 context.player1.clickPrompt('Ambush');
-
-                // chooses to trigger the ambush
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Trigger',
-                    'Pass',
-                ]);
-                context.player1.clickPrompt('Trigger');
 
                 // solves ambush damages
                 expect(context.rogueSquadronSkirmisher.exhausted).toBeTrue();
@@ -77,9 +71,9 @@ describe('Rogue Squadron Skirmisher', function () {
                 // chooses to solve unit ability first
                 expect(context.player1).toHaveExactPromptButtons([
                     'Ambush',
-                    '(No effect) Return a unit that costs 2 or less from your discard pile to your hand.'
+                    'Return a unit that costs 2 or less from your discard pile to your hand.'
                 ]);
-                context.player1.clickPrompt('(No effect) Return a unit that costs 2 or less from your discard pile to your hand.');
+                context.player1.clickPrompt('Return a unit that costs 2 or less from your discard pile to your hand.');
                 expect(context.player1.handSize).toBe(0);
 
                 expect(context.player1).toHaveExactPromptButtons([

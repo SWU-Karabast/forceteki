@@ -143,6 +143,43 @@ describe('Maul, Old Master', function() {
                 expect(context.maul).toBeInZone('groundArena', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
             });
+
+            it('should play an owned unit that was taken and defeated with No Glory, Only Results this phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        groundArena: ['atst'],
+                        resources: 7,
+                        base: 'echo-base'
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        hasInitiative: true,
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 takes control of the AT-ST, then defeats it; it goes to its owner's discard pile
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.atst);
+                expect(context.atst).toBeInZone('discard', context.player1);
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Deploy Maul');
+                context.player1.clickPrompt('Shielded');
+
+                expect(context.player1).toHavePrompt('Play a unit for 5 resources less');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                context.player1.clickCard(context.atst);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst).toBeInZone('groundArena', context.player1);
+                expect(context.maul).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(1); // 6-5 = 1
+            });
         });
     });
 });

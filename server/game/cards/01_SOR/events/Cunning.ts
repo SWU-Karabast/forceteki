@@ -19,11 +19,13 @@ export default class Cunning extends EventCard {
                 amountOfChoices: 2,
                 choices: () => ({
                     ['Return a non-leader unit with 4 or less power to its owner\'s hand']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Return a non-leader unit with 4 or less power to its owner\'s hand',
                         cardTypeFilter: WildcardCardType.NonLeaderUnit,
                         cardCondition: (card) => card.isUnit() && card.getPower() <= 4,
                         immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                     }),
                     ['Give a unit +4/+0 for this phase']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Give a unit +4/+0 for this phase',
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             title: 'Gets +4/+0 for this phase',
@@ -31,6 +33,7 @@ export default class Cunning extends EventCard {
                         })
                     }),
                     ['Exhaust up to 2 units']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Exhaust up to 2 units',
                         mode: TargetMode.UpTo,
                         numCards: 2,
                         cardTypeFilter: WildcardCardType.Unit,

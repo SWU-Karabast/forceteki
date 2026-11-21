@@ -25,8 +25,7 @@ export default class DrydenVosOfferingNoEscape extends NonLeaderUnitCard {
                 cardCondition: (card, context) => this.checkIfTargetIsGuardedByControlledUnit(card, context),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
-                    playAsType: WildcardCardType.Any,
-                    canPlayFromAnyZone: true
+                    playAsType: WildcardCardType.Any
                 }),
             }
         });

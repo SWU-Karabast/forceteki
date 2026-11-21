@@ -263,5 +263,50 @@ describe('Darth Maul\'s Lightsaber', () => {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('When the Lightsaber is defeated by the uniqueness rule before its When Played resolves', () => {
+            // Ruling 2025-09-29: Darth Maul's Lightsaber's When Played checks the name of the unit it is
+            // attached to at resolution. If the Lightsaber is defeated (e.g. a second copy is played and
+            // this one is chosen to be defeated by the uniqueness rule) so that it is no longer attached
+            // to a unit, then "if attached unit is Darth Maul" cannot be satisfied and it does not grant
+            // the attack.
+            it('does not grant the attack if the Lightsaber is defeated by uniqueness (no attached unit at resolution)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: {
+                            card: 'darth-maul#sith-revealed',
+                            deployed: true
+                        },
+                        hand: ['darth-mauls-lightsaber'],
+                        groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['darth-mauls-lightsaber'] }]
+                    },
+                    player2: {
+                        groundArena: ['cell-block-guard']
+                    }
+                });
+
+                const { context } = contextRef;
+                const sabers = context.player1.findCardsByName('darth-mauls-lightsaber');
+                const saberInHand = sabers.find((saber) => saber.zoneName === 'hand');
+                const saberInPlay = sabers.find((saber) => saber.zoneName === 'groundArena');
+                const darthMaulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
+                const darthMaulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
+
+                // Play a second copy on the other Darth Maul and choose the copy just played for the uniqueness rule's defeat
+                context.player1.clickCard(saberInHand);
+                expect(context.player1).toBeAbleToSelectExactly([darthMaulLeader, darthMaulUnit]);
+                context.player1.clickCard(darthMaulLeader);
+
+                expect(context.player1).toBeAbleToSelectExactly([saberInHand, saberInPlay]);
+                context.player1.clickCard(saberInHand);
+
+                // The copy just played is no longer attached to a unit, so its When Played cannot be satisfied: no attack is granted
+                expect(saberInHand).toBeInZone('discard');
+                expect(saberInPlay).toBeAttachedTo(darthMaulUnit);
+                expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

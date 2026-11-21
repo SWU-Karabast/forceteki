@@ -38,7 +38,7 @@ describe('Cad Bane, Hostage Taker', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.wingLeader, context.battlefieldMarine, context.deathStarStormtrooper]);
 
             context.player1.clickCard(context.wingLeader);
-            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.wingLeader, context.battlefieldMarine, context.deathStarStormtrooper]);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.wingLeader, context.battlefieldMarine]);
 
             context.player1.clickCardNonChecking(context.deathStarStormtrooper);
             context.player1.clickDone();

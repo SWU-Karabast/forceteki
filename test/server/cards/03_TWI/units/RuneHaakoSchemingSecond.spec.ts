@@ -63,6 +63,36 @@ describe('Rune Haako, Scheming Second', function () {
                 expect(context.greenSquadronAwing.getPower()).toBe(1);
                 expect(context.greenSquadronAwing.getHp()).toBe(3);
             });
+
+            it('should give -1/-1 to a unit because an enemy unit was taken and defeated with No Glory, Only Results this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['rune-haako#scheming-second', 'no-glory-only-results'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // player1 takes control of Wampa and defeats it, so it was a friendly unit when it was defeated
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.runeHaako);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.runeHaako]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.getPower()).toBe(2);
+                expect(context.battlefieldMarine.getHp()).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

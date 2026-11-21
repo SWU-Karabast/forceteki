@@ -36,6 +36,36 @@ describe('Hevy Staunch Martyr', function () {
                 expect(context.specforceSoldier.damage).toBe(0);
                 expect(context.allianceXwing.damage).toBe(0);
             });
+
+            it('should deal damage to the original owner\'s ground units when defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['hevy#staunch-martyr', 'wampa'],
+                        spaceArena: ['alliance-xwing']
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['mining-guild-tie-fighter'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.hevy);
+
+                expect(context.hevy).toBeInZone('discard', context.player1);
+
+                // Player 2 controlled Hevy when it was defeated, so player 1's ground units are the enemy ones
+                expect(context.wampa.damage).toBe(1);
+                expect(context.allianceXwing.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.miningGuildTieFighter.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });

@@ -34,6 +34,23 @@ describe('Maul, Master of the Shadow Collective', function() {
                 expect(context.wampa.controller).toBe(context.player2Object);
             });
 
+            it('should not take control of any unit (and not throw) if the player chooses nothing', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atatSuppressor, context.atst, context.ravenousRathtar]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.wampa.controller).toBe(context.player2Object);
+                expect(context.atatSuppressor.controller).toBe(context.player2Object);
+                expect(context.atst.controller).toBe(context.player2Object);
+                expect(context.ravenousRathtar.controller).toBe(context.player2Object);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should take control of an enemy non-leader unit until Maul leaves the arena (via return to hand) if he dealt combat damage to a base', function () {
                 const { context } = contextRef;
 
@@ -209,6 +226,52 @@ describe('Maul, Master of the Shadow Collective', function() {
             context.player1.clickCard(context.atatSuppressor);
             expect(context.mc30AssaultFrigate).toBeInZone('discard', context.player2);
             expect(context.asajjVentress).toBeInZone('base');
+        });
+
+        // KNOWN BUG: Maul's "return control" effect is a WhileSourceInPlay delayed effect, and
+        // OngoingEffectEngine.removeLastingEffects exempts those from the cleanup that runs when a delayed
+        // effect's target changes zones. So it survives the stolen unit being bounced and replayed, and when
+        // Maul leaves play it acts on the new copy. By SWU 8.5.4 the new copy is a different unit that the
+        // original control effect never applied to, so it should stay with whoever controls it.
+        xit('Maul\'s delayed effect should not act on a new copy of the stolen unit that another effect has taken control of', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['change-of-heart'],
+                    groundArena: ['maul#master-of-the-shadow-collective'],
+                    resources: 20
+                },
+                player2: {
+                    hand: ['waylay', 'vanquish'],
+                    groundArena: ['wampa'],
+                    resources: 20
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.maul);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa.controller).toBe(context.player1Object);
+
+            // its owner bounces and replays it, which makes it a new copy under its owner's control
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.wampa);
+            context.player1.passAction();
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('groundArena', context.player2);
+
+            // a different effect takes control of the new copy
+            context.player1.clickCard(context.changeOfHeart);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa.controller).toBe(context.player1Object);
+
+            // Maul leaving play ends the control effect on the first copy only, so the new copy stays put
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.maul);
+            expect(context.maul).toBeInZone('discard');
+            expect(context.wampa.controller).toBe(context.player1Object);
         });
     });
 });

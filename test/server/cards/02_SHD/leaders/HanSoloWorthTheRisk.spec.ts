@@ -197,6 +197,38 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.anakinSkywalker).toBeInZone('groundArena');
                 expect(context.anakinSkywalker.damage).toBe(2);
             });
+
+            // Ruling 2024: Han's "play a unit from hand" ability combos with Exploit — a unit played
+            // via Han's ability can still use its Exploit keyword to discount itself by sacrificing units.
+            it('can combo with Exploit when playing a unit that has the Exploit keyword', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                        hand: ['infiltrating-demolisher'],
+                        groundArena: ['battlefield-marine'],
+                        resources: 5
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Use Han's leader ability to play Infiltrating Demolisher (cost 4, -1 from Han)
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                context.player1.clickCard(context.infiltratingDemolisher);
+
+                // Exploit is still usable: sacrifice Battlefield Marine for a further -2 discount
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Done');
+
+                // Exploit was usable through Han's ability: Battlefield Marine was defeated as the
+                // Exploit cost, and the Demolisher was played and took Han's 2 damage.
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.infiltratingDemolisher).toBeInZone('groundArena');
+                expect(context.infiltratingDemolisher.damage).toBe(2); // Han's 2 damage
+            });
         });
     });
 });

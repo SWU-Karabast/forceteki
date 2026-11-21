@@ -12,7 +12,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -38,10 +38,9 @@ describe('Jedi General', function() {
 
             context.player1.clickCard(context.jediGeneral);
 
-            // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger; resolve it (declining the attack)
-            // before the create-Clone-Trooper trigger.
-            context.player1.clickPrompt('Ambush');
-            context.player1.clickPrompt('Pass');
+            // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger sharing this window with the
+            // create-Clone-Trooper trigger; decline the attack inline in the simultaneous-trigger prompt.
+            context.player1.clickPass('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -65,7 +64,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -116,7 +115,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             // Because Mace is a leader unit, Jedi General's ability triggers to create a Clone Trooper and give it an Experience token
             const troopers = context.player1.findCardsByName('clone-trooper');
@@ -139,7 +138,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
             expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Clone Trooper tokens instead');
             context.player1.clickPrompt('Trigger');
 
@@ -170,7 +169,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             const troopers = context.player1.findCardsByName('clone-trooper');
             expect(troopers.length).toBe(2);
@@ -198,7 +197,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             const troopers = context.player1.findCardsByName('clone-trooper');
             expect(troopers.length).toBe(1);
@@ -230,7 +229,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             // Two Republic deck leaders + the Darksaber-borne Republic unit = 3 leaders
             const troopers = context.player1.findCardsByName('clone-trooper');

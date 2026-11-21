@@ -66,5 +66,34 @@ describe('Fleet Interdictor', function() {
             expect(context.asajjVentress.deployed).toBeFalse();
             expect(context.awing).toBeInZone('discard', context.player2);
         });
+
+        it('Fleet Interdictor\'s ability should be resolved by the new controller when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['fleet-interdictor', 'tieln-fighter']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    spaceArena: ['republic-arc170'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.fleetInterdictor);
+
+            // player2 controlled Fleet Interdictor when it was defeated, so player2 chooses the target
+            expect(context.player2).toHavePassAbilityButton();
+            expect(context.player2).toBeAbleToSelectExactly([context.tielnFighter, context.republicArc170]);
+            context.player2.clickCard(context.tielnFighter);
+
+            expect(context.tielnFighter).toBeInZone('discard', context.player1);
+            expect(context.republicArc170).toBeInZone('spaceArena', context.player2);
+            expect(context.fleetInterdictor).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

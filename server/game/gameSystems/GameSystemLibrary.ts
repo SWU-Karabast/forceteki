@@ -99,6 +99,8 @@ import type { IReadySystemProperties } from './ReadySystem';
 import { ReadySystem } from './ReadySystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
+import type { IReplaceAttackerProperties } from './ReplaceAttackerSystem';
+import { ReplaceAttackerSystem } from './ReplaceAttackerSystem';
 import type { IRescueProperties } from './RescueSystem';
 import { RescueSystem } from './RescueSystem';
 import type { IResourceCardProperties } from './ResourceCardSystem';
@@ -134,6 +136,8 @@ import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
 import type { IChooseNumberProperties } from './ChooseNumberSystem';
 import { ChooseNumberSystem } from './ChooseNumberSystem';
+import type { ISelectChoiceProperties } from './SelectChoiceSystem';
+import { SelectChoiceSystem } from './SelectChoiceSystem';
 import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffectSystem';
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
@@ -534,6 +538,12 @@ export function disclose<TContext extends AbilityContext = AbilityContext>(prope
     return new DiscloseAspectsSystem<TContext>(propertyFactory);
 }
 
+/**
+ * Makes the target unit the attacker of the attack in progress
+ */
+export function replaceAttacker<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReplaceAttackerProperties, TContext> = {}) {
+    return new ReplaceAttackerSystem<TContext>(propertyFactory);
+}
 export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
     return new RevealSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
@@ -779,6 +789,9 @@ export function selectPlayer<TContext extends AbilityContext = AbilityContext>(p
 }
 export function chooseNumber<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IChooseNumberProperties<TContext>, TContext>) {
     return new ChooseNumberSystem<TContext>(propertyFactory);
+}
+export function selectChoice<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectChoiceProperties<TContext>, TContext>) {
+    return new SelectChoiceSystem<TContext>(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);

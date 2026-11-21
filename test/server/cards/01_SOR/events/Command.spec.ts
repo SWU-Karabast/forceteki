@@ -31,8 +31,10 @@ describe('Command', function() {
                 ]);
 
                 context.player1.clickPrompt('A friendly unit deals damage equal to its power to a non-unique enemy unit.');
+                expect(context.player1).toHavePrompt('Choose a friendly unit to deal damage equal to its power to a non-unique enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.restoredArc170]);
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHavePrompt('Deal 3 damage to a non-unique enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.ruthlessRaider]);
                 context.player1.clickCard(context.ruthlessRaider);
 
@@ -45,6 +47,7 @@ describe('Command', function() {
                 ]);
 
                 context.player1.clickPrompt('Return a unit from your discard pile to your hand.');
+                expect(context.player1).toHavePrompt('Return a unit from your discard pile to your hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer).toBeInZone('hand');
@@ -64,6 +67,7 @@ describe('Command', function() {
                     'Return a unit from your discard pile to your hand.'
                 ]);
                 context.player1.clickPrompt('Give 2 Experience tokens to a unit.');
+                expect(context.player1).toHavePrompt('Give 2 Experience tokens to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.restoredArc170, context.viperProbeDroid, context.darthVader, context.ruthlessRaider]);
                 context.player1.clickCard(context.battlefieldMarine);
 

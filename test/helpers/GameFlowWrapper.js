@@ -34,7 +34,6 @@ class GameFlowWrapper {
             legalCardTitles,
             pushUpdate: () => true,
             scheduler: new NoopScheduler(),
-            userTimeoutDisconnect: () => undefined,
             undoMode
         };
 
@@ -338,6 +337,14 @@ class GameFlowWrapper {
     getChatLog(numBack = 0) {
         let messages = this.getChatLogs(numBack + 1, false);
         return messages.length && messages[numBack] ? messages[numBack] : '<No Message Found>';
+    }
+
+    /**
+     * Get the animation records currently retained by the game's animation log
+     * @param {Number} from - index to start from, typically a previous call's `.length`
+     */
+    getAnimationRecords(from = 0) {
+        return this.game.animations.records.slice(from);
     }
 }
 

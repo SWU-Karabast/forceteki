@@ -152,7 +152,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 // Pass the action to allow the player to play Clone Pilot as a pilot
                 context.player1.passAction();
                 context.player2.clickCard(context.clonePilot);
-                context.player2.clickPrompt('Play Clone Pilot with Piloting');
+                context.player2.clickPrompt('Play Clone Pilot with Piloting for free (via Sifo-Dyas)');
                 context.player2.clickCard(context.republicArc170);
 
                 // Check players resources

@@ -11,10 +11,10 @@ import { registerState, stateValue } from '../../GameObjectUtils';
 
 @registerState()
 export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
-    @stateValue() private accessor _preCloneActionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _preCloneTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _preCloneConstantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _preCloneActionAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateValue() private accessor _preCloneTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateValue() private accessor _preCloneConstantAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateValue() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard = new Map<string, string[]>();
 
     public constructor(game: Game, clonedUnit: Card) {
         // If we are cloning a unit that is itself a clone, we need to find the original unit
@@ -52,7 +52,8 @@ export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStan
 
         // Avoid cloning abilities from the same card to prevent duplication
         if (target.internalName !== clonedUnit.internalName) {
-            clonedUnit.setupCardAbilities(target.getAbilityRegistrar() as IUnitAbilityRegistrar<IUnitCard>, this.game.abilityHelper);
+            // the abilities' code belongs to the card being cloned, so the getter follows that card's opt-in
+            clonedUnit.setupCardAbilities(target.getAbilityRegistrar() as IUnitAbilityRegistrar<IUnitCard>, this.game.abilityHelper, this.game.cardStates.forCard(clonedUnit));
         }
     }
 

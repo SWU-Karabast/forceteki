@@ -21,9 +21,7 @@ async function run() {
         );
     }
 
-    await service.putItemAsync({
-        pk: 'SERVER_ROLE_USERS',
-        sk: 'ROLES',
+    await service.putItemAsync({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES' }, {
         admins: [{ id: MY_USER_ID, note: 'This is a test admin user' }],
         developers: [],
         moderators: [],

@@ -47,5 +47,40 @@ describe('Tactical Droid Commander', function() {
             context.player1.clickPrompt('Choose nothing');
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should be able to exhaust a unit when its controller plays an opponent-owned Separatist unit with Unrefusable Offer', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unrefusable-offer'],
+                    groundArena: ['tactical-droid-commander', 'wampa']
+                },
+                player2: {
+                    groundArena: ['super-battle-droid', 'battlefield-marine', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.unrefusableOffer);
+            context.player1.clickCard(context.superBattleDroid);
+
+            context.player2.passAction();
+
+            // defeat the Super Battle Droid and collect the Bounty to play it from player2's discard pile
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.superBattleDroid);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.superBattleDroid).toBeInZone('groundArena', context.player1);
+
+            // the played 3-cost Separatist unit triggers Tactical Droid Commander
+            expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

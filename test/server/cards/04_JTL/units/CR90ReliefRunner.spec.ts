@@ -76,5 +76,37 @@ describe('CR90 Relief Runner', function () {
                 ]);
             });
         });
+
+        it('should heal for the new controller when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['cr90-relief-runner'],
+                    base: { card: 'echo-base', damage: 5 }
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: [{ card: 'wampa', damage: 2 }],
+                    base: { card: 'chopper-base', damage: 5 },
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.cr90ReliefRunner);
+
+            // player2 controlled CR90 when it was defeated, so player2 distributes the healing
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p1Base, context.p2Base]);
+            context.player2.setDistributeHealingPromptState(new Map([
+                [context.p2Base, 3],
+            ]));
+
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.p1Base.damage).toBe(5);
+            expect(context.cr90ReliefRunner).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

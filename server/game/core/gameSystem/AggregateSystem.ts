@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { GameStateChangeRequired } from '../Constants';
 import type { GameObject } from '../GameObject';
+import { Helpers } from '../utils/Helpers';
 import type { IGameSystemProperties } from './GameSystem';
 import { GameSystem } from './GameSystem';
 
@@ -22,12 +23,15 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         // TODO: this seems to cause issues with player target system defaults when the list includes both a card target and player target system
-        // if we have an assigned target, overwrite the default target on all inner systems
+        // if we have an assigned target, overwrite the default target on all inner systems, even if it is empty
+        // (e.g. the player chose no cards), so the inner systems don't fall back to their own default (usually the source card)
+        const hasTarget = this.hasAssignedDefaultTarget() || Helpers.asArray(properties.target).length > 0;
         for (const gameSystem of this.getInnerSystems(properties)) {
-            if (properties.target !== null && (!Array.isArray(properties.target) || properties.target.length !== 0)) {
+            if (hasTarget) {
                 gameSystem.setDefaultTargetFn(() => properties.target);
             } else {
-                gameSystem.setDefaultTargetFn(() => gameSystem.defaultTargets(context));
+                // reset rather than set, so a nested aggregate with no target of its own doesn't look assigned
+                gameSystem.resetDefaultTargetFn();
             }
         }
 

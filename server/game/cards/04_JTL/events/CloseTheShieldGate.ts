@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { AbilityType, CardType, DamageModificationType } from '../../../core/Constants';
+import { CardType, DamageModificationType } from '../../../core/Constants';
 
 export default class CloseTheShieldGate extends EventCard {
     protected override getImplementationId () {
@@ -17,9 +17,8 @@ export default class CloseTheShieldGate extends EventCard {
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.gainAbility({
+                    effect: AbilityHelper.ongoingEffects.modifyDamage({
                         title: 'Prevent the next damage dealt to this base',
-                        type: AbilityType.DamageModification,
                         modificationType: DamageModificationType.PreventAll,
                         limit: AbilityHelper.limit.perPhase(1)
                     })

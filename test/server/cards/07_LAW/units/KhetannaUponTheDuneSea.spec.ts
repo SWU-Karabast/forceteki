@@ -124,7 +124,6 @@ describe('Khetanna, Upon the Dune Sea', function() {
             context.player1.clickCard(context.energyConversionLab);
             context.player1.clickCard(context.khetanna);
             context.player1.clickPrompt('Ambush');
-            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.battlefieldMarine);
 
             context.player2.passAction();

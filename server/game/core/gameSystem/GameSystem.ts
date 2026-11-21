@@ -44,7 +44,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
-    protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
+    private readonly ownDefaultTargetsFn = (context: TContext) => this.defaultTargets(context);
+    protected getDefaultTargets: (context: TContext) => any = this.ownDefaultTargetsFn;
 
     protected abstract isTargetTypeValid(target: GameObject | GameObject[]): boolean;
 
@@ -276,6 +277,16 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         this.getDefaultTargets = func;
     }
 
+    /** Restores the {@link GameSystem.defaultTargets} method as this system's default targets, undoing {@link GameSystem.setDefaultTargetFn} */
+    public resetDefaultTargetFn(): void {
+        this.getDefaultTargets = this.ownDefaultTargetsFn;
+    }
+
+    /** True if a caller has assigned this system's default targets with {@link GameSystem.setDefaultTargetFn}, even if they are empty */
+    protected hasAssignedDefaultTarget(): boolean {
+        return this.getDefaultTargets !== this.ownDefaultTargetsFn;
+    }
+
     /**
      * Resolves the effects of the system on game state by generating the necessary events and
      * opening a window to resolve them with {@link Game.openEventWindow}.
@@ -296,6 +307,15 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     public checkEventCondition(event: GameEvent, additionalProperties: Partial<TProperties> = {}): boolean {
         return true;
+    }
+
+    /**
+     * Whether this system, as an optional ability's immediate effect, can show the ability's Pass option in its
+     * own prompt for `passingPlayer`. If so, the ability skips the "You may trigger this ability" prompt and the
+     * system finds the option on {@link AbilityContext.abilityPassOption} when it resolves.
+     */
+    public canShowAbilityPassOption(context: TContext, passingPlayer: Player): boolean {
+        return false;
     }
 
     public isOptional(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
