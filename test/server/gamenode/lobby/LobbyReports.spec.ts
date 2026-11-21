@@ -55,6 +55,22 @@ describe('Lobby reports', function () {
             expect(sent.map((report) => report.reportType)).toEqual([ReportType.BugReport]);
         });
 
+        it('sends a bug report the game state in the test setup format, so it can be loaded as a test setup', async function () {
+            const { harness } = contextRef;
+            const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+            const sent = captureDiscordReports(harness, reporter);
+
+            await reporter.submitBugReportAsync('a real bug');
+
+            // formatReport(description, gameState, ...)
+            const gameState = sent[0].formatArgs[1] as { player1: { leader: unknown; base: unknown }; player2: { leader: unknown; base: unknown } };
+            // at the start of a game nothing differs from the setup defaults, so leaders and bases are just their names
+            for (const player of [gameState.player1, gameState.player2]) {
+                expect(typeof player.leader).toBe('string');
+                expect(typeof player.base).toBe('string');
+            }
+        });
+
         // While the mod tools dashboard rolls out, Discord keeps getting every player report as a backup
         describe('a player report, stored for the mod tools and sent to Discord as a backup,', function () {
             it('goes to both, the Discord copy with the offense and the chat', async function () {
