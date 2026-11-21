@@ -140,15 +140,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
      * enough damage to defeat it and the excess is dealt by a separate event (CR 9.0 1.9.11.A). Otherwise the unit
      * is dealt the full amount, even beyond its remaining HP.
      */
-    public static getDamageAmountDealtToCard(event): number | null {
+    public static getDamageAmountDealtToCard(event): number {
         Contract.assertTrue(event.name === EventName.OnDamageDealt);
 
-        const amount = event.amount ?? event.sourceEventForExcessDamage?.availableExcessDamage;
-        if (amount == null) {
-            return null;
-        }
-
-        return amount - (event.redirectedExcessDamage ?? 0);
+        return DamageSystem.getDamageAmountFromEvent(event) - (event.redirectedExcessDamage ?? 0);
     }
 
     public eventHandler(event): void {
