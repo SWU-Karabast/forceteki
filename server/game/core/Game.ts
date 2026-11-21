@@ -331,6 +331,11 @@ export class Game extends EventEmitter {
         return this.snapshotManager.undoMode !== UndoMode.Disabled;
     }
 
+    /** True once a player has conceded or left, after which the game can no longer be rolled back */
+    public get isUndoBlockedByGameEnd(): boolean {
+        return this.gameEndReason === GameEndReason.Concede || this.gameEndReason === GameEndReason.PlayerLeft;
+    }
+
     public get gameObjectManager(): IGameObjectRegistrar {
         return this._snapshotManager.gameObjectManager;
     }
@@ -1860,7 +1865,7 @@ export class Game extends EventEmitter {
      * @return True if the rollback was successful or we prompted the opponent to confirm, false otherwise
      */
     public rollbackToSnapshot(playerId: string, settings: IGetSnapshotSettings): boolean {
-        if (!this.isUndoEnabled) {
+        if (!this.isUndoEnabled || this.isUndoBlockedByGameEnd) {
             return false;
         }
 
@@ -1890,6 +1895,11 @@ export class Game extends EventEmitter {
         const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
 
         const performRollback = () => {
+            // an undo request can still be allowed after the requesting player has conceded or left the game
+            if (this.isUndoBlockedByGameEnd) {
+                return false;
+            }
+
             const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
 
             if (!result) {
@@ -1995,6 +2005,10 @@ export class Game extends EventEmitter {
         const request = this.buildCostPaymentRecoveryRequest(player, context);
         if (this.costPaymentRecoveryPolicy.rollbackRequiresApproval(request)) {
             this.rollbackToSnapshot(player.id, settings);
+            return;
+        }
+
+        if (this.isUndoBlockedByGameEnd) {
             return;
         }
 
