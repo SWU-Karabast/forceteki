@@ -5,19 +5,18 @@ description: >
   and lobbies, dev-user test games, action timers), against a local game node from this repo. The full skill lives
   in the forceteki-client repo; this one finds it. TRIGGER when: the user asks to test, try, check or reproduce
   something on the local site or in a local game in a browser, or to verify a server change end to end through
-  the client. Also consider offering it whenever a server change affects what players see or how a game flows
+  the client. Also use it whenever a server change affects what players see or how a game flows
   beyond the rules engine: prompt behavior, the action timer, best-of-three and rematches, lobbies and matchmaking,
   conceding and the end of a game, reconnects, spectators, chat, or the game and lobby state the client renders.
-  Always ask the user first and wait for a yes; a run is slow.
 ---
 
 The browser-testing skill lives with the client, which has Playwright as a dev dependency and the helpers the skill
-uses (`scripts/playwright/`). This file says when to offer it and how to find it.
+uses (`scripts/playwright/`). This file says when to use it and how to find it.
 
-## When to offer it, and asking first
+## When to use it
 
 Specs check the server; a browser test checks that players can still get through the game with the client as it is.
-Consider offering one when a server change affects what a player sees or does beyond the rules engine:
+Run one when a server change affects what a player sees or does beyond the rules engine:
 - **Prompts:** a new kind of prompt (`server/game/core/gameSteps/prompts/`), or changes to a prompt's buttons,
   wording, order, or how it is answered. That includes anything that changes the captured states in
   `test/stateCaptures/`.
@@ -36,18 +35,15 @@ Consider offering one when a server change affects what a player sees or does be
   - what anonymous players may do compared with signed-in ones.
 - **Anything else** in the game state or lobby state the client reads.
 
-Card implementations and rules fixes are what the jasmine specs are for. Offer a browser test for one only when it
+Card implementations and rules fixes are what the jasmine specs are for. Run a browser test for one only when it
 changes how a prompt looks or behaves.
 
-**Always ask first, and never start a browser test on your own.** It is slow:
-- Starting both servers takes about half a minute; the game node's build alone takes about 20 s.
-- Each standard flow takes from a few seconds to half a minute, and a timer check longer.
-- A script written for the feature takes longer again.
-
-Offer it once the change works and its specs pass. Say which flows you would play, for example "a quick match to
-the first action, then concede to check the game-over screen", and roughly how long that would take. Wait for a
-yes. A request from the user to test in the browser counts as the yes, and one yes covers re-runs within the same
-piece of work. If the change also needs client work before a browser test can show it, say so instead of offering.
+**Run it yourself when it fits; you need not ask.** Do it once the change works and its specs pass, and pick the
+flows that exercise the change, for example "a quick match to the first action, then concede to check the game-over
+screen". Budget for it: starting both servers takes about half a minute (the game node's build alone about 20 s), each
+standard flow seconds to half a minute, a timer check longer, and a script written for the feature longer again, so
+skip it for changes no player could see. Report which flows you played and what they showed. If the change also needs
+client work before a browser test can show it, say so instead of running one.
 
 ## Finding the client skill
 
@@ -67,7 +63,7 @@ the user that the client needs that change.
 
 - **Development-only routes** in `GameServer.setupDevAppRoutes`:
   - `GET /api/test-deck?format=&cardPool=`: a legal deck built by `server/utils/deck/TestDecklistBuilder.ts`, behind
-    the client's Use test deck button.
+    the client's Queue With Test Deck, Create Game With Test Deck and Load Test Deck buttons.
   - `GET /api/test-game-setups` and `POST /api/start-test-game`: test games from `test/gameSetups/`. Starting one
     needs a dev user's session.
 - **The dev users** `Order66` and `ThisIsTheWay` (`developmentTestUsers` in `server/utils/user/UserFactory.ts`).
