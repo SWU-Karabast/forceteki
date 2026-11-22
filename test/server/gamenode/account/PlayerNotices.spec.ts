@@ -7,7 +7,7 @@ import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelp
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 
 /**
- * A player's side of the notices the Karabast team sends them: they arrive with the session sync at sign-in
+ * A player's side of the notices the moderators send them: they arrive with the session sync at sign-in
  * (`POST /api/get-user`) until the player acknowledges each one.
  */
 describe('Player notices at sign-in', function () {
@@ -15,8 +15,8 @@ describe('Player notices at sign-in', function () {
         const notice: IPlayerNoticeEntity = {
             id: uuid(),
             playerId,
-            kind: PlayerNoticeKind.BugReportFixed,
-            message: 'Thanks for your report! This is fixed and will be live in the next update.',
+            kind: PlayerNoticeKind.Warning,
+            message: 'Please keep the chat friendly.',
             senderId: 'moderator-id',
             senderUsername: 'Moderator',
             createdAt: '2026-11-01T00:00:00.000Z',
@@ -32,7 +32,7 @@ describe('Player notices at sign-in', function () {
         it('sends the notices the player has not acknowledged, oldest first, without who sent them', async function () {
             const { harness } = contextRef;
             const player = harness.createAccountClient();
-            const newer = seedNotice(harness, player.id, { kind: PlayerNoticeKind.BugReportNotABug, createdAt: '2026-11-02T00:00:00.000Z' });
+            const newer = seedNotice(harness, player.id, { message: 'Please do not stall the game.', createdAt: '2026-11-02T00:00:00.000Z' });
             const older = seedNotice(harness, player.id, { createdAt: '2026-11-01T00:00:00.000Z' });
             seedNotice(harness, player.id, { createdAt: '2026-10-01T00:00:00.000Z', seenAt: '2026-10-02T00:00:00.000Z' });
 

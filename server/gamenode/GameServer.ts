@@ -83,7 +83,6 @@ import {
     ModActionCancelSchema,
     ModActionSubmitSchema,
     PlayerNoticeIdParamsSchema,
-    PlayerNoticeSendSchema,
     PlayerReportIdParamsSchema,
     PlayerReportListQuerySchema,
     PlayerReportUpdateSchema,
@@ -2106,31 +2105,6 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (mod-submit-action) Server error:', err);
-                next(err);
-            }
-        });
-
-        // A message to a player that is not a moderation action, such as the outcome of their bug report
-        app.post('/api/mod/send-notice', this.buildAuthMiddleware('mod-send-notice', ServerRole.Moderator), async (req, res, next) => {
-            try {
-                const parseResult = PlayerNoticeSendSchema.safeParse(req.body);
-                if (!parseResult.success) {
-                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
-                }
-
-                const { playerId, kind, message } = parseResult.data;
-                const notice = await this.playerNoticeService.sendNoticeAsync({
-                    playerId,
-                    kind,
-                    message,
-                    sender: this.getModerator(req.user),
-                });
-                if (!notice) {
-                    return res.status(404).json({ success: false, message: 'Player not found' });
-                }
-                return res.status(200).json({ success: true, notice });
-            } catch (err) {
-                logger.error('GameServer (mod-send-notice) Server error:', err);
                 next(err);
             }
         });

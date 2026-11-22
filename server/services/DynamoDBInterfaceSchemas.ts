@@ -194,16 +194,6 @@ export const ModActionSubmitSchema = ModActionSubmitBodySchema.refine(
         { path: ['playerMessage'], error: messageFromBody((data) => `playerMessage is not valid for ${data.actionType} actions`) }
     );
 
-/** A notice a moderator sends a player directly. Warnings are sent with a Warning mod action instead, so they reach the mod history. */
-export const PlayerNoticeSendSchema = z.object({
-    playerId: z.string().min(1, 'playerId is required'),
-    kind: z.enum(PlayerNoticeKind).refine(
-        (kind) => kind !== PlayerNoticeKind.Warning,
-        { error: 'A warning is sent with a Warning mod action' }
-    ),
-    message: PlayerNoticeMessageSchema,
-});
-
 export const PlayerNoticeIdParamsSchema = z.object({
     noticeId: z.uuid('noticeId must be a notice id'),
 });

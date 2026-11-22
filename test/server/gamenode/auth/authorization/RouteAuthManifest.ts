@@ -140,7 +140,6 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
 
     { method: 'post', path: '/api/mod/find-user', access: 'moderator', unauthenticated: refused },
     { method: 'post', path: '/api/mod/submit-action', access: 'moderator', unauthenticated: refused },
-    { method: 'post', path: '/api/mod/send-notice', access: 'moderator', unauthenticated: refused },
     { method: 'post', path: '/api/mod/cancel-action', access: 'moderator', unauthenticated: refused },
 
     // player report tickets

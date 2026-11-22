@@ -205,13 +205,9 @@ export interface IServerSettingsEntity {
 
 /** What a notice to a player is about; the client picks its heading from this. */
 export enum PlayerNoticeKind {
-    BugReportFixed = 'BugReportFixed',
-    BugReportNotABug = 'BugReportNotABug',
-    BugReportNeedsInfo = 'BugReportNeedsInfo',
 
-    /** Only created by a Warning mod action, so every warning a player sees has an entry in their mod history */
+    /** Created by a Warning mod action, so every warning a player sees has an entry in their mod history */
     Warning = 'Warning',
-    General = 'General',
 }
 
 /**

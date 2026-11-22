@@ -24,8 +24,8 @@ export interface IPlayerNoticeStore {
 }
 
 /**
- * Messages from the Karabast team to a player (replies to bug reports, warnings, …), shown to the player the next
- * time they sign in until they acknowledge them.
+ * Messages from the moderators to a player (for now, the message that goes with a Warning), shown to the player the
+ * next time they sign in until they acknowledge them.
  *
  * Without DynamoDB (local development) there is nowhere to keep them: a player has none, and sending one fails.
  */
