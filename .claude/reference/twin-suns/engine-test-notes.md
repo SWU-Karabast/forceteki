@@ -31,6 +31,9 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 ### Fortify (test under the keyword, not per card)
 - A Fortify upgrade can only be attached to a base you control: in Always Two never the teammate's base, in Twin Suns never an opponent's. Tested once here; the per-card notes for Fortify upgrades do not repeat it.
 
+### Plot (test under the keyword, not per card)
+- A Plot card can be played from resources only when you deploy one of your own leaders, paying with your own resources: in Twin Suns either of your two leaders, in Always Two never when the teammate deploys theirs. Tested once here; the per-card notes for Plot cards do not repeat it.
+
 ### Bases and winning
 - A base's damage counts up and can exceed its health. A base at or past its health is not eliminated and has 0 remaining HP (R10, R28).
 - A team wins only when both enemy bases have reached their health. If one teammate wins through a card ability, both win.
