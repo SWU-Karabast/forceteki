@@ -21,6 +21,32 @@ describe('Close the Shield Gate', function () {
                 context.player2.clickCard(context.p1Base);
 
                 expect(context.p1Base.damage).toBe(0);
+                expect(context.getChatLogs(1)).toContain('player1 uses Close the Shield Gate\'s effect to prevent all damage to their base');
+            });
+
+            it('should prevent the next damage dealt to the opponent\'s base when it is the chosen base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['close-the-shield-gate'],
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.closeTheShieldGate);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(0);
+
+                // player2 resolves the prevention on their base, but it is player1's effect
+                expect(context.getChatLogs(1)).toContain('player1 uses Close the Shield Gate\'s effect to prevent all damage to player2\'s base');
             });
 
             it('should not prevent the next combat damage dealt to a non-chosen base', async function () {

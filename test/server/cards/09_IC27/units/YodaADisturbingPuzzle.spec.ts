@@ -42,6 +42,12 @@ describe('Yoda, A Disturbing Puzzle', function() {
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.yoda.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
+
+                // the chosen unit's controller resolves the prevention, but it is Yoda's controller's effect
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Yoda\'s effect to prevent all damage to Battlefield Marine',
+                    'player1 uses Yoda\'s effect to prevent all damage to Battlefield Marine'
+                ]);
             });
 
             it('should deal combat damage normally if the ability is declined', function () {

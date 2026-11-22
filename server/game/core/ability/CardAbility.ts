@@ -4,6 +4,7 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
+import type { Player } from '../Player';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
@@ -19,6 +20,9 @@ export abstract class CardAbility extends CardAbilityStep {
     /** If this is how a lasting effect applies to the card rather than an ability the card has, the card that created the effect (see `IAbilityProps.lastingEffectSource`) */
     public readonly lastingEffectSource?: Card;
 
+    /** If this is how a lasting effect applies to the card, the player who created the effect (see `IAbilityProps.lastingEffectController`) */
+    public readonly lastingEffectController?: Player;
+
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
@@ -28,6 +32,7 @@ export abstract class CardAbility extends CardAbilityStep {
 
         this.printedAbility = properties.printedAbility ?? true;
         this.lastingEffectSource = properties.lastingEffectSource;
+        this.lastingEffectController = properties.lastingEffectController;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
