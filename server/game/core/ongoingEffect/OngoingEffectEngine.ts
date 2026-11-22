@@ -1,28 +1,205 @@
-import { Duration, EffectName, EventName } from '../Constants';
+import { AbilityType, Duration, EffectName, EventName, RelativePlayer, ZoneName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
+import type { EventWindow } from '../event/EventWindow';
 import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSourceBase } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type { Game } from '../Game';
 import { Contract } from '../utils/Contract';
 import { Helpers } from '../utils/Helpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
+import type { IOngoingEffectSummary, WhenType } from '../../Interfaces';
+import type { Card } from '../card/Card';
+import type { Player } from '../Player';
 
-interface ICustomDurationEventState extends IGameObjectBaseState {
+interface IEffectEventListenerState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
+/**
+ * Resolves a chat {@link FormatMessage} (or plain string) into a standalone string for the summary.
+ * Unlike the chat renderer this returns a single string and fills in `{n}` placeholders so we never
+ * surface a raw template like "give {0}".
+ */
+function resolveText(desc: unknown): string | undefined {
+    if (desc == null) {
+        return undefined;
+    }
+    if (typeof desc === 'string') {
+        return desc;
+    }
+    if (typeof desc === 'number') {
+        return desc.toString();
+    }
+    const message = desc as { format?: string; args?: unknown[]; title?: string; name?: string; getShortSummary?: () => string };
+    if (typeof message.getShortSummary === 'function') {
+        return message.getShortSummary();
+    }
+    if (typeof message.format === 'string') {
+        const args = message.args ?? [];
+        return message.format.replace(/\{(\d+)\}/g, (_match, index) => resolveText(args[Number(index)]) ?? '').trim();
+    }
+    return typeof message.title === 'string' ? message.title : (typeof message.name === 'string' ? message.name : undefined);
+}
+
+/** Trailing phrase describing when a lasting effect ends, mirroring the chat lasting-effect helper. */
+function durationSuffix(duration: Duration | undefined): string {
+    switch (duration) {
+        case Duration.UntilEndOfAttack:
+            return ' for this attack';
+        case Duration.UntilEndOfPhase:
+            return ' for this phase';
+        case Duration.UntilEndOfRound:
+            return ' for the rest of the round';
+        case Duration.WhileSourceInPlay:
+            return ' while in play';
+        default:
+            return '';
+    }
+}
+
+/**
+ * Pulls a human-readable title from the ability that created an effect, preferring its
+ * `contextTitle` over its `title` (via `getTitle`). Defensive because this runs on every
+ * state serialization and a throwing `contextTitle` should never make the game unplayable.
+ */
+function getAbilityTitle(ability: { getTitle?: (context: unknown) => string; title?: string } | undefined, context: unknown): string | undefined {
+    if (!ability) {
+        return undefined;
+    }
+    try {
+        if (typeof ability.getTitle === 'function') {
+            const title = ability.getTitle(context);
+            if (title) {
+                return title;
+            }
+        }
+    } catch {
+        // fall through to the plain title
+    }
+    return typeof ability.title === 'string' ? ability.title : undefined;
+}
+
+/**
+ * Constant abilities don't attach themselves to their effect's props the way lasting/delayed
+ * effects do, so recover the owning ability via the source's registered constant abilities.
+ */
+function findRegisteringConstantAbility(effect: OngoingEffect) {
+    return effect.source?.getConstantAbilities?.()
+        .find((ability) => ability.registeredEffects?.includes(effect));
+}
+
+/**
+ * Effect types that are never included in the summary: they describe setup or how a card enters play
+ * rather than the ongoing board state ("enters play ready", and the starting-hand-size / no-mulligan
+ * base modifiers, which only apply during setup).
+ */
+const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
+    EffectName.EntersPlayReady,
+    EffectName.ModifyStartingHandSize,
+    EffectName.NoMulligan,
+]);
+
+/**
+ * Effect types that only matter while their source card is in a zone it can be played from, mapped to
+ * those zones. Such an effect is included only when its source is in a listed zone, and suppressed once
+ * the card moves elsewhere (e.g. R2-D2's "can be played on a Vehicle with a Pilot" is only relevant in
+ * hand). Effects that are only ever created in the zone they matter in (e.g. GainPlayPermission) don't
+ * need an entry.
+ */
+const playModifierEffectRelevantZones: ReadonlyMap<EffectName, ReadonlySet<ZoneName>> = new Map([
+    [EffectName.CanBePlayedWithPilotingIgnoringPilotLimit, new Set([ZoneName.Hand])],
+]);
+
+/**
+ * Whether an effect should be hidden from the ongoing effect summary: a globally-excluded type, a self
+ * cost adjuster (opted out via its ability's `omitFromOngoingEffectSummary` flag), or a play-time
+ * modifier whose source has left the zone it's relevant in.
+ */
+function isExcludedFromSummary(effect: OngoingEffect): boolean {
+    if (summaryExcludedEffectNames.has(effect.type)) {
+        return true;
+    }
+
+    if (effect.type === EffectName.CostAdjuster) {
+        return !!findRegisteringConstantAbility(effect)?.omitFromOngoingEffectSummary;
+    }
+
+    const relevantZones = playModifierEffectRelevantZones.get(effect.type);
+    if (relevantZones) {
+        const sourceZone = (effect.source as Card | undefined)?.zoneName;
+        return !sourceZone || !relevantZones.has(sourceZone);
+    }
+
+    return false;
+}
+
+/**
+ * Resolves a description for an ongoing effect, in priority order:
+ *   1. An explicit `title` set on the effect itself — for lasting effects via their props, for delayed
+ *      effects via their value. Authors set this when the creating ability's title is just a header
+ *      (e.g. the effect is built inside a `Select`/`choices` handler or modal option).
+ *   2. The title/contextTitle of the ability that created it (the reliable, author-maintained text).
+ *   3. An explicit description on the effect props (already phrased for display).
+ *   4. The effect impl's description, which is a bare phrase, so we append the duration ("... for this phase").
+ */
+function describeEffect(effect: OngoingEffect): string | undefined {
+    // Delayed effects carry their title on the impl value; lasting effects carry it on their props.
+    const explicitTitle = effect.impl?.type === EffectName.DelayedEffect
+        ? resolveText((effect.impl.getValue() as { title?: unknown })?.title)
+        : resolveText((effect.ongoingEffect as { title?: unknown } | undefined)?.title);
+    if (explicitTitle) {
+        return explicitTitle;
+    }
+
+    const ability = effect.ongoingEffect?.ability ?? findRegisteringConstantAbility(effect);
+    const abilityTitle = getAbilityTitle(ability, effect.context);
+    if (abilityTitle) {
+        return abilityTitle;
+    }
+
+    // These description fields originate from lasting-effect props and are spread onto the
+    // ongoing effect props at runtime, but aren't part of the IOngoingEffectProps type.
+    const props = effect.ongoingEffect as { ongoingEffectDescription?: unknown; effectDescription?: unknown } | undefined;
+    const authored = resolveText(props?.ongoingEffectDescription) ?? resolveText(props?.effectDescription);
+    if (authored) {
+        return authored;
+    }
+
+    const implDescription = resolveText(effect.impl?.effectDescription);
+    return implDescription ? implDescription + durationSuffix(effect.duration) : undefined;
+}
+
+/**
+ * Detached effects (e.g. cost adjusters) store the applied game object, which tracks its own
+ * use limit. Once every applied instance is spent, the effect is no longer doing anything and
+ * shouldn't be surfaced in the summary (its lasting-effect duration may keep it alive in the
+ * engine until end of phase regardless).
+ */
+function effectLimitReached(effect: OngoingEffect): boolean {
+    const appliedValues = (effect.impl?.valueWrapper as { targetStates?: ReadonlyMap<string, unknown> })?.targetStates;
+    if (!appliedValues) {
+        return false;
+    }
+    const limited = [...appliedValues.values()].filter(
+        (applied): applied is { isExpired: () => boolean } => typeof (applied as { isExpired?: unknown })?.isExpired === 'function'
+    );
+    return limited.length > 0 && limited.every((applied) => applied.isExpired());
+}
+
+/** A game event listener owned by an ongoing effect, kept registered across snapshot rollbacks */
 @registerState()
-class CustomDurationEvent extends GameObjectBase {
+class EffectEventListener extends GameObjectBase {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered = false;
 
     public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
         super(game);
@@ -41,7 +218,7 @@ class CustomDurationEvent extends GameObjectBase {
         this.game.removeListener(this.name, this.handler);
     }
 
-    protected override afterSetState(oldState: ICustomDurationEventState): void {
+    protected override afterSetState(oldState: IEffectEventListenerState): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvent();
@@ -51,7 +228,7 @@ class CustomDurationEvent extends GameObjectBase {
         }
     }
 
-    public override cleanupOnRemove(oldState: ICustomDurationEventState): void {
+    public override cleanupOnRemove(oldState: IEffectEventListenerState): void {
         if (oldState.isRegistered) {
             this.unregisterEvent();
         }
@@ -76,7 +253,7 @@ export class OngoingEffectEngine extends GameObjectBase {
     public accessor effects: readonly OngoingEffect[] = [];
 
     @stateRefArray()
-    public accessor customDurationEvents: readonly CustomDurationEvent[] = [];
+    public accessor effectEventListeners: readonly EffectEventListener[] = [];
 
     public constructor(game: Game) {
         super(game);
@@ -92,13 +269,88 @@ export class OngoingEffectEngine extends GameObjectBase {
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
         }
+        if (effect.impl.type === EffectName.DelayedEffect) {
+            this.registerDelayedEffectEvents(effect);
+        }
         this.effectsChangedSinceLastCheck = true;
         return effect;
     }
 
-    public checkDelayedEffects(events: GameEvent[]) {
+    /**
+     * Returns the currently active ongoing effects in a shape the FE renders directly.
+     */
+    public summarizeOngoingEffectsForState(activePlayer?: Player): IOngoingEffectSummary[] {
+        const summaries: IOngoingEffectSummary[] = [];
+
+        const getRelativePlayer = (activePlayer: Player | null | undefined, otherPlayer: Player) => {
+            if (!activePlayer) {
+                return RelativePlayer.Self;
+            }
+
+            return EnumHelpers.asRelativePlayer(activePlayer, otherPlayer);
+        };
+
+        for (const effect of this.effects) {
+            if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
+                continue;
+            }
+
+            if (isExcludedFromSummary(effect)) {
+                continue;
+            }
+
+            const source = effect.source as Card;
+
+            // Don't surface effects sourced from a facedown resource. Cards active from the resource zone
+            // (e.g. "enters play ready" or Smuggle-related modifiers, all active-from-any-zone) only modify
+            // how that card itself plays/enters, so showing them as board effects on a blank resource is
+            // misleading rather than informative.
+            if (source.zoneName === ZoneName.Resource) {
+                continue;
+            }
+
+            // Don't surface effects sourced from a hidden zone (e.g. a card active from hand/deck
+            // such as "enters play ready") since that would leak the presence of a hidden card.
+            if (EnumHelpers.isHiddenFromOpponent(source.zoneName, getRelativePlayer(activePlayer, source.controller.opponent))) {
+                continue;
+            }
+
+            if (effectLimitReached(effect)) {
+                continue;
+            }
+
+            summaries.push({
+                sourceCardUuid: source.uuid,
+                source: {
+                    type: source.type,
+                    setId: source.setId,
+                    controllerId: source.controller?.id ?? source.owner?.id,
+                    sourceZone: source.zoneName,
+                    sourceTitle: source.title,
+                    sourceSubtitle: source.subtitle,
+                    effectDescription: describeEffect(effect),
+                },
+                // Sources in a hidden zone survive the skip check above only when the viewer is the controller
+                // (never the opponent), so flag those effects as controller-only for the FE.
+                hiddenFromOpponent: EnumHelpers.isHiddenFromOpponent(source.zoneName, RelativePlayer.Self),
+                targets: effect.targets
+                    .filter((effectTarget) =>
+                        effectTarget?.isCard?.() &&
+                        !EnumHelpers.isHiddenFromOpponent(effectTarget.zoneName, getRelativePlayer(activePlayer, effectTarget.controller.opponent)))
+                    .map((effectTarget) => effectTarget.uuid),
+            });
+        }
+
+        return summaries;
+    }
+
+    public checkDelayedEffects(events: GameEvent[], triggeredEffects: OngoingEffect<any>[]) {
         const effectsToTrigger: OngoingEffect<any>[] = [];
         const effectsToRemove: OngoingEffect<any>[] = [];
+
+        for (const effect of triggeredEffects) {
+            effect.delayedTriggerPending = false;
+        }
 
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
@@ -108,13 +360,8 @@ export class OngoingEffectEngine extends GameObjectBase {
                 if (properties.condition(effect.context)) {
                     effectsToTrigger.push(effect);
                 }
-            } else {
-                const triggeringEvents = events.filter((event) => properties.when[event.name]);
-                if (triggeringEvents.length > 0) {
-                    if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
-                        effectsToTrigger.push(effect);
-                    }
-                }
+            } else if (triggeredEffects.includes(effect)) {
+                effectsToTrigger.push(effect);
             }
         }
 
@@ -129,11 +376,19 @@ export class OngoingEffectEngine extends GameObjectBase {
                     // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
                     properties.immediateEffect.setDefaultTargetFn(() => targets);
 
+                    // CardTargetSystem.queueGenerateEventGameSteps builds events without asking canAffect, so a delayed effect whose
+                    // target is no longer a legal target (e.g. a card that left play before the effect was applied, such as a unit
+                    // defeated by the unique rule right after Nightbrother played it: removeLastingEffects had nothing to remove yet)
+                    // must not build its events. A card that left play is a new object (CR 8.5.4), so there is nothing to act on.
+                    const hasLegalTarget = properties.immediateEffect.hasLegalTarget(context);
+
                     const actionEvents = [];
-                    properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                    if (hasLegalTarget) {
+                        properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                    }
                     properties.limit.increment(context.player);
 
-                    if (properties.immediateEffect.hasLegalTarget(context)) {
+                    if (hasLegalTarget) {
                         const messageArgs: MsgArg[] = [context.player, ' uses a delayed effect applied by ', context.source, ' to '];
                         const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
                         messageArgs.push({ format: effectMessage, args: effectArgs });
@@ -158,16 +413,10 @@ export class OngoingEffectEngine extends GameObjectBase {
             });
         }
 
-        for (const effect of this.effects.filter(
-            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
-        )) {
+        for (const effect of effectsToTrigger) {
             const properties = effect.impl.getValue();
-            const triggeringEvents = events.filter((event) => properties.when[event.name]);
-
-            if (triggeringEvents.length > 0) {
-                if (properties.limit.isAtMax(effect.source.owner)) {
-                    effectsToRemove.push(effect);
-                }
+            if (properties.limit.isAtMax(effect.context.player)) {
+                effectsToRemove.push(effect);
             }
         }
 
@@ -239,9 +488,7 @@ export class OngoingEffectEngine extends GameObjectBase {
 
     private unapplyEffect(effect: OngoingEffect<any>) {
         effect.cancel();
-        if (effect.duration === Duration.Custom) {
-            this.unregisterCustomDurationEvents(effect);
-        }
+        this.unregisterEffectEventListeners(effect);
     }
 
     public unapplyAndRemove(match: (effect: OngoingEffect<any>) => boolean) {
@@ -284,30 +531,51 @@ export class OngoingEffectEngine extends GameObjectBase {
             return;
         }
 
-        const handler = this.createCustomDurationHandler(effect);
-
-        const newEvents: CustomDurationEvent[] = [];
-        for (const eventName of Object.keys(effect.until)) {
-            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect);
-            newEvent.registerEvent();
-            newEvents.push(newEvent);
-        }
-
-        this.customDurationEvents = [...this.customDurationEvents, ...newEvents];
+        this.registerEffectEventListeners(effect, Object.keys(effect.until), this.createCustomDurationHandler(effect));
     }
 
-    private unregisterCustomDurationEvents(effect: OngoingEffect<any>) {
-        const remainingEvents: CustomDurationEvent[] = [];
+    /**
+     * Delayed effects listen for their 'when' events on the post-handler emit from {@link EventWindow},
+     * which carries the emitting window so that it can fire the matched effect at its game state check
+     */
+    private registerDelayedEffectEvents(effect: OngoingEffect<any>) {
+        const when: WhenType = effect.impl.getValue().when;
+        if (!when) {
+            return;
+        }
 
-        for (const event of this.customDurationEvents) {
-            if (event.effect === effect) {
-                event.unregisterEvent();
+        const eventNames = Object.keys(when).map((eventName) => `${eventName}:${AbilityType.DelayedEffect}`);
+        this.registerEffectEventListeners(effect, eventNames, (event: GameEvent, window: EventWindow) => {
+            if (effect.isEffectActive() && !effect.delayedTriggerPending && when[event.name](event, effect.context)) {
+                effect.delayedTriggerPending = true;
+                window.addTriggeredDelayedEffect(effect);
+            }
+        });
+    }
+
+    private registerEffectEventListeners(effect: OngoingEffect<any>, eventNames: string[], handler: (...args: any[]) => void) {
+        const newListeners: EffectEventListener[] = [];
+        for (const eventName of eventNames) {
+            const newListener = new EffectEventListener(this.game, eventName, handler, effect);
+            newListener.registerEvent();
+            newListeners.push(newListener);
+        }
+
+        this.effectEventListeners = [...this.effectEventListeners, ...newListeners];
+    }
+
+    private unregisterEffectEventListeners(effect: OngoingEffect<any>) {
+        const remainingListeners: EffectEventListener[] = [];
+
+        for (const listener of this.effectEventListeners) {
+            if (listener.effect === effect) {
+                listener.unregisterEvent();
             } else {
-                remainingEvents.push(event);
+                remainingListeners.push(listener);
             }
         }
 
-        this.customDurationEvents = remainingEvents;
+        this.effectEventListeners = remainingListeners;
     }
 
     private createCustomDurationHandler(customDurationEffect: OngoingEffect<any>) {
@@ -316,7 +584,7 @@ export class OngoingEffectEngine extends GameObjectBase {
             const listener = customDurationEffect.until[event.name];
             if (listener && listener(event, customDurationEffect.context)) {
                 customDurationEffect.cancel();
-                this.unregisterCustomDurationEvents(customDurationEffect);
+                this.unregisterEffectEventListeners(customDurationEffect);
                 this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
             }
         };

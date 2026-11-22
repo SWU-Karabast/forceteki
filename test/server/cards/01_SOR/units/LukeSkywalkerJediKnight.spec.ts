@@ -1,6 +1,35 @@
 describe('Luke Skywalker, Jedi Knight', function () {
     integration(function (contextRef) {
         describe('Luke Skywalker\'s ability', function () {
+            it('should give -6/-6 when an enemy unit was taken and defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['luke-skywalker#jedi-knight', 'no-glory-only-results'],
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Wampa is defeated while player1 controls it, so it counts as a friendly unit
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.lukeSkywalker);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                context.player1.clickCard(context.atst);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst.getPower()).toBe(0);
+                expect(context.atst.getHp()).toBe(1);
+            });
+
             it('should give -3/-3 to an enemy unit because no friendly was defeated this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

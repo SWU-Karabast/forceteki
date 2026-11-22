@@ -17,7 +17,7 @@ export default class NimanStrike extends EventCard {
             title: `Attack with a ${TextHelper.Trait.Force} unit, even if it's exhausted. It gets +1/+0 and can't attack bases for this attack.`,
             initiateAttack: {
                 attackerCondition: (attacker) => attacker.hasSomeTrait(Trait.Force),
-                targetCondition: (target) => target.isUnit(),
+                targetCondition: (target) => !target.isBase(),
                 allowExhaustedAttacker: true,
                 attackerLastingEffects: {
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),

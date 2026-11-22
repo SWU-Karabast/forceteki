@@ -12,7 +12,7 @@ export default class Colossus extends BaseCard {
 
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Draw 1 less card in starting hands',
+            title: 'Draw 1 less card in starting hand',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStartingHandSize({
                 amount: -1
             })

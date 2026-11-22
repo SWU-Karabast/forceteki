@@ -50,5 +50,48 @@ describe('Desperate Commando', function () {
             context.player1.clickCard(context.battleDroid);
             expect(context.battleDroid).toBeInZone('outsideTheGame');
         });
+
+        // Ruling 2025-05-19: the end of a phase is a single moment in time. If Desperate Commando is
+        // buffed by a "for this phase" effect (e.g. Overwhelming Barrage) and that buff expiring at the
+        // end of the action phase defeats it, its "When Defeated: give a unit -1/-1 for this phase"
+        // resolves when the action phase is already over, so the -1/-1 lasts until the end of the
+        // regroup phase instead.
+        xit('its When-Defeated -1/-1 lasts into the regroup phase when it is defeated by a buff expiring at end of action phase', function () {
+            pending('Not yet implemented');
+            // Desperate Commando has 2 damage and is buffed by Overwhelming Barrage (+2/+2). At the end
+            // of the action phase, the buff expires and Desperate Commando is defeated. Its When-Defeated
+            // -1/-1 is applied to a unit, and because the action phase is already over, that debuff
+            // persists through the regroup phase rather than expiring immediately.
+        });
+
+        it('Desperate Commando\'s ability should be resolved by the new controller when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['desperate-commando', 'battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['pyke-sentinel'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.desperateCommando);
+
+            // player2 controlled Desperate Commando when it was defeated, so player2 resolves the ability
+            expect(context.player2).toHavePassAbilityButton();
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.pykeSentinel]);
+            context.player2.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.getPower()).toBe(2);
+            expect(context.battlefieldMarine.getHp()).toBe(2);
+            expect(context.pykeSentinel.getPower()).toBe(2);
+            expect(context.desperateCommando).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

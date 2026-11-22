@@ -148,6 +148,41 @@ describe('Uniqueness rule', function() {
             });
         });
 
+        describe('When another copy of a unique Fortify upgrade attached to the base enters play for the same controller,', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'the-tarkin-doctrine#protect-and-punish',
+                            'the-tarkin-doctrine#protect-and-punish'
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+                [context.tarkinDoctrine1, context.tarkinDoctrine2] = context.player1.findCardsByName('the-tarkin-doctrine#protect-and-punish');
+            });
+
+            it('the oldest copy is defeated automatically', function () {
+                const { context } = contextRef;
+
+                // Play the first copy onto the base
+                context.player1.clickCard(context.tarkinDoctrine1);
+                context.player1.clickCard(context.p1Base);
+                context.player2.passAction();
+
+                // Play the second copy onto the base, triggering the uniqueness rule
+                context.player1.clickCard(context.tarkinDoctrine2);
+                context.player1.clickCard(context.p1Base);
+
+                // The oldest copy is defeated by default; the newest remains attached to the base
+                expect(context.tarkinDoctrine1).toBeInZone('discard');
+                expect(context.tarkinDoctrine2).toBeAttachedTo(context.p1Base);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('When another copy of a unique piloting card enters play for the same controller,', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
@@ -373,9 +408,11 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInPlay).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no attack target)
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', '(No effect) Ambush']);
-                context.player1.clickPrompt('Draw a card');
-                context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: 'Draw a card', optional: true },
+                    { title: 'Ambush', optional: true, hasEffect: false },
+                ]);
+                context.player1.clickTrigger('Draw a card');
                 expect(context.player1.handSize).toBe(handSize + 1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -400,9 +437,11 @@ describe('Uniqueness rule', function() {
                 expect(context.kallusInHand).toBeInZone('discard');
 
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to attacker being defeated)
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', '(No effect) Ambush']);
-                context.player1.clickPrompt('Draw a card');
-                context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: 'Draw a card', optional: true },
+                    { title: 'Ambush', optional: true, hasEffect: false },
+                ]);
+                context.player1.clickTrigger('Draw a card');
                 expect(context.player1.handSize).toBe(handSize + 1);
 
                 expect(context.player2).toBeActivePlayer();

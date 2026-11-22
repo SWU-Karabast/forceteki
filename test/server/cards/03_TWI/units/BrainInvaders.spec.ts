@@ -290,6 +290,40 @@ describe('Brain Invaders', () => {
         });
 
         describe('When Brain Invaders is removed', function() {
+            it('does not let a blanked leader unit trigger off the defeat of Brain Invaders itself', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        groundArena: ['atst'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['brain-invaders', 'wampa']
+                    },
+                });
+
+                const { context } = contextRef;
+                expect(context.idenVersio.isBlank()).toBeTrue();
+
+                // Iden defeats Brain Invaders. Her abilities come back because Brain Invaders left play,
+                // but she had no "when an opponent's unit is defeated" ability at the moment it was defeated
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickCard(context.brainInvaders);
+
+                expect(context.brainInvaders).toBeInZone('discard', context.player2);
+                expect(context.idenVersio.isBlank()).toBeFalse();
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                // Abilities are back for later events
+                context.player2.passAction();
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+                expect(context.p1Base.damage).toBe(4);
+            });
+
             it('undeployed leaders regain their action abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -385,9 +419,8 @@ describe('Brain Invaders', () => {
                 // Player 1 plays an underworld card, Cad Bane's ability triggers
                 context.player1.clickCard(context.craftySmuggler);
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:'); // Choose resolution order
-                context.player1.clickPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHavePassableTriggerPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
+                context.player1.clickPass('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
 
                 // Player 2 plays an upgrade, The Mandalorian's ability triggers
                 context.player2.clickCard(context.theDarksaber);
@@ -419,7 +452,7 @@ describe('Brain Invaders', () => {
 
                 // Fennec Shand regains her action ability
                 expect(context.fennecShand).toHaveAvailableActionWhenClickedBy(context.player1);
-                expect(context.player1).toHaveEnabledPromptButton('Play a unit that costs 4 or less from your hand. Give it ambush for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Play a unit that costs 4 or less from your hand. Give it Ambush for this phase');
                 context.player1.clickPrompt('Attack');
                 context.player1.clickCard(context.p2Base);
 
@@ -631,6 +664,68 @@ describe('Brain Invaders', () => {
                     context.player1.clickPrompt('Trigger');
                     expect(context.player1.hand.length).toBe(cardsInHand + 2);
                 });
+            });
+        });
+
+        describe('When Brain Invaders is played via a leader ability that is still resolving', function() {
+            // Ruling 2025-05-19: Brain Invaders cannot blank a currently-resolving ability. If JTL
+            // Lando (Buying Time) uses his leader-side ability to play Brain Invaders, his ability has
+            // already begun resolving, so it finishes in full and still gives the Shield token.
+            it('does not prevent JTL Lando\'s leader ability from finishing (the Shield is still placed)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lando-calrissian#buying-time',
+                        hand: ['brain-invaders'],
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['awing'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Lando's leader-side action plays Brain Invaders from hand
+                context.player1.clickCard(context.landoCalrissian);
+                context.player1.clickPrompt('Play a unit from your hand. If you do and you control a ground unit and a space unit, give a Shield token to a unit');
+                context.player1.clickCard(context.brainInvaders);
+                expect(context.brainInvaders).toBeInZone('groundArena');
+
+                // Brain Invaders blanks Lando on entry, but his already-resolving ability still gives a Shield token
+                expect(context.landoCalrissian.isBlank()).toBeTrue();
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.brainInvaders, context.awing]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            // Ruling 2025-05-19: same as above — Brain Invaders cannot blank a currently-resolving
+            // ability. Grievous's "Play 2 units" ability is still resolving when Brain Invaders enters
+            // play as the first unit, so the second unit can still be played.
+            it('does not prevent HMW Grievous\'s leader ability from finishing (the second unit is still played)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'general-grievous#separatist-warlord',
+                        hand: ['brain-invaders', 'battlefield-marine'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Grievous's leader-side action plays 2 units from hand, one at a time
+                context.player1.clickCard(context.generalGrievous);
+                context.player1.clickPrompt('Play 2 units from your hand');
+                context.player1.clickCard(context.brainInvaders);
+
+                // Brain Invaders blanks Grievous on entry, but his already-resolving ability still offers the second unit
+                expect(context.brainInvaders).toBeInZone('groundArena');
+                expect(context.generalGrievous.isBlank()).toBeTrue();
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                expect(context.generalGrievous.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

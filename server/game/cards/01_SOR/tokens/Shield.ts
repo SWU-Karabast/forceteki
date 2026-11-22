@@ -2,7 +2,7 @@ import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterface
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
-import { DamageModificationType } from '../../../core/Constants';
+import { DamageModificationType, TokenUpgradeName } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
 
 export default class Shield extends TokenUpgradeCard {
@@ -28,6 +28,10 @@ export default class Shield extends TokenUpgradeCard {
 
     public override isShield(): this is Shield {
         return true;
+    }
+
+    public override get tokenName(): TokenUpgradeName {
+        return TokenUpgradeName.Shield;
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {

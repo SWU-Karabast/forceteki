@@ -30,13 +30,11 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
             title: 'If you own this unit, play it from your discard pile for free and give an Experience token to it',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.owner === context.player,
-                onTrue: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Free },
-                        playAsType: WildcardCardType.Unit,
-                    }),
-                    AbilityHelper.immediateEffects.giveExperience(),
-                ]),
+                onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+                    adjustCost: { costAdjustType: CostAdjustType.Free },
+                    playAsType: WildcardCardType.Unit,
+                    enterPlayEffect: AbilityHelper.immediateEffects.giveExperience(),
+                }),
             })
         });
     }

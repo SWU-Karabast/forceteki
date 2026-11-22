@@ -52,6 +52,31 @@ describe('Migs Mayfeld, How About A Toast?', function() {
             expect(context.p1Base.damage).toBe(0);
         });
 
+        it('should deal 2 damage to all defending unit when supporting upgraded TWI Darth Maul', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['migs-mayfeld#how-about-a-toast'],
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['shield'] }]
+                },
+                player2: {
+                    groundArena: ['gentle-giant', 'ziro-the-hutt#colorful-schemer'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.migsMayfeld);
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.gentleGiant);
+            context.player1.clickCard(context.ziroTheHutt);
+            context.player1.clickDone();
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.gentleGiant.damage).toBe(7);
+            expect(context.ziroTheHutt.damage).toBe(7);
+        });
+
         it('should deal no extra damage to the base on attack when upgraded', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

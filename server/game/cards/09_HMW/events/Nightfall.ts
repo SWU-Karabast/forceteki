@@ -1,0 +1,34 @@
+import { EventCard } from '../../../core/card/EventCard';
+import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
+
+export default class Nightfall extends EventCard {
+    protected override getImplementationId() {
+        return {
+            id: '6401776875',
+            internalName: 'nightfall',
+        };
+    }
+
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.setEventAbility({
+            title: `Deal 1 damage to an enemy unit. If you control an ${TextHelper.Trait.Endor} base, you may attack with a unit. It gets +2/+0 for this attack`,
+            targetResolver: {
+                activePromptTitle: 'Deal 1 damage to an enemy unit',
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Opponent,
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
+            },
+            then: {
+                title: 'Attack with a unit. It gets +2/+0 for this attack',
+                thenCondition: (c) => c.player.base.hasSomeTrait(Trait.Endor),
+                optional: true,
+                initiateAttack: {
+                    attackerLastingEffects: { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) }
+                }
+            }
+        });
+    }
+}

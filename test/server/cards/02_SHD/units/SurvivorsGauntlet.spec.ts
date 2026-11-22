@@ -122,8 +122,7 @@ describe('Survivors Gauntlet', function() {
                 // We clean player 2 board expect Finn and cartel Spacer
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.hylobonEnforcer);
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickPass('Collect Bounty: Draw a card');
 
                 context.player2.clickCard(context.electrostaff);
                 context.player2.clickCard(context.finn);
@@ -204,6 +203,51 @@ describe('Survivors Gauntlet', function() {
             context.player2.clickCard(context.p1Base);
             expect(context.player2).toBeAbleToSelectExactly([context.legalAuthority, context.traitorous]);
             context.player2.clickPrompt('Pass');
+        });
+
+        it('cannot choose a Fortify upgrade attached to a base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['survivors-gauntlet'],
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'battlefield-marine'],
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.survivorsGauntlet);
+
+            // Only upgrades on units in the arenas are eligible - the base upgrade is excluded
+            expect(context.player1).toBeAbleToSelectExactly([context.experience]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickPrompt('Pass');
+        });
+
+        // Ruling 2025-03-25 (CR 3.6.3.B): for a non-upgrade card attached as an upgrade, the attachment
+        // restriction is created by the ability that made it an upgrade and persists while it stays an
+        // upgrade; "friendly"/"enemy" in that restriction is determined by the upgrade's controller.
+        // Survivors' Gauntlet can move such an upgrade only to units eligible under that restriction.
+        // The core is covered above; these are the remaining scenarios from the ruling.
+
+        // Scenario 2: Sidon Ithano's restriction is "enemy Vehicle unit without a Pilot on it".
+        xit('can move Sidon Ithano to another enemy Vehicle without a Pilot (eligibility per the upgrade\'s controller)', function () {
+            pending('Not yet implemented');
+            // Player A plays Sidon Ithano as an upgrade on an enemy Vehicle (Bright Hope). The opponent
+            // plays another Vehicle without a Pilot (e.g. Lurking TIE Phantom). Player A attacks with
+            // Survivors' Gauntlet and can move Sidon to that other enemy Vehicle, since "enemy" is
+            // determined by Sidon's controller (still Player A).
+        });
+
+        // Scenarios 4/5: Iden Versio + Corvus, and then Eject.
+        xit('applies Corvus\'s "Attach to this unit" restriction to Iden, and clears it once Iden is detached via Eject', function () {
+            pending('Not yet implemented');
+            // Player A plays Iden Versio, then plays Corvus and attaches Iden to Corvus via its When
+            // Played (so Iden's attachment restriction is "Attach to Corvus"). Survivors' Gauntlet cannot
+            // move Iden off Corvus. If Iden is later detached and becomes a unit again via Eject, the
+            // previous "Attach to Corvus" restriction no longer applies to her.
         });
     });
 });

@@ -46,6 +46,43 @@ describe('Stolen Landspeeder', function () {
             expect(context.stolenLandspeeder).toBeInZone('discard', context.player1);
         });
 
+        it('Stolen Landspeeder replayed via its bounty should survive Supreme Leader Snoke because the Experience token is given as it enters play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['stolen-landspeeder'],
+                    groundArena: ['super-battle-droid'],
+                },
+                player2: {
+                    hand: ['supreme-leader-snoke#shadow-ruler']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays Stolen Landspeeder from hand and player 2 takes control of it
+            context.player1.clickCard(context.stolenLandspeeder);
+            expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player2);
+
+            // Player 2 plays Snoke, giving Player 1's units -2/-2 (Snoke's own controller's Landspeeder is unaffected)
+            context.player2.clickCard(context.supremeLeaderSnokeShadowRuler);
+
+            // Player 1 defeats the enemy-controlled Stolen Landspeeder to collect the bounty
+            context.player1.clickCard(context.superBattleDroid);
+            context.player1.clickCard(context.stolenLandspeeder);
+
+            expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
+            context.player1.clickPrompt('Trigger');
+
+            // Stolen Landspeeder (3/2) + Experience is 4/3; re-entering under Snoke's -2/-2 it survives at 2/1.
+            expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
+            expect(context.stolenLandspeeder).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+
+            // the enter-play effect from the bounty replay is logged crediting Stolen Landspeeder itself
+            expect(context.getChatLogs(5)).toContain('player1 uses Stolen Landspeeder to give an Experience token to Stolen Landspeeder');
+        });
+
         it('Stolen Landspeeder\'s ability should not allow opponent to take control of it when played from out of hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -72,6 +109,40 @@ describe('Stolen Landspeeder', function () {
             // Player 1 plays Stolen Landspeeder from with smuggle and opponent does not take control of it
             context.player1.clickCard(context.stolenLandspeeder);
             expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
+        });
+
+        // Ruling 2024 (Han2): when Han Solo (Worth the Risk) leader plays Stolen Landspeeder, his
+        // "deal 2 damage to it" defeats the Landspeeder before its "an opponent takes control" When
+        // Played trigger would resolve, so the opponent never takes control of it.
+        it('is defeated by Han Solo (Worth the Risk) leader before the take-control trigger resolves', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                    hand: ['stolen-landspeeder'],
+                    resources: 5
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            // Han Solo uses his leader ability to play Stolen Landspeeder (cost 1, -1 = free) and deal
+            // 2 damage to it, defeating it (hp 2).
+            context.player1.clickCard(context.hanSolo);
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+            context.player1.clickCard(context.stolenLandspeeder);
+
+            // Defeating the Landspeeder leaves both the "opponent takes control" trigger (player1) and
+            // the bounty trigger (player2) pending in the same window; resolve player1's first.
+            context.player1.clickPrompt('You');
+
+            // player2's bounty does nothing (they don't own the Landspeeder); pass on it
+            context.player2.clickPrompt('Pass');
+
+            // The Landspeeder was defeated before the take-control trigger could resolve, so control
+            // never changed to player2 — it goes to its owner's (player1's) discard pile.
+            expect(context.stolenLandspeeder).toBeInZone('discard', context.player1);
         });
     });
 });

@@ -44,7 +44,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     protected readonly propertyFactory?: (context?: TContext) => TProperties;
     protected readonly properties?: TProperties;
     protected readonly defaultProperties: IGameSystemProperties = { cannotBeCancelled: false, optional: false };
-    protected getDefaultTargets: (context: TContext) => any = (context) => this.defaultTargets(context);
+    private readonly ownDefaultTargetsFn = (context: TContext) => this.defaultTargets(context);
+    protected getDefaultTargets: (context: TContext) => any = this.ownDefaultTargetsFn;
 
     protected abstract isTargetTypeValid(target: GameObject | GameObject[]): boolean;
 
@@ -52,16 +53,16 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * Helper method for adding an additional property onto the `propertiesOrPropertyFactory` signature accepted
      * by the {@link GameSystem} constructor.
      *
-     * This is useful in cases where a derived GameSystem type wants to hide one or more ctor properties inherited from
-     * the parent class so it can force them to be a specific value, for situations like the example below.
-     * See GiveShieldSystem for an example of how to use this method.
+     * This is useful in cases where a factory method (or derived GameSystem type) wants to hide one or more ctor
+     * properties inherited from the parent class so it can force them to be a specific value, for situations like the
+     * example below. See the `giveShield`/`createSpy` factory methods in GameSystemLibrary for example usages.
      *
      * @example
-     * // more flexible version has 'tokenType' as a property
-     * const giveTokenSystem = new GiveTokenUpgradeSystem({ tokenType: TokenType.Shield, amount: 2, ...other props... });
+     * // general system exposes 'tokenType' as a property
+     * const giveTokenSystem = new GiveTokenUpgradeSystem({ tokenType: TokenUpgradeName.Shield, amount: 2, ...other props... });
      *
-     * // more specific version used in most cases
-     * const giveShieldSystem = new GiveShieldSystem({ amount: 2 ...other props... });
+     * // factory method injects the tokenType so callers don't have to
+     * const giveShieldSystem = giveShield({ amount: 2, ...other props... });
      *
      * @param propertiesOrPropertyFactory The constructor argument to be appended to
      * @param added Object with properties to append
@@ -69,10 +70,13 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     public static appendToPropertiesOrPropertyFactory<T, TProp extends Extract<keyof T, string>>(propertiesOrPropertyFactory: Omit<T, TProp> | ((context?) => Omit<T, TProp>), added: Pick<T, TProp>) {
         let result: T | ((context?) => T) = null;
+        // assign into a fresh object rather than mutating the caller's input: the same properties object may be reused
+        // across multiple factory calls (e.g. MoffJerjerrod building one system per token type from a shared props
+        // object), and mutating it would let the last-appended value clobber the others.
         if (typeof propertiesOrPropertyFactory === 'function') {
-            result = ((context?) => Object.assign(propertiesOrPropertyFactory(context), added)) as (context?) => T;
+            result = ((context?) => Object.assign({}, propertiesOrPropertyFactory(context), added)) as (context?) => T;
         } else {
-            result = Object.assign(propertiesOrPropertyFactory, added) as T;
+            result = Object.assign({}, propertiesOrPropertyFactory, added) as T;
         }
 
         return result;
@@ -193,6 +197,11 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return false;
     }
 
+    /** Whether this system reveals cards. Overridden by {@link RevealSystem}; used to decide when to mask hidden information. */
+    public isReveal(): boolean {
+        return false;
+    }
+
     /**
      * Evaluates whether all of the provided targets for this {@link GameSystem} are legal for this system to act on
      * given the current game state. See {@link GameSystem.generatePropertiesFromContext} for details on target generation.
@@ -268,6 +277,16 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         this.getDefaultTargets = func;
     }
 
+    /** Restores the {@link GameSystem.defaultTargets} method as this system's default targets, undoing {@link GameSystem.setDefaultTargetFn} */
+    public resetDefaultTargetFn(): void {
+        this.getDefaultTargets = this.ownDefaultTargetsFn;
+    }
+
+    /** True if a caller has assigned this system's default targets with {@link GameSystem.setDefaultTargetFn}, even if they are empty */
+    protected hasAssignedDefaultTarget(): boolean {
+        return this.getDefaultTargets !== this.ownDefaultTargetsFn;
+    }
+
     /**
      * Resolves the effects of the system on game state by generating the necessary events and
      * opening a window to resolve them with {@link Game.openEventWindow}.
@@ -288,6 +307,15 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     public checkEventCondition(event: GameEvent, additionalProperties: Partial<TProperties> = {}): boolean {
         return true;
+    }
+
+    /**
+     * Whether this system, as an optional ability's immediate effect, can show the ability's Pass option in its
+     * own prompt for `passingPlayer`. If so, the ability skips the "You may trigger this ability" prompt and the
+     * system finds the option on {@link AbilityContext.abilityPassOption} when it resolves.
+     */
+    public canShowAbilityPassOption(context: TContext, passingPlayer: Player): boolean {
+        return false;
     }
 
     public isOptional(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {

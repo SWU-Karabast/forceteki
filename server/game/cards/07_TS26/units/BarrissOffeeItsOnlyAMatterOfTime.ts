@@ -16,7 +16,6 @@ export default class BarrissOffeeItsOnlyAMatterOfTime extends NonLeaderUnitCard 
             contextTitle: (context) => `Give an Experience token to ${context.event.attack.attacker.title}`,
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker.controller !== context.player,
-
             },
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.giveExperience((context) => ({

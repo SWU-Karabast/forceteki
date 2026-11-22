@@ -13,7 +13,7 @@ const _isDevelopment = process.env.ENVIRONMENT === 'development';
 
 const defaultFilterCallback = (item) => item != null;
 
-function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergeProperty }, TMergeProperty, TPropName extends string>(
+function mergeProperty<TPropertySet extends Partial<Record<TPropName, TMergeProperty>>, TMergeProperty, TPropName extends string>(
     propertySet: TPropertySet,
     newPropName: TPropName,
     newPropValue: TMergeProperty,
@@ -324,7 +324,7 @@ export namespace Helpers {
         return result;
     }
 
-    export function mergeNumericProperty<TPropertySet extends { [key in TPropName]?: number }, TPropName extends string>(
+    export function mergeNumericProperty<TPropertySet extends Partial<Record<TPropName, number>>, TPropName extends string>(
         propertySet: TPropertySet,
         newPropName: TPropName,
         newPropValue: number
@@ -332,7 +332,7 @@ export namespace Helpers {
         return mergeProperty(propertySet, newPropName, newPropValue, (oldValue, newValue) => oldValue + newValue);
     }
 
-    export function mergeArrayProperty<TPropertySet extends { [key in TPropName]?: any[] }, TPropName extends string>(
+    export function mergeArrayProperty<TPropertySet extends Partial<Record<TPropName, any[]>>, TPropName extends string>(
         propertySet: TPropertySet,
         newPropName: TPropName,
         newPropValue: any[]
@@ -378,6 +378,12 @@ export namespace Helpers {
 
     export function capitalize(value: string): string {
         return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    /** Capitalize each space-separated word of a value, e.g. 'bounty hunter' -> 'Bounty Hunter' */
+    export function titleCase(value: string): string {
+        return value.split(' ').map(capitalize)
+            .join(' ');
     }
 
     export function pluralize(count: number, singular: string, plural: string): string {

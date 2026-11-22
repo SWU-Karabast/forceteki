@@ -5,7 +5,8 @@ import { PlayType } from '../core/Constants.js';
 import { CostAdjustType } from '../core/cost/CostAdjuster.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import { PlayCardSystem } from './PlayCardSystem.js';
-import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem.js';
+import { type ISearchDeckProperties, SearchDeckSystem } from './SearchDeckSystem.js';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 
 export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityContext = AbilityContext>
     extends Omit<ISearchDeckProperties<TContext>,
@@ -15,6 +16,12 @@ export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityCo
       | 'remainingCardsHandler'> {
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
     playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
+
+    /**
+     * Effect(s) resolved for each played units as they enter play, before any triggers and before subsequent units enter play
+     * See {@link IPutIntoPlayProperties.enterPlayEffect}.
+     */
+    playedCardEnterPlayEffect?: GameSystem | GameSystem[];
 }
 
 export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = AbilityContext> extends SearchDeckSystem<TContext, IPlayMultipleCardsFromDeckProperties<TContext>> {
@@ -28,6 +35,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
                 costAdjustType: CostAdjustType.Free
             },
             playAsType: properties.playAsType,
+            enterPlayEffect: properties.playedCardEnterPlayEffect,
         });
 
         const propsWithViewType = { ...properties, selectedCardsImmediateEffect: selectedCardsImmediateEffect };

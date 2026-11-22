@@ -1,7 +1,7 @@
 import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import type { Card } from '../../core/card/Card';
-import { KeywordName, WildcardZoneName } from '../../core/Constants';
+import { EffectName, KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
 import { TextHelper } from '../../core/utils/TextHelper';
@@ -32,7 +32,9 @@ export class AmbushAbility extends TriggeredAbilityBase {
                     isAmbush: true,
                     allowExhaustedAttacker: true,
                     attacker: context.source,
-                    targetCondition: (card) => !card.isBase(),
+                    targetCondition: (card) =>
+                        !card.isBase() ||
+                        context.source.hasOngoingEffect(EffectName.CanAttackBaseWhileUsingAmbush),
                     optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
                 })),
                 onFalse: new NoActionSystem({})
@@ -41,10 +43,11 @@ export class AmbushAbility extends TriggeredAbilityBase {
     }
 
     private static unitWouldHaveAmbushTarget<TSource extends Card = Card>(context: TriggeredAbilityContext<TSource>): boolean {
-        // generate an attack action that won't check zone or cost and can't attack bases so that we can see if there would be a hypothetical attack target
+        // generate an attack action that won't check zone or cost so that we can see if there would be a hypothetical attack target.
+        // bases are excluded unless the attacker can attack bases while using Ambush (e.g. via Fett's Firespray)
         const attackAction = new InitiateAttackSystem({
             attacker: context.source,
-            targetCondition: (card) => !card.isBase(),
+            targetCondition: (card) => !card.isBase() || context.source.hasOngoingEffect(EffectName.CanAttackBaseWhileUsingAmbush),
             ignoredRequirements: ['zone', 'cost']
         });
 

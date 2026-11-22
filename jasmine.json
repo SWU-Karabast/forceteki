@@ -4,6 +4,7 @@
         "**/*[sS]pec.js"
     ],
     "helpers": [
+        "helpers/server/ServerTestEnv.js",
         "helpers/**/*.js",
         "jasmine-typescript-helper.js"
     ],

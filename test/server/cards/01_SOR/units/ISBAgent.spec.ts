@@ -82,10 +82,15 @@ describe('ISB Agent', function() {
                     });
                 });
 
-                it('should do nothing', function () {
+                it('shows a skippable pause instead of resolving', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.isbAgent);
+
+                    // Player 1 has no event to reveal, so a skippable masking pause is shown instead of resolving instantly
+                    expect(context.player1).toHavePrompt('Pausing for Reveal');
+                    expect(context.player1).toHaveEnabledPromptButton('Skip');
+                    context.player1.clickPrompt('Skip');
 
                     expect(context.getChatLogs(1)).toEqual([
                         'player1 plays ISB Agent',

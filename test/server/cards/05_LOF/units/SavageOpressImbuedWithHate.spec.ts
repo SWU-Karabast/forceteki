@@ -22,7 +22,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 context.player1.clickCard(context.savageOpress);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force. If you don\'t, deal 9 damage to your base.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you don\'t, deal 9 damage to your base.');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.hasTheForce).toBe(false);
@@ -37,7 +37,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 context.player1.clickCard(context.savageOpress);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force. If you don\'t, deal 9 damage to your base.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you don\'t, deal 9 damage to your base.');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player1.hasTheForce).toBe(true);
@@ -83,7 +83,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 context.player2.clickCard(context.savageOpress);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force. If you don\'t, deal 9 damage to your base.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you don\'t, deal 9 damage to your base.');
                 context.player1.clickPrompt('Trigger');
 
                 // Ensure the Force was used
@@ -100,7 +100,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 context.player2.clickCard(context.savageOpress);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force. If you don\'t, deal 9 damage to your base.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you don\'t, deal 9 damage to your base.');
                 context.player1.clickPrompt('Pass');
 
                 // Ensure the Force was not used
@@ -148,7 +148,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 context.player1.clickCard(context.savageOpress);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force. If you don\'t, deal 9 damage to your base.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you don\'t, deal 9 damage to your base.');
                 context.player1.clickPrompt('Trigger');
 
                 // Ensure the Force was used
@@ -167,7 +167,7 @@ describe('Savage Opress, Imbued with Hate', () => {
                 context.player1.clickCard(context.savageOpress);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force. If you don\'t, deal 9 damage to your base.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you don\'t, deal 9 damage to your base.');
                 context.player1.clickPrompt('Pass');
 
                 // Ensure the Force was not used

@@ -22,6 +22,10 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         useDisplayPrompt: null
     };
 
+    public override isReveal(): boolean {
+        return true;
+    }
+
     public override checkEventCondition(event): boolean {
         for (const card of event.cards) {
             if (!this.canAffect(card, event.context)) {

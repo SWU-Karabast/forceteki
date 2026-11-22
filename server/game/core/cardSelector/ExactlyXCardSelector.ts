@@ -26,7 +26,10 @@ export class ExactlyXCardSelector<TContext extends AbilityContext = AbilityConte
     }
 
     public override hasEnoughSelected(selectedCards: Card[]) {
-        return this.optional || selectedCards.length === this.numCards;
+        if (this.optional && selectedCards.length === 0) {
+            return true;
+        }
+        return selectedCards.length === this.numCards;
     }
 
     public override hasEnoughTargets(context: TContext) {
@@ -40,6 +43,10 @@ export class ExactlyXCardSelector<TContext extends AbilityContext = AbilityConte
         }, 0);
 
         return numMatchingCards >= this.numCards;
+    }
+
+    public override wouldExceedLimit(selectedCards: Card[], card: Card) {
+        return !selectedCards.includes(card) && selectedCards.length >= this.numCards;
     }
 
     public override hasReachedLimit(selectedCards: Card[]) {

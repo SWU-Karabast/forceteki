@@ -27,6 +27,11 @@ describe('Trask Walker', function () {
 
                 context.player1.clickPrompt('Return it to your hand');
                 expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Trask Walker',
+                    'player1 uses Trask Walker to return Wampa to their hand'
+                ]);
+
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -59,6 +64,11 @@ describe('Trask Walker', function () {
                 context.player1.clickPrompt('Put on the bottom of your deck and heal 3 damage from your base');
                 expect(context.wampa).toBeInZone('deck', context.player1);
                 expect(context.p1Base.damage).toEqual(7);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Trask Walker',
+                    'player1 uses Trask Walker to move Wampa to the bottom of their deck and to heal 3 damage from their base'
+                ]);
+
                 expect(context.player2).toBeActivePlayer();
             });
 

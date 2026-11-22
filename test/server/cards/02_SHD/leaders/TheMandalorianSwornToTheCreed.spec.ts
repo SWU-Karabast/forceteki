@@ -172,5 +172,45 @@ describe('The Mandalorian, Sworn To The Creed', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('The Mandalorian\'s leader undeployed ability should trigger when its controller plays an opponent-owned upgrade from the discard pile with A Fine Addition', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition'],
+                    groundArena: ['wampa'],
+                    leader: 'the-mandalorian#sworn-to-the-creed',
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
+                    discard: ['academy-training']
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Defeat an enemy unit to enable A Fine Addition
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.deathStarStormtrooper);
+            expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // Play the opponent's upgrade from their discard pile
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toHaveExactUpgradeNames(['academy-training']);
+
+            // The Mandalorian reacts to player1 playing the opponent-owned upgrade
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to exhaust an enemy unit with 4 or less remaining HP');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.theMandalorian.exhausted).toBeTrue();
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

@@ -283,8 +283,13 @@ export class SnapshotManager {
 
     public getRollbackInformation(settings: IGetSnapshotSettings): ICanRollBackResult {
         switch (settings.type) {
-            case SnapshotType.Action:
-                return { requiresConfirmation: this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset))?.requiresConfirmationToRollback ?? true };
+            case SnapshotType.Action: {
+                const actionSnapshotProperties = this.actionSnapshots.getSnapshotProperties(settings.playerId, this.checkGetOffset(settings.actionOffset));
+                return {
+                    requiresConfirmation: actionSnapshotProperties?.requiresConfirmationToRollback ?? true,
+                    isSameTimepoint: actionSnapshotProperties != null && actionSnapshotProperties.snapshotId === this.currentSnapshotId
+                };
+            }
             case SnapshotType.Manual:
                 return { requiresConfirmation: this.manualSnapshots.get(settings.playerId)?.getSnapshotProperties(settings.snapshotId)?.requiresConfirmationToRollback ?? true };
             case SnapshotType.Phase:

@@ -254,6 +254,37 @@ describe('The Ghost, Home of the Spectres', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should give nothing to any unit, including itself, when choosing nothing with Vigilance units', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-ghost#home-of-the-spectres'],
+                        groundArena: ['nightsister-warrior'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel'],
+                        spaceArena: ['disabling-fang-fighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theGhost);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to up to 2 units');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.theGhost).toHaveExactUpgradeNames([]);
+                expect(context.nightsisterWarrior).toHaveExactUpgradeNames([]);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames([]);
+                expect(context.pykeSentinel).toHaveExactUpgradeNames([]);
+                expect(context.disablingFangFighter).toHaveExactUpgradeNames([]);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should be able to be passed with the condition met', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

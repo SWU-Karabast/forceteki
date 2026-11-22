@@ -12,11 +12,17 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
     public readonly gameSystem: GameSystem<TContext>;
 
     private readonly ifPossible: boolean;
+    private readonly costName?: string;
 
-    /** @param ifPossible Indicates that the cost should be paid if possible, but don't fail the action if not */
-    public constructor(gameSystem: GameSystem<TContext>, ifPossible: boolean = false) {
+    /**
+     * @param ifPossible Indicates that the cost should be paid if possible, but don't fail the action if not
+     * @param costName Overrides the key this cost's target is recorded under in `context.costs`
+     * (defaults to the wrapped game system's name)
+     */
+    public constructor(gameSystem: GameSystem<TContext>, ifPossible: boolean = false, costName?: string) {
         this.gameSystem = gameSystem;
         this.ifPossible = ifPossible;
+        this.costName = costName;
     }
 
     public isResourceCost(): this is ResourceCost {
@@ -51,7 +57,7 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
             return;
         }
 
-        context.costs[this.gameSystem.name] = this.gameSystem.generatePropertiesFromContext(context).target;
+        context.costs[this.costName ?? this.gameSystem.name] = this.gameSystem.generatePropertiesFromContext(context).target;
         this.gameSystem.queueGenerateEventGameSteps(events, context);
     }
 

@@ -6,7 +6,7 @@ describe('Lando Calrissian, Buying Time', function () {
                     phase: 'action',
                     player1: {
                         leader: 'lando-calrissian#buying-time',
-                        hand: ['restored-arc170', 'kuiil#i-have-spoken'],
+                        hand: ['restored-arc170', 'kuiil#i-have-spoken', 'rey#keeping-the-past'],
                         resources: 5
                     },
                     player2: {
@@ -20,6 +20,7 @@ describe('Lando Calrissian, Buying Time', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.landoCalrissian);
+                // rey is not playable, only 4 resources left
                 expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.kuiil]);
                 context.player1.clickCard(context.kuiil);
 

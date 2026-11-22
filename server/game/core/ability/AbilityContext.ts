@@ -9,12 +9,26 @@ import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
 import type { ReplacementEffectContext } from './ReplacementEffectContext';
+import type { AbilityLimit } from './AbilityLimit';
+
+/**
+ * The Pass option of an optional ability whose immediate effect shows Pass in its own prompt (see
+ * {@link GameSystem.canShowAbilityPassOption}) instead of the "You may trigger this ability" prompt.
+ */
+export interface IAbilityPassOption {
+    buttonText: string;
+    player: Player;
+
+    /** Set once a prompt has shown the option, so that it is offered only once per resolution. */
+    shown: boolean;
+}
 
 export interface IAbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
     ability?: PlayerOrCardAbility;
+    limit?: AbilityLimit;
     ongoingEffect?: IOngoingEffectProps<any>;
     costs?: any;
     costAspects?: Aspect[];
@@ -58,11 +72,28 @@ export class AbilityContext<TSource extends Card = Card> {
     public selectedPromptCards: Card[] = [];
     public activeAttackId?: number;
 
+    /**
+     * Pending increase to the damage dealt by the ability being resolved in this context.
+     * Set by replacement effects that apply when the ability is initiated (e.g. Ty Yorrick, Monster Hunter)
+     * and consumed by damage-generating systems when their damage events are created.
+     */
+    public pendingAbilityDamageIncrease = 0;
+
+    /** Set when this optional ability's Pass option is shown by its immediate effect's prompt; see {@link IAbilityPassOption}. */
+    public abilityPassOption?: IAbilityPassOption;
+
+    // Capture the limit for this resolution. A card leaving and returning can
+    // replace its live limit while existing contexts still share the old one.
+    private readonly limit?: AbilityLimit;
+
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
         this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
         this.ability = properties.ability;
+        this.limit = 'limit' in properties
+            ? properties.limit
+            : this.ability?.captureLimit?.();
         this.costs = properties.costs || {};
         this.costAspects = properties.costAspects || [];
         this.ongoingEffect = properties.ongoingEffect;
@@ -92,6 +123,14 @@ export class AbilityContext<TSource extends Card = Card> {
         return false;
     }
 
+    public isAtLimit(): boolean {
+        return this.limit?.isAtMax(this.player) ?? false;
+    }
+
+    public incrementLimit(): void {
+        this.limit?.increment(this.player);
+    }
+
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
         const copy = this.createCopy(newProps);
         copy.target = this.target;
@@ -103,6 +142,7 @@ export class AbilityContext<TSource extends Card = Card> {
         copy.playType = this.playType;
         copy.events = this.events;
         copy.activeAttackId = this.activeAttackId;
+        copy.abilityPassOption = this.abilityPassOption;
         return copy;
     }
 
@@ -116,6 +156,7 @@ export class AbilityContext<TSource extends Card = Card> {
             source: this.source,
             player: this.player,
             ability: this.ability,
+            limit: this.limit,
             ongoingEffect: this.ongoingEffect,
             costs: Object.assign({}, this.costs),
             costAspects: this.costAspects,

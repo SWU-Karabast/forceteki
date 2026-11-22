@@ -253,6 +253,38 @@ describe('Clone', function() {
             });
         });
 
+        describe('when played from an opponent\'s resources by Tear This Ship Apart', function() {
+            it('should enter play under the playing player\'s control as non-unique copy of another unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jabba-the-hutt#crime-boss',
+                        base: 'echo-base',
+                        hand: ['tear-this-ship-apart'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                        resources: ['clone', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tearThisShipApart);
+                context.player1.clickCardInDisplayCardPrompt(context.clone);
+
+                // Clone's pre-enter-play ability resolves for player1 even though player2 still controls it in their resource row
+                expect(context.player1).toHavePrompt(clonePrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.clone).toBeInZone('groundArena', context.player1);
+                expect(context.clone).toBeCloneOf(context.wampa);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('when played from deck', function() {
             it('should enter play as non-unique copy of another unit', async function () {
                 await contextRef.setupTestAsync({
@@ -582,6 +614,34 @@ describe('Clone', function() {
                 expect(handClone).toBeVanillaClone();
                 expect(groundClone.isClonedUnit).toBeFalse();
                 expect(handClone.isClonedUnit).toBeTrue();
+            });
+
+            it('cannot copy a unit when blanked in hand (Galen Erso) and enters play as a defeated 0/0', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                        resources: 20
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Galen names Clone, blanking it in player2's hand (including out of play)
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Clone');
+
+                // Playing the blanked Clone offers no copy prompt: its pre-enter-play ability is gone
+                context.player2.clickCard(context.clone);
+
+                // With no copy, Clone enters as its printed 0/0 and is immediately defeated
+                expect(context.clone).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.player1).toBeActivePlayer();
             });
 
             it('is not defeated if blanked', async function () {
@@ -1737,9 +1797,9 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.countDooku);
 
+                expect(context.player1).toHavePassableTriggerPrompt('Defeat a unit with 4 or less remaining HP');
                 context.player1.clickPrompt('Defeat a unit with 4 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context.clone, context.countDooku]);
-                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.countDooku);
                 expect(context.countDooku).toBeInZone('discard');
@@ -1976,6 +2036,32 @@ describe('Clone', function() {
                 expect(context.corvus).toHaveExactUpgradeNames(['clone']);
                 expect(context.corvus.getPower()).toBe(6);
                 expect(context.nienNunb.getPower()).toBe(2);
+            });
+        });
+
+        describe('when defeated by an ability that cares about its name', function () {
+            // Ruling 2025-03-25: LKI covers attributes like names, so an ability that defeats a Clone
+            // and then discards same-named cards (e.g. JTL Annihilator) searches for the name of the
+            // card the Clone was copying while in play, not "Clone".
+            xit('is treated by Annihilator as having the name of the copied card (LKI)', function () {
+                pending('Not yet implemented');
+                // A Clone in play is copying a named unit (e.g. Chewbacca). Annihilator's When Played
+                // defeats the Clone, then discards cards sharing the copied card's name (Chewbacca)
+                // from the opponent's hand/deck — not cards named "Clone".
+            });
+        });
+
+        describe('when it reverts on defeat', function () {
+            // Ruling 2024: when Clone is defeated it reverts completely to its base (non-copy) state, so
+            // it is NOT eligible for effects based on traits it had only while it was a copy. (Contrast
+            // with LKI, which covers information like names for resolving abilities; here a trait-based
+            // "when a <trait> unit is defeated" effect does not see the copied trait.)
+            xit('is not eligible for trait-based defeat effects for traits it only had while copying', function () {
+                pending('Not yet implemented');
+                // A Clone is copying a unit with a distinctive trait, and an effect cares about "when a
+                // <trait> unit is defeated". When the Clone is defeated, it reverts completely, so that
+                // trait-based defeat effect does not apply to it (it no longer counts as having the
+                // copied trait at the moment of defeat).
             });
         });
     });

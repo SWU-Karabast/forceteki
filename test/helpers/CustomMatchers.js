@@ -520,13 +520,100 @@ var customMatchers = {
                     throw new TestSetupError('toHavePassAbilityPrompt requires an abilityText parameter');
                 }
 
-                const passPromptText = `Trigger the ability '${abilityText}' or pass`;
-                result.pass = player.hasPrompt(passPromptText);
+                // The optional-trigger prompt renders a generic header, with the ability's text carried on
+                // the "Trigger" card button's label rather than in the header itself.
+                const headerText = 'You may trigger this ability';
+                const hasHeader = player.hasPrompt(headerText);
+                const triggerButton = (player.currentPrompt().buttons ?? []).find(
+                    (button) => button.text != null && button.text.toString().toLowerCase() === 'trigger'
+                );
+                // Case-insensitive to match the prior hasPrompt-based behavior (some specs assert differently-cased titles).
+                const labelMatches = triggerButton?.label != null &&
+                  triggerButton.label.toString().toLowerCase() === abilityText.toLowerCase();
+                result.pass = hasHeader && labelMatches;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
+                    result.message = `Expected ${player.name} not to have pass-ability prompt for '${abilityText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    result.message = `Expected ${player.name} to have pass-ability prompt for '${abilityText}' ` +
+                      `(header '${headerText}' with a 'Trigger' button labeled '${abilityText}') but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHavePassableTriggerPrompt: function () {
+        return {
+            compare: function (player, abilityText, sourceCard) {
+                var result = {};
+
+                // Card props on the test context are untyped, so a card passed as the first parameter is only caught here.
+                if (typeof abilityText !== 'string') {
+                    throw new TestSetupError(
+                        'toHavePassableTriggerPrompt expects the ability text as its first parameter; ' +
+                        'to disambiguate by card, pass the source card second: toHavePassableTriggerPrompt(\'<ability text>\', card)'
+                    );
+                }
+
+                // An optional (declinable) trigger, whether presented on its own via the standalone
+                // "You may trigger this ability" prompt or as one option among simultaneous triggers.
+                const prompt = player.currentPrompt();
+                const buttons = prompt.buttons ?? [];
+
+                let passable = false;
+                if (prompt.promptType === 'optionalTrigger') {
+                    passable = triggerButtonMatches(buttons.find((button) => button.arg === 'trigger'), abilityText, sourceCard);
+                } else if (prompt.promptType === 'triggerWindow') {
+                    passable = buttons.some((button) => button.passArg != null && triggerButtonMatches(button, abilityText, sourceCard));
+                }
+                result.pass = passable;
+
+                const described = describeTrigger(abilityText, sourceCard);
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have a passable trigger for ${described} but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have a passable (optional) trigger for ${described} ` +
+                      `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHaveExactTriggerResolutionPrompt: function () {
+        return {
+            compare: function (player, expectedEntries) {
+                var result = {};
+
+                if (!Array.isArray(expectedEntries)) {
+                    throw new TestSetupError(`Parameter 'expectedEntries' is not an array: ${expectedEntries}`);
+                }
+
+                const prompt = player.currentPrompt();
+                if (prompt.promptType !== 'triggerWindow') {
+                    result.pass = false;
+                    result.message = `Expected ${player.name} to have a simultaneous-trigger resolution prompt ` +
+                      `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    return result;
+                }
+
+                const expected = expectedEntries.map(normalizeTriggerDescriptor);
+                const actual = (prompt.buttons ?? []).map((button) => ({
+                    title: button.text,
+                    optional: !!button.optional,
+                    hasEffect: !!button.hasLegalEffects,
+                    count: button.count ?? 1,
+                    source: button.sourceCard,
+                }));
+
+                result.pass = triggerDescriptorArraysEqual(expected, actual);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact trigger resolution prompt but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have trigger resolution prompt:\n${formatTriggerDescriptors(expected)}\n` +
+                      `but the actual prompt was:\n${formatTriggerDescriptors(actual)}\n\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -1265,6 +1352,87 @@ var customMatchers = {
     },
 
     /**
+     * Asserts the exact set (order-independent) of ongoing effects currently sourced by a card, as they
+     * would appear in the ongoing effect summary sent to the frontend. Each expected entry is either a
+     * description string or an object `{ description, targets? }`; when `targets` (an array of card objects)
+     * is provided, the effect's targets must match as well.
+     */
+    toHaveExactOngoingEffects: function () {
+        return {
+            compare: function (card, expectedEffects) {
+                if (!Array.isArray(expectedEffects)) {
+                    throw new TestSetupError(`Parameter 'expectedEffects' is not an array: ${expectedEffects}`);
+                }
+                return compareOngoingEffects(card, expectedEffects, { exact: true });
+            }
+        };
+    },
+
+    /**
+     * Asserts that a card is currently sourcing at least one ongoing effect matching the given expectation
+     * (a description string or a `{ description, targets? }` object). Partial counterpart to
+     * `toHaveExactOngoingEffects`.
+     */
+    toHaveOngoingEffect: function () {
+        return {
+            compare: function (card, expectedEffect) {
+                return compareOngoingEffects(card, [expectedEffect], { exact: false });
+            }
+        };
+    },
+
+    /**
+     * Asserts that a card is not currently sourcing any visible ongoing effects.
+     */
+    toHaveNoOngoingEffects: function () {
+        return {
+            compare: function (card) {
+                return compareOngoingEffects(card, [], { exact: true });
+            }
+        };
+    },
+
+    /**
+     * Per-viewer counterpart to `toHaveExactOngoingEffects`. Asserts the exact set of ongoing effects
+     * a card sources as seen by `player` (a player interaction wrapper), since hidden-zone effects are
+     * only visible to the controlling player.
+     */
+    toHaveExactOngoingEffectsForPlayer: function () {
+        return {
+            compare: function (card, player, expectedEffects) {
+                if (!Array.isArray(expectedEffects)) {
+                    throw new TestSetupError(`Parameter 'expectedEffects' is not an array: ${expectedEffects}`);
+                }
+                return compareOngoingEffects(card, expectedEffects, { exact: true, viewer: player });
+            }
+        };
+    },
+
+    /**
+     * Per-viewer counterpart to `toHaveOngoingEffect`. Asserts the card sources at least one ongoing
+     * effect matching the expectation as seen by `player` (a player interaction wrapper).
+     */
+    toHaveOngoingEffectForPlayer: function () {
+        return {
+            compare: function (card, player, expectedEffect) {
+                return compareOngoingEffects(card, [expectedEffect], { exact: false, viewer: player });
+            }
+        };
+    },
+
+    /**
+     * Per-viewer counterpart to `toHaveNoOngoingEffects`. Asserts the card sources no ongoing effects
+     * visible to `player` (a player interaction wrapper).
+     */
+    toHaveNoOngoingEffectsForPlayer: function () {
+        return {
+            compare: function (card, player) {
+                return compareOngoingEffects(card, [], { exact: true, viewer: player });
+            }
+        };
+    },
+
+    /**
      * Checks if the actual array contains at least the elements of the expected array. Required for the new UndoArray class.
      * @param {jasmine.MatchersUtil} matchersUtil
      */
@@ -1325,6 +1493,91 @@ function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
 }
 
+/** Human-readable label for a trigger reference: its ability text, plus its source card when given. */
+function describeTrigger(abilityText, sourceCard) {
+    return sourceCard == null ? `'${abilityText}'` : `'${abilityText}' from ${sourceCard.name}`;
+}
+
+/** Whether a trigger button matches the ability text (button text/label) and, when given, the source card. */
+function triggerButtonMatches(button, abilityText, sourceCard) {
+    if (button == null) {
+        return false;
+    }
+    const wanted = abilityText.toLowerCase();
+    const textMatches = [button.text, button.label]
+        .filter((value) => value != null)
+        .map((value) => String(value).toLowerCase())
+        .includes(wanted);
+    return textMatches && (sourceCard == null || button.sourceCard?.uuid === sourceCard.uuid);
+}
+
+/**
+ * Expands a full-state trigger descriptor into its canonical form. A bare string is shorthand for a
+ * single, mandatory, has-effect trigger from any source card; an object overrides those defaults per field.
+ */
+function normalizeTriggerDescriptor(entry) {
+    const defaults = { optional: false, hasEffect: true, count: 1 };
+    if (typeof entry === 'string') {
+        return { ...defaults, title: entry };
+    }
+    if (entry == null || typeof entry.title !== 'string') {
+        throw new TestSetupError(`Invalid trigger descriptor (expected a string or an object with a 'title'): ${JSON.stringify(entry)}`);
+    }
+    if (entry.source != null && entry.source.uuid == null) {
+        throw new TestSetupError(`Invalid trigger descriptor for '${entry.title}': 'source' must be a card`);
+    }
+    return { ...defaults, ...entry };
+}
+
+function triggerDescriptorKey(descriptor) {
+    return [descriptor.title, descriptor.optional, descriptor.hasEffect, descriptor.count].join('\u0000');
+}
+
+/**
+ * Compares expected descriptors against the actual ones as multisets — order-insensitive, matching
+ * `toHaveExactPromptButtons` (which sorts before comparing). The trigger-resolution prompt's ordering is an
+ * engine sort detail that specs shouldn't be coupled to. An expected descriptor without a `source` matches
+ * an actual trigger from any source card, so descriptors that name their source are paired up first.
+ */
+function triggerDescriptorArraysEqual(expected, actual) {
+    if (expected.length !== actual.length) {
+        return false;
+    }
+    const remaining = [...actual];
+    const sourcedFirst = [...expected].sort((a, b) => (a.source == null ? 1 : 0) - (b.source == null ? 1 : 0));
+    return sourcedFirst.every((descriptor) => {
+        const index = remaining.findIndex((candidate) =>
+            triggerDescriptorKey(candidate) === triggerDescriptorKey(descriptor) &&
+            (descriptor.source == null || candidate.source?.uuid === descriptor.source.uuid)
+        );
+        if (index === -1) {
+            return false;
+        }
+        remaining.splice(index, 1);
+        return true;
+    });
+}
+
+function formatTriggerDescriptors(descriptors) {
+    if (descriptors.length === 0) {
+        return '  (no triggers)';
+    }
+    return descriptors.map((descriptor) => {
+        const tags = [];
+        if (descriptor.optional) {
+            tags.push('optional');
+        }
+        if (!descriptor.hasEffect) {
+            tags.push('no effect');
+        }
+        if (descriptor.count > 1) {
+            tags.push(`x${descriptor.count}`);
+        }
+        const tagText = tags.length > 0 ? ` [${tags.join(', ')}]` : '';
+        return `  - ${descriptor.title}${tagText}${Util.formatTriggerSource(descriptor.source)}`;
+    }).join('\n');
+}
+
 function checkConsistentZoneState(card, result) {
     if (!card.controller.getCardsInZone(card.zoneName).includes(card)) {
         result.pass = false;
@@ -1333,6 +1586,166 @@ function checkConsistentZoneState(card, result) {
     }
 
     return true;
+}
+
+/**
+ * Resolves the perspective an ongoing effect expectation should be evaluated from. Accepts a player
+ * interaction wrapper (or a raw Player) and returns the underlying Player, or `null` for the default
+ * spectator perspective (which mirrors what the frontend sends to a non-player observer).
+ */
+function resolveOngoingEffectViewer(viewer) {
+    if (viewer == null) {
+        return null;
+    }
+    if (typeof viewer === 'string') {
+        throw new TestSetupError('This expectation requires a player (or player interaction wrapper), not a name');
+    }
+
+    // PlayerInteractionWrapper exposes the underlying Player via `.player`; allow a raw Player too.
+    const player = viewer.player ?? viewer;
+    if (player == null || typeof player.id !== 'string') {
+        throw new TestSetupError('This expectation requires a player (or player interaction wrapper)');
+    }
+    return player;
+}
+
+/** Returns the ongoing effect summary entries whose source is the given card, from `viewer`'s perspective. */
+function getOngoingEffectSummariesForCard(card, viewer) {
+    if (typeof card === 'string') {
+        throw new TestSetupError('This expectation requires a card object, not a name');
+    }
+    if (card == null || typeof card.uuid !== 'string' || card.game == null) {
+        throw new TestSetupError('This expectation requires a card object belonging to an active game');
+    }
+
+    const resolveName = (uuid) => card.game.gameObjectManager.get(uuid)?.internalName ?? uuid;
+
+    return card.game.ongoingEffectEngine
+        .summarizeOngoingEffectsForState(viewer)
+        .filter((entry) => entry.sourceCardUuid === card.uuid)
+        .map((entry) => ({
+            description: entry.source.effectDescription,
+            targets: entry.targets,
+            targetNames: entry.targets.map(resolveName),
+        }));
+}
+
+/** Normalizes a string-or-object ongoing effect expectation into `{ description, targetUuids }`. */
+function normalizeExpectedOngoingEffect(expected) {
+    if (typeof expected === 'string') {
+        return { description: expected, targetUuids: undefined };
+    }
+
+    if (expected != null && typeof expected === 'object') {
+        if (typeof expected.description !== 'string') {
+            throw new TestSetupError('An ongoing effect expectation object requires a string \'description\'');
+        }
+
+        let targetUuids;
+        let targetNames;
+        if (expected.targets !== undefined) {
+            const targets = Helpers.asArray(expected.targets);
+            Util.checkNullCard(targets, 'Ongoing effect \'targets\' contains one or more null elements');
+            targets.forEach((target) => {
+                if (typeof target === 'string') {
+                    throw new TestSetupError('Ongoing effect \'targets\' must be card objects, not names');
+                }
+            });
+            targetUuids = targets.map((target) => target.uuid);
+            targetNames = targets.map((target) => target.internalName);
+        }
+
+        return { description: expected.description, targetUuids, targetNames };
+    }
+
+    throw new TestSetupError(`An ongoing effect expectation must be a string or an object, got: ${expected}`);
+}
+
+/** Whether an expected effect matches an actual summary entry (targets only checked when specified). */
+function ongoingEffectMatches(expected, actual) {
+    if (expected.description !== actual.description) {
+        return false;
+    }
+    if (expected.targetUuids === undefined) {
+        return true;
+    }
+    return expected.targetUuids.length === actual.targets.length &&
+      expected.targetUuids.every((uuid) => actual.targets.includes(uuid));
+}
+
+function formatOngoingEffectDescription(description, targetNames) {
+    if (targetNames === undefined) {
+        return `'${description}'`;
+    }
+    const targetsStr = targetNames.length > 0 ? targetNames.join(', ') : 'no cards';
+    return `'${description}' (targeting: ${targetsStr})`;
+}
+
+function formatExpectedOngoingEffect(expected) {
+    return formatOngoingEffectDescription(expected.description, expected.targetNames);
+}
+
+function compareOngoingEffects(card, expectedEffectsRaw, { exact, viewer }) {
+    const result = {};
+    const viewerPlayer = resolveOngoingEffectViewer(viewer);
+    const actual = getOngoingEffectSummariesForCard(card, viewerPlayer);
+    const expected = expectedEffectsRaw.map(normalizeExpectedOngoingEffect);
+
+    // only annotate the perspective when a viewer was explicitly given (the *ForPlayer matchers)
+    const perspective = viewer === undefined ? '' : ` (as seen by ${viewerPlayer ? viewerPlayer.name : 'a spectator'})`;
+
+    // greedily match each expectation against a distinct actual effect
+    const remainingActual = [...actual];
+    const unmatchedExpected = [];
+    for (const expectedEffect of expected) {
+        const matchIndex = remainingActual.findIndex((actualEffect) => ongoingEffectMatches(expectedEffect, actualEffect));
+        if (matchIndex === -1) {
+            unmatchedExpected.push(expectedEffect);
+        } else {
+            remainingActual.splice(matchIndex, 1);
+        }
+    }
+
+    result.pass = exact
+        ? unmatchedExpected.length === 0 && remainingActual.length === 0
+        : unmatchedExpected.length === 0;
+
+    // only surface each effect's targets in the diagnostic listing when the expectation cared about targets
+    const showTargets = expected.some((expectedEffect) => expectedEffect.targetUuids !== undefined);
+    const allActualStr = actual.length > 0
+        ? actual.map((actualEffect) => `\t- ${formatOngoingEffectDescription(actualEffect.description, showTargets ? actualEffect.targetNames : undefined)}`).join('\n')
+        : '\t(none)';
+
+    if (result.pass) {
+        if (exact && expected.length === 0) {
+            result.message = `Expected ${card.internalName} to have at least one ongoing effect but it had none`;
+        } else if (exact) {
+            result.message = `Expected ${card.internalName} not to source exactly these ongoing effects but it did: ${expected.map(formatExpectedOngoingEffect).join('; ')}`;
+        } else {
+            result.message = `Expected ${card.internalName} not to source ongoing effect ${expected.map(formatExpectedOngoingEffect).join('; ')} but it did`;
+        }
+        return result;
+    }
+
+    let message = '';
+    if (exact && expected.length === 0) {
+        message = `Expected ${card.internalName} to source no ongoing effects but it did`;
+    } else {
+        if (unmatchedExpected.length > 0) {
+            message += `Expected ${card.internalName} to source the following ongoing effect(s) but they were not found: ${unmatchedExpected.map(formatExpectedOngoingEffect).join('; ')}`;
+        }
+        if (exact && remainingActual.length > 0) {
+            if (message.length > 0) {
+                message += '\n';
+            }
+            message += `Expected ${card.internalName} not to source these additional ongoing effect(s) but it did: ${remainingActual.map((actualEffect) => `'${actualEffect.description}'`).join('; ')}`;
+        }
+    }
+
+    message += `\n\nAll ongoing effects currently sourced by ${card.internalName}${perspective}:\n${allActualStr}`;
+    result.message = message;
+
+    return result;
 }
 
 function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject) {

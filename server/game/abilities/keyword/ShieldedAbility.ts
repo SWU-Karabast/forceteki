@@ -1,10 +1,10 @@
 import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
-import { KeywordName, WildcardZoneName } from '../../core/Constants';
+import { KeywordName, TokenUpgradeName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
 import { TextHelper } from '../../core/utils/TextHelper';
-import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
+import { GiveTokenUpgradeSystem } from '../../gameSystems/GiveTokenUpgradeSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 import { registerState } from '../../core/GameObjectUtils';
@@ -21,7 +21,7 @@ export class ShieldedAbility extends TriggeredAbilityBase {
                 onLeaderDeployed: (event, context) => event.card === context.source,
                 onUnitEntersPlay: (event, context) => event.card === context.source && context.source.isToken()
             },
-            immediateEffect: new GiveShieldSystem({}),
+            immediateEffect: new GiveTokenUpgradeSystem({ tokenType: TokenUpgradeName.Shield }),
             zoneFilter: WildcardZoneName.AnyArena
         };
     }

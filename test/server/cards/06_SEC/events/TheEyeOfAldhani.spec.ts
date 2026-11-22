@@ -230,5 +230,57 @@ describe('The Eye Of Aldhani', function() {
             expect(context.atst.exhausted).toBeFalse();
             expect(context.yoda.exhausted).toBeFalse();
         });
+
+        it('The Eye Of Aldhani\'s ability should trigger at the beginning of next action. Opponent must pay 1 resources for each unit he wants to keep ready (2 events, cannot fully pay second event)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-eye-of-aldhani', 'the-eye-of-aldhani'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['wampa', 'atst', 'yoda#old-master'],
+                    resources: 4
+                }
+            });
+
+            const { context } = contextRef;
+
+            const aldhanis = context.player1.findCardsByName('the-eye-of-aldhani');
+
+            context.player1.clickCard(aldhanis[0]);
+            context.player2.passAction();
+            context.player1.clickCard(aldhanis[1]);
+
+            context.moveToRegroupPhase();
+
+            context.player1.clickDone();
+            context.player2.clickDone();
+
+            expect(context.player2).toHavePrompt('Select up to 3 units and pay 1 resource for each of them to keep them ready');
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.atst, context.yoda]);
+
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCard(context.atst);
+            context.player2.clickCard(context.yoda);
+            context.player2.clickDone();
+
+            expect(context.player2.exhaustedResourceCount).toBe(3);
+
+            expect(context.player2).toHavePrompt('Select up to 1 units and pay 1 resource for each of them to keep them ready');
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.atst, context.yoda]);
+
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCardNonChecking(context.atst);
+            context.player2.clickCardNonChecking(context.yoda);
+            context.player2.clickDone();
+
+            expect(context.player2.exhaustedResourceCount).toBe(4);
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.wampa.exhausted).toBeFalse();
+            expect(context.atst.exhausted).toBeTrue();
+            expect(context.yoda.exhausted).toBeTrue();
+        });
     });
 });

@@ -12,7 +12,11 @@ describe('Leia Organa, Defiant Princess', function() {
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        spaceArena: [{ card: 'alliance-xwing', exhausted: true }]
+                        spaceArena: [{ card: 'alliance-xwing', exhausted: true }],
+                        resources: {
+                            readyCount: 5,
+                            exhaustedCount: 1
+                        }
                     }
                 });
             });
@@ -21,10 +25,19 @@ describe('Leia Organa, Defiant Princess', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveEnabledPromptButtons(['Ready a resource', 'Exhaust a unit']);
+                expect(context.player1).toHaveEnabledPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
                 const exhaustedResourcesBeforeAbility = context.player1.exhaustedResourceCount;
-                context.player1.clickPrompt('Ready a resource');
+                context.player1.clickPrompt('Ready a friendly resource');
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbility - 1);
+            });
+
+            it('should be able to ready an enemy resource', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.leiaOrgana);
+                expect(context.player1).toHaveEnabledPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready an enemy resource');
+                expect(context.player2.readyResourceCount).toBe(6);
             });
 
             it('should be able to target any unit to exhaust', function () {

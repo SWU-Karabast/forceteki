@@ -34,6 +34,38 @@ describe('Clan Wren Loyalist', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should let non-unit cards that share a trait with a friendly unit be selected', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['clan-wren-loyalist'],
+                        groundArena: ['ezra-bridger#spectre-six'],
+                        deck: ['spark-of-rebellion', 'fulcrum', 'wampa', 'atst', 'cartel-spacer']
+                    },
+                    player2: {
+                        groundArena: ['snowspeeder']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clanWrenLoyalist);
+
+                // spark-of-rebellion (spectre event) and fulcrum (rebel upgrade) both share a trait with Ezra
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.sparkOfRebellion, context.fulcrum],
+                    invalid: [context.wampa, context.atst, context.cartelSpacer]
+                });
+
+                context.player1.clickCardInDisplayCardPrompt(context.sparkOfRebellion);
+
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.sparkOfRebellion]);
+                context.player2.clickDone();
+
+                expect(context.sparkOfRebellion).toBeInZone('hand', context.player1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should allow taking nothing after triggering deck search', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

@@ -112,6 +112,25 @@ describe('Jocasta Nu, The Gift of Knowledge', function() {
                 expect(context.jocastaNuTheGiftOfKnowledge).toHaveExactUpgradeNames(['vaders-lightsaber']);
                 expect(context.yodaOldMaster).toHaveExactUpgradeNames(['yodas-lightsaber']);
             });
+
+            it('cannot move a Fortify upgrade attached to a base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['jocasta-nu#the-gift-of-knowledge'],
+                        base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                        groundArena: [{ card: 'yoda#old-master', upgrades: ['yodas-lightsaber'] }],
+                    },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.jocastaNuTheGiftOfKnowledge);
+
+                // "a friendly upgrade on a friendly unit" - the base upgrade is not on a unit
+                expect(context.player1).toBeAbleToSelectExactly([context.yodasLightsaber]);
+                context.player1.clickPrompt('Pass');
+            });
         });
     });
 });

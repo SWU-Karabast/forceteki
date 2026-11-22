@@ -19,6 +19,7 @@ export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard 
         registrar.addActionAbility({
             title: 'Play a card from your hand, ignoring its aspect penalties',
             cost: [abilityHelper.costs.abilityActivationResourceCost(1), abilityHelper.costs.exhaustSelf()],
+            cannotTargetFirst: true,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
@@ -36,6 +37,7 @@ export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard 
         registrar.addActionAbility({
             title: 'Play a card from your hand, ignoring its aspect penalties',
             cost: [abilityHelper.costs.abilityActivationResourceCost(1)],
+            cannotTargetFirst: true,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,

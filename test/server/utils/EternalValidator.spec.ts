@@ -1,5 +1,5 @@
 import { CardPool, SwuGameFormat } from '../../../server/game/core/Constants';
-import { DeckValidationFailureReason } from '../../../server/utils/deck/DeckInterfaces';
+import { DeckValidationFailureReason, IllegalInFormatReason } from '../../../server/utils/deck/DeckInterfaces';
 import type { IInternalCardEntry, ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
@@ -8,7 +8,8 @@ import {
     buildValidationTestDeck,
     createPreviewValidatorSetup,
     getDeckFiller,
-    RELEASED_SETS
+    RELEASED_SETS,
+    TEST_BANNED_CARD_NAME
 } from './DeckValidatorTestUtils';
 import { registerCommonDeckRuleTests } from './CommonDeckRuleTests';
 
@@ -61,6 +62,25 @@ describe('Eternal deck validation', function () {
             const deck = buildDeck(all.slice(0, 50), { sideboard: all.slice(50, 61) });
             const failures = validator.validateInternalDeck(deck, nextSetProps());
             expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded]).toBeUndefined();
+        });
+
+        // A suspension whose `expiresWith` set is the upcoming set is active under Current but lifts under
+        // NextSet (which includes that set) — the behavior the real "expires with the next release" bans rely
+        // on. Exercised here with the synthetic ban (expiring with the synthetic TPRV set) so it stays valid
+        // regardless of the real ban list.
+        it('should keep the card suspended under Current while its ban is active', function () {
+            const filler = getDeckFiller(cardDataGetter, 49, RELEASED_SETS);
+            const deck = buildDeck([...filler, buildCardEntry(cardDataGetter, TEST_BANNED_CARD_NAME)]);
+            const failures = validator.validateInternalDeck(deck, eternalProps());
+            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
+            expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.Suspended);
+        });
+
+        it('should accept the card under NextSet once its ban has expired', function () {
+            const filler = getDeckFiller(cardDataGetter, 49, RELEASED_SETS);
+            const deck = buildDeck([...filler, buildCardEntry(cardDataGetter, TEST_BANNED_CARD_NAME)]);
+            const failures = validator.validateInternalDeck(deck, nextSetProps());
+            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
         });
     });
 });

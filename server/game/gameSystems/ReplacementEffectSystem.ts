@@ -32,7 +32,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             return;
         }
 
-        const eventBeingReplaced = event.context.event;
+        const eventBeingReplaced = event.context.event as GameEvent;
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
             const eventWindow = eventBeingReplaced.window;
@@ -48,6 +48,13 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                 Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
                 events.forEach((replacementEvent) => {
+                    // a sequential replacement resolves all but its last step in nested windows while generating its events,
+                    // so only the events that have not resolved yet still need to be added to the window being replaced
+                    if (!replacementEvent.canResolve) {
+                        eventBeingReplaced.setReplacementEvent(replacementEvent);
+                        return;
+                    }
+
                     replacementEvent.order = eventBeingReplaced.order;
                     event.context.game.queueSimpleStep(() => {
                         eventBeingReplaced.setReplacementEvent(replacementEvent);
@@ -58,7 +65,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             }, 'replacementEffect: add replacement event to window');
         }
 
-        event.context.cancel();
+        if (!replacementImmediateEffect && this.nullifiedEventCountsAsResolved()) {
+            eventBeingReplaced.replaceWithNoEffect();
+        } else {
+            eventBeingReplaced.cancel();
+        }
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}) {
@@ -118,6 +129,14 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
     protected shouldReplace (context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         return true;
+    }
+
+    /**
+     * Whether an event nullified by this effect (no replacement event) still counts as resolved for
+     * "if you do" (CR 8.9). False by default: non-damage no-op replacements model "can't" effects.
+     */
+    protected nullifiedEventCountsAsResolved(): boolean {
+        return false;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}, _mustChangeGameState): boolean {

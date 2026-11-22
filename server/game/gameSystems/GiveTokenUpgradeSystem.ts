@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { CardTypeFilter, TokenUpgradeName } from '../core/Constants';
+import type { CardTypeFilter } from '../core/Constants';
+import { RelativePlayer, TokenUpgradeName } from '../core/Constants';
 import { EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -8,19 +9,32 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { Contract } from '../core/utils/Contract';
 import { Helpers } from '../core/utils/Helpers';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { Player } from '../core/Player';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
-    amount?: number;
+    tokenType: TokenUpgradeName;
+
+    /** Number of tokens to give each target. May also be a function evaluated per target card (e.g. one token per upgrade on that unit). */
+    amount?: number | ((card: IUnitCard) => number);
+
+    /** The player considered to have created (given) the token(s). Defaults to `RelativePlayer.Self`. */
+    createdBy?: RelativePlayer;
+
+    /** Shield-only: whether the created Shield token should be removed before other shields when preventing damage. Ignored for other token types. */
+    highPriorityRemoval?: boolean;
 }
 
-/** Base class for managing the logic for giving token upgrades to cards (currently shield and experience) */
-export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
+/** Handles the logic for giving token upgrades (Shield, Experience, Advantage) to cards. The specific token is set via `tokenType` (see the give* factory methods in GameSystemLibrary). */
+export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
+    public override readonly name = 'giveTokenUpgrade';
     public override readonly eventName = EventName.OnTokensCreated;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
-    protected override readonly defaultProperties: IGiveTokenUpgradeProperties = {
-        amount: 1
+    protected override readonly defaultProperties: Omit<IGiveTokenUpgradeProperties, 'tokenType'> = {
+        amount: 1,
+        createdBy: RelativePlayer.Self
     };
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
@@ -29,8 +43,26 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
+        const indefiniteArticle = new Set([TokenUpgradeName.Experience, TokenUpgradeName.Advantage])
+            .has(properties.tokenType) ? 'an' : 'a';
 
-        return ['attach {0} to {1}', [ChatHelpers.pluralize(properties.amount, `a ${this.getTokenType()}`, `${this.getTokenType()}s`), this.getTargetMessage(properties.target, context)]];
+        const tokenName = (count: number) =>
+            ChatHelpers.pluralize(count, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`);
+
+        // when the amount is computed per target, call out each unit's amount so the message isn't ambiguous
+        if (typeof properties.amount === 'function') {
+            const perTargetMessages = Helpers.asArray(properties.target)
+                .filter((card): card is IUnitCard => card.isUnit() && this.canAffect(card, context))
+                .map((card) => ({
+                    format: '{0} to {1}',
+                    args: [tokenName(this.resolveAmount(properties.amount, card)), card]
+                }));
+
+            return ['give {0}', [perTargetMessages]];
+        }
+
+        return ['give {0} to {1}', [tokenName(properties.amount), this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
@@ -43,7 +75,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         if (
             !card.isUnit() ||
             !card.isInPlay() ||
-            properties.amount === 0
+            this.resolveAmount(properties.amount, card) === 0
         ) {
             return false;
         }
@@ -76,10 +108,11 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             this.canAffect(card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve));
     }
 
-    protected abstract getTokenType(): TokenUpgradeName;
-
     protected generateToken(context: TContext, owner: Player) {
-        return context.game.generateToken(owner, this.getTokenType());
+        const properties = this.generatePropertiesFromContext(context);
+
+        // highPriorityRemoval only affects Shield tokens; game.generateToken ignores it for other token types
+        return context.game.generateToken(owner, properties.tokenType, { highPriorityRemoval: properties.highPriorityRemoval });
     }
 
     // standard updateEvent override: let the base set the common properties/handler/condition, then generate the tokens
@@ -96,7 +129,8 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         const generatedTokensByCard = new Map<Card, any[]>();
         for (const card of Helpers.asArray(cards)) {
             const tokensForCard = [];
-            for (let i = 0; i < properties.amount; i++) {
+            const amountForCard = this.resolveAmount(properties.amount, card as IUnitCard);
+            for (let i = 0; i < amountForCard; i++) {
                 const token = this.generateToken(context, card.controller);
                 tokensForCard.push(token);
                 event.generatedTokens.push(token);
@@ -145,7 +179,25 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        event.amount = properties.amount;
-        event.tokenType = this.getTokenType();
+        if (properties.createdBy === RelativePlayer.Opponent && context.player.opponent) {
+            event.player = context.player.opponent;
+        }
+
+        // resolved amount per target card, so replacement effects (e.g. Moff Jerjerrod) can adjust each
+        // unit's amount individually rather than misreading a summed total as a per-card amount
+        event.amountPerCard = new Map<Card, number>(cardsArray.map((card) => [
+            card, card.isUnit() ? this.resolveAmount(properties.amount, card) : 0
+        ]));
+        event.amount = typeof properties.amount === 'function'
+            ? [...event.amountPerCard.values()].reduce((sum, amount) => sum + amount, 0)
+            : properties.amount;
+        event.tokenType = properties.tokenType;
+    }
+
+    private resolveAmount(amount: IGiveTokenUpgradeProperties['amount'], card: IUnitCard): number {
+        if (typeof amount === 'function') {
+            return amount(card);
+        }
+        return amount ?? 0;
     }
 }

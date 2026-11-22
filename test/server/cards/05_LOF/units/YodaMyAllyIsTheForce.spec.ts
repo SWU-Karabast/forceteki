@@ -20,7 +20,7 @@ describe('Yoda, My Ally is the Force', function() {
                 context.player1.clickCard(context.yodaMyAllyIsTheForce);
 
                 // Should be prompted to use the Force
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force to heal 5 damage from a base\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force to heal 5 damage from a base');
                 context.player1.clickPrompt('Trigger');
 
                 // Should be prompted to choose a base to heal first
@@ -55,7 +55,7 @@ describe('Yoda, My Ally is the Force', function() {
                 context.player1.clickCard(context.yodaMyAllyIsTheForce);
 
                 // Should be prompted to use the Force
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use the Force to heal 5 damage from a base\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force to heal 5 damage from a base');
                 context.player1.clickPrompt('Pass');
 
                 // Check that no healing occurred
@@ -88,7 +88,7 @@ describe('Yoda, My Ally is the Force', function() {
                 context.player1.clickCard(context.yodaMyAllyIsTheForce);
 
                 // Should be prompted to use the Force
-                expect(context.player1).toHavePrompt('Trigger the ability \'You may use the Force. If you do, heal 3 damage from a base\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('You may use the Force. If you do, heal 3 damage from a base');
                 context.player1.clickPrompt('Trigger');
 
                 context.player1.clickCard(context.p1Base);
@@ -122,7 +122,7 @@ describe('Yoda, My Ally is the Force', function() {
                 context.player1.clickCard(context.yodaMyAllyIsTheForce);
 
                 // Should be prompted to use the Force
-                expect(context.player1).toHavePrompt('Trigger the ability \'You may use the Force. If you do, heal 3 damage from a base\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('You may use the Force. If you do, heal 3 damage from a base');
                 context.player1.clickPrompt('Trigger');
 
                 // Use the first one to heal the base 3 damage
@@ -167,7 +167,7 @@ describe('Yoda, My Ally is the Force', function() {
                 context.player1.clickCard(context.yodaMyAllyIsTheForce);
 
                 // Should be prompted to use the Force
-                expect(context.player1).toHavePrompt('Trigger the ability \'You may use the Force. If you do, heal 3 damage from a base\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('You may use the Force. If you do, heal 3 damage from a base');
                 context.player1.clickPrompt('Trigger');
 
                 context.player1.clickCard(context.p1Base);

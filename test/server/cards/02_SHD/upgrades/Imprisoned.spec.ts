@@ -113,5 +113,30 @@ describe('Imprisoned', function() {
             // After removing Imprisoned, Millennium Falcon should still not gain Sentinel (it missed the opportunity)
             expect(context.millenniumFalcon.hasSentinel()).toBeFalse();
         });
+
+        it('When Defeated abilities of the attached unit do not trigger, even though Imprisoned leaves play with it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['cartel-spacer'],
+                    base: { card: 'echo-base', damage: 0 }
+                },
+                player2: {
+                    spaceArena: [{ card: 'ruthless-raider', damage: 5, upgrades: ['imprisoned'] }]
+                }
+            });
+
+            const { context } = contextRef;
+            expect(context.ruthlessRaider.isBlank()).toBeTrue();
+
+            context.player1.clickCard(context.cartelSpacer);
+            context.player1.clickCard(context.ruthlessRaider);
+
+            expect(context.ruthlessRaider).toBeInZone('discard', context.player2);
+            expect(context.imprisoned).toBeInZone('discard', context.player2);
+            // no When Defeated prompt and no damage from it
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(0);
+        });
     });
 });

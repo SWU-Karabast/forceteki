@@ -1,34 +1,43 @@
-import type { GameMode } from '../../GameMode';
+import type { SwuGameFormat } from './Constants';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { Attack } from './attack/Attack';
 import type { EventWindow } from './event/EventWindow';
+import type { Game } from './Game';
 import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
 import type { UndoMode } from './snapshot/SnapshotManager';
+import type { IScheduler } from '../../utils/IScheduler';
 import { Contract } from './utils/Contract';
 
 export interface GameConfiguration {
     id: string;
     owner: string;
     players: IUser[];
-    spectators?: IUser[];
-    allowSpectators: boolean;
-    gameMode: GameMode;
+
+    /** The deck/rules format being played. Defaults to Premier when omitted. */
+    format?: SwuGameFormat;
     cardDataGetter: CardDataGetter;
+
+    /**
+     * Card titles legal in this game's format and card pool, used to restrict "name a card" options.
+     * When omitted, every card title is available.
+     */
+    legalCardTitles?: ReadonlySet<string>;
     useActionTimer?: boolean;
     pushUpdate: () => void;
-    buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
-    userTimeoutDisconnect: (userId: string) => void;
+
+    /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
+    scheduler: IScheduler;
     undoMode?: UndoMode;
 
     /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
     preselectedFirstPlayerId?: string;
 
     /** Callback to forfeit a Bo3 set when a player times out during a game. Only provided for Bo3 matches. */
-    onBo3SetForfeit?: (losingPlayerId: string) => void;
+    onBo3SetForfeit?: (losingPlayerId: string, game: Game) => void;
 }
 
 export interface ICurrentlyResolving {
@@ -43,11 +52,9 @@ export function validateGameConfiguration(configuration: GameConfiguration): voi
     Contract.assertNotNullLike(configuration.id);
     Contract.assertNotNullLike(configuration.owner);
     Contract.assertNotNullLike(configuration.players);
-    Contract.assertNotNullLike(configuration.gameMode);
     Contract.assertNotNullLike(configuration.cardDataGetter);
     Contract.assertNotNullLike(configuration.pushUpdate);
-    Contract.assertNotNullLike(configuration.buildSafeTimeout);
-    Contract.assertNotNullLike(configuration.userTimeoutDisconnect);
+    Contract.assertNotNullLike(configuration.scheduler);
 }
 
 export interface GameOptions {

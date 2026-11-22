@@ -1,0 +1,15 @@
+{
+    "spec_dir": "build/test",
+    "spec_files": [
+        "server/utils/**/*[sS]pec.js",
+        "server/gamenode/**/*[sS]pec.js",
+        "server/services/**/*[sS]pec.js",
+        "server/scripts/**/*[sS]pec.js"
+    ],
+    "helpers": [
+        "helpers/server/ServerTestEnv.js",
+        "helpers/**/*.js",
+        "jasmine-typescript-helper.js"
+    ],
+    "stopSpecOnExpectationFailure": false
+}

@@ -5,7 +5,7 @@ import type { Card } from './core/card/Card';
 import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
-import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
+import type { IActionTargetResolver, IActionTargetsResolver, ICardTargetResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
 import type { Game } from './core/Game';
@@ -62,6 +62,14 @@ export type IDamageModificationAbilityProps<TSource extends Card = Card> = Omit<
      * This is used for damage modification that requires some other system to resolve before modifying the damage, such as defeating a unit
      */
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
+
+    /**
+     * If true, the modification is applied when the initiating ability resolves rather than to each
+     * damage event. The trigger fires once on ability initiation (all-or-nothing) and the amount is
+     * added to the ability's total damage output: each damage event for per-target effects, or the
+     * total amount before distribution for indirect / distribute-damage effects.
+     */
+    applyAtAbilityInitiation?: boolean;
 };
 
 export type IWhenAttackEndsAbilityProps<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
@@ -96,6 +104,9 @@ export interface IOngoingEffectProps<TTarget> {
     condition?: (context: AbilityContext) => boolean;
     until?: WhenType;
     ability?: PlayerOrCardAbility;
+
+    /** The player resolving the ability that created this lasting effect */
+    createdByPlayer?: Player;
     target?: TTarget | TTarget[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
@@ -162,6 +173,14 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     gainAbilitySource?: Card;
 
     printedAbility?: boolean;
+
+    /**
+     * Set when this ability is how a lasting effect created by this card applies to the card the ability is on (e.g.
+     * "for this phase, prevent all damage that would be dealt to that unit"). The ability is not one of that card's
+     * abilities: it is held by the lasting effect rather than added to the card, so the card losing all abilities
+     * doesn't remove it and it can't be copied.
+     */
+    lastingEffectSource?: Card;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
@@ -187,6 +206,47 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
 }
 
+/**
+ * Enforces that exactly one of two mutually-exclusive shapes is supplied, by marking the properties
+ * unique to each side as `never` on the other (a plain union would allow properties from both, since
+ * excess-property checks pass a property that exists in any union member). Nest to combine more than
+ * two shapes, e.g. `ExclusiveUnion<A, ExclusiveUnion<B, C>>`.
+ */
+type PropsNotIn<T, U> = Partial<Record<Exclude<keyof T, keyof U>, never>>;
+type ExclusiveUnion<T, U> = (T & PropsNotIn<U, T>) | (U & PropsNotIn<T, U>);
+
+/** Shared properties for the play-cost variants below. */
+interface IPlayCostPropertiesBase {
+    /** Title for the play action this cost is surfaced under. */
+    title?: string;
+}
+
+/** Provide a fully-formed cost (or costs) directly. */
+interface ICostPlayCostProperties<TSource extends Card = Card> extends IPlayCostPropertiesBase {
+    cost: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
+}
+
+/** Derive the cost from a game system that must be resolvable to pay the cost. */
+interface IImmediateEffectPlayCostProperties<TSource extends Card = Card> extends IPlayCostPropertiesBase {
+    immediateEffect: GameSystem<AbilityContext<TSource>>;
+    costName?: string;
+}
+
+/** Derive the cost from a card-selection target whose immediate effect must be resolvable to pay the cost. */
+interface ITargetResolverPlayCostProperties<TSource extends Card = Card> extends IPlayCostPropertiesBase {
+    targetResolver: ICardTargetResolver<AbilityContext<TSource>>;
+    costName?: string;
+}
+
+/**
+ * Interface definition for addAdditionalPlayCost and addAlternatePlayCost abilities. Exactly one of
+ * `cost`, `immediateEffect`, or `targetResolver` must be supplied.
+ */
+export type IPlayCostProperties<TSource extends Card = Card> = ExclusiveUnion<
+    ICostPlayCostProperties<TSource>,
+    ExclusiveUnion<IImmediateEffectPlayCostProperties<TSource>, ITargetResolverPlayCostProperties<TSource>>
+>;
+
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
@@ -208,6 +268,13 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
 
     /** If this is a gained ability, gives the source card that is giving the ability */
     gainAbilitySource?: Card;
+
+    /**
+     * When true, effects registered by this ability are omitted from the ongoing effect summary sent to
+     * the client. Set on abilities whose effects don't describe the board, such as self cost adjusters
+     * that only change the cost to play the source card itself.
+     */
+    omitFromOngoingEffectSummary?: boolean;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
@@ -273,6 +340,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
   | IExploitKeywordProperties
+  | IFortifyKeywordProperties
   | IGritKeywordProperties
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
@@ -319,13 +387,9 @@ export type EffectArg =
   | { id: string; label: string; name: string; facedown: boolean; type: CardType }
   | EffectArg[];
 
-export type WhenType<TSource extends Card = Card> = {
-    [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
-};
+export type WhenType<TSource extends Card = Card> = Partial<Record<EventName, (event: any, context?: TriggeredAbilityContext<TSource>) => boolean>>;
 
-export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> & {
-    [StandardTriggeredAbilityTypeValue in StandardTriggeredAbilityType]?: true;
-};
+export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> & Partial<Record<StandardTriggeredAbilityType, true>>;
 
 export type IOngoingCardOrPlayerEffect<TTarget extends Card | Player> = TTarget extends Card ? OngoingCardEffect : OngoingPlayerEffect;
 
@@ -419,6 +483,7 @@ export interface IPlayerSerializedState {
     resources?: ISafeSerializedType<number | IResourceState> | ISafeSerializedArrayType<(string | ISerializedCardState)>;
     base?: ISafeSerializedType<string | ISerializedCardState>;
     leader?: ISafeSerializedType<string | ISerializedCardState>;
+    secondLeader?: ISafeSerializedType<string | ISerializedCardState>;
     deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
     hasInitiative?: ISafeSerializedType<boolean>;
     hasForceToken?: ISafeSerializedType<boolean>;
@@ -548,6 +613,10 @@ interface IExploitKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Exploit;
 }
 
+interface IFortifyKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Fortify;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
@@ -599,6 +668,7 @@ interface ISupportKeywordProperties extends IKeywordPropertiesBase {
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
   | KeywordName.Ambush
+  | KeywordName.Fortify
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
@@ -612,6 +682,7 @@ export type NonNumericKeywordName =
   | KeywordName.Ambush
   | KeywordName.Bounty
   | KeywordName.Coordinate
+  | KeywordName.Fortify
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
@@ -639,4 +710,27 @@ export type AbilityDefinitionKeywordName =
 export interface ICardAttributes {
     // TODO: Add more attributes as needed
     traits: Set<Trait>;
+}
+
+/* Ongoing effects */
+export interface IOngoingEffectSourceSummary {
+    setId: { set: string; number: number };
+    type?: string;
+    controllerId: string;
+    sourceZone?: string;
+    sourceTitle: string;
+    sourceSubtitle?: string;
+    effectDescription?: string;
+}
+
+export interface IOngoingEffectSummary {
+    sourceCardUuid: string;
+    source: IOngoingEffectSourceSummary;
+    targets: string[];
+
+    /**
+     * True when this effect's source is in a zone the controller's opponent can't see (e.g. hand), so the
+     * summary is only sent to the controller. Lets the FE reassure the player no hidden info has been leaked.
+     */
+    hiddenFromOpponent?: boolean;
 }

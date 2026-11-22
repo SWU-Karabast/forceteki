@@ -25,6 +25,9 @@ describe('Phantom, Spectre Shuttle', function() {
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
 
+                // the enter-play effect is logged crediting Phantom, not the played unit
+                expect(context.getChatLogs(5)).toContain('player1 uses Phantom to give an Experience token to Battlefield Marine');
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.exhaustedResourceCount).toBe(4);
             });

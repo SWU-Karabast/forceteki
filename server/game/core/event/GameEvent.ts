@@ -3,6 +3,8 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { EventWindow } from './EventWindow';
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { CardRef } from '../lki/CardRef';
+import type { ILastKnownInformation } from './LastKnownInformation';
 
 export enum EventResolutionStatus {
     CREATED = 'created',
@@ -19,10 +21,53 @@ export class GameEvent {
     public isContingent = false;
     public readonly name: string;
 
+    /**
+     * Reference to the card this event is about, bound while the event resolves so later reads name
+     * the identity the event fired on rather than whatever occupies that card now.
+     *
+     * Set only via {@link setLastKnownInformation}, so it is present on exactly the events that
+     * carry last known information.
+     */
+    public get cardRef(): CardRef | undefined {
+        return this._cardRef;
+    }
+
+    /**
+     * Characteristics of {@link cardRef}'s card as of the moment this event was about to resolve.
+     *
+     * @deprecated Reach for `cardStates.getLastKnownProperties(event.cardRef)` instead. This struct
+     * is removed in phase 4 of the LKI migration.
+     */
+    public get lastKnownInformation(): ILastKnownInformation | undefined {
+        return this._lastKnownInformation;
+    }
+
+    /**
+     * Records last known information for this event.
+     *
+     * The struct and the reference are deliberately **inseparable**: an event carrying one without
+     * the other is the bug this method exists to prevent. Events reach this from two directions —
+     * the pre-resolution hook for events that resolve in a window, and a synchronous call for
+     * synthetic events that never enter one (`UseWhenDefeatedSystem`). Both must produce both, and
+     * a future third path cannot silently produce only the struct.
+     */
+    public setLastKnownInformation(info: ILastKnownInformation, cardRef: CardRef): void {
+        Contract.assertNotNullLike(
+            cardRef,
+            `Attempting to set last known information on event ${this.name} without a card reference. ` +
+            'Every path that captures last known information must also bind the reference it describes.'
+        );
+
+        this._lastKnownInformation = info;
+        this._cardRef = cardRef;
+    }
+
     public get eventId() {
         return this._eventId;
     }
 
+    private _cardRef?: CardRef;
+    private _lastKnownInformation?: ILastKnownInformation;
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
@@ -33,6 +78,9 @@ export class GameEvent {
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
     private _replacesEvent?: GameEvent;
+
+    /** The event whose contingent events generator created this one, if any. See {@link generateContingentEvents}. */
+    private _contingentSourceEvent?: GameEvent;
 
     /** A unique ID which can be captured in state if necessary. */
     private readonly _eventId: number;
@@ -72,6 +120,11 @@ export class GameEvent {
 
         if (this.resolutionStatus !== EventResolutionStatus.REPLACED) {
             return false;
+        }
+
+        // an event replaced with no replacement events (see replaceWithNoEffect) counts as resolved
+        if (this.replacementEvents.length === 0) {
+            return true;
         }
 
         return this.replacementEvents.every((event) => event.isResolvedOrReplacementResolved);
@@ -131,7 +184,19 @@ export class GameEvent {
     }
 
     public cancel() {
-        this.resolutionStatus = EventResolutionStatus.CANCELLED;
+        this.removeFromWindowWithStatus(EventResolutionStatus.CANCELLED);
+    }
+
+    /**
+     * Marks this event as fully replaced by an effect with no replacement event (e.g. "prevent that damage").
+     * It will not resolve or trigger abilities, but counts as resolved for "if you do" (CR 8.9).
+     */
+    public replaceWithNoEffect() {
+        this.removeFromWindowWithStatus(EventResolutionStatus.REPLACED);
+    }
+
+    private removeFromWindowWithStatus(status: EventResolutionStatus) {
+        this.resolutionStatus = status;
         if (this._window) {
             this._window.removeEvent(this);
         }
@@ -148,9 +213,27 @@ export class GameEvent {
         if (!this.canResolve) {
             return;
         }
-        if (!this.condition(this)) {
+        if (this.contingentSourceWasCancelledOrReplaced() || !this.condition(this)) {
             this.cancel();
         }
+    }
+
+    /**
+     * A contingent event only happens as part of the event it was generated from, so it must not resolve if that
+     * event (or any event further up the chain) was cancelled or replaced. For example, if a pilot upgrade's defeat
+     * is replaced (Luke Skywalker, You Still With Me?), the pilot must not also leave play or be unattached.
+     *
+     * This matters for contingent events nested more than one level deep: those are generated together with their
+     * source event, before any replacement effect has had a chance to replace it.
+     */
+    private contingentSourceWasCancelledOrReplaced(): boolean {
+        for (let source = this._contingentSourceEvent; source != null; source = source._contingentSourceEvent) {
+            if (source.isCancelledOrReplaced) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor
@@ -205,6 +288,9 @@ export class GameEvent {
 
     public generateContingentEvents(): any[] {
         const contingentEvents = this.contingentEventsGenerator ? this.contingentEventsGenerator() : [];
+        for (const contingentEvent of contingentEvents) {
+            contingentEvent._contingentSourceEvent = this;
+        }
 
         // recursively generate contingent events in case the new contingent events also have contingent events
         let i = 0;

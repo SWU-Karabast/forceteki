@@ -6,6 +6,7 @@ import { Contract } from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults, IStatefulPromptResults } from '../PromptInterfaces';
 import { PromptType, StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
+import { EnumHelpers } from '../../utils/EnumHelpers';
 
 /**
  * Prompt for distributing healing or damage among target cards.
@@ -40,11 +41,9 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             case StatefulPromptType.DistributeHealing:
                 this.distributeType = 'healing';
                 break;
-            case StatefulPromptType.DistributeExperience:
-                this.distributeType = 'Experience tokens';
-                break;
-            case StatefulPromptType.DistributeAdvantage:
-                this.distributeType = 'Advantage tokens';
+            case StatefulPromptType.DistributeTokenUpgrade:
+                Contract.assertNotNullLike(this.properties.tokenType, 'DistributeTokenUpgrade prompt requires a tokenType');
+                this.distributeType = `${EnumHelpers.tokenTitle[this.properties.tokenType]} tokens`;
                 break;
             default:
                 Contract.fail(`Unknown prompt type: ${this.properties.type}`);
@@ -61,6 +60,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         const promptData: IDistributeAmongTargetsPromptData = {
             type: this.properties.type,
+            tokenType: this.properties.tokenType,
             amount: this.properties.amount,
             isIndirectDamage: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
             canDistributeLess: this.properties.canDistributeLess,

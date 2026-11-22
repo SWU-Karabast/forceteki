@@ -302,6 +302,7 @@ describe('Vane, Quarrelsome Pirate', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Tokens.advantage, context.nimbleProwess]);
                 context.player1.clickCard(context.nimbleProwess);
 
+                expect(context.player1).toHavePrompt('Deal 2 damage to the defender or a base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 

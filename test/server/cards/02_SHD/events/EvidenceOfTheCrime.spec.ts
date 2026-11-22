@@ -155,5 +155,32 @@ describe('Evidence of the Crime', function() {
                 expect(context.frontierAtrt).toHaveExactUpgradeNames([]);
             });
         });
+
+        describe('Evidence of the Crime and base upgrades', function() {
+            it('cannot take control of an upgrade attached to a base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['evidence-of-the-crime'],
+                        groundArena: [{ card: 'wampa', upgrades: ['academy-training'] }],
+                    },
+                    player2: {
+                        base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.evidenceOfTheCrime);
+
+                // takes control of "an upgrade" to "attach it to an eligible unit" - the enemy base upgrade is not on a unit
+                expect(context.player1).toBeAbleToSelectExactly([context.academyTraining]);
+                context.player1.clickCard(context.academyTraining);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toHaveExactUpgradeNames(['academy-training']);
+                expect(context.p2Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+            });
+        });
     });
 });

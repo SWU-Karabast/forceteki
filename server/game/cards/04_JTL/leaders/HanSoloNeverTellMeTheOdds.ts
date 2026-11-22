@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Attack } from '../../../core/attack/Attack';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, DeployType, WildcardZoneName } from '../../../core/Constants';
+import { AbilityType, DeployType, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -50,13 +50,12 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
                 onLeaderDeployed: (event, context) => event.card === context.source && event.type === DeployType.LeaderUpgrade
             },
             zoneFilter: WildcardZoneName.AnyArena,
-            immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => {
-                const friendlyUnits = context.player.getArenaUnits().filter((unit) => unit.isUnit() && this.isOdd(unit.cost)).length;
-                const friendlyUpgrades = context.player.getArenaUpgrades().filter((upgrade) => this.isOdd(upgrade.cost)).length;
-                return {
-                    amount: friendlyUnits + friendlyUpgrades
-                };
-            })
+            immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
+                amount: context.player.getInPlayCards({
+                    type: [WildcardCardType.Unit, WildcardCardType.Upgrade],
+                    condition: (card) => card.hasCost() && this.isOdd(card.cost)
+                }).length
+            }))
         });
     }
 

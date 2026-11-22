@@ -1,3 +1,4 @@
+import { mergeUserPreferences } from '../utils/user/UserPreferences';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
     DeleteCommand,
@@ -7,29 +8,59 @@ import {
     QueryCommand,
     ScanCommand,
     UpdateCommand,
-    BatchWriteCommand
+    BatchWriteCommand,
+    TransactWriteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type {
     IModActionEntity,
+    IPlayerReportEntity,
+    IPlayerReportIndexEntity,
+    IPlayerReportCleanupCursor,
+    IPlayerReportLogEntity,
     IUsernameChangeEntity
 } from './DynamoDBInterfaces';
 import {
+    PlayerReportRole,
+    PlayerReportStatus,
     type IDeckDataEntity,
     type IDeckStatsEntity,
     type IUserProfileDataEntity,
     type IUserPreferences,
-    type IServerRoleUsersListsEntity
+    type IServerRoleUsersListsEntity,
+    type IServerSettingsEntity,
+    isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
+import {
+    IDeckDataEntitySchema,
+    IDeckStatsEntitySchema,
+    ModActionEntitySchema,
+    PlayerReportEntitySchema,
+    PlayerReportIndexEntitySchema,
+    PlayerReportLogEntitySchema,
+    UsernameChangeEntitySchema
+} from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
-import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
+
+/**
+ * The key of an item: its table key (`pk`, `sk`) and, for item types in the `GSI_PK_INDEX`, the index key.
+ * The save methods always compute these themselves and pass them to {@link DynamoDBService.putItemAsync}, which takes
+ * none from the data it stores. (`batchWriteItemsAsync`, used only by one-off migration scripts, writes whole items
+ * as it is given them.)
+ */
+export interface IItemKey {
+    pk: string;
+    sk: string;
+    GSI_PK?: string;
+}
+
+const itemKeyAttributes: readonly (keyof IItemKey)[] = ['pk', 'sk', 'GSI_PK'];
 
 /**
  * Get a properly initialized DynamoDB service
@@ -63,14 +94,44 @@ export async function getDynamoDbServiceAsync() {
     return dynamoDbService;
 }
 
-class DynamoDBService {
+/**
+ * The document client is not configured with removeUndefinedValues, so optional fields that are
+ * undefined have to be dropped before writing.
+ */
+const withoutUndefined = <T extends Record<string, any>>(item: T): T =>
+    Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined)) as T;
+
+/** GSI bucket holding every open player report */
+export const OPEN_PLAYER_REPORT_GSI_KEY = 'OPEN_PLAYER_REPORT';
+
+/** GSI bucket for player reports closed in the given YYYY-MM month */
+export const closedPlayerReportGsiKey = (month: string): string => `CLOSED_PLAYER_REPORT#${month}`;
+
+/** GSI bucket for player report logs that expire on the given YYYY-MM-DD day */
+export const playerReportLogExpiryGsiKey = (day: string): string => `REPORT_LOG_EXPIRY#${day}`;
+
+export type PlayerReportTransitionResult =
+  | { success: true; report: IPlayerReportEntity }
+  | { success: false; reason: 'condition' | 'conflict' };
+
+const PLAYER_REPORT_LOG_KINDS = ['Chat', 'Game'] as const;
+
+export class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;
     public isLocalMode: boolean;
 
-    public constructor() {
+    /**
+     * @param client the document client every command is sent through; by default one is built from the environment
+     */
+    public constructor(client?: DynamoDBDocumentClient) {
         this.isLocalMode = process.env.ENVIRONMENT === 'development';
         this.tableName = 'KarabastGlobalTable';
+        if (client) {
+            this.client = client;
+            return;
+        }
+
         // Configure the DynamoDB client
         let dbClientConfig: any = {
             region: process.env.AWS_REGION || 'us-east-1',
@@ -100,6 +161,22 @@ class DynamoDBService {
 
         const dbClient = new DynamoDBClient(dbClientConfig);
         this.client = DynamoDBDocumentClient.from(dbClient);
+    }
+
+    /**
+     * Validate a list of items, skipping (and logging) invalid ones so a single bad record
+     * cannot make a whole listing fail.
+     */
+    private async validateEachAsync<T>(schema: z.ZodType<T>, items: unknown[], context: (item: any) => string): Promise<T[]> {
+        const results = await Promise.all(items.map(async (item) => {
+            try {
+                return await this.validateAndHandleAsync<T>(schema, item, context(item));
+            } catch {
+                // validateAndHandleAsync has already logged the validation error
+                return undefined;
+            }
+        }));
+        return results.filter(Boolean);
     }
 
     private async validateAndHandleAsync<T>(
@@ -213,21 +290,41 @@ class DynamoDBService {
 
     // Basic CRUD operations
 
-    public getItemAsync(pk: string, sk: string) {
+    /**
+     * @param options.consistentRead read the latest committed value rather than a possibly lagging replica; use it
+     * where the result is cached or acted on straight after a write
+     */
+    public getItemAsync(pk: string, sk: string, options: { consistentRead?: boolean } = {}) {
         return this.executeDbOperationAsync(() => {
             const command = new GetCommand({
                 TableName: this.tableName,
-                Key: { pk, sk }
+                Key: { pk, sk },
+                ...(options.consistentRead ? { ConsistentRead: true } : {})
             });
             return this.client.send(command);
         }, 'DynamoDB getItem error');
     }
 
-    public putItemAsync(item: Record<string, any>) {
+    /**
+     * Writes one item: `key` is its key and `attributes` everything else stored on it. The key is only ever taken
+     * from `key`, so attributes that name a key field are refused rather than written.
+     * @param conditionExpression if given, the write only happens when this holds for the item already stored
+     * @throws if `attributes` has a `pk`, `sk` or `GSI_PK` field
+     */
+    public putItemAsync(key: IItemKey, attributes: Record<string, unknown> = {}, conditionExpression?: string) {
+        const keyField = itemKeyAttributes.find((name) => Object.prototype.hasOwnProperty.call(attributes, name));
+        if (keyField !== undefined) {
+            return Promise.reject(new Error(`Item attributes must not include the key field '${keyField}'`));
+        }
+
+        // the document client is not configured with removeUndefinedValues, so an unset index key is left out
+        const item = { ...attributes, pk: key.pk, sk: key.sk, ...(key.GSI_PK !== undefined ? { GSI_PK: key.GSI_PK } : {}) };
+
         return this.executeDbOperationAsync(() => {
             const command = new PutCommand({
                 TableName: this.tableName,
-                Item: item
+                Item: item,
+                ...(conditionExpression ? { ConditionExpression: conditionExpression } : {})
             });
             return this.client.send(command);
         }, 'DynamoDB putItem error');
@@ -235,10 +332,12 @@ class DynamoDBService {
 
     /**
      * Batch write multiple items to DynamoDB.
-     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items.
+     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items with
+     * exponential backoff. Throws if items remain unprocessed after MAX_BATCH_RETRIES.
      */
     public batchWriteItemsAsync(items: Record<string, any>[]) {
         return this.executeDbOperationAsync(async () => {
+            const MAX_BATCH_RETRIES = 8;
             const chunks = [];
             for (let i = 0; i < items.length; i += 25) {
                 chunks.push(items.slice(i, i + 25));
@@ -246,6 +345,7 @@ class DynamoDBService {
 
             for (const chunk of chunks) {
                 let unprocessed = chunk;
+                let attempt = 0;
 
                 while (unprocessed.length > 0) {
                     const result = await this.client.send(new BatchWriteCommand({
@@ -257,14 +357,18 @@ class DynamoDBService {
                     }));
 
                     const retryItems = result.UnprocessedItems?.[this.tableName];
-                    if (retryItems && retryItems.length > 0) {
-                        logger.info(`Retrying ${retryItems.length} unprocessed items...`);
-                        unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
-                        // Back off before retry
-                        await new Promise((resolve) => setTimeout(resolve, 500));
-                    } else {
+                    if (!retryItems || retryItems.length === 0) {
                         break;
                     }
+
+                    attempt++;
+                    if (attempt > MAX_BATCH_RETRIES) {
+                        throw new Error(`Batch write gave up after ${MAX_BATCH_RETRIES} retries with ${retryItems.length} item(s) still unprocessed`);
+                    }
+
+                    logger.info(`Retrying ${retryItems.length} unprocessed items (attempt ${attempt}/${MAX_BATCH_RETRIES})...`);
+                    unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
+                    await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt)));
                 }
             }
         }, 'Error in batch write');
@@ -273,6 +377,9 @@ class DynamoDBService {
     public queryItemsAsync(pk: string, options: {
         beginsWith?: string;
         filters?: Record<string, any>;
+
+        /** Read the latest committed data instead of a possibly lagging replica (costs twice the read capacity) */
+        consistentRead?: boolean;
     } = {}) {
         return this.executeDbOperationAsync(() => {
             let keyConditionExpression = 'pk = :pk';
@@ -287,7 +394,8 @@ class DynamoDBService {
             const command = new QueryCommand({
                 TableName: this.tableName,
                 KeyConditionExpression: keyConditionExpression,
-                ExpressionAttributeValues: expressionAttributeValues
+                ExpressionAttributeValues: expressionAttributeValues,
+                ...(options.consistentRead ? { ConsistentRead: true } : {}),
             });
 
             return this.client.send(command);
@@ -325,76 +433,81 @@ class DynamoDBService {
     // User Profile Methods
 
     public saveUserProfileAsync(userData: IUserProfileDataEntity) {
-        const item = {
-            pk: `USER#${userData.id}`,
-            sk: 'PROFILE',
-            ...userData,
-            preferences: userData.preferences || getDefaultPreferences(),
-        };
-        return this.putItemAsync(item);
+        return this.putItemAsync(
+            { pk: `USER#${userData.id}`, sk: 'PROFILE' },
+            { ...userData, preferences: userData.preferences || getDefaultPreferences() }
+        );
     }
 
     public getUserProfileAsync(userId: string) {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync(`USER#${userId}`, 'PROFILE');
+            // consistent, because the result is cached and a lagging read right after a write would stay cached
+            const result = await this.getItemAsync(`USER#${userId}`, 'PROFILE', { consistentRead: true });
             return result.Item as IUserProfileDataEntity | undefined;
         }, 'Error getting user profile');
     }
 
+    /**
+     * Sets the given profile fields. `id` is skipped, as the profile's key already holds it. Field names go into the
+     * update expression only as `#name` placeholders.
+     * @throws if `updates` has a `pk`, `sk` or `GSI_PK` field
+     */
     public updateUserProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>) {
+        const keyField = itemKeyAttributes.find((name) => Object.prototype.hasOwnProperty.call(updates, name));
+        if (keyField !== undefined) {
+            return Promise.reject(new Error(`Profile updates must not include the key field '${keyField}'`));
+        }
+
         return this.executeDbOperationAsync(() => {
-            // Build update expression and expression attribute values
-            let updateExpression = 'SET';
+            const assignments: string[] = [];
+            const expressionAttributeNames: Record<string, string> = {};
             const expressionAttributeValues: Record<string, any> = {};
 
             for (const [key, value] of Object.entries(updates)) {
-                if (key !== 'id') { // Don't update primary key
-                    updateExpression += ` ${key} = :${key},`;
-                    expressionAttributeValues[`:${key}`] = value;
+                if (key === 'id') {
+                    continue;
                 }
-            }
 
-            // Remove trailing comma
-            updateExpression = updateExpression.slice(0, -1);
+                const index = assignments.length;
+                assignments.push(`#field${index} = :value${index}`);
+                expressionAttributeNames[`#field${index}`] = key;
+                expressionAttributeValues[`:value${index}`] = value;
+            }
 
             return this.updateItemAsync(
                 `USER#${userId}`,
                 'PROFILE',
-                updateExpression,
-                expressionAttributeValues
+                `SET ${assignments.join(', ')}`,
+                expressionAttributeValues,
+                expressionAttributeNames
             );
         }, 'Error updating user profile');
     }
 
-    /**
-     * Put an item with a condition expression
-     */
-    public putItemWithConditionAsync(item: Record<string, any>, conditionExpression: string) {
+    public removeUserProfileAttributeAsync(userId: string, attributeName: keyof IUserProfileDataEntity) {
         return this.executeDbOperationAsync(() => {
-            const command = new PutCommand({
+            const command = new UpdateCommand({
                 TableName: this.tableName,
-                Item: item,
-                ConditionExpression: conditionExpression
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'REMOVE #attribute',
+                ExpressionAttributeNames: { '#attribute': attributeName }
             });
             return this.client.send(command);
-        }, 'DynamoDB putItemWithCondition error');
+        }, 'Error removing user profile attribute');
     }
 
     // OAuth Link Methods
     public saveOAuthLinkAsync(provider: string, providerId: string, userId: string) {
-        return this.putItemWithConditionAsync(
-            {
-                pk: `OAUTH#${provider}_${providerId}`,
-                sk: 'LINK',
-                GSI_PK: userId,
-            },
+        return this.putItemAsync(
+            { pk: `OAUTH#${provider}_${providerId}`, sk: 'LINK', GSI_PK: userId },
+            {},
             'attribute_not_exists(pk)'
         );
     }
 
     public getUserIdByOAuthAsync(provider: string, providerId: string) {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync(`OAUTH#${provider}_${providerId}`, 'LINK');
+            const result = await this.getItemAsync(`OAUTH#${provider}_${providerId}`, 'LINK', { consistentRead: true });
             return result.Item?.GSI_PK as string | undefined;
         }, 'Error getting user ID by OAuth');
     }
@@ -402,14 +515,10 @@ class DynamoDBService {
     // Email Link Methods
     public saveEmailLinkAsync(email: string, userId: string) {
         return this.executeDbOperationAsync(() => {
-            const item = {
-                pk: `EMAIL#${email.toLowerCase()}`,
-                sk: 'LINK',
-                GSI_PK: userId,
-                email: email.toLowerCase()
-            };
-
-            return this.putItemAsync(item);
+            return this.putItemAsync(
+                { pk: `EMAIL#${email.toLowerCase()}`, sk: 'LINK', GSI_PK: userId },
+                { email: email.toLowerCase() }
+            );
         }, 'Error saving email link');
     }
 
@@ -421,27 +530,41 @@ class DynamoDBService {
     }
 
     // User Deck Methods
+    /** Saves a deck under its owner. Only the fields of a deck are stored: anything else on `deckData` is left out. */
     public saveDeckAsync(deckData: IDeckDataEntity) {
         return this.executeDbOperationAsync(async () => {
-            await this.validateAndHandleAsync(
+            const deck = await this.validateAndHandleAsync(
                 IDeckDataEntitySchema,
                 deckData,
                 'Save deck'
             );
-            const item = {
-                pk: `USER#${deckData.userId}`,
-                sk: `DECK#${deckData.id}`,
-                ...deckData,
-                stats: deckData.stats || { wins: 0, losses: 0, draws: 0 }
-            };
 
-            return this.putItemAsync(item);
+            return this.putItemAsync(
+                { pk: `USER#${deck.userId}`, sk: `DECK#${deck.id}` },
+                { ...deck, stats: deck.stats || { wins: 0, losses: 0, draws: 0 } }
+            );
         }, 'Error saving deck');
+    }
+
+    /**
+     * Whether a stored deck item sits under the key its own owner and id give it. {@link saveDeckAsync} only ever writes
+     * a deck there, so the deck reads leave out any item that does not, rather than let its stored owner or id decide
+     * where a later save of it goes.
+     */
+    private isStoredUnderOwnKey(item: Record<string, unknown>): boolean {
+        const isOwnKey = item.pk === `USER#${item.userId}` && item.sk === `DECK#${item.id}`;
+        if (!isOwnKey) {
+            logger.error(`DynamoDBService: ignoring a deck item whose owner or id does not match its key (${item.pk} / ${item.sk})`);
+        }
+        return isOwnKey;
     }
 
     public getDeckAsync(userId: string, deckId: string) {
         return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+            if (result.Item && !this.isStoredUnderOwnKey(result.Item)) {
+                return undefined;
+            }
             return this.validateAndHandleAsync<IDeckDataEntity>(
                 IDeckDataEntitySchema,
                 result.Item,
@@ -490,7 +613,7 @@ class DynamoDBService {
 
             // Find the deck with matching deckLink
             const foundDeck = result.Items.find((item: any) =>
-                item.deck && item.deck.deckLinkID === deckLinkID
+                item.deck && item.deck.deckLinkID === deckLinkID && this.isStoredUnderOwnKey(item)
             );
 
             if (!foundDeck) {
@@ -517,6 +640,10 @@ class DynamoDBService {
             const validDecks: IDeckDataEntity[] = [];
 
             for (const item of result.Items) {
+                if (!this.isStoredUnderOwnKey(item)) {
+                    continue;
+                }
+
                 try {
                     const validDeck = await this.validateAndHandleAsync<IDeckDataEntity>(
                         IDeckDataEntitySchema,
@@ -597,28 +724,6 @@ class DynamoDBService {
     }
 
     /**
-     * Deep-merge plain-object preferences. Values from `source` win; nested objects are merged
-     * recursively so partial updates don't clobber unrelated saved settings. `undefined` values
-     * in `source` are skipped.
-     */
-    private deepMergePreferences(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
-        const result: Record<string, any> = { ...target };
-        for (const key in source) {
-            const sourceValue = source[key];
-            if (sourceValue === undefined) {
-                continue;
-            }
-            const targetValue = result[key];
-            const bothPlainObjects =
-              typeof sourceValue === 'object' && sourceValue !== null && !Array.isArray(sourceValue) &&
-              typeof targetValue === 'object' && targetValue !== null && !Array.isArray(targetValue);
-            result[key] = bothPlainObjects ? this.deepMergePreferences(targetValue, sourceValue) : sourceValue;
-        }
-        return result;
-    }
-
-
-    /**
      * Update user preferences, merging the given partial update into what's already stored.
      *
      * Uses a read-merge-replace strategy: load the stored preferences, layer the current defaults
@@ -636,8 +741,8 @@ class DynamoDBService {
     public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
             const currentPrefs = await this.getStoredPreferencesAsync(userId);
-            const merged = this.deepMergePreferences(
-                this.deepMergePreferences(getDefaultPreferences(), currentPrefs ?? {}),
+            const merged = mergeUserPreferences(
+                mergeUserPreferences(getDefaultPreferences(), currentPrefs ?? {}),
                 preferences
             );
 
@@ -664,16 +769,26 @@ class DynamoDBService {
         }, 'Error getting cosmetics data');
     }
 
-    public saveCosmeticAsync(cosmeticData: ICosmeticEntity) {
+    /**
+     * Saves a cosmetic's id, title, type and path.
+     * @param options.createOnly refuse to replace a cosmetic that already has this id: the write then fails with a
+     * `ConditionalCheckFailedException`
+     */
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity, options: { createOnly?: boolean } = {}) {
         return this.executeDbOperationAsync(() => {
-            const item = {
-                pk: 'COSMETICS',
-                sk: `ITEM#${cosmeticData.id}`,
-                ...cosmeticData,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            return this.putItemAsync(item);
+            const now = new Date().toISOString();
+            return this.putItemAsync(
+                { pk: 'COSMETICS', sk: `ITEM#${cosmeticData.id}` },
+                {
+                    id: cosmeticData.id,
+                    title: cosmeticData.title,
+                    type: cosmeticData.type,
+                    path: cosmeticData.path,
+                    createdAt: now,
+                    updatedAt: now
+                },
+                options.createOnly ? 'attribute_not_exists(pk)' : undefined
+            );
         }, 'Error saving cosmetic item');
     }
 
@@ -731,21 +846,71 @@ class DynamoDBService {
         }, 'Error getting admin users');
     }
 
+    // Server settings methods
+    public getServerSettingsAsync(): Promise<IServerSettingsEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL');
+
+            // A missing item means no moderator has ever set these, which is the state on the first
+            // deploy of this feature. Default to enabled so that the rollout itself can't black out
+            // the site - unlike a read failure, this is a known state rather than an unknown one.
+            if (!result.Item) {
+                return { gamesEnabled: true };
+            }
+
+            return {
+                gamesEnabled: result.Item.gamesEnabled !== false,
+                maintenanceMessage: result.Item.maintenanceMessage,
+                updatedBy: result.Item.updatedBy,
+                updatedAt: result.Item.updatedAt
+            };
+        }, 'Error getting server settings');
+    }
+
+    public saveServerSettingsAsync(settings: IServerSettingsEntity) {
+        return this.executeDbOperationAsync(() => {
+            const attributes: Record<string, unknown> = {
+                gamesEnabled: settings.gamesEnabled
+            };
+
+            // The document client is not configured with removeUndefinedValues, so undefined
+            // fields have to be omitted rather than written.
+            for (const key of ['maintenanceMessage', 'updatedBy', 'updatedAt'] as const) {
+                if (settings[key] !== undefined) {
+                    attributes[key] = settings[key];
+                }
+            }
+
+            return this.putItemAsync({ pk: 'SERVER_SETTINGS', sk: 'GLOBAL' }, attributes);
+        }, 'Error saving server settings');
+    }
+
     // Mod Actions
     /**
-     * Query items using the GSI_PK_INDEX
+     * Query items using the GSI_PK_INDEX, paging through all results.
      * @param gsiPkValue The value for the GSI_PK partition key
      */
     public queryByGSIAsync(gsiPkValue: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new QueryCommand({
-                TableName: this.tableName,
-                IndexName: 'GSI_PK_INDEX',
-                KeyConditionExpression: 'GSI_PK = :gsiPk',
-                ExpressionAttributeValues: { ':gsiPk': gsiPkValue }
-            });
+        return this.executeDbOperationAsync(async () => {
+            const items: Record<string, any>[] = [];
+            let lastEvaluatedKey: Record<string, any> | undefined;
 
-            return this.client.send(command);
+            do {
+                const result = await this.client.send(new QueryCommand({
+                    TableName: this.tableName,
+                    IndexName: 'GSI_PK_INDEX',
+                    KeyConditionExpression: 'GSI_PK = :gsiPk',
+                    ExpressionAttributeValues: { ':gsiPk': gsiPkValue },
+                    ExclusiveStartKey: lastEvaluatedKey
+                }));
+
+                if (result.Items) {
+                    items.push(...result.Items);
+                }
+                lastEvaluatedKey = result.LastEvaluatedKey;
+            } while (lastEvaluatedKey);
+
+            return { Items: items };
         }, 'DynamoDB queryByGSI error');
     }
 
@@ -803,13 +968,7 @@ class DynamoDBService {
      */
     public saveUsernameChangeAsync(record: IUsernameChangeEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = {
-                pk: `USER#${record.playerId}`,
-                sk: `NAMECHANGE#${record.id}`,
-                ...record,
-            };
-
-            return this.putItemAsync(item);
+            return this.putItemAsync({ pk: `USER#${record.playerId}`, sk: `NAMECHANGE#${record.id}` }, { ...record });
         }, 'Error saving username change');
     }
 
@@ -819,18 +978,12 @@ class DynamoDBService {
      */
     public saveModActionAsync(modAction: IModActionEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = {
-                pk: `USER#${modAction.playerId}`,
-                sk: `MODACTION#${modAction.id}`,
-                ...modAction,
-            };
-
-            // Active action types (Mute, Rename) get indexed via the sparse GSI
-            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
-                item.GSI_PK = 'ACTIVE_MODACTION';
+            const key: IItemKey = { pk: `USER#${modAction.playerId}`, sk: `MODACTION#${modAction.id}` };
+            if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
+                key.GSI_PK = 'ACTIVE_MODACTION';
             }
 
-            return this.putItemAsync(item);
+            return this.putItemAsync(key, withoutUndefined({ ...modAction }));
         }, 'Error saving mod action');
     }
 
@@ -898,6 +1051,350 @@ class DynamoDBService {
         }, 'Error removing mod action from active index');
     }
 
+    // Player Reports
+    // Layout:
+    //   REPORT#<id> / META                    the report (GSI_PK = open or closed-per-month bucket)
+    //   REPORT#<id> / LOG#<kind>              chat and game log captured when the report was submitted
+    //   USER#<playerId> / PLAYERREPORT#<role>#<id>   pointer so reports by/against a player can be listed
+
+    private static playerReportIndexSortKey(role: PlayerReportRole, reportId: string): string {
+        return `PLAYERREPORT#${role}#${reportId}`;
+    }
+
+    /**
+     * Save a new player report together with its logs and the per-player index entries.
+     */
+    public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], indexEntries: IPlayerReportIndexEntity[]) {
+        return this.executeDbOperationAsync(() => {
+            const items: Record<string, any>[] = [
+                { pk: `REPORT#${report.id}`, sk: 'META', ...report, GSI_PK: OPEN_PLAYER_REPORT_GSI_KEY },
+                ...logs.map((log) => ({ pk: `REPORT#${report.id}`, sk: `LOG#${log.kind}`, ...log })),
+                ...indexEntries.map((entry) => ({
+                    pk: `USER#${entry.playerId}`,
+                    sk: DynamoDBService.playerReportIndexSortKey(entry.role, entry.reportId),
+                    ...entry,
+                })),
+            ].map(withoutUndefined);
+
+            // All or nothing: a report missing its index entries or logs could never be closed
+            // (transitionPlayerReportAsync requires every item to exist)
+            return this.client.send(new TransactWriteCommand({
+                TransactItems: items.map((item) => ({
+                    Put: { TableName: this.tableName, Item: item, ConditionExpression: 'attribute_not_exists(pk)' },
+                })),
+            }));
+        }, 'Error saving player report');
+    }
+
+    /**
+     * Get only a player report's own record, without its logs. Returns null if the report does not exist.
+     */
+    public getPlayerReportMetaAsync(reportId: string, options: { consistentRead?: boolean } = {}): Promise<IPlayerReportEntity | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.client.send(new GetCommand({
+                TableName: this.tableName,
+                Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                ...(options.consistentRead ? { ConsistentRead: true } : {}),
+            }));
+            if (!result.Item) {
+                return null;
+            }
+            return await this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, result.Item, `getPlayerReportMetaAsync (report ${reportId})`) ?? null;
+        }, 'Error getting player report');
+    }
+
+    /**
+     * Get a player report and its logs. Returns null if the report does not exist.
+     * The record and the logs are read separately, so large logs can never push the record out of a query page.
+     */
+    public getPlayerReportAsync(
+        reportId: string,
+        options: { consistentRead?: boolean } = {}
+    ): Promise<{ report: IPlayerReportEntity; logs: IPlayerReportLogEntity[] } | null> {
+        return this.executeDbOperationAsync(async () => {
+            const [report, logResult] = await Promise.all([
+                this.getPlayerReportMetaAsync(reportId, options),
+                this.queryItemsAsync(`REPORT#${reportId}`, { beginsWith: 'LOG#', consistentRead: options.consistentRead }),
+            ]);
+            if (!report) {
+                return null;
+            }
+
+            const logs = await this.validateEachAsync<IPlayerReportLogEntity>(
+                PlayerReportLogEntitySchema,
+                logResult.Items || [],
+                (item) => `getPlayerReportAsync (log ${item.sk})`
+            );
+
+            return { report, logs };
+        }, 'Error getting player report');
+    }
+
+    /**
+     * Get all player reports in a GSI bucket (open reports, or reports closed in one month).
+     */
+    public getPlayerReportsByGsiKeyAsync(gsiKey: string): Promise<IPlayerReportEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryByGSIAsync(gsiKey);
+
+            return this.validateEachAsync<IPlayerReportEntity>(
+                PlayerReportEntitySchema,
+                result.Items || [],
+                (item) => `getPlayerReportsByGsiKeyAsync (report ${item.id})`
+            );
+        }, 'Error getting player reports');
+    }
+
+    /**
+     * Get the report index entries (reports filed by and against) for a player.
+     */
+    public getPlayerReportIndexAsync(playerId: string): Promise<IPlayerReportIndexEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USER#${playerId}`, { beginsWith: 'PLAYERREPORT#' });
+
+            return this.validateEachAsync<IPlayerReportIndexEntity>(
+                PlayerReportIndexEntitySchema,
+                result.Items || [],
+                (item) => `getPlayerReportIndexAsync (${item.sk})`
+            );
+        }, 'Error getting player report index');
+    }
+
+    /**
+     * Moves a report between Open and Closed in one transaction: the report itself (only if it is still in
+     * `expectedStatus`), both players' index entries, and the logs' expiry bucket (`null` removes it). Either
+     * all of it is written or nothing is, so a ticket can never end up closed with logs that never expire, or
+     * open with logs still scheduled for deletion.
+     *
+     * Expected races are returned, not thrown: 'condition' when the report, an index entry or a log changed in
+     * the meantime, 'conflict' when another transaction touched the same items concurrently.
+     * @returns the report as written by the transition
+     */
+    public transitionPlayerReportAsync(
+        report: IPlayerReportEntity,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string,
+        logExpiryGsiKey: string | null,
+    ): Promise<PlayerReportTransitionResult> {
+        return this.executeDbOperationAsync(async (): Promise<PlayerReportTransitionResult> => {
+            const next = { ...report, ...set };
+            const indexUpdate = (playerId: string, role: PlayerReportRole) => ({
+                Update: {
+                    TableName: this.tableName,
+                    Key: { pk: `USER#${playerId}`, sk: DynamoDBService.playerReportIndexSortKey(role, report.id) },
+                    UpdateExpression: next.outcome && !remove.includes('outcome') ? 'SET #status = :status, outcome = :outcome' : 'SET #status = :status REMOVE outcome',
+                    ConditionExpression: 'attribute_exists(pk)',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: withoutUndefined({
+                        ':status': next.status,
+                        ':outcome': next.outcome && !remove.includes('outcome') ? next.outcome : undefined,
+                    }),
+                },
+            });
+            // Logs deleted by the retention cleanup are gone for good; there is no expiry left to change
+            const logUpdates = report.logsDeletedAt ? [] : PLAYER_REPORT_LOG_KINDS.map((kind) => ({
+                Update: {
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${report.id}`, sk: `LOG#${kind}` },
+                    UpdateExpression: logExpiryGsiKey ? 'SET GSI_PK = :gsiPk' : 'REMOVE GSI_PK',
+                    ConditionExpression: 'attribute_exists(pk)',
+                    ...(logExpiryGsiKey ? { ExpressionAttributeValues: { ':gsiPk': logExpiryGsiKey } } : {}),
+                },
+            }));
+
+            try {
+                await this.client.send(new TransactWriteCommand({
+                    TransactItems: [
+                        { Update: this.buildPlayerReportStatusUpdate(report.id, expectedStatus, set, remove, gsiKey) },
+                        indexUpdate(report.reporterId, PlayerReportRole.ReportSubmitter),
+                        indexUpdate(report.reportedPlayerId, PlayerReportRole.ReportedPlayer),
+                        ...logUpdates,
+                    ],
+                }));
+            } catch (error) {
+                const failure = DynamoDBService.transactionFailureReason(error);
+                if (failure) {
+                    return { success: false, reason: failure };
+                }
+                throw error;
+            }
+
+            // Built from what was written rather than read back, which could hit a replica that lags behind
+            const written = Object.fromEntries(
+                Object.entries(next).filter(([key]) => !remove.includes(key as keyof IPlayerReportEntity))
+            ) as unknown as IPlayerReportEntity;
+            return { success: true, report: written };
+        }, 'Error updating player report status');
+    }
+
+    /** Update of a report's META item that only applies while the report is in `expectedStatus` */
+    private buildPlayerReportStatusUpdate(
+        reportId: string,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string | undefined,
+    ) {
+        const names: Record<string, string> = { '#status': 'status' };
+        const values: Record<string, any> = { ':expectedStatus': expectedStatus };
+        const setClauses: string[] = [];
+
+        const setFields: Record<string, any> = withoutUndefined({ ...set });
+        if (gsiKey) {
+            setFields.GSI_PK = gsiKey;
+        }
+        Object.entries(setFields).forEach(([key, value], index) => {
+            names[`#s${index}`] = key;
+            values[`:s${index}`] = value;
+            setClauses.push(`#s${index} = :s${index}`);
+        });
+        const removeClauses = remove.map((key, index) => {
+            names[`#r${index}`] = key;
+            return `#r${index}`;
+        });
+
+        let updateExpression = '';
+        if (setClauses.length > 0) {
+            updateExpression += `SET ${setClauses.join(', ')}`;
+        }
+        if (removeClauses.length > 0) {
+            updateExpression += ` REMOVE ${removeClauses.join(', ')}`;
+        }
+
+        return {
+            TableName: this.tableName,
+            Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+            UpdateExpression: updateExpression.trim(),
+            ConditionExpression: 'attribute_exists(pk) AND #status = :expectedStatus',
+            ExpressionAttributeNames: names,
+            ExpressionAttributeValues: values,
+        };
+    }
+
+    /**
+     * Why a transaction was cancelled, if it was one of the expected races: 'condition' when one of its conditions
+     * failed, 'conflict' when another transaction was writing the same items. Anything else returns null.
+     */
+    private static transactionFailureReason(error: any): 'condition' | 'conflict' | null {
+        if (error?.name !== 'TransactionCanceledException') {
+            return null;
+        }
+        const codes: string[] = (error.CancellationReasons ?? []).map((reason: { Code?: string }) => reason?.Code);
+        if (codes.includes('ConditionalCheckFailed')) {
+            return 'condition';
+        }
+        return codes.includes('TransactionConflict') ? 'conflict' : null;
+    }
+
+    /**
+     * Get only the requested attributes of every item in a GSI bucket, following pagination.
+     * Used by cleanup, which must not load full log contents just to find their keys.
+     */
+    public queryAttributesByGsiAsync(gsiKey: string, attributes: string[]): Promise<Record<string, any>[]> {
+        return this.executeDbOperationAsync(async () => {
+            const names = Object.fromEntries(attributes.map((attribute, index) => [`#a${index}`, attribute]));
+            const items: Record<string, any>[] = [];
+            let exclusiveStartKey: Record<string, any> | undefined;
+            do {
+                const result = await this.client.send(new QueryCommand({
+                    TableName: this.tableName,
+                    IndexName: 'GSI_PK_INDEX',
+                    KeyConditionExpression: 'GSI_PK = :gsiPk',
+                    ExpressionAttributeValues: { ':gsiPk': gsiKey },
+                    ExpressionAttributeNames: names,
+                    ProjectionExpression: Object.keys(names).join(', '),
+                    ExclusiveStartKey: exclusiveStartKey,
+                }));
+                items.push(...(result.Items || []));
+                exclusiveStartKey = result.LastEvaluatedKey;
+            } while (exclusiveStartKey);
+            return items;
+        }, 'Error querying GSI attributes');
+    }
+
+    /**
+     * Delete a report's chat and game logs and note on the report when that happened. Only applies while the
+     * report is still Closed and was closed before `closedBefore`, so a ticket reopened (or reopened and closed
+     * again) after the cleanup read its expiry bucket keeps its logs.
+     * @returns false if the report is no longer Closed (or gone) and nothing was deleted
+     */
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string, closedBefore: string): Promise<boolean> {
+        return this.executeDbOperationAsync(() => this.runClosedReportTransactionAsync(reportId, [
+            {
+                Update: {
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                    UpdateExpression: 'SET logsDeletedAt = :deletedAt',
+                    ConditionExpression: '#status = :closed AND closedAt < :closedBefore',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: { ':deletedAt': deletedAt, ':closed': PlayerReportStatus.Closed, ':closedBefore': closedBefore },
+                },
+            },
+            ...PLAYER_REPORT_LOG_KINDS.map((kind) => ({
+                Delete: { TableName: this.tableName, Key: { pk: `REPORT#${reportId}`, sk: `LOG#${kind}` } },
+            })),
+        ]), 'Error deleting player report logs');
+    }
+
+    /**
+     * Delete a report with its logs and both players' index entries. Only applies while the report is still
+     * Closed and was closed before `closedBefore`, so a ticket reopened after the cleanup read its month bucket
+     * is kept.
+     * @returns false if the report is no longer Closed (or gone) and nothing was deleted
+     */
+    public deletePlayerReportAsync(reportId: string, reporterId: string, reportedPlayerId: string, closedBefore: string): Promise<boolean> {
+        return this.executeDbOperationAsync(() => this.runClosedReportTransactionAsync(reportId, [
+            {
+                Delete: {
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                    ConditionExpression: '#status = :closed AND closedAt < :closedBefore',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: { ':closed': PlayerReportStatus.Closed, ':closedBefore': closedBefore },
+                },
+            },
+            ...PLAYER_REPORT_LOG_KINDS.map((kind) => ({
+                Delete: { TableName: this.tableName, Key: { pk: `REPORT#${reportId}`, sk: `LOG#${kind}` } },
+            })),
+            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reporterId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.ReportSubmitter, reportId) } } },
+            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reportedPlayerId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.ReportedPlayer, reportId) } } },
+        ]), 'Error deleting player report');
+    }
+
+    /** Runs a cleanup transaction whose first item is conditional on the report still being due for cleanup */
+    private async runClosedReportTransactionAsync(reportId: string, transactItems: Record<string, any>[]): Promise<boolean> {
+        try {
+            await this.client.send(new TransactWriteCommand({ TransactItems: transactItems }));
+            return true;
+        } catch (error) {
+            const failure = DynamoDBService.transactionFailureReason(error);
+            if (failure === 'condition') {
+                logger.info(`DynamoDBService: Skipped retention cleanup of report ${reportId}, it was reopened or closed again`, { reportId });
+                return false;
+            }
+            throw error;
+        }
+    }
+
+    public getPlayerReportCleanupCursorAsync(): Promise<IPlayerReportCleanupCursor | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SYSTEM', 'PLAYER_REPORT_CLEANUP');
+            if (!result.Item) {
+                return null;
+            }
+            return { lastLogDay: result.Item.lastLogDay, lastMetadataMonth: result.Item.lastMetadataMonth };
+        }, 'Error getting player report cleanup cursor');
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: IPlayerReportCleanupCursor) {
+        return this.executeDbOperationAsync(
+            () => this.putItemAsync({ pk: 'SYSTEM', sk: 'PLAYER_REPORT_CLEANUP', ...cursor }),
+            'Error saving player report cleanup cursor'
+        );
+    }
+
     // Username
     /**
      * Save a username -> userId link for mod tools username search.
@@ -905,12 +1402,7 @@ class DynamoDBService {
      */
     public saveUsernameLinkAsync(username: string, userId: string) {
         return this.executeDbOperationAsync(() => {
-            const item = {
-                pk: `USERNAME#${username.toLowerCase()}`,
-                sk: `USER#${userId}`,
-                GSI_PK: userId,
-            };
-            return this.putItemAsync(item);
+            return this.putItemAsync({ pk: `USERNAME#${username.toLowerCase()}`, sk: `USER#${userId}`, GSI_PK: userId });
         }, 'Error saving username link');
     }
 

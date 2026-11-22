@@ -20,16 +20,24 @@ describe('Qira, Master Of Teras Kasi', function() {
 
                 context.player1.clickCard(context.qira);
 
+                expect(context.player1).toHavePrompt('Discard a card from your hand to deal 3 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.wampa, context.takedown, context.fulcrum]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.takedown);
 
+                expect(context.player1).toHavePrompt('Deal 3 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.qira, context.mynock, context.atst, context.awing]);
                 expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 context.player1.clickCard(context.atst);
+
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Qi\'ra',
+                    'player1 uses Qi\'ra to discard Takedown',
+                    'player1 uses Qi\'ra to deal 3 damage to AT-ST',
+                ]);
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(3);
@@ -45,9 +53,10 @@ describe('Qira, Master Of Teras Kasi', function() {
                 context.player1.clickCard(context.qira);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.wampa, context.takedown, context.fulcrum]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
 
-                context.player1.clickPrompt('Choose nothing');
+                expect(context.getChatLog()).toEqual('player1 plays Qi\'ra');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(0);

@@ -18,6 +18,7 @@ export interface ICardDataJson {
     title: string;
     backSideTitle?: string;
     subtitle?: string;
+    backSideSubtitle?: string;
     cost?: number;
     hp?: number;
     upgradeHp?: number;

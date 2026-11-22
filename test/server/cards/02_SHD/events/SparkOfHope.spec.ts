@@ -102,5 +102,33 @@ describe('Spark of Hope', function () {
             expect(context.atst).toBeInZone('discard');
             expect(context.wampa).toBeInZone('resource');
         });
+
+        it('Spark of Hope can resource a unit from your discard pile that was taken and defeated by the opponent with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['spark-of-hope'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // the unit is defeated while player2 controls it, but goes to its owner's discard pile
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+
+            context.player1.clickCard(context.sparkOfHope);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toBeInZone('resource', context.player1);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

@@ -129,8 +129,82 @@ describe('Heroic Sacrifice', function() {
 
                 expect(context.player2).toBeActivePlayer();
             });
+        });
 
-            // TODO: Add test for Maul unit redirecting damage
+        describe('Heroic Sacrifice\'s ability, when used with Maul redirecting combat damage', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['heroic-sacrifice'],
+                        groundArena: ['maul#shadow-collective-visionary', 'mercenary-company'],
+                    },
+                    player2: {
+                        groundArena: ['wampa', { card: 'crafty-smuggler', upgrades: ['shield'] }],
+                    }
+                });
+            });
+
+            it('should defeat Maul after it deals combat damage, while the redirected combat damage is dealt to the chosen unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+                expect(context.player1.handSize).toBe(1);
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.wampa);
+
+                // damage redirect target selection
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.mercenaryCompany);
+
+                // Maul deals 9 combat damage (7 + 2), Overwhelm deals the excess to the base
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(4);
+
+                // Wampa's combat damage is dealt to Mercenary Company instead of Maul
+                expect(context.mercenaryCompany.damage).toBe(4);
+                expect(context.mercenaryCompany).toBeInZone('groundArena');
+
+                // Maul dealt combat damage, so it is defeated
+                expect(context.maul).toBeInZone('discard');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not defeat Maul or the chosen unit if Maul deals no combat damage', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+                expect(context.player1.handSize).toBe(1);
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.craftySmuggler);
+
+                // damage redirect target selection
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany]);
+                context.player1.clickCard(context.mercenaryCompany);
+
+                // both the Shield and Maul's redirect replace combat damage, so player1 chooses which player's effects resolve first
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                context.player1.clickPrompt('You');
+
+                // the Shield prevents all of Maul's combat damage
+                expect(context.craftySmuggler).toBeInZone('groundArena');
+                expect(context.craftySmuggler.damage).toBe(0);
+                expect(context.craftySmuggler.isUpgraded()).toBeFalse();
+
+                // Crafty Smuggler's combat damage is dealt to Mercenary Company instead of Maul
+                expect(context.maul.damage).toBe(0);
+                expect(context.mercenaryCompany.damage).toBe(2);
+
+                // neither Maul nor the unit that took the redirected damage is defeated
+                expect(context.maul).toBeInZone('groundArena');
+                expect(context.mercenaryCompany).toBeInZone('groundArena');
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

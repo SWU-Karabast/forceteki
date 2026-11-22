@@ -13,7 +13,7 @@ import type { StateWatcher } from './StateWatcher';
 @registerState()
 export class StateWatcherRegistrar extends GameObjectBase {
     @stateRefMap()
-    private accessor watchers: Map<string, StateWatcher> = new Map();
+    private accessor watchers = new Map<string, StateWatcher>();
 
     public constructor(game: Game) {
         super(game);

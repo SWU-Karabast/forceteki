@@ -10,6 +10,7 @@ import type { IGameStatisticsTracker } from '../../gameStatistics/GameStatistics
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker';
 import type { ICardMetrics, IOAuthTokenResponse } from './StatHandlerTypes';
 import { RefreshTokenSource } from './StatHandlerTypes';
+import type { IHttpClient } from '../IHttpClient';
 
 export class SwuBaseHandler {
     private readonly apiUrl: string;
@@ -19,8 +20,9 @@ export class SwuBaseHandler {
     private readonly linkAccountUrl: string;
     private readonly unlinkAccountUrl: string;
     private readonly userFactory: UserFactory;
+    private readonly httpClient: IHttpClient;
 
-    public constructor(userFactory) {
+    public constructor(userFactory, httpClient: IHttpClient) {
         // Use environment variable for API URL, defaulting to the known endpoint
         requireEnvVars([
             'SWUBASE_CLIENT_ID',
@@ -34,6 +36,7 @@ export class SwuBaseHandler {
         this.clientId = process.env.SWUBASE_CLIENT_ID;
         this.clientSecret = process.env.SWUBASE_CLIENT_SECRET;
         this.userFactory = userFactory;
+        this.httpClient = httpClient;
     }
 
     /**
@@ -85,7 +88,7 @@ export class SwuBaseHandler {
                 ],
             };
 
-            const response = await fetch(this.apiUrl, {
+            const response = await this.httpClient.fetch(this.apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -124,7 +127,9 @@ export class SwuBaseHandler {
         return {
             id: player.id,
             accessToken: accessToken,
-            leader: player.deckLeader?.id,
+            // getSingleLeader() is safe here: this handler is only ever invoked for Premier-format games
+            // (see Lobby.ts's format === SwuGameFormat.Premier gate), which always have exactly one leader.
+            leader: player.getSingleLeader().id,
             base: player.base?.id,
             deck: {
                 id: accessToken ? deckId : 'unknown', // "unknown" deck ids for players NOT linked to swubase
@@ -246,7 +251,7 @@ export class SwuBaseHandler {
                 return null;
             }
 
-            const response = await fetch(this.tokenUrl, {
+            const response = await this.httpClient.fetch(this.tokenUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -292,7 +297,7 @@ export class SwuBaseHandler {
                 return null;
             }
 
-            const response = await fetch(this.linkAccountUrl, {
+            const response = await this.httpClient.fetch(this.linkAccountUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -337,7 +342,7 @@ export class SwuBaseHandler {
                 return null;
             }
 
-            const response = await fetch(this.unlinkAccountUrl, {
+            const response = await this.httpClient.fetch(this.unlinkAccountUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

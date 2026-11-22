@@ -150,7 +150,7 @@ describe('The Ghost, Heart of the Family', () => {
                 // Deploy Hera Syndulla, she gains Ambush via The Ghost
                 context.player1.clickCard(context.heraSyndulla);
                 context.player1.clickPrompt('Deploy Hera Syndulla');
-                expect(context.player1).toHavePrompt('Trigger the ability \'Ambush\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.cloudCityWingGuard);
                 context.player1.clickCard(context.sabineWren); // Resolve Hera's ability
@@ -284,7 +284,7 @@ describe('The Ghost, Heart of the Family', () => {
 
                 // Plyer 2 plays Chopper, it does not gain Ambush from The Ghost
                 context.player2.clickCard(context.chopper);
-                expect(context.player2).not.toHavePrompt('Trigger the ability \'Ambush\' or pass');
+                expect(context.player2).not.toHavePassAbilityPrompt('Ambush');
 
                 context.moveToNextActionPhase();
 

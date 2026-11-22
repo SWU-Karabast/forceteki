@@ -2,7 +2,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardZoneName } from '../../../core/Constants';
 
 export default class RafaMartezShrewdSister extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -23,13 +23,15 @@ export default class RafaMartezShrewdSister extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit(),
                 zoneFilter: WildcardZoneName.AnyArena,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    AbilityHelper.immediateEffects.readyResources((context) => ({
-                        amount: 1,
-                        target: context.player
-                    }))
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+            },
+            then: {
+                title: 'Ready a resource',
+                targetResolver: {
+                    activePromptTitle: 'Choose a player to ready a resource',
+                    mode: TargetMode.Player,
+                    immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 })
+                }
             }
         });
     }

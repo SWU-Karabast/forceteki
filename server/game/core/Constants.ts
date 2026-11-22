@@ -73,7 +73,8 @@ export enum EntryType {
     Played = 'played',
     Created = 'created',
     Rescued = 'rescued',
-    Deployed = 'deployed'
+    Deployed = 'deployed',
+    PutIntoPlay = 'putIntoPlay'
 }
 
 export enum StatType {
@@ -100,13 +101,13 @@ export enum EffectName {
     Blank = 'blank',
     BlankExceptKeyword = 'blankExceptKeyword',
     BlankExceptFromSourceCard = 'blankExceptFromSourceCard',
+    CanAttackBaseWhileUsingAmbush = 'canAttackBaseWhileUsingAmbush',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     CanBePlayedWithPilotingIgnoringPilotLimit = 'canBePlayedWithPilotingIgnoringPilotLimit',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
-    CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CloneUnit = 'cloneUnit',
     CopyStandardTriggeredAbilities = 'copyStandardTriggeredAbilities',
@@ -115,16 +116,22 @@ export enum EffectName {
     DoesNotReady = 'doesNotReady',
     DamageDealtByThisCardIsUnpreventable = 'damageDealtByThisCardIsUnpreventable',
     DealsCombatDamageFirst = 'dealsCombatDamageFirst',
+    DealsCombatDamageLast = 'dealsCombatDamageLast',
+    DrawAdditionalCardsInRegroup = 'drawAdditionalCardsInRegroup',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
     GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
+    GainPlayPermission = 'gainPlayPermission',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
+    LimitReadyDuringRegroup = 'limitReadyDuringRegroup',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    LoseWhenDefeatedAbilities = 'loseWhenDefeatedAbilities',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
+    ModifyDamage = 'modifyDamage',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
@@ -138,6 +145,7 @@ export enum EffectName {
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
     ProvidesAspectsForCosts = 'providesAspectsForCosts',
+    ReplaceKeyword = 'replaceKeyword',
     RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
@@ -260,6 +268,7 @@ export enum TokenUpgradeName {
     Experience = 'experience',
     Shield = 'shield',
     Advantage = 'advantage',
+    Weakness = 'weakness',
 }
 
 export enum TokenUnitName {
@@ -269,6 +278,7 @@ export enum TokenUnitName {
     TIEFighter = 'tieFighter',
     Spy = 'spy',
     Mandalorian = 'mandalorian',
+    Beast = 'beast',
 }
 
 export enum TokenCardName {
@@ -288,9 +298,12 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnAttackEnd = 'onAttackEnd',
+    OnAttackerReplaced = 'onAttackerReplaced',
     OnBeginRound = 'onBeginRound',
+    OnBlastCounterClaimed = 'onBlastCounterClaimed',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
+    OnBaseDefeated = 'onBaseDefeated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardCaptured = 'onCardCaptured',
     OnCardDefeated = 'onCardDefeated',
@@ -308,9 +321,11 @@ export enum EventName {
     OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
     OnDamageHealed = 'onDamageHealed',
+    OnDamageUnitsToPayCost = 'onDamageUnitsToPayCost',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnDefeatCreditsToPayCost = 'onDefeatCreditsToPayCost',
+    OnDefeatResourcesToPayCost = 'onDefeatResourcesToPayCost',
     OnDiscardFromDeck = 'onDiscardFromDeck',
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
@@ -328,6 +343,8 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnPlanCounterClaimed = 'onPlanCounterClaimed',
+    OnPlanCounterPutOnBottom = 'onPlanCounterPutOnBottom',
     OnReadyResources = 'onReadyResources',
     OnRescue = 'onRescue',
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
@@ -355,13 +372,15 @@ export enum MetaEventName {
     AttackSteps = 'attackSteps',
     Conditional = 'conditional',
     ChooseModalEffects = 'ChooseModalEffects',
+    ChooseNumber = 'chooseNumber',
+    SelectChoice = 'selectChoice',
     DistributeDamage = 'distributeDamage',
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
-    DistributeExperience = 'distributeExperience',
-    DistributeAdvantage = 'distributeAdvantage',
+    DistributeTokenUpgrade = 'distributeTokenUpgrade',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
+    IncreaseAbilityDamage = 'increaseAbilityDamage',
     GameLost = 'gameLost',
     GameWon = 'gameWon',
     NoAction = 'noAction',
@@ -369,6 +388,7 @@ export enum MetaEventName {
     PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
     PlayMultipleCardsFromDiscard = 'playMultipleCardsFromDiscard',
+    PlayMultipleCardsFromHand = 'playMultipleCardsFromHand',
     RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
     RevealAndDrawCard = 'revealAndDrawCard',
@@ -402,6 +422,7 @@ export enum KeywordName {
     Bounty = 'bounty',
     Coordinate = 'coordinate',
     Exploit = 'exploit',
+    Fortify = 'fortify',
     Grit = 'grit',
     Hidden = 'hidden',
     Overwhelm = 'overwhelm',
@@ -430,6 +451,7 @@ export enum Trait {
     Fighter = 'fighter',
     FirstOrder = 'first order',
     Force = 'force',
+    Fortification = 'fortification',
     Fringe = 'fringe',
     Gambit = 'gambit',
     Gungan = 'gungan',
@@ -475,6 +497,66 @@ export enum Trait {
     Walker = 'walker',
     Weapon = 'weapon',
     Wookiee = 'wookiee',
+
+    // bases trait
+    Aldhani = 'aldhani',
+    Atollon = 'atollon',
+    Bracca = 'bracca',
+    Cantonica = 'cantonica',
+    Castilon = 'castilon',
+    Christophsis = 'christophsis',
+    CloudCity = 'cloud city',
+    Concordia = 'concordia',
+    Coruscant = 'coruscant',
+    Corellia = 'corellia',
+    Dagobah = 'dagobah',
+    Dathomir = 'dathomir',
+    DeathStar = 'death star',
+    DQar = 'd\'qar',
+    Eadu = 'eadu',
+    Endor = 'endor',
+    Ferrix = 'ferrix',
+    Geonosis = 'geonosis',
+    Hoth = 'hoth',
+    HosnianPrime = 'hosnian prime',
+    Ilum = 'ilum',
+    Jedha = 'jedha',
+    Kamino = 'kamino',
+    Kashyyyk = 'kashyyyk',
+    Kessel = 'kessel',
+    Kalevala = 'kalevala',
+    Lothal = 'lothal',
+    Lowick = 'lowick',
+    Malachor = 'malachor',
+    Mandalore = 'mandalore',
+    Mortis = 'mortis',
+    Mustafar = 'mustafar',
+    Nadiri = 'nadiri',
+    Narkina5 = 'narkina 5',
+    Nevarro = 'nevarro',
+    ObaDiah = 'oba diah',
+    Onderon = 'onderon',
+    Peridea = 'peridea',
+    Pillio = 'pillio',
+    Quarzite = 'quarzite',
+    Ryloth = 'ryloth',
+    Scarif = 'scarif',
+    Seatos = 'seatos',
+    SegraMilo = 'segra milo',
+    Serenno = 'serenno',
+    Sorgan = 'sorgan',
+    StarkillerBase = 'starkiller base',
+    StarlightBeacon = 'starlight beacon',
+    StygeonPrime = 'stygeon prime',
+    Takodana = 'takodana',
+    Tatooine = 'tatooine',
+    Utapau = 'utapau',
+    Vardos = 'vardos',
+    Vassek = 'vassek',
+    Wayland = 'wayland',
+    Yavin4 = 'yavin 4',
+    Zanbar = 'zanbar',
+    Zeffo = 'zeffo',
 }
 
 // TODO: these could stand to be reorganized and cleaned up a bit
@@ -666,6 +748,14 @@ export enum SwuGameFormat {
     Open = 'open',
     Eternal = 'eternal',
     Limited = 'limited',
+    FauxSuns = 'fauxSuns',
+}
+
+/** The claim counters available during the action phase. TwinSuns/FauxSuns formats use all three; other formats use only Initiative. */
+export enum ClaimCounterType {
+    Initiative = 'initiative',
+    Plan = 'plan',
+    Blast = 'blast',
 }
 
 export enum CardPool {
@@ -677,6 +767,18 @@ export enum CardPool {
 export enum GamesToWinMode {
     BestOfOne = 'bestOfOne',
     BestOfThree = 'bestOfThree',
+}
+
+export enum MatchmakingCompetitivenessPreference {
+    Competitive = 'competitiveTesting',
+    Casual = 'casualBrewing',
+    NoPreference = 'noPreference',
+}
+
+export enum MatchmakingCompetitivenessPreferenceSearchStage {
+    SamePreferenceOnly = 'samePreferenceOnly',
+    IncludesNoPreference = 'includesNoPreference',
+    AnyPreference = 'anyPreference',
 }
 
 export enum RematchMode {

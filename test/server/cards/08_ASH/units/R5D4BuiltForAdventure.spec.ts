@@ -51,6 +51,7 @@ describe('R5-D4, Built for Adventure', function() {
                     groundArena: ['r5d4#built-for-adventure'],
                 },
                 player2: {
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                     groundArena: [{ card: 'yoda#old-master', upgrades: ['fulcrum', 'shield'] }]
                 }
             });
@@ -61,6 +62,7 @@ describe('R5-D4, Built for Adventure', function() {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
+            expect(context.trapField).toBeAttachedTo(context.p2Base);
             expect(context.p2Base.damage).toBe(3);
             expect(context.yoda).toHaveExactUpgradeNames(['fulcrum', 'shield']);
         });

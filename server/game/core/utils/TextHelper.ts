@@ -59,6 +59,10 @@ export namespace TextHelper {
     export const Hidden = keyword(KeywordName.Hidden);
     /** The display representation of the Plot keyword, stylized on the client side */
     export const Plot = keyword(KeywordName.Plot);
+    /** The display representation of the Support keyword, stylized on the client side */
+    export const Support = keyword(KeywordName.Support);
+    /** The display representation of the Fortify keyword, stylized on the client side */
+    export const Fortify = keyword(KeywordName.Fortify);
     /** The display representation of the Raid keyword, stylized on the client side */
     export function Raid(amount: number) {
         return keyword({ keyword: KeywordName.Raid, amount });
@@ -89,6 +93,30 @@ export namespace TextHelper {
         return process.env.NODE_ENV === 'test'
             ? `${amount} resource${amount !== 1 ? 's' : ''}`
             : `{resource:${amount}}`;
+    }
+
+    /**
+     * Returns the display representation of a resource cost with aspect icons, as printed on a card (e.g. "pay 5[Cunning][Villainy]").
+     * In test environments, the aspects follow the amount in parentheses for readability. In production, the aspect tokens
+     * immediately follow the resource token so the client renders them as a single printed cost.
+     *
+     * @example
+     * // In tests: "You may pay 5 resources (Cunning, Villainy)"
+     * // Otherwise: "You may pay {resource:5}:cunning::villainy:"
+     * const ex = `You may pay ${TextHelper.resourceCost(5, [Aspect.Cunning, Aspect.Villainy])}`;
+     *
+     * @param amount The amount of resources to display
+     * @param aspects The aspect icons printed with the cost
+     * @returns A string representing the cost, either as plain text (in tests) or replacement tokens
+     */
+    export function resourceCost(amount: number, aspects: Aspect[] = []): string {
+        if (aspects.length === 0) {
+            return resource(amount);
+        }
+
+        return process.env.NODE_ENV === 'test'
+            ? `${resource(amount)} (${aspectList(aspects)})`
+            : `${resource(amount)}${aspectList(aspects)}`;
     }
 
     /**
@@ -163,8 +191,7 @@ export namespace TextHelper {
      */
     export function trait(trait: TraitEnum | string): string {
         return process.env.NODE_ENV === 'test'
-            ? trait.split(' ').map(Helpers.capitalize)
-                .join(' ')
+            ? Helpers.titleCase(trait)
             : `{trait:${trait.replace(/ /g, '-')}}`;
     }
 

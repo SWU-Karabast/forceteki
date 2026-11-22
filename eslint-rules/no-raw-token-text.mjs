@@ -36,6 +36,14 @@ const TOKEN_CATEGORIES = [
             'Resistance', 'Separatist', 'Sith', 'Spectre', 'Speeder', 'Supply', 'Tactic', 'Tank',
             'Transport', 'Trick', 'Trooper', 'Tusken', 'Twi\'lek', 'Undead', 'Underworld', 'Vehicle',
             'Walker', 'Weapon', 'Wookiee',
+            // bases traits
+            'Aldhani', 'Atollon', 'Bracca', 'Cantonica', 'Castilon', 'Christophsis', 'Cloud City', 'Concordia',
+            'Coruscant', 'Corellia', 'Dagobah', 'Dathomir', 'Death Star', 'D\'Qar', 'Eadu', 'Endor', 'Ferrix',
+            'Geonosis', 'Hoth', 'Hosnian Prime', 'Ilum', 'Jedha', 'Kamino', 'Kashyyyk', 'Kessel', 'Kalevala',
+            'Lothal', 'Lowick', 'Malachor', 'Mandalore', 'Mortis', 'Mustafar', 'Nadiri', 'Narkina 5', 'Nevarro',
+            'Oba Diah', 'Onderon', 'Peridea', 'Pillio', 'Quarzite', 'Ryloth', 'Scarif', 'Seatos', 'Segra Milo',
+            'Serenno', 'Sorgan', 'Starkiller Base', 'Starlight Beacon', 'Stygeon Prime', 'Takodana', 'Tatooine',
+            'Utapau', 'Vardos', 'Vassek', 'Wayland', 'Yavin 4', 'Zanbar', 'Zeffo',
         ],
         messageId: 'rawTraitName',
         message: 'Raw trait name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Trait.BountyHunter`) or `TextHelper.trait(Trait.X)` in a template literal instead, so it can be styled correctly on the client side. If this is not a trait reference, suppress with an eslint-disable-next-line comment explaining why.',
@@ -58,7 +66,7 @@ const TOKEN_CATEGORIES = [
         ],
     },
     {
-        pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot',
+        pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot|Support|Fortify',
         flags: 'g',
         messageId: 'rawKeyword',
         message: 'Raw keyword "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Ambush`) in a template literal instead, so it can be styled correctly on the client side.',

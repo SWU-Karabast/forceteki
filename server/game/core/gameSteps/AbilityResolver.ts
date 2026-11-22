@@ -1,6 +1,6 @@
 import { BaseStepWithPipeline } from './BaseStepWithPipeline.js';
 import { SimpleStep } from './SimpleStep.js';
-import { ZoneName, Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
+import { Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import type { Game } from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
@@ -8,6 +8,8 @@ import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js'
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { Player } from '../Player.js';
 import { Helpers } from '../utils/Helpers.js';
+import { Contract } from '../utils/Contract.js';
+import { getTriggerSourceCardSummary } from './abilityWindow/TriggerWindowBase.js';
 
 export interface IPassAbilityHandler {
     buttonText: string;
@@ -15,6 +17,23 @@ export interface IPassAbilityHandler {
     hasBeenShown: boolean;
     playerChoosing: Player;
     handler: () => void;
+}
+
+/**
+ * Represents the possible pre-resolved choices for an optional triggered ability. The player
+ * can make this choice in the simultaneous trigger prompt, and their pre-selected choice must
+ * be carried through to ability resolution.
+ *
+ * Carrying this choice through to ability resolution ensures the player does not see the interstitial
+ * Trigger/Pass prompt.
+ */
+export enum PreResolvedOptionalChoice {
+
+    /** The player chose to trigger the ability */
+    Trigger = 'trigger',
+
+    /** The player chose to pass the ability */
+    Pass = 'pass'
 }
 
 export class AbilityResolver extends BaseStepWithPipeline {
@@ -32,15 +51,21 @@ export class AbilityResolver extends BaseStepWithPipeline {
     private passButtonText: string;
     private passAbilityHandler?: IPassAbilityHandler;
 
+    /** Set when an optional trigger's Trigger/Pass choice was already made inline; see {@link PreResolvedOptional}. */
+    private readonly preResolvedOptional?: PreResolvedOptionalChoice;
+
     public constructor(
         game: Game,
         context: AbilityContext,
         optional = false,
         canCancel?: boolean,
         earlyTargetingOverride?: ITargetResult,
-        ignoredRequirements: string[] = []
+        ignoredRequirements: string[] = [],
+        preResolvedOptional?: PreResolvedOptionalChoice
     ) {
         super(game);
+
+        this.preResolvedOptional = preResolvedOptional;
 
         this.context = context;
         this.events = [];
@@ -76,6 +101,9 @@ export class AbilityResolver extends BaseStepWithPipeline {
             this.passButtonText = this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass';
         }
 
+        // If the player already chose to Trigger this optional ability inline (in the simultaneous-trigger
+        // prompt), skip the interstitial pass flow entirely — no pass handler is needed and no pass button
+        // should appear on target selection.
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
             buttonText: this.passButtonText,
             arg: 'passAbility',
@@ -108,7 +136,28 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
+        // If a triggered reveal-from-hidden-zone ability has no card to reveal, queue a masking pause before any
+        // cancellation below. This happens regardless of how the ability then resolves (cancelled for no legal
+        // effect, or resolving a dependent "then"/"if you do" to nothing), so the pause is indistinguishable from a
+        // player who could reveal but declined and never leaks that their hidden cards can't satisfy the reveal.
+        const revealMaskingPlayer = this.context.ability.getRevealMaskingPlayer(this.context);
+        if (revealMaskingPlayer) {
+            this.game.promptForPassDelay(revealMaskingPlayer, {
+                source: this.context.source.name,
+                activePromptTitle: 'Pausing for Reveal'
+            });
+        }
+
         if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
+            this.cancelled = true;
+            this.resolutionCommitted = true;
+            return;
+        }
+
+        // The player already chose to decline this optional ability inline (in the simultaneous-trigger
+        // prompt), so cancel it here without prompting. The cancelled resolution still runs any
+        // "if you do not" clause via executeHandler -> checkResolveThenIfYouDoNot.
+        if (this.preResolvedOptional === PreResolvedOptionalChoice.Pass) {
             this.cancelled = true;
             this.resolutionCommitted = true;
             return;
@@ -149,8 +198,31 @@ export class AbilityResolver extends BaseStepWithPipeline {
         this.checkTargetResultCancelState();
 
         if (!this.cancelled && this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
-            this.checkForPass();
+            if (this.context.ability.immediateEffect?.canShowAbilityPassOption(this.context, this.passAbilityHandler.playerChoosing)) {
+                this.handPassOptionToImmediateEffect();
+            } else {
+                this.checkForPass();
+            }
         }
+    }
+
+    /**
+     * Lets the immediate effect show the Pass option in its own prompt instead of the "You may trigger this ability"
+     * prompt. Passing there resolves the ability without effect rather than cancelling it.
+     */
+    private handPassOptionToImmediateEffect() {
+        const ability = this.context.ability;
+        Contract.assertFalse(
+            ability.isCardAbilityStep() && !!(ability.properties?.then || ability.properties?.ifYouDo || ability.properties?.ifYouDoNot),
+            `Ability '${ability}' passes from its immediate effect's prompt, which does not support then / ifYouDo / ifYouDoNot`
+        );
+
+        this.passAbilityHandler.hasBeenShown = true;
+        this.context.abilityPassOption = {
+            buttonText: this.passAbilityHandler.buttonText,
+            player: this.passAbilityHandler.playerChoosing,
+            shown: false
+        };
     }
 
     private checkCustomConfirmation() {
@@ -297,7 +369,17 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.game.queueSimpleStep(() => {
             if (this.costResults.cancelled) {
-                if (this.resolutionCommitted) {
+                if (this.costResults.unpayable) {
+                    // payment could not be completed and the player didn't undo, so it is abandoned (see CostPaymentRecovery).
+                    // costs already paid are not refunded, so the resolution is still committed
+                    this.resolutionCommitted = true;
+                    this.game.addMessage(
+                        '{0} abandons {1} {2}. Costs already paid are not refunded',
+                        this.context.player,
+                        this.context.ability.isPlayCardAbility() ? 'playing' : 'using',
+                        this.context.source
+                    );
+                } else if (this.resolutionCommitted) {
                     this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
                 }
                 this.cancelled = true;
@@ -343,16 +425,17 @@ export class AbilityResolver extends BaseStepWithPipeline {
             for (const event of this.events) {
                 event.cancel();
             }
+
+            // if the ability was cancelled after costs were paid, the limit is still used
+            if (this.resolutionCommitted && this.context.ability.getCosts(this.context).length > 0) {
+                this.context.incrementLimit();
+            }
             return;
         }
 
         this.context.player.hasResolvedAbilityThisTimepoint = true;
 
-        // Increment limits (limits aren't used up on cards in hand)
-        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
-          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
-            this.context.ability.limit.increment(this.context.player);
-        }
+        this.context.incrementLimit();
 
         this.context.ability.displayMessage(this.context);
         this.context.stage = Stage.Effect;
@@ -394,17 +477,19 @@ export class AbilityResolver extends BaseStepWithPipeline {
             return;
         }
 
-        if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+        if (
+            this.preResolvedOptional !== PreResolvedOptionalChoice.Trigger &&
+            this.passAbilityHandler &&
+            !this.passAbilityHandler.hasBeenShown
+        ) {
             this.passAbilityHandler.hasBeenShown = true;
-            this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
-                activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
-                choices: ['Trigger', this.passAbilityHandler.buttonText],
-                handlers: [
-                    () => undefined,
-                    () => {
-                        this.passAbilityHandler.handler();
-                    }
-                ]
+
+            this.game.promptWithOptionalTrigger(this.passAbilityHandler.playerChoosing, {
+                sourceCard: getTriggerSourceCardSummary(this.context.source),
+                abilityText: this.getAbilityPromptTitle(this.context),
+                passButtonText: this.passAbilityHandler.buttonText,
+                onTrigger: () => undefined,
+                onPass: () => this.passAbilityHandler.handler()
             });
         }
     }

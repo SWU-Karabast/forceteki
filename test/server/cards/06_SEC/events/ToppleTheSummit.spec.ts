@@ -64,6 +64,47 @@ describe('Topple The Summit', function() {
                 expect(context.allianceXwing).toBeInZone('discard');
                 expect(context.lukeSkywalker.damage).toBe(0);
             });
+
+            it('opens a Plot window on each leader deploy in Faux Suns', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        base: 'kestro-city',
+                        resources: ['topple-the-summit', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                        leader: { card: 'boba-fett#daimyo', deployed: false },
+                        secondLeader: { card: 'saw-gerrera#bring-down-the-empire', deployed: false }
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'alliance-xwing', damage: 1 }],
+                        leader: 'luke-skywalker#faithful-friend',
+                        // action to take between deploys (in Faux Suns you can't pass while claim tokens are unclaimed)
+                        hand: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deploying the first leader opens a Plot window; decline it
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickPrompt('Deploy Boba Fett');
+                expect(context.player1).toHavePassAbilityPrompt('Play Topple The Summit using Plot');
+                context.player1.clickPrompt('Pass');
+                expect(context.toppleTheSummit).toBeInZone('resource');
+
+                // Opponent takes an action
+                context.player2.clickCard(context.battlefieldMarine);
+
+                // Deploying the second leader opens the Plot window again; play Topple this time
+                context.player1.clickCard(context.sawGerrera);
+                context.player1.clickPrompt('Deploy Saw Gerrera');
+                expect(context.player1).toHavePassAbilityPrompt('Play Topple The Summit using Plot');
+                context.player1.clickPrompt('Trigger');
+
+                // Topple resolves: the damaged X-Wing (1 + 3 = 4 ≥ 3 HP) is defeated
+                expect(context.allianceXwing).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

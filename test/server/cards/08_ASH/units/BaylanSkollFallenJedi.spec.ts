@@ -392,6 +392,39 @@ describe('Baylan Skoll, Fallen Jedi', function() {
 
                     expect(context.player2).toBeActivePlayer();
                 });
+
+                it('should count a token upgrade as friendly when its unit was taken and defeated with No Glory, Only Results', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'atst']
+                        },
+                        player2: {
+                            hand: ['no-glory-only-results', 'baylan-skoll#fallen-jedi'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // P2 takes control of Wampa (and with it the Experience token), then defeats it
+                    context.player2.clickCard(context.noGloryOnlyResults);
+                    context.player2.clickCard(context.wampa);
+                    expect(context.wampa).toBeInZone('discard', context.player1);
+
+                    context.player1.passAction();
+
+                    // Play Baylan — the Experience token was controlled by P2 when it was defeated, so it counts as a friendly upgrade
+                    context.player2.clickCard(context.baylanSkoll);
+
+                    expect(context.player2).toHavePrompt(exhaustPromptTitle);
+                    expect(context.player2).toHaveEnabledPromptButton('Choose nothing');
+                    expect(context.player2).toBeAbleToSelectExactly([context.baylanSkoll, context.atst]);
+                    context.player2.clickCard(context.atst);
+
+                    expect(context.atst.exhausted).toBeTrue();
+                    expect(context.player1).toBeActivePlayer();
+                });
             });
         });
     });

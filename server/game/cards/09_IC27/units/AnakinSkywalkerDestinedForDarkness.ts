@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Consta
 export default class AnakinSkywalkerDestinedForDarkness extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'anakin-skywalker#destined-for-darkness-id',
+            id: '8575319998',
             internalName: 'anakin-skywalker#destined-for-darkness',
         };
     }

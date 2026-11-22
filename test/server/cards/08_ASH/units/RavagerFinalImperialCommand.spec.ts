@@ -229,8 +229,7 @@ describe('Ravager, Final Imperial Command', function () {
                 expect(context.blueLeader).toBeInZone('spaceArena');
 
                 // Pass the ambush and moving to ground
-                context.player1.clickPrompt('Ambush');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickPass('Ambush');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.blueLeader).toBeInZone('groundArena');
@@ -244,7 +243,6 @@ describe('Ravager, Final Imperial Command', function () {
                 // Play Blue Leader to the ground
                 context.player1.clickCard(context.blueLeaderScarifAirSupport);
                 context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.blueLeader).toBeInZone('groundArena');
 
@@ -269,6 +267,115 @@ describe('Ravager, Final Imperial Command', function () {
                 ]);
 
                 expect(context.reinforcementWalker.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('When the played unit leaves play before the ability resolves', function () {
+            it('uses the power the unit had when it left play, and does not block the played unit\'s own triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        hand: ['inferno-squad#we-can-grieve-later'],
+                        spaceArena: ['ravager#final-imperial-command'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Maul plays Inferno Squad and immediately defeats it
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Then, defeat it.');
+                context.player1.clickCard(context.infernoSquad);
+                expect(context.infernoSquad).toBeInZone('discard');
+
+                // Ravager deals 3 damage to unit in ground arena
+                context.player1.clickPrompt('Deal 3 damage to a unit in the ground arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.reinforcementWalker]);
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.reinforcementWalker.damage).toBe(3);
+
+                // Inferno Squad's own When Played and When Defeated abilities both still resolve
+                context.player1.clickPrompt('Resolve next');
+                context.player1.clickCardNonChecking(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+                expect(context.wampa).toHaveExactUpgradeNames(['weakness']);
+
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.reinforcementWalker.damage).toBe(4);
+                expect(context.reinforcementWalker).toHaveExactUpgradeNames(['weakness']);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('uses the unit\'s modified power rather than its printed power', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        hand: ['inferno-squad#we-can-grieve-later'],
+                        spaceArena: ['ravager#final-imperial-command'],
+                        groundArena: ['general-veers#blizzard-force-commander']
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Then, defeat it.');
+                context.player1.clickCard(context.infernoSquad);
+
+                // General Veers gives Inferno Squad +1 power for 4 total damage
+                context.player1.clickPrompt('Deal 4 damage to a unit in the ground arena');
+                context.player1.clickCard(context.reinforcementWalker);
+
+                expect(context.reinforcementWalker.damage).toBe(4);
+
+                context.player1.clickPrompt('Resolve all (2)');
+                context.player1.clickCardNonChecking(context.reinforcementWalker);
+                context.player1.clickCardNonChecking(context.reinforcementWalker);
+            });
+        });
+
+        describe('When you play a unit owned by the opponent', function () {
+            it('should deal damage equal to its power when the player plays it from the opponent\'s discard pile', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['ravager#final-imperial-command'],
+                        hand: ['takedown'],
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler', 'cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                // Ravager triggers for player1, who played the unit
+                expect(context.player1).toHavePrompt('Deal 4 damage to a unit in the space arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.ravager, context.stolenAthauler, context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toBeInZone('discard', context.player2);
                 expect(context.player2).toBeActivePlayer();
             });
         });

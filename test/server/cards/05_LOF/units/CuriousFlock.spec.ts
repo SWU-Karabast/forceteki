@@ -20,7 +20,7 @@ describe('Curious Flock', function () {
             expect(context.curiousFlock).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             expect(context.getChatLogs(3)).toEqual([
                 'player1 plays Curious Flock',
-                'player1 names 3 using Curious Flock',
+                'player1 chooses 3 using Curious Flock',
                 'player1 uses Curious Flock to pay 3 resources and then to give 3 Experience tokens to Curious Flock',
             ]);
         });
@@ -63,6 +63,15 @@ describe('Curious Flock', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.player1.exhaustedResourceCount).toBe(2);
             expect(context.curiousFlock).toHaveExactUpgradeNames(['experience']);
+        });
+
+        // Ruling 2026-05-06: defeating a Credit token does not count as "paying resources," so it does
+        // not grant an Experience token via Curious Flock's "for each resource paid this way" ability.
+        xit('does not grant Experience for Credit tokens defeated (they are not "paying resources")', function () {
+            pending('Not yet implemented');
+            // With Credit tokens available, play Curious Flock and pay resources for its ability.
+            // Defeating Credit tokens toward the payment does not add Experience tokens — only actual
+            // resources paid count.
         });
     });
 });

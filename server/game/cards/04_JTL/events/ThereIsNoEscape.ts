@@ -22,6 +22,7 @@ export default class ThereIsNoEscape extends EventCard {
                 controller: WildcardRelativePlayer.Any,
                 canChooseNoCards: true,
                 immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    title: 'Lose all abilities for this round',
                     effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                     ongoingEffectDescription: 'remove all abilities from'
                 })

@@ -13,6 +13,7 @@ import { Helpers } from '../../utils/Helpers';
 import { isArray } from 'underscore';
 import { AggregateSystem } from '../../gameSystem/AggregateSystem';
 import type { GameSystem } from '../../gameSystem/GameSystem';
+import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 
 // This currently assumes that every player will always be a legal target for any effect it's given.
 // TODO: Make a PlayerSelector class(see the use of property "selector" in CardTargetResolver) to help determine target legality. Use it to replace placeholder override functions below.
@@ -37,7 +38,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 return true;
             }
             if (this.dependentTarget) {
-                return this.dependentTarget.checkGameActionsForTargetsChosenByPlayer(contextCopy, player);
+                return this.dependentTarget.hasTargetsChosenByPlayerInternal(contextCopy, player);
             }
             return false;
         });
@@ -62,7 +63,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers().includes(context.targets[this.name]);
     }
 
-    protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult) {
+    protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
         const promptProperties = this.getDefaultProperties(context);
 
         let effectChoices: IPlayerTargetResolver<AbilityContext>['effectChoices'] = ((relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You' : 'Opponent'));
@@ -110,6 +111,13 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                     };
                 }
             );
+
+            // For optional abilities, the Pass button is shown alongside the player choices
+            if (passPrompt) {
+                choices.push(passPrompt.buttonText);
+                handlers.push(passPrompt.handler);
+                passPrompt.hasBeenShown = true;
+            }
 
             if (targetResults.canCancel) {
                 choices.push('Cancel');

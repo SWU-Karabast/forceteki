@@ -52,5 +52,30 @@ describe('Rodian Bondsman', function () {
                 expect(context.rodianBondsman).toBeInZone('discard', context.player2);
             });
         });
+
+        it('Rodian Bondsman\'s When Defeated ability should create a Credit token for each player when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['rodian-bondsman']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.rodianBondsman);
+
+            // player2 controlled Rodian Bondsman when it was defeated, so player2 resolves the ability
+            expect(context.getChatLog()).toEqual('player2 uses Rodian Bondsman to make player1 create a Credit token and to create a Credit token');
+            expect(context.player1.credits).toBe(1);
+            expect(context.player2.credits).toBe(1);
+            expect(context.rodianBondsman).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

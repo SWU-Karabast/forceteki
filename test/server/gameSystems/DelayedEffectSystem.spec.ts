@@ -142,13 +142,14 @@ describe('Delayed effects', function() {
                 context.djInPlay = djInPlay;
                 context.djInHand = djInHand;
 
+                // Seed before the first steal so both DJs' "random" steals are deterministic
+                // (and guaranteed to pick different resources between the two DJs).
+                context.game.setRandomSeed('12345');
+
                 context.player1.clickCard(djInPlay);
                 context.stolenResource1 = context.player1.resources.filter((resource) => resource.owner === context.player2Object)[0];
                 context.player1.readyResources(7);
                 context.player2.passAction();
-
-                // set an explicit random seed so we can guarantee that different "random" cards are stolen between the two DJs
-                context.game.setRandomSeed('12345');
             });
 
             it('should activate if the in-play card is defeated', function() {

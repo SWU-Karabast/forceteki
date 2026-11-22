@@ -17,7 +17,7 @@ export default class Electrostaff extends UpgradeCard {
         registrar.addConstantAbility({
             title: 'While attached unit is defending, the attacker gets -1/-0',
             targetController: RelativePlayer.Opponent,
-            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.getAllTargets().includes(context.source.parentCard),
+            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.getAllTargets().includes(context.source.parentUnit),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: 0 })
         });
     }

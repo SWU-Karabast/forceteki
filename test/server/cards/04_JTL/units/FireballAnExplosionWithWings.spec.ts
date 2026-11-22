@@ -18,7 +18,7 @@ describe('Fireball, An Explosion With Wings', function() {
 
                 context.player1.clickCard(context.fireball);
 
-                expect(context.player1).toHavePrompt('Trigger the ability \'Ambush\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.tielnFighter);
 

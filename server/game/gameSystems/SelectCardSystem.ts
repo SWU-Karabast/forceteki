@@ -5,6 +5,8 @@ import { GameStateChangeRequired } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
+import { PlayCardSystem } from './PlayCardSystem';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import { type DistributiveOmit, Helpers } from '../core/utils/Helpers';
 import type { Player } from '../core/Player';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
@@ -71,6 +73,13 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return targetResolver.hasLegalTarget(context);
     }
 
+    /**
+     * True if this selection can be legally resolved by choosing zero cards (e.g. {@link TargetMode.UpTo}).
+     */
+    public selectionAllowsChoosingNoCards(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): boolean {
+        return this.generateTargetResolver(context, additionalProperties).allowsChoosingNoCards;
+    }
+
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): void {
         if (!this.hasLegalTarget(context, additionalProperties)) {
             return;
@@ -90,16 +99,41 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         targetResolver.resolve(context, targetResults);
 
         context.game.queueSimpleStep(() => {
-            if (targetResults.cancelled || (properties.cancelIfNoTargets && Helpers.asArray(context.target).length === 0)) {
+            const selectedCards = Helpers.asArray(context.targets[properties.name]);
+
+            if (targetResults.cancelled || (properties.cancelIfNoTargets && selectedCards.length === 0)) {
                 properties.cancelHandler?.();
-            } else {
-                if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
-                    this.addOnSelectEffectMessage(context, properties);
-                }
-                properties.onSelectHandler?.(context.target);
-                properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
+                return;
             }
+
+            // a mandatory selection resolves without a card when the resolver finds no effective target and skips the
+            // prompt, leaving nothing to apply the effect to. choosing nothing in an "up to" selection is a real choice
+            if (selectedCards.length === 0 && !this.selectionAllowsChoosingNoCards(context, additionalProperties)) {
+                return;
+            }
+
+            // `context.target` is only set for a resolver named 'target', so gating on it silently
+            // dropped the message whenever a caller passed its own `name` (and let an unrelated
+            // enclosing target stand in for this one). The selection we just resolved is the guard.
+            if (!properties.isCost && selectedCards.length > 0 && !this.effectReportsItself(properties.immediateEffect)) {
+                this.addOnSelectEffectMessage(context, properties);
+            }
+            properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
+            properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
         }, `Execute immediate effect for select card system "${properties.name}"`);
+    }
+
+    /**
+     * Whether the wrapped effect already reports itself in the game log, making a message from
+     * this selection either redundant or meaningless:
+     *
+     * - a nested selection has chosen nothing to act on yet, so all it can say is
+     *   "choose a target for <the card this one picked>", which reads as if that card is the
+     *   target. Its own inner step emits the message that matters.
+     * - playing a card always emits "<player> plays <card>" of its own.
+     */
+    private effectReportsItself(immediateEffect: GameSystem<TContext>): boolean {
+        return immediateEffect instanceof SelectCardSystem || immediateEffect instanceof PlayCardSystem;
     }
 
     private addOnSelectEffectMessage(
