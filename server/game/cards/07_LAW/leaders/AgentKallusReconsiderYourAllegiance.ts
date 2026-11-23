@@ -23,8 +23,6 @@ export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard 
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Playable,
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     playAsType: WildcardCardType.Any,
                     adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
@@ -41,8 +39,6 @@ export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard 
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Playable,
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     playAsType: WildcardCardType.Any,
                     adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },

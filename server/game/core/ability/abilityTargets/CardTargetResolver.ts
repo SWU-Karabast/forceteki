@@ -63,7 +63,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
         const cardCondition = (card: Card, context: AbilityContext) => this.checkCardCondition(card, context, properties);
-        return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
+
+        // if the resolver has no cardTypeFilter, the immediate effect may still restrict the selection to
+        // specific card types (e.g. playAsType) - use it to describe the selection in the prompt title
+        const immediateEffect = properties.immediateEffect;
+        const promptCardTypeFilter = properties.cardTypeFilter || !immediateEffect
+            ? undefined
+            : (context: AbilityContext) => immediateEffect.getTargetTypeFilter(context);
+
+        return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, promptCardTypeFilter: promptCardTypeFilter, targets: true }));
     }
 
     private checkCardCondition(card: Card, context: AbilityContext, properties: ICardTargetResolver<AbilityContext>) {
@@ -358,7 +366,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private isChoosingFromHidden(legalTargets: Card[], context: AbilityContext): boolean {
         const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
         const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
-        return (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) &&
+        return (!!this.properties.cardTypeFilter || !!this.properties.cardCondition || this.immediateEffect?.isTargetSelective(context) === true) &&
           (
               (zones.size === 0 && !!this.properties.zoneFilter && CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer)) ||
               CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)

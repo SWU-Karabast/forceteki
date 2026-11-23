@@ -18,8 +18,6 @@ export default class FromACertainPointOfView extends EventCard {
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Playable,
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     playAsType: WildcardCardType.Any,

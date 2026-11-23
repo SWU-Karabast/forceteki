@@ -18,8 +18,6 @@ export default class StrategicAcumen extends UpgradeCard {
             title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({

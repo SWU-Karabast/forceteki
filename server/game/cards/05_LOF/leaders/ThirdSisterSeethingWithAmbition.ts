@@ -27,8 +27,6 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
             title: `Play a unit from your hand. It gains ${TextHelper.Hidden} for this phase`,
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({
