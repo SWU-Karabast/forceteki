@@ -1,5 +1,5 @@
-import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { PlayerTimeRemainingStatus } from '../../../../server/game/core/actionTimer/IActionTimer';
+import { QuickUndoAvailableState } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import { initiativeChooserOf } from '../../../helpers/server/ServerTestHarness';
@@ -11,7 +11,7 @@ const notTimed = { turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: mai
 
 /**
  * Which games have action timers, and the timer around the game rather than within it: the end of the game (including an
- * undo past it), a reconnect, and spectators. The game-timer area's rows T1, T11 and T13. Shutdown with timers running is
+ * undo request still open when it ends), a reconnect, and spectators. The game-timer area's rows T1, T11 and T13. Shutdown with timers running is
  * row T14, in `GameServerScheduling`.
  */
 describe('Timed games', function () {
@@ -111,49 +111,49 @@ describe('Timed games', function () {
                     expect(waiting.gameChat.map((entry) => entry.text).some((text) => text.includes('main time remaining'))).toBeFalse();
                 });
 
-                it('times a player with no main time left out again once their turn time is gone, after an undo past the end', async function () {
+                it('keeps the game over and both timers stopped when the player deciding on an undo request runs out of time, then allows it', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest } = await harness.startLiveGameAsync();
+                    const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
+
+                    // spend the active player's free undo, so that their next one is a request
+                    await active.clickButtonAsync('Pass');
+                    await active.quickUndoAsync();
+                    await active.clickButtonAsync('Pass');
+                    await active.quickUndoAsync();
+                    expect(waiting.prompt.buttons.map((button) => button.text)).toContain('Allow');
+
+                    // the deciding player's timer keeps running while the request is open
+                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
+                    expect(waiting.gameState.winners).toEqual([active.username]);
+
+                    await waiting.clickButtonAsync('Allow');
+
+                    expect(waiting.gameState.winners).withContext('the game stays over')
+                        .toEqual([active.username]);
+                    expect(waiting.gameChat.map((entry) => entry.text).some((text) => text.includes('can no longer be allowed'))).toBeTrue();
+                    expect(waiting.timerOf(active).isRunning).toBeFalse();
+                    expect(waiting.timerOf(waiting).isRunning).toBeFalse();
+                    const statesAfterAllowing = waiting.receivedEvents('gamestate').length;
+                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
+                    expect(waiting.receivedEvents('gamestate').length).withContext('nothing sent by a timer')
+                        .toBe(statesAfterAllowing);
+                });
+
+                it('refuses an undo request once a player has run out of time', async function () {
                     const { harness } = contextRef;
                     const { owner, guest } = await harness.startLiveGameAsync();
                     const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
                     await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
                     expect(waiting.gameState.winners).toEqual([waiting.username]);
+                    expect(active.gameState.players[active.id].availableSnapshots.quickSnapshotAvailable).withContext('no undo offered')
+                        .toBe(QuickUndoAvailableState.NoSnapshotAvailable);
 
                     await active.quickUndoAsync();
-                    await waiting.clickButtonAsync('Allow');
 
-                    expect(waiting.gameState.winners).withContext('the game goes on')
-                        .toEqual([]);
-                    expect(waiting.timerOf(active))
-                        .toEqual({ turnTimeRemainingSeconds: 20, mainTimeRemainingSeconds: 0, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
-                    await harness.clock.advanceToDeadlineAsync(turnTimeMs, {
-                        justBefore: () => {
-                            expect(waiting.gameState.winners).toEqual([]);
-                        },
-                        atDeadline: () => {
-                            expect(waiting.gameState.winners).toEqual([waiting.username]);
-                        },
-                    });
-                });
-
-                it('lets a waiting player win when the opponent runs out, though they had run out themselves before an undo past the end', async function () {
-                    const { harness } = contextRef;
-                    const { owner, guest } = await harness.startLiveGameAsync();
-                    const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
-                    await active.clickButtonAsync('Pass');
-                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
-                    expect(active.gameState.winners).toEqual([active.username]);
-
-                    await active.quickUndoAsync();
-                    await waiting.clickButtonAsync('Allow');
-
-                    expect(active.gameState.winners).withContext('the game goes on')
-                        .toEqual([]);
-                    expect(active.prompt.promptType).toBe(PromptType.ActionWindow);
-                    expect(active.timerOf(waiting))
-                        .toEqual({ turnTimeRemainingSeconds: null, mainTimeRemainingSeconds: 0, timeRemainingStatus: PlayerTimeRemainingStatus.NoAlert, isRunning: false });
-                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
-
-                    expect(active.gameState.winners).toEqual([waiting.username]);
+                    expect(waiting.prompt.buttons.map((button) => button.text)).not.toContain('Allow');
+                    expect(waiting.gameState.winners).withContext('the game stays over')
+                        .toEqual([waiting.username]);
                 });
             });
 
