@@ -197,6 +197,58 @@ describe('Lobby lifecycle', function () {
                     .toBeFalse();
             });
 
+            describe('after losing the connection to their lobby (e.g. closing the tab)', function () {
+                it('may create another lobby at once if nobody else was in the old one, which goes away', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+                    const oldLobbyId = owner.lobbyId;
+                    await owner.disconnectTransportAsync();
+
+                    const created = await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(created.status).toBe(200);
+                    expect(await isListedAsync(harness, oldLobbyId)).toBeFalse();
+                    expect(await linkSeatsNewcomerAsync(harness, oldLobbyId)).toBeFalse();
+                    await owner.connectAsync();
+                    expect(owner.lobbyId).withContext('the owner is seated in the new lobby')
+                        .not.toBe(oldLobbyId);
+                    expect(owner.lobbyState.lobbyOwnerId).toBe(owner.id);
+                });
+
+                it('may enter the queue at once if nobody else was in the old lobby', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+                    await owner.disconnectTransportAsync();
+
+                    const queued = await owner.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(queued.status).toBe(200);
+                });
+
+                it('is still refused within 60 seconds while another player is in the old lobby', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest } = await harness.createLobbyWithGuestAsync();
+                    await owner.disconnectTransportAsync();
+
+                    const created = await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(created.status).toBe(403);
+                    expect(created.body).toEqual({ success: false, message: 'User is already in a lobby' });
+                    expect(guest.lobbyState.users.map((user: { id: string }) => user.id)).withContext('the owner keeps their seat in the grace window')
+                        .toContain(owner.id);
+                });
+
+                it('is still refused within 60 seconds while still connected to a lobby they are alone in', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+
+                    const created = await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(created.status).toBe(403);
+                    expect(created.body).toEqual({ success: false, message: 'User is already in a lobby' });
+                });
+            });
+
             it('may join somewhere else at once if they never connected to the lobby they joined', async function () {
                 const { harness } = contextRef;
                 const first = await harness.openLobbyAsync();
