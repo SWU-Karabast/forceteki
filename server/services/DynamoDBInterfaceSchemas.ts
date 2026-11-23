@@ -134,8 +134,8 @@ const ModActionSubmitBodySchema = z.object({
         .optional(),
 
     /**
-     * Sent to the player as a notice; only for actions whose definition has a `playerNoticeKind`. A blank one
-     * (the mod tools' empty text box) counts as none.
+     * Sent to the player as a notice; required for actions whose definition has a `playerNoticeKind` and refused
+     * for the rest. A blank one (the mod tools' empty text box) counts as none.
      */
     playerMessage: z.preprocess(
         (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
@@ -190,8 +190,13 @@ export const ModActionSubmitSchema = ModActionSubmitBodySchema.refine(
         { path: ['newUsername'], error: messageFromBody((data) => validateUsernameFormat(data.newUsername) ?? 'Invalid username.') }
     )
     .refine(
-        (data) => data.playerMessage === undefined || ModActionDefinitions[data.actionType].playerNoticeKind !== undefined,
-        { path: ['playerMessage'], error: messageFromBody((data) => `playerMessage is not valid for ${data.actionType} actions`) }
+        (data) => (data.playerMessage !== undefined) === (ModActionDefinitions[data.actionType].playerNoticeKind !== undefined),
+        {
+            path: ['playerMessage'],
+            error: messageFromBody((data) => (ModActionDefinitions[data.actionType].playerNoticeKind !== undefined
+                ? `A message to the player is required for ${data.actionType} actions`
+                : `playerMessage is not valid for ${data.actionType} actions`)),
+        }
     );
 
 export const PlayerNoticeIdParamsSchema = z.object({

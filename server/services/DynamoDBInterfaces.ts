@@ -238,6 +238,9 @@ export type IPlayerNoticeView = Pick<IPlayerNoticeEntity, 'id' | 'kind' | 'messa
 export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',
+
+    /** A record for the moderators only, such as a reminder about the player; the player is not told */
+    Note = 'Note',
     Rename = 'Rename',
     ReportingDisabled = 'ReportingDisabled',
     UsernameChangesBlocked = 'UsernameChangesBlocked',
@@ -250,7 +253,7 @@ export enum ModActionType {
  *
  * `tracked` means indexed in the ACTIVE_MODACTION sparse GSI and held in the ModActionService cache.
  * That is distinct from having a duration: Mute is timed, while Rename, ReportingDisabled and
- * UsernameChangesBlocked are indefinite but still tracked. Warning and ChangeUsername are untracked
+ * UsernameChangesBlocked are indefinite but still tracked. Warning, Note and ChangeUsername are untracked
  * (a one-off event with a paper trail only).
  */
 export interface IModActionDefinition {
@@ -266,8 +269,8 @@ export interface IModActionDefinition {
     requiresNewUsername: boolean;
 
     /**
-     * Set when the moderator may also write a message to the player, which is sent as a notice of this kind.
-     * The action's own `note` stays internal either way.
+     * Set when the action comes with a message to the player, which is then required and sent as a notice of this
+     * kind. The action's own `note` stays internal either way.
      */
     playerNoticeKind?: PlayerNoticeKind;
 }
@@ -289,6 +292,14 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         cancellable: false,
         requiresNewUsername: false,
         playerNoticeKind: PlayerNoticeKind.Warning,
+    },
+    [ModActionType.Note]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+        requiresNewUsername: false,
     },
     [ModActionType.Rename]: {
         tracked: true,
