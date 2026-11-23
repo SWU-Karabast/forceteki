@@ -80,7 +80,7 @@ export const rotationBlocks: IRotationBlock[] = [
             { id: SwuSetId.LAW, releaseStage: ReleaseStage.Released, mainline: true },
             { id: SwuSetId.ASH, releaseStage: ReleaseStage.Released, mainline: true },
             { id: SwuSetId.HMW, releaseStage: ReleaseStage.Released, mainline: true },
-            { id: SwuSetId.IC27, releaseStage: ReleaseStage.Next, mainline: false }
+            { id: SwuSetId.IC27, releaseStage: ReleaseStage.Released, mainline: false }
         ]
     },
 ];
