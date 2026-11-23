@@ -218,6 +218,12 @@ export class GameServer {
     /** How often the server-role and server-settings caches re-read their tables. */
     public static readonly ServerCacheRefreshMinutes = 60;
 
+    /** How often the server looks for games nobody is playing any more. */
+    private static readonly StaleGameCheckIntervalMs = 30 * 60 * 1000;
+
+    /** How long a game can go without any player activity before its lobby is removed. */
+    private static readonly StaleGameInactivityMs = 2 * 60 * 60 * 1000;
+
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
@@ -483,6 +489,13 @@ export class GameServer {
             () => logger.info('GameServer: user cache stats', this.userFactory.cache.consumeStats()),
             3600000, // 1 hour
             { message: 'GameServer: error logging user cache stats' }
+        );
+
+        // STALE GAME CLEANUP
+        this.scheduler.setInterval(
+            () => this.removeStaleGames(),
+            GameServer.StaleGameCheckIntervalMs,
+            { message: 'GameServer: error during stale game cleanup' }
         );
 
         // Setup socket server
@@ -3462,6 +3475,26 @@ export class GameServer {
         const count = this.dailyActiveUserIds.size;
         logger.info(`[DAU] ${count} unique users in the last 24 hours`, { dailyActiveUserCount: count });
         this.dailyActiveUserIds.clear();
+    }
+
+    /**
+     * Removes the lobbies of games nobody has done anything in for a long time. A lobby is normally removed once its
+     * players leave, but one whose players never do (a tab left open, a cleanup that never ran) would otherwise stay
+     * in the spectate list for good. Runs on the scheduler, whose guard logs anything this throws.
+     */
+    private removeStaleGames(): void {
+        const now = this.scheduler.now();
+        for (const lobby of Array.from(this.lobbies.values())) {
+            if (!lobby.hasOngoingGame()) {
+                continue;
+            }
+
+            const inactiveMs = now - lobby.getLastActivity().getTime();
+            if (inactiveMs >= GameServer.StaleGameInactivityMs) {
+                logger.warn(`GameServer: removing lobby ${lobby.id}, its game had no player activity for ${Math.round(inactiveMs / 60000)} minutes`, { lobbyId: lobby.id });
+                this.removeLobby(lobby, 'This game was closed because nobody played for a long time');
+            }
+        }
     }
 
     /**
