@@ -230,16 +230,18 @@ const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : (c.hits.inclu
 const groupCount = (g, set) => {
   const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || !multiHit(c) || rec(c).reviewed));
   // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
-  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !rec(c).reviewed && c.hits.some((h) => !res(c, h))).length, total: cs.length }; }
+  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !rec(c).reviewed && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
   return { open: cs.filter((c) => !rec(c).reviewed && !res(c, g.id)).length, total: cs.length };
 };
 function viewMatch(c, gid) {
   const v = ui.view || 'open', r = res(c, gid), done = rec(c).reviewed;
   if (gid === AGENT_GROUP) {
     // This list spans groups, so a card's state is judged over every group it matched.
-    if (v === 'open') { return !done && c.hits.some((h) => !res(c, h)); }
-    if (v === 'done') { return done || c.hits.every((h) => ['tag', 'ok'].includes(res(c, h))); }
-    if (v === 'follow') { return !done && c.hits.some((h) => res(c, h) === 'followup'); }
+    // Tag and manual groups cannot be marked from this list, so they must not keep a card here after Apply.
+    const hs = c.hits.filter((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual');
+    if (v === 'open') { return !done && hs.some((h) => !res(c, h)); }
+    if (v === 'done') { return done || hs.every((h) => ['tag', 'ok'].includes(res(c, h))); }
+    if (v === 'follow') { return !done && hs.some((h) => res(c, h) === 'followup'); }
     return true;
   }
   // Multi-group cards are reviewed in Single, so the bulk lists that are still being worked through leave them out.
@@ -266,7 +268,12 @@ function renderBulk() {
   const g = groupById[ui.group];
   const set = effSet(), choice = ui.set || 'auto';
   const countSet = choice === 'auto' ? 'all' : choice;
-  const opt = (kind, label) => `<optgroup label="${label}">` + DATA.groups.filter((x) => x.kind === kind).map((x) => { const n = groupCount(x, countSet); return `<option value="${x.id}"${x.id === g.id ? ' selected' : ''}>${esc(x.label)} — ${n.open} left / ${n.total}</option>`; }).join('') + '</optgroup>';
+  // With the view on Unresolved, groups with nothing left are hidden (the selected one stays so the list is never empty).
+  const hideDone = (ui.view || 'open') === 'open';
+  const opt = (kind, label) => {
+    const items = DATA.groups.filter((x) => x.kind === kind).map((x) => ({ x, n: groupCount(x, countSet) })).filter(({ x, n }) => !hideDone || n.open > 0 || x.id === g.id);
+    return items.length ? `<optgroup label="${label}">` + items.map(({ x, n }) => `<option value="${x.id}"${x.id === g.id ? ' selected' : ''}>${esc(x.label)} — ${n.open} left / ${n.total}</option>`).join('') + '</optgroup>' : '';
+  };
   const all = bulkCards(), page = all.slice(bulkOffset, bulkOffset + PAGE_SIZE);
   const key = page.map((c) => c.id).join('|');
   if (key !== selKey) {

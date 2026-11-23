@@ -34,6 +34,12 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 ### Plot (test under the keyword, not per card)
 - A Plot card can be played from resources only when you deploy one of your own leaders, paying with your own resources: in Twin Suns either of your two leaders, in Always Two never when the teammate deploys theirs. Tested once here; the per-card notes for Plot cards do not repeat it.
 
+### Reveal, look at, disclose (test once here, not per card)
+- A reveal is seen by every player, including the teammate in Always Two.
+- A look at is private to the player who looks; the teammate does not see it (they may be told).
+- Disclose uses only the disclosing player's own hand and aspects; a teammate's hand or aspects never satisfy it.
+- Per-card notes cover only what is unusual about a card (which opponent or enemy's hand or deck, the choice of it, what later steps depend on the reveal).
+
 ### Bases and winning
 - A base's damage counts up and can exceed its health. A base at or past its health is not eliminated and has 0 remaining HP (R10, R28).
 - A team wins only when both enemy bases have reached their health. If one teammate wins through a card ability, both win.
