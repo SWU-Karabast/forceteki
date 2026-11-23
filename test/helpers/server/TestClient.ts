@@ -616,11 +616,7 @@ export class TestClient {
      * is watching. The client counts down between game states, so this is the time left as of the latest one.
      */
     public timerOf(player: TestClient): IActionTimerView {
-        const playerState = this.gameState?.players?.[player.id];
-        if (!playerState) {
-            throw new Error(`TestClient: user ${this.id} has not been sent a game state with player ${player.id} in it`);
-        }
-
+        const playerState = this.playerStateOf(player);
         return {
             turnTimeRemainingSeconds: playerState.turnTimeRemainingSeconds ?? null,
             mainTimeRemainingSeconds: playerState.mainTimeRemainingSeconds,
@@ -636,12 +632,17 @@ export class TestClient {
      * event, not the timer's current state.
      */
     public mainTimeGrantOf(player: TestClient): IMainTimeGrant | null {
+        return this.playerStateOf(player).mainTimeGrant ?? null;
+    }
+
+    /** `player`'s part of the latest game state this client was sent; throws if it has not been sent one with them in it. */
+    private playerStateOf(player: TestClient): any {
         const playerState = this.gameState?.players?.[player.id];
         if (!playerState) {
             throw new Error(`TestClient: user ${this.id} has not been sent a game state with player ${player.id} in it`);
         }
 
-        return playerState.mainTimeGrant ?? null;
+        return playerState;
     }
 
     /**

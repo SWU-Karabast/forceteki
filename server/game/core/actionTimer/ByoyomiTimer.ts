@@ -51,8 +51,9 @@ export class ByoyomiTimer implements IByoyomiTimer {
     private lastGrantedRound = 0;
     private _lastMainTimeGrant: IMainTimeGrant | null = null;
 
+    /** A copy, since the game state it is sent in is changed in place before it goes out. */
     public get lastMainTimeGrant(): IMainTimeGrant | null {
-        return this._lastMainTimeGrant;
+        return this._lastMainTimeGrant == null ? null : { ...this._lastMainTimeGrant };
     }
 
     public get isRunning(): boolean {
@@ -217,7 +218,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
         const grantMs = Math.max(0, Math.min(ByoyomiTimer.RoundEndMainTimeGrantSeconds * 1000, missingMs));
         const addedMs = this.mainTimer.addTimeMs(grantMs);
 
-        this._lastMainTimeGrant = { round, seconds: Math.round(addedMs / 1000) };
+        this._lastMainTimeGrant = { round, seconds: Math.floor(addedMs / 1000) };
     }
 
     /**

@@ -4,10 +4,14 @@ import type { IActionTimer, PlayerTimeRemainingStatus } from './IActionTimer';
 export interface IMainTimeGrant {
 
     /** The round whose end gave the time. */
-    round: number;
+    readonly round: number;
 
-    /** Whole seconds added, after the cap on main time; 0 for a player whose main time was already full. */
-    seconds: number;
+    /**
+     * How many seconds the main time shown to the player went up by, after the cap on main time; 0 for a player whose
+     * main time was already full. The main time is shown in whole seconds rounded up, so this is the time added rounded
+     * down: a capped grant ends on the whole 2:00, and an uncapped one adds whole seconds.
+     */
+    readonly seconds: number;
 }
 
 /**

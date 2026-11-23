@@ -1,10 +1,11 @@
+import { PhaseName, SnapshotType } from '../../../../server/game/core/Constants';
 import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
+import { spendMainTimeAsync, startTimedGameAtFirstActionAsync } from '../../../helpers/server/ActionTimerSteps';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
-import type { IPlayersAtFirstAction, ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import type { TestClient } from '../../../helpers/server/TestClient';
 
-const { turnTimeMs, mainTimeMs, roundEndGrantMs } = actionTimerLimits;
+const { mainTimeMs, roundEndGrantMs } = actionTimerLimits;
 
 const fullMainTimeSeconds = mainTimeMs / 1000;
 const grantSeconds = roundEndGrantMs / 1000;
@@ -16,16 +17,6 @@ const grantSeconds = roundEndGrantMs / 1000;
  */
 describe('Main time given back at the end of a round', function () {
     serverIntegration(function (contextRef) {
-        async function startAtFirstActionAsync(harness: ServerTestHarness): Promise<IPlayersAtFirstAction> {
-            const { owner, guest } = await harness.startLiveGameAsync();
-            return harness.playThroughSetupAsync(owner, guest);
-        }
-
-        /** Moves the clock through a whole turn time and then `mainSpentSeconds` of main time, which the player on the clock spends. */
-        async function spendAsync(harness: ServerTestHarness, mainSpentSeconds: number): Promise<void> {
-            await harness.clock.advanceAsync(turnTimeMs + mainSpentSeconds * 1000);
-        }
-
         /** Both players pass, and skip the regroup phase's resource step, `active` last, to the next round's first action. */
         async function playToNextRoundAsync(active: TestClient, waiting: TestClient): Promise<void> {
             await active.clickButtonAsync('Pass');
@@ -38,8 +29,8 @@ describe('Main time given back at the end of a round', function () {
 
         it('gives both players 10 s back, which both are sent with the next round\'s first state', async function () {
             const { harness } = contextRef;
-            const { active, waiting } = await startAtFirstActionAsync(harness);
-            await spendAsync(harness, 30);
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+            await spendMainTimeAsync(harness, 30);
             expect(waiting.mainTimeGrantOf(active)).withContext('before the end of the first round')
                 .toBeNull();
 
@@ -55,24 +46,31 @@ describe('Main time given back at the end of a round', function () {
             }
         });
 
-        it('gives back only what fills the main time up again', async function () {
+        it('gives back only what fills the main time up again, and says how far the main time shown went up', async function () {
             const { harness } = contextRef;
-            const { active, waiting } = await startAtFirstActionAsync(harness);
-            await spendAsync(harness, 4);
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+            // part way through a second: 115.3 s left, which the players are sent as 116
+            await spendMainTimeAsync(harness, 4.7);
+            await active.clickButtonAsync('Pass');
+            const shownBefore = waiting.timerOf(active).mainTimeRemainingSeconds;
+            expect(shownBefore).toBe(116);
 
-            await playToNextRoundAsync(active, waiting);
+            await waiting.clickButtonAsync('Pass');
+            await waiting.clickButtonAsync('Skip Resourcing');
+            await active.clickButtonAsync('Skip Resourcing');
 
             expect(waiting.timerOf(active).mainTimeRemainingSeconds).toBe(fullMainTimeSeconds);
-            expect(waiting.mainTimeGrantOf(active)).toEqual({ round: 1, seconds: 4 });
+            expect(waiting.mainTimeGrantOf(active)).withContext('1:56 to 2:00')
+                .toEqual({ round: 1, seconds: fullMainTimeSeconds - shownBefore });
         });
 
         it('gives time to a player still spending main time as the round ends', async function () {
             const { harness } = contextRef;
-            const { active, waiting } = await startAtFirstActionAsync(harness);
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
             await active.clickButtonAsync('Pass');
             await waiting.clickButtonAsync('Pass');
             await waiting.clickButtonAsync('Skip Resourcing');
-            await spendAsync(harness, 30);
+            await spendMainTimeAsync(harness, 30);
             expect(waiting.timerOf(active).turnTimeRemainingSeconds).withContext('on main time in the resource step')
                 .toBeNull();
 
@@ -84,10 +82,10 @@ describe('Main time given back at the end of a round', function () {
 
         it('gives time again at the end of every round', async function () {
             const { harness } = contextRef;
-            const { active, waiting } = await startAtFirstActionAsync(harness);
-            await spendAsync(harness, 30);
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+            await spendMainTimeAsync(harness, 30);
             await playToNextRoundAsync(active, waiting);
-            await spendAsync(harness, 30);
+            await spendMainTimeAsync(harness, 30);
 
             await playToNextRoundAsync(active, waiting);
 
@@ -97,8 +95,8 @@ describe('Main time given back at the end of a round', function () {
 
         it('keeps the time given after an undo back before the end of the round, and gives no more when the round ends again', async function () {
             const { harness } = contextRef;
-            const { active, waiting } = await startAtFirstActionAsync(harness);
-            await spendAsync(harness, 30);
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+            await spendMainTimeAsync(harness, 30);
             await playToNextRoundAsync(active, waiting);
             const mainTimeWithGrant = fullMainTimeSeconds - 30 + grantSeconds;
 
@@ -119,6 +117,30 @@ describe('Main time given back at the end of a round', function () {
             expect(waiting.mainTimeGrantOf(active)).toEqual({ round: 1, seconds: grantSeconds });
         });
 
+        it('gives no more time when an undo goes back across several rounds and they are played again', async function () {
+            const { harness } = contextRef;
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+            await spendMainTimeAsync(harness, 30);
+            await playToNextRoundAsync(active, waiting);
+            await spendMainTimeAsync(harness, 30);
+            await playToNextRoundAsync(active, waiting);
+            const mainTimeWithGrants = fullMainTimeSeconds - 60 + 2 * grantSeconds;
+
+            // back to the start of the first round's regroup phase, before both grants (the player's one free undo, so the
+            // opponent is not asked)
+            await active.rollbackToSnapshotAsync({ type: SnapshotType.Phase, phaseName: PhaseName.Regroup, phaseOffset: -1 });
+
+            expect(active.prompt.promptType).withContext('back in the first round\'s resource step')
+                .toBe(PromptType.Resource);
+            await waiting.clickButtonAsync('Skip Resourcing');
+            await active.clickButtonAsync('Skip Resourcing');
+            await playToNextRoundAsync(active, waiting);
+
+            expect(waiting.timerOf(active).mainTimeRemainingSeconds).withContext('both rounds\' grants kept, and no more given')
+                .toBe(mainTimeWithGrants);
+            expect(waiting.mainTimeGrantOf(active)).toEqual({ round: 2, seconds: grantSeconds });
+        });
+
         it('sends a spectator the time given', async function () {
             const { harness } = contextRef;
             const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
@@ -126,7 +148,7 @@ describe('Main time given back at the end of a round', function () {
             const spectator = harness.createClient({ authenticated: true });
             expect((await spectator.spectateGameAsync(lobbyId)).status).toBe(200);
             await spectator.connectAsync({ spectator: true });
-            await spendAsync(harness, 30);
+            await spendMainTimeAsync(harness, 30);
 
             await playToNextRoundAsync(active, waiting);
 
@@ -136,8 +158,8 @@ describe('Main time given back at the end of a round', function () {
 
         it('gives no time once the game has ended, even if the players play on through the end of a round', async function () {
             const { harness } = contextRef;
-            const { active, waiting } = await startAtFirstActionAsync(harness);
-            await spendAsync(harness, 30);
+            const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+            await spendMainTimeAsync(harness, 30);
             await waiting.concedeAsync();
 
             await playToNextRoundAsync(active, waiting);
