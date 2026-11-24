@@ -67,9 +67,25 @@ describe('ModActionSubmitSchema', function() {
         });
     });
 
+    describe('Warning', function() {
+        it('requires a message to the player, and a blank one counts as none', function() {
+            expect(ModActionSubmitSchema.safeParse({ ...base, actionType: ModActionType.Warning, playerMessage: 'Please keep the chat friendly.' }).success).toBeTrue();
+            expect(issuePaths({ ...base, actionType: ModActionType.Warning })).toEqual(['playerMessage']);
+            expect(issuePaths({ ...base, actionType: ModActionType.Warning, playerMessage: '   ' })).toEqual(['playerMessage']);
+        });
+    });
+
+    describe('Note', function() {
+        it('requires a note and refuses a message to the player', function() {
+            expect(ModActionSubmitSchema.safeParse({ ...base, actionType: ModActionType.Note }).success).toBeTrue();
+            expect(issuePaths({ playerId: 'player-1', actionType: ModActionType.Note })).toEqual(['note']);
+            expect(issuePaths({ ...base, actionType: ModActionType.Note, playerMessage: 'hello' })).toEqual(['playerMessage']);
+        });
+    });
+
     describe('other actions', function() {
         it('reject a new username', function() {
-            expect(issuePaths({ ...base, actionType: ModActionType.Warning, newUsername: 'ApprovedName' })).toEqual(['newUsername']);
+            expect(issuePaths({ ...base, actionType: ModActionType.Note, newUsername: 'ApprovedName' })).toEqual(['newUsername']);
         });
 
         it('keep their existing rules', function() {

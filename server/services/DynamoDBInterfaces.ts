@@ -203,9 +203,44 @@ export interface IServerSettingsEntity {
     updatedAt?: string;
 }
 
+/** What a notice to a player is about; the client picks its heading from this. */
+export enum PlayerNoticeKind {
+
+    /** Created by a Warning mod action, so every warning a player sees has an entry in their mod history */
+    Warning = 'Warning',
+}
+
+/**
+ * A message from the Karabast team, shown to the player once, the next time they sign in, until they acknowledge it.
+ * Stored under the player's partition as `USER#<playerId> / NOTICE#<id>`.
+ */
+export interface IPlayerNoticeEntity {
+    id: string;
+    playerId: string;
+    kind: PlayerNoticeKind;
+    message: string;
+
+    /** The moderator who sent it; shown in the mod tools, never to the player */
+    senderId: string;
+    senderUsername: string;
+    createdAt: string;
+
+    /** When the player acknowledged it; unset while it is still to be shown */
+    seenAt?: string;
+
+    /** The Warning mod action the notice was sent with, if any */
+    relatedModActionId?: string;
+}
+
+/** The part of a notice the player is sent. */
+export type IPlayerNoticeView = Pick<IPlayerNoticeEntity, 'id' | 'kind' | 'message' | 'createdAt'>;
+
 export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',
+
+    /** A record for the moderators only, such as a reminder about the player; the player is not told */
+    Note = 'Note',
     Rename = 'Rename',
     ReportingDisabled = 'ReportingDisabled',
     UsernameChangesBlocked = 'UsernameChangesBlocked',
@@ -218,7 +253,7 @@ export enum ModActionType {
  *
  * `tracked` means indexed in the ACTIVE_MODACTION sparse GSI and held in the ModActionService cache.
  * That is distinct from having a duration: Mute is timed, while Rename, ReportingDisabled and
- * UsernameChangesBlocked are indefinite but still tracked. Warning and ChangeUsername are untracked
+ * UsernameChangesBlocked are indefinite but still tracked. Warning, Note and ChangeUsername are untracked
  * (a one-off event with a paper trail only).
  */
 export interface IModActionDefinition {
@@ -233,6 +268,11 @@ export interface IModActionDefinition {
     /** The moderator supplies the username to apply to the account. */
     requiresNewUsername: boolean;
 
+    /**
+     * Set when the action comes with a message to the player, which is then required and sent as a notice of this
+     * kind. The action's own `note` stays internal either way.
+     */
+    playerNoticeKind?: PlayerNoticeKind;
 }
 
 export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
@@ -245,6 +285,15 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresNewUsername: false,
     },
     [ModActionType.Warning]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+        requiresNewUsername: false,
+        playerNoticeKind: PlayerNoticeKind.Warning,
+    },
+    [ModActionType.Note]: {
         tracked: false,
         requiresNote: true,
         requiresDuration: false,

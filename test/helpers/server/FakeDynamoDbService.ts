@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import type {
     IDeckDataEntity,
     IModActionEntity,
+    IPlayerNoticeEntity,
     IPlayerReportCleanupCursor,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
@@ -18,6 +19,7 @@ import { isTrackedModAction, PlayerReportStatus } from '../../../server/services
 import {
     IDeckDataEntitySchema,
     ModActionEntitySchema,
+    PlayerNoticeEntitySchema,
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
@@ -42,6 +44,7 @@ type FakedMethod =
   | 'saveUsernameChangeAsync' | 'getUsernameChangesAsync'
   | 'saveModActionAsync' | 'getModActionsAsync' | 'activateMuteAsync' | 'cancelModActionAsync'
   | 'removeModActionFromActiveIndexAsync'
+  | 'savePlayerNoticeAsync' | 'getPlayerNoticesAsync' | 'markPlayerNoticeSeenAsync'
   | 'savePlayerReportAsync' | 'getPlayerReportMetaAsync' | 'getPlayerReportAsync' | 'getPlayerReportsByGsiKeyAsync'
   | 'getPlayerReportIndexAsync' | 'transitionPlayerReportAsync' | 'queryAttributesByGsiAsync'
   | 'deletePlayerReportLogsAsync' | 'deletePlayerReportAsync' | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync'
@@ -153,6 +156,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public readonly usernameLinks = new Set<string>();
     public readonly usernameChanges: IUsernameChangeEntity[] = [];
     public readonly modActions = new Map<string, StoredModAction>();
+
+    /** `<player id>#<notice id>` -> notice. */
+    public readonly playerNotices = new Map<string, IPlayerNoticeEntity>();
 
     /** `<user id>#<deck id>` -> deck. */
     public readonly decks = new Map<string, IDeckDataEntity>();
@@ -274,6 +280,15 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     public actionsOfType(actionType: IModActionEntity['actionType']): StoredModAction[] {
         return [...this.modActions.values()].filter((item) => item.actionType === actionType);
+    }
+
+    public seedPlayerNotice(notice: IPlayerNoticeEntity): void {
+        this.playerNotices.set(`${notice.playerId}#${notice.id}`, PlayerNoticeEntitySchema.parse(notice));
+    }
+
+    /** The notices stored for a player, in the order they were sent. */
+    public noticesOf(playerId: string): IPlayerNoticeEntity[] {
+        return [...this.playerNotices.values()].filter((notice) => notice.playerId === playerId);
     }
 
     /** The decks stored for a user, in the order they were saved. */
@@ -457,6 +472,28 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
             item.active = false;
         }
         return Promise.resolve(updateResult);
+    }
+
+    // ---- Player notices ----
+
+    public savePlayerNoticeAsync(notice: IPlayerNoticeEntity): Promise<PutCommandOutput> {
+        this.seedPlayerNotice(notice);
+        return Promise.resolve(putResult);
+    }
+
+    public getPlayerNoticesAsync(playerId: string): Promise<IPlayerNoticeEntity[]> {
+        return Promise.resolve(this.noticesOf(playerId).map((notice) => ({ ...notice })));
+    }
+
+    /** As the real conditional update: false for a notice the player does not have, and a second call keeps the first time. */
+    public markPlayerNoticeSeenAsync(playerId: string, noticeId: string, seenAt: string): Promise<boolean> {
+        const notice = this.playerNotices.get(`${playerId}#${noticeId}`);
+        if (!notice) {
+            return Promise.resolve(false);
+        }
+
+        notice.seenAt ??= seenAt;
+        return Promise.resolve(true);
     }
 
     // ---- Player reports ----

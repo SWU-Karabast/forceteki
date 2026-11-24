@@ -56,6 +56,7 @@ import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { ICosmeticEntity } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IModerationAction,
+    IPlayerNoticeView,
     IReportingDisabledState,
     IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
@@ -72,6 +73,7 @@ import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import { PlayerReportService } from '../utils/PlayerReportService';
+import { PlayerNoticeService } from '../utils/PlayerNoticeService';
 import type { IModerator, PlayerReportStatusUpdate, PlayerReportUpdateResult, ReportActionTargetError } from '../utils/PlayerReportService';
 import type { IPlayerReportListQuery } from '../utils/PlayerReportListCache';
 import { InvalidReportCursorError } from '../utils/PlayerReportListCache';
@@ -81,6 +83,7 @@ import {
     FindUserSchema,
     ModActionCancelSchema,
     ModActionSubmitSchema,
+    PlayerNoticeIdParamsSchema,
     PlayerReportIdParamsSchema,
     PlayerReportListQuerySchema,
     PlayerReportUpdateSchema,
@@ -359,6 +362,7 @@ export class GameServer {
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
     public readonly playerReportService: PlayerReportService;
+    private readonly playerNoticeService: PlayerNoticeService;
     private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
     /**
@@ -420,7 +424,8 @@ export class GameServer {
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
         this.userFactory = userFactory ?? new UserFactory();
-        this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
+        this.playerNoticeService = new PlayerNoticeService(this.scheduler);
+        this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory, this.playerNoticeService) : undefined;
         this.playerReportService = new PlayerReportService(this.userFactory, () => this.modActionService, this.scheduler);
 
         const corsOptions = {
@@ -711,6 +716,8 @@ export class GameServer {
                     }
                 }
 
+                const notices = user.isAuthenticatedUser() ? await this.getUnseenNoticesForSignInAsync(user.getId()) : [];
+
                 return res.status(200).json({ success: true, user: {
                     id: user.getId(),
                     username: user.getUsername(),
@@ -724,7 +731,8 @@ export class GameServer {
                     usernameChangesBlocked,
                     reportingDisabled,
                     needsUsernameChange,
-                    moderation
+                    moderation,
+                    notices
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -1073,6 +1081,31 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (set-reporting-disabled-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        // The player has read a notice shown at sign-in; it is not shown again
+        app.post('/api/notices/:noticeId/seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    return res.status(403).json({ success: false, message: 'Authentication required' });
+                }
+
+                const parseResult = PlayerNoticeIdParamsSchema.safeParse(req.params);
+                if (!parseResult.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
+                }
+
+                // keyed by the caller's own id, so a notice of another player's is not found
+                const found = await this.playerNoticeService.markSeenAsync(user.getId(), parseResult.data.noticeId);
+                if (!found) {
+                    return res.status(404).json({ success: false, message: 'Notice not found' });
+                }
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer (notice-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -2020,10 +2053,12 @@ export class GameServer {
                 // If single match, include mod actions directly
                 let modActions = [];
                 let usernameChanges = [];
+                let notices = [];
                 if (players.length === 1) {
-                    [modActions, usernameChanges] = await Promise.all([
+                    [modActions, usernameChanges, notices] = await Promise.all([
                         this.userFactory.getModActionHistoryAsync(players[0].id),
                         this.userFactory.getUsernameChangeHistoryAsync(players[0].id),
+                        this.playerNoticeService.getNoticeHistoryAsync(players[0].id),
                     ]);
                 }
 
@@ -2032,6 +2067,7 @@ export class GameServer {
                     players,
                     modActions,
                     usernameChanges,
+                    notices,
                 });
             } catch (err) {
                 logger.error('GameServer (mod-find-user) Server error:', err);
@@ -2050,7 +2086,7 @@ export class GameServer {
                     });
                 }
 
-                const { playerId, actionType, durationDays, note, newUsername, reportId } = parseResult.data;
+                const { playerId, actionType, durationDays, note, newUsername, reportId, playerMessage } = parseResult.data;
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
@@ -2074,6 +2110,7 @@ export class GameServer {
                     durationDays: durationDays ?? undefined,
                     newUsername,
                     reportId,
+                    playerMessage,
                 });
 
                 return res.status(200).json({
@@ -2287,6 +2324,19 @@ export class GameServer {
         notParticipant: { status: 400, message: 'Player is not part of this report' },
         closed: { status: 409, message: 'Report is closed; reopen it to take action from it' },
     };
+
+    /**
+     * The notices to show a player who is signing in. A failure to read them is logged rather than failing the sign-in;
+     * they are shown on a later one.
+     */
+    private async getUnseenNoticesForSignInAsync(userId: string): Promise<IPlayerNoticeView[]> {
+        try {
+            return await this.playerNoticeService.getUnseenNoticesAsync(userId);
+        } catch (error) {
+            logger.error('GameServer (get-user): could not read player notices', { error: { message: error.message, stack: error.stack }, userId });
+            return [];
+        }
+    }
 
     private getModerator(user: User): IModerator {
         return { id: user.getId(), username: user.getUsername() };

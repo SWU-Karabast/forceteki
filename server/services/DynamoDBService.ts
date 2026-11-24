@@ -15,6 +15,7 @@ import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type {
     IModActionEntity,
+    IPlayerNoticeEntity,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
     IPlayerReportCleanupCursor,
@@ -37,6 +38,7 @@ import {
     IDeckDataEntitySchema,
     IDeckStatsEntitySchema,
     ModActionEntitySchema,
+    PlayerNoticeEntitySchema,
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
@@ -1049,6 +1051,52 @@ export class DynamoDBService {
 
             return this.client.send(command);
         }, 'Error removing mod action from active index');
+    }
+
+    // Player notices
+    // Layout: USER#<playerId> / NOTICE#<id>
+
+    public savePlayerNoticeAsync(notice: IPlayerNoticeEntity) {
+        return this.executeDbOperationAsync(() => {
+            return this.putItemAsync({ pk: `USER#${notice.playerId}`, sk: `NOTICE#${notice.id}` }, withoutUndefined({ ...notice }));
+        }, 'Error saving player notice');
+    }
+
+    /** Every notice sent to a player, seen or not, in no particular order. */
+    public getPlayerNoticesAsync(playerId: string): Promise<IPlayerNoticeEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USER#${playerId}`, { beginsWith: 'NOTICE#' });
+
+            return this.validateEachAsync<IPlayerNoticeEntity>(
+                PlayerNoticeEntitySchema,
+                result.Items ?? [],
+                (item) => `getPlayerNoticesAsync (notice ${item.id})`
+            );
+        }, 'Error getting player notices');
+    }
+
+    /**
+     * Records when the player acknowledged a notice. Acknowledging it again keeps the first time.
+     * @returns false if the player has no notice with this id
+     */
+    public markPlayerNoticeSeenAsync(playerId: string, noticeId: string, seenAt: string): Promise<boolean> {
+        return this.executeDbOperationAsync(async () => {
+            try {
+                await this.client.send(new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: { pk: `USER#${playerId}`, sk: `NOTICE#${noticeId}` },
+                    UpdateExpression: 'SET seenAt = if_not_exists(seenAt, :seenAt)',
+                    ConditionExpression: 'attribute_exists(pk)',
+                    ExpressionAttributeValues: { ':seenAt': seenAt },
+                }));
+                return true;
+            } catch (error) {
+                if (error.name === 'ConditionalCheckFailedException') {
+                    return false;
+                }
+                throw error;
+            }
+        }, 'Error marking player notice seen');
     }
 
     // Player Reports

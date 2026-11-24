@@ -1,15 +1,17 @@
-import { ModActionType } from '../../../server/services/DynamoDBInterfaces';
+import { ModActionType, PlayerNoticeKind } from '../../../server/services/DynamoDBInterfaces';
 import type {
     IModActionStore,
     IModActionSubmission,
     IModeratorRenamer
 } from '../../../server/utils/ModActionSubmissionHandler';
 import { ModActionSubmissionHandler } from '../../../server/utils/ModActionSubmissionHandler';
+import type { IPlayerNoticeStore } from '../../../server/utils/PlayerNoticeService';
 import * as ProfanityFilterModule from '../../../server/utils/profanityFilter/ProfanityFilter';
 
 describe('ModActionSubmissionHandler', function() {
     let store: jasmine.SpyObj<IModActionStore>;
     let renamer: jasmine.SpyObj<IModeratorRenamer>;
+    let notices: jasmine.SpyObj<IPlayerNoticeStore>;
     let handler: ModActionSubmissionHandler;
     let callOrder: string[];
 
@@ -56,7 +58,10 @@ describe('ModActionSubmissionHandler', function() {
             return Promise.resolve({ success: true, previousUsername: 'OldName', historyRecorded: true });
         });
 
-        handler = new ModActionSubmissionHandler(store, renamer);
+        notices = jasmine.createSpyObj<IPlayerNoticeStore>('notices', ['sendNoticeAsync']);
+        notices.sendNoticeAsync.and.resolveTo(null);
+
+        handler = new ModActionSubmissionHandler(store, renamer, notices);
     });
 
     describe('plain actions', function() {
@@ -73,6 +78,7 @@ describe('ModActionSubmissionHandler', function() {
             expect(store.onActionSubmitted).toHaveBeenCalledOnceWith('player-1', ModActionType.Warning, 'mod-1', 'ModOne', 'be nice', undefined, undefined);
             expect(renamer.getUsernameAsync).not.toHaveBeenCalled();
             expect(renamer.changeUsernameByModeratorAsync).not.toHaveBeenCalled();
+            expect(notices.sendNoticeAsync).not.toHaveBeenCalled();
         });
 
         it('link the action to the report ticket it was issued from', async function() {
@@ -101,6 +107,48 @@ describe('ModActionSubmissionHandler', function() {
             });
 
             expect(result).toEqual({ success: false, message: 'Player already has an active Mute.' });
+        });
+    });
+
+    describe('a message to the player', function() {
+        const warningWithMessage = (): IModActionSubmission => ({
+            playerId: 'player-1',
+            actionType: ModActionType.Warning,
+            moderatorId: 'mod-1',
+            moderatorUsername: 'ModOne',
+            note: 'insulted opponent in report 12',
+            playerMessage: 'Please keep the chat friendly.',
+        });
+
+        it('is sent as a notice linked to the recorded action', async function() {
+            const result = await handler.submitAsync(warningWithMessage());
+
+            expect(result).toEqual({ success: true, message: 'Action submitted. The player will see the message the next time they sign in.' });
+            expect(notices.sendNoticeAsync).toHaveBeenCalledOnceWith({
+                playerId: 'player-1',
+                kind: PlayerNoticeKind.Warning,
+                message: 'Please keep the chat friendly.',
+                sender: { id: 'mod-1', username: 'ModOne' },
+                relatedModActionId: 'action-1',
+            });
+        });
+
+        it('is not sent when the action is refused', async function() {
+            store.onActionSubmitted.and.resolveTo({ success: false, message: 'refused' });
+
+            const result = await handler.submitAsync(warningWithMessage());
+
+            expect(result).toEqual({ success: false, message: 'refused' });
+            expect(notices.sendNoticeAsync).not.toHaveBeenCalled();
+        });
+
+        it('reports a failure to send it without undoing the recorded action', async function() {
+            notices.sendNoticeAsync.and.rejectWith(new Error('throttled'));
+
+            const result = await handler.submitAsync(warningWithMessage());
+
+            expect(result).toEqual({ success: false, message: 'The Warning was recorded, but the message to the player could not be sent (see server logs).' });
+            expect(store.onActionCancelled).not.toHaveBeenCalled();
         });
     });
 

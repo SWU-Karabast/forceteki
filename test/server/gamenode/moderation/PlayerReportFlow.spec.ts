@@ -69,12 +69,12 @@ describe('Player report flow', function () {
 
             const outsider = harness.db.seedAccount();
             const wrongTarget = await moderator.requestAsync('post', '/api/mod/submit-action', {
-                playerId: outsider.id, actionType: ModActionType.Warning, note: 'x', reportId: summary.id,
+                playerId: outsider.id, actionType: ModActionType.Warning, note: 'x', playerMessage: 'x', reportId: summary.id,
             });
             expect(wrongTarget.status).toBe(400);
 
             const warning = await moderator.requestAsync('post', '/api/mod/submit-action', {
-                playerId: reported.id, actionType: ModActionType.Warning, note: 'Keep the chat friendly', reportId: summary.id,
+                playerId: reported.id, actionType: ModActionType.Warning, note: 'Keep the chat friendly', playerMessage: 'Please keep the chat friendly.', reportId: summary.id,
             });
             expect(warning.status).toBe(200);
 
@@ -89,7 +89,7 @@ describe('Player report flow', function () {
             expect((await moderator.requestAsync('get', '/api/mod/reports?status=Closed')).body.reports.map((r: { id: string }) => r.id)).toEqual([summary.id]);
 
             const afterClose = await moderator.requestAsync('post', '/api/mod/submit-action', {
-                playerId: reported.id, actionType: ModActionType.Warning, note: 'again', reportId: summary.id,
+                playerId: reported.id, actionType: ModActionType.Warning, note: 'again', playerMessage: 'again', reportId: summary.id,
             });
             expect(afterClose.status).toBe(409);
 
