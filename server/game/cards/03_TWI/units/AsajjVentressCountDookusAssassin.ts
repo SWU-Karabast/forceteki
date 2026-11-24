@@ -27,7 +27,7 @@ export default class AsajjVentressCountDookusAssassin extends NonLeaderUnitCard 
                 condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
                     controller: context.player,
                     filter: (attackEvent) =>
-                        attackEvent.attacker.hasSomeTrait(Trait.Separatist) &&
+                        attackEvent.attackerAttributes.traits.has(Trait.Separatist) &&
                         (attackEvent.attacker !== context.source || attackEvent.attackerInPlayId !== context.source.inPlayId)
                 }),
                 onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
