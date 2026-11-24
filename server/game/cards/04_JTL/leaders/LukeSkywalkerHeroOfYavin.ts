@@ -32,7 +32,7 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
                         controller: context.player,
-                        filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Fighter)
+                        filter: (attack) => context.source !== attack.attacker && attack.attackerAttributes.traits.has(Trait.Fighter)
                     }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                 })

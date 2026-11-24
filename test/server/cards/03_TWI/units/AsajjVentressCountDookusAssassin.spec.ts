@@ -1,3 +1,5 @@
+import { Trait } from '../../../../../server/game/core/Constants';
+
 describe('Asajj Ventress Count Doooku\'s Assassin', function() {
     integration(function(contextRef) {
         it('Asajj Ventress Count Doooku\'s Assassin\'s ability on attack should get +3/0 if a separatist unit has attacked this phase', async function () {
@@ -69,6 +71,37 @@ describe('Asajj Ventress Count Doooku\'s Assassin', function() {
             context.player1.clickCard(context.p2Base);
             expect(context.asajjVentress.getPower()).toBe(2);
             expect(context.p2Base.damage).toBe(20);
+        });
+
+        it('should count a unit that was a Separatist when it attacked even if it is no longer a Separatist', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['asajj-ventress#count-dookus-assassin', 'relentless-rocket-droid']
+                },
+                player2: {
+                    groundArena: ['the-first-legion#vaders-fist']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks with a Separatist unit
+            context.player1.clickCard(context.relentlessRocketDroid);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(3);
+
+            // P2 attacks with The First Legion and makes P1's cards lose the Separatist trait
+            context.player2.clickCard(context.theFirstLegion);
+            context.player2.clickCard(context.p1Base);
+            context.player2.chooseListOption('Separatist');
+            expect(context.relentlessRocketDroid.hasSomeTrait(Trait.Separatist)).toBeFalse();
+
+            // Relentless Rocket Droid was a Separatist when it attacked, so Asajj Ventress gets +3/+0
+            context.player1.clickCard(context.asajjVentress);
+            context.player1.clickCard(context.p2Base);
+            expect(context.asajjVentress.getPower()).toBe(5);
+            expect(context.p2Base.damage).toBe(8);
         });
     });
 });
