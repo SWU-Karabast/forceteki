@@ -1,5 +1,5 @@
 import { ByoyomiTimer } from './ByoyomiTimer';
-import type { IByoyomiTimer } from './IByoyomiTimer';
+import type { IByoyomiTimer, IMainTimeGrant } from './IByoyomiTimer';
 import { PlayerTimeRemainingStatus } from './IActionTimer';
 
 /**
@@ -40,6 +40,15 @@ export class NoopActionTimer implements IByoyomiTimer {
     public get msUntilTimeout(): number {
         // a disabled timer never times anyone out
         return Number.POSITIVE_INFINITY;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get lastMainTimeGrant(): IMainTimeGrant | null {
+        return null;
+    }
+
+    public grantRoundEndMainTime(_round: number) {
+        return;
     }
 
     public start() {

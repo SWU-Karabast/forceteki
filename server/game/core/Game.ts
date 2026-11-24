@@ -1456,6 +1456,13 @@ export class Game extends EventEmitter {
     }
 
     private roundEnded(): void {
+        // a game that has ended is not timed, so it gives no time back; an undo back before its end lets the grant happen
+        if (!this.isEnded) {
+            for (const player of this.getPlayers()) {
+                player.actionTimer.grantRoundEndMainTime(this.roundNumber);
+            }
+        }
+
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
 
         // at end of round, any tokens (except the Force tokens) in outsideTheGameZone are removed completely

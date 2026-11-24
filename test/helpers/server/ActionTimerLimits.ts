@@ -17,6 +17,9 @@ export const actionTimerLimits = {
     /** Main time left at which the timer shows danger and the chat says so. */
     dangerSeconds: 10,
 
+    /** Main time each player is given back at the end of every round, never past {@link mainTimeMs}. */
+    roundEndGrantMs: 10_000,
+
     /**
      * When a player's main time runs out, the game is a draw if the opponent's timer is running and they are this close
      * to timing out too, counting turn and main time.

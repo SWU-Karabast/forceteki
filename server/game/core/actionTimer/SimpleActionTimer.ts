@@ -177,6 +177,31 @@ export class SimpleActionTimer {
         this.initializeTimersForTimeRemaining(timeRemainingMs);
     }
 
+    /**
+     * Adds time to a timer that is running or paused, keeping it running or paused. A running timer's handlers are
+     * scheduled again for the new time left, so a handler that has already fired fires again if the timer now has more
+     * time left than its target. Adds nothing to a timer that is not started, was stopped, or has run out, since it has
+     * nothing to count down. Returns the milliseconds added.
+     */
+    public addTimeMs(timeMs: number): number {
+        Contract.assertTrue(timeMs >= 0, `Time to add must be non-negative: ${timeMs}`);
+
+        const timeRemainingMs = this.timeRemainingMs;
+        if (timeMs === 0 || timeRemainingMs == null || timeRemainingMs <= 0) {
+            return 0;
+        }
+
+        if (this.isPaused) {
+            this.endTime = new Date(this.endTime.getTime() + timeMs);
+            return timeMs;
+        }
+
+        this.clearTimers();
+        this.endTime = null;
+        this.initializeTimersForTimeRemaining(timeRemainingMs + timeMs);
+        return timeMs;
+    }
+
     protected getTimeLimitMs(): number {
         return this.timerOverrideValueSeconds ? this.timerOverrideValueSeconds * 1000 : this.timeLimitMs;
     }
