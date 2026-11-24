@@ -212,6 +212,12 @@ export class Lobby {
     private spectatorSummaryCooldownTask?: IScheduledTask;
     private spectatorSummaryPushPending = false;
 
+    /**
+     * How spectators see the players of the lobby's latest game, by seat. Kept after the game is gone, so a spectator
+     * sent the lobby state between games is told the score by the same seats it watched.
+     */
+    private spectatorView: SpectatorView | null = null;
+
     public constructor(
         lobbyName: string,
         matchmakingType: MatchmakingType,
@@ -1369,6 +1375,9 @@ export class Lobby {
             this.game.dispose();
         }
         this.game = game;
+        if (game) {
+            this.spectatorView = SpectatorView.of(game);
+        }
     }
 
     public cleanLobby(): void {
@@ -2250,7 +2259,18 @@ export class Lobby {
 
     /** What the lobby sends as `gamestate` to one spectator: as for a player, but seen through {@link SpectatorView}. */
     private buildSpectatorGameState(game: Game, spectatorId: string, spectatorSummary: ISpectatorSummary) {
-        return { ...SpectatorView.of(game).gameState(game.getState(spectatorId)), spectatorSummary };
+        return { ...this.getSpectatorView().gameState(game.getState(spectatorId)), spectatorSummary };
+    }
+
+    /** What the lobby sends as `lobbystate` to a spectator: only what its client reads, seen through {@link SpectatorView}. */
+    private buildSpectatorLobbyState() {
+        return this.getSpectatorView().lobbyState(this.getLobbyState());
+    }
+
+    /** There is a spectator only once a game has started, and so a view of its players. */
+    private getSpectatorView(): SpectatorView {
+        Contract.assertNotNullLike(this.spectatorView, 'Lobby: a spectator is being sent a state before any game has started');
+        return this.spectatorView;
     }
 
     public getSpectatorSummary(): ISpectatorSummary {
@@ -2304,7 +2324,7 @@ export class Lobby {
     }
 
     private sendLobbyStateToSpectator(socket: Socket): void {
-        socket.send('lobbystate', this.getLobbyState());
+        socket.send('lobbystate', this.buildSpectatorLobbyState());
     }
 
     public handleGameEnd(game: Game): void {
@@ -2583,7 +2603,7 @@ export class Lobby {
 
     /** {@link retransmitGameMessages} for a spectator: the messages are always seen through {@link SpectatorView}. */
     private retransmitGameMessagesToSpectator(socket: Socket, startIndex: number, endIndex: number): void {
-        this.sendRetransmitResponse(socket, startIndex, endIndex, (messages) => SpectatorView.of(this.game).messages(messages));
+        this.sendRetransmitResponse(socket, startIndex, endIndex, (messages) => this.getSpectatorView().messages(messages));
     }
 
     /** Sends the game messages from `startIndex` up to `endIndex`, as `view` shows them to the client asking. */
