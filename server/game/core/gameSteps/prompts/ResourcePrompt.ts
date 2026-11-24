@@ -12,6 +12,7 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     private readonly nCardsToResource: number;
+    private readonly enterExhausted: boolean;
 
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
@@ -20,11 +21,14 @@ export class ResourcePrompt extends AllPlayerPrompt {
     public constructor(
         game: Game,
         nCardsToResource: number,
-        resetActionTimerOnComplete = false
+        resetActionTimerOnComplete = false,
+        // CR 5.2.1.f: setup resources are placed facedown and ready; CR 5.5.1.c: regroup resources are facedown and exhausted
+        enterExhausted = false
     ) {
         super(game, resetActionTimerOnComplete);
 
         this.nCardsToResource = nCardsToResource;
+        this.enterExhausted = enterExhausted;
 
         for (const player of game.getPlayers()) {
             this.selectedCards[player.name] = [];
@@ -144,7 +148,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
                 this.game.getFrameworkContext(player),
                 { card, resourceControllingPlayer: player },
                 () => {
-                    player.resourceCard(card, false);
+                    player.resourceCard(card, this.enterExhausted);
                     this.game.statsTracker.trackCardMetric(GameCardMetric.Resourced, card, player);
                 }
             ));
