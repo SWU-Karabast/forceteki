@@ -34,6 +34,12 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 ### Plot (test under the keyword, not per card)
 - A Plot card can be played from resources only when you deploy one of your own leaders, paying with your own resources: in Twin Suns either of your two leaders, in Always Two never when the teammate deploys theirs. Tested once here; the per-card notes for Plot cards do not repeat it.
 
+### Bounty (test under the keyword, not per card)
+- A Bounty is always collected by an opponent of the player who controls the unit (in Always Two, by one of the two enemies, never the teammate of the controller).
+- If an opponent of the controller defeats or captures the unit, that opponent collects it.
+- If the controller defeats their own unit, or (Always Two) their teammate defeats it, the defeating player chooses which opponent collects it.
+- Per-card notes cover only what the card does beyond that.
+
 ### Reveal, look at, disclose (test once here, not per card)
 - A reveal is seen by every player, including the teammate in Always Two.
 - A look at is private to the player who looks; the teammate does not see it (they may be told).
@@ -51,9 +57,11 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - Attack targeting is per opponent: the attacker chooses which opponent's unit or base to attack.
 - Ambush and effects that say "attack with a unit" let the controller choose the defender among every opponent's units, not only one opponent's. The defending player is the controller of the chosen defender.
 - "An opponent" is chosen by the controller and the choice persists through the ability; "each opponent" is all non-eliminated opponents (R1, R18).
+- The player who eliminates another player heals 5 damage from their own base, after the elimination is resolved. If a player eliminates themself through an ability, no player heals (to be tested once here, not per card).
 - When a player is eliminated, every card they own is removed from the game immediately, even if another player controls it (to be tested once here).
 - Cards removed from the game by an elimination are not counted as leaving play. If an effect eliminates a player partway through, the rest of the effect that refers to that player's cards fizzles (to be tested once here).
-- Cards the eliminated player controls but does not own, the effects that do not fizzle mid-effect, and the end of the game are still being settled (cards tagged "Twin Suns: Elimination Unclear").
+- Cards the eliminated player controls but does not own go to their owner's discard pile; that move is not a defeat and not leaving play, except that an effect lasting "until it leaves play" ends (to be tested once here).
+- The effects that do not fizzle mid-effect, and the end of the game via card abilities, are still being settled (cards tagged "Twin Suns: Elimination Unclear").
 
 ## To check later (code scan)
 - Scan every card that says "your base" or "friendly base" and check the code finds the base controlled by the player, not just any friendly base (in Always Two the teammate's base is friendly too). If it does, the Always Two notes about "your own base, not the teammate's" on those cards can go. Until then they stay.

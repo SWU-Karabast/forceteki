@@ -131,9 +131,15 @@ const res = (c, g) => (rec(c).r || {})[g];
 const isManual = (gid) => groupById[gid].kind === 'manual';
 // A card that matches more than one group would show up in several bulk lists, and marking it in one does not mark it in the
 // others, so it is reviewed once in Single instead (until every group it matched has a result).
-const multiHit = (c) => c.hits.length > 1;
+// A card in several groups goes to Single, unless it was already marked in bulk (then its other groups stay in bulk).
+const multiHit = (c) => c.hits.length > 1 && !Object.keys(rec(c).r || {}).length;
 const needsSingle = (c) => !c.auto && !rec(c).reviewed && (c.hits.some(isManual) || c.hits.some((g) => res(c, g) === 'followup') || (multiHit(c) && c.hits.some((g) => !res(c, g))));
-const isComplete = (c) => c.auto || rec(c).reviewed || (!needsSingle(c) && c.hits.every((g) => ['tag', 'ok'].includes(res(c, g))));
+// Marking a card in any bulk group counts as reviewing the whole card (unless a group was sent to follow-up).
+const bulkDone = (c) => { const v = Object.values(rec(c).r || {}); return v.some((x) => x === 'tag' || x === 'ok') && !v.includes('followup'); };
+const isDone = (c) => rec(c).reviewed || bulkDone(c);
+// A card passed over to follow-up in any group is waiting for Single review, so it is not left open in its other groups.
+const flagged = (c) => !rec(c).reviewed && Object.values(rec(c).r || {}).includes('followup');
+const isComplete = (c) => c.auto || rec(c).reviewed || (!needsSingle(c) && (bulkDone(c) || c.hits.every((g) => ['tag', 'ok'].includes(res(c, g)))));
 const effTags = (c) => {
   const r = rec(c);
   if (r.tags && (r.reviewed || r.tagsEdited)) { return new Set(r.tags); }
@@ -228,26 +234,26 @@ const shown = (c) => !(ui.hideReprints && c.reprint);
 const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in more than one set. Listed here once.">Reprint${c.alsoIn.length ? ': also ' + esc(c.alsoIn.join(', ')) : ''}</span>` : '');
 const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
 const groupCount = (g, set) => {
-  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || !multiHit(c) || rec(c).reviewed));
+  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || !multiHit(c) || isDone(c)));
   // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
-  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !rec(c).reviewed && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
-  return { open: cs.filter((c) => !rec(c).reviewed && !res(c, g.id)).length, total: cs.length };
+  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !isDone(c) && !flagged(c) && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
+  return { open: cs.filter((c) => !isDone(c) && !flagged(c) && !res(c, g.id)).length, total: cs.length };
 };
 function viewMatch(c, gid) {
-  const v = ui.view || 'open', r = res(c, gid), done = rec(c).reviewed;
+  const v = ui.view || 'open', r = res(c, gid), done = isDone(c);
   if (gid === AGENT_GROUP) {
     // This list spans groups, so a card's state is judged over every group it matched.
     // Tag and manual groups cannot be marked from this list, so they must not keep a card here after Apply.
     const hs = c.hits.filter((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual');
-    if (v === 'open') { return !done && hs.some((h) => !res(c, h)); }
+    if (v === 'open') { return !done && !flagged(c) && hs.some((h) => !res(c, h)); }
     if (v === 'done') { return done || hs.every((h) => ['tag', 'ok'].includes(res(c, h))); }
     if (v === 'follow') { return !done && hs.some((h) => res(c, h) === 'followup'); }
     return true;
   }
   // Multi-group cards are reviewed in Single, so the bulk lists that are still being worked through leave them out.
   if ((v === 'agent' || v === 'open') && multiHit(c) && !done) { return false; }
-  if (v === 'agent') { return agentClear(c) && !r; }
-  if (v === 'open') { return !done && !r; }
+  if (v === 'agent') { return agentClear(c) && !r && !flagged(c); }
+  if (v === 'open') { return !done && !r && !flagged(c); }
   if (v === 'done') { return done || r === 'tag' || r === 'ok'; }
   if (v === 'follow') { return !done && r === 'followup'; }
   return true;
@@ -457,12 +463,12 @@ function drawSingle() {
         <div class="meta">${c.set} #${c.num} · ${esc(c.type)} · ${status}${c.reprint ? ' ' + reprintChip(c) : ''}</div>
         ${c.auto ? '' : `<div class="chips">${hitChips}</div>
         ${manualHits.length ? '<div class="banner" style="margin-top:10px">Special attention: ' + manualHits.map((h) => esc(groupById[h].label)).join(', ') + '. Check the interaction with both formats.</div>' : ''}
-        <h4>Review tags</h4>
-        <div class="chips" id="tagChips"></div>
         <h4>Twin Suns notes</h4>
         ${noteBox(c, 'noteTS', 'What the Twin Suns test must show, or why it is a special case')}
         <h4>Always Two notes</h4>
         ${noteBox(c, 'noteA2', 'What the Always Two test must show, or why it is a special case')}
+        <details class="tagacc" style="margin-top:12px"><summary>Review tags${tags.size ? ` (${tags.size} selected)` : ''}</summary>
+        <div class="chips" id="tagChips" style="margin-top:8px"></div></details>
         ${questionsFor(c).length ? questionsHtml(c) + answerBox(c) : ''}
         <div class="row"><button class="primary" id="sOk">Mark reviewed &amp; next</button><button id="sSkip">Skip</button>${r.reviewed || r.r ? '<button id="sReset">Reset this card</button>' : ''}</div>`}
         <h4>Official card text</h4>
@@ -499,13 +505,13 @@ function drawSingle() {
   for (const ta of panel.querySelectorAll('textarea')) { ta.onchange = () => { ta.classList.remove('draft'); ta.dataset.draft = ''; persist([{ id: c.id, record: withNotes(rec(c), panel) }]); }; }
   $('sOk').onclick = async () => {
     const record = withNotes(Object.assign({}, rec(c), { tags: [...effTags(c)], reviewed: true }), panel, true);
-    if (await persist([{ id: c.id, record }])) { const n = singleList[singleIdx + 1]; renderSingle(n ? n.id : null); }
+    if (await persist([{ id: c.id, record }])) { const n = singleList[singleIdx + 1]; renderSingle(n ? n.id : null); window.scrollTo(0, 0); }
   };
   $('sSkip').onclick = () => goSingle(1);
-  if ($('sReset')) { $('sReset').onclick = async () => { if (await persist([{ id: c.id, record: null }])) { drawSingle(); } }; }
+  if ($('sReset')) { $('sReset').onclick = async () => { if (await persist([{ id: c.id, record: null }])) { drawSingle(); window.scrollTo(0, 0); } }; }
   $('sPrev').onclick = () => goSingle(-1); $('sNext').onclick = () => goSingle(1);
 }
-function goSingle(d) { singleIdx = Math.min(Math.max(singleIdx + d, 0), singleList.length - 1); drawSingle(); }
+function goSingle(d) { singleIdx = Math.min(Math.max(singleIdx + d, 0), singleList.length - 1); drawSingle(); window.scrollTo(0, 0); }
 function wireSingleBar() {
   if (!$('sFilter')) { return; }
   $('sHideRe').onchange = (e) => { ui.hideReprints = e.target.checked; ui.sCard = null; saveUi(); renderSingle(); };

@@ -59,6 +59,47 @@ function loadCommonBases() {
     }
 }
 
+// The card data keeps the printed text in `text` and official errata as "(ERRATA) ..." lines in `rules`.
+// Errata that rewrites ability text replaces the matching printed segment (same opening words), or the whole
+// field when the card has only one field; if nothing matches it is added as its own field. Errata about
+// templating, traits or names does not change what a card does and is left alone.
+function applyErrata(fields, rules, id) {
+    if (!rules) {
+        return;
+    }
+    const lines = rules.split('\n').map((l) => l.trim()).filter((l) => /^\(?ERRATA\)?:?/i.test(l) && !/Templating update|Trait|Name:/i.test(l));
+    for (const line of lines) {
+        const e = line.replace(/^\(?ERRATA\)?:?\s*/i, '');
+        if (id === 'krrsantan#hit-and-run') {
+            fields.forEach((f) => { f.text = f.text.replace(/Return this unit to your hand \(from play\)\./, "Return this unit to its owner's hand."); f.errata = true; });
+            continue;
+        }
+        const lead = (t) => { const m = t.match(/^[^:]{1,25}:/); return (m ? m[0] : t.slice(0, 12)).toLowerCase(); };
+        const key = lead(e);
+        let done = false;
+        for (const f of fields) {
+            const segs = f.text.split('\n');
+            const i = segs.findIndex((s) => lead(s) === key);
+            if (i >= 0) {
+                segs[i] = e;
+                // The Unrefusable Offer errata is one line covering both of its segments.
+                f.text = (id === 'unrefusable-offer' ? segs.slice(0, i + 1) : segs).join('\n');
+                f.errata = true;
+                done = true;
+                break;
+            }
+        }
+        if (!done) {
+            if (fields.length === 1) {
+                fields[0].text = e;
+                fields[0].errata = true;
+            } else {
+                fields.push({ label: 'Text', text: e, errata: true });
+            }
+        }
+    }
+}
+
 let CARDS = null;
 function loadCards() {
     if (CARDS) {
@@ -87,6 +128,8 @@ function loadCards() {
         if (d.epicAction && isBase) {
             fields.push({ label: 'Epic Action', text: d.epicAction });
         }
+        applyErrata(fields, d.rules, d.internalName);
+        fields.forEach((f) => { if (f.errata) { f.label += ' (errata)'; } });
         const stripped = fields.map((f) => stripParenthetical(f.text)).filter(Boolean);
         let auto = null;
         if (d.types.includes('token')) {
