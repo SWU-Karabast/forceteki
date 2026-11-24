@@ -1,0 +1,841 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:swupgn:0.1",
+    "title": "SWU-PGN 0.1",
+    "description": "Schemas for the parts of a SWU-PGN 0.1 file. Each member of $defs is validated on its own: a header, a DECKS line, a CARDS line, an annotation, a RECORDS line, and a board.",
+    "$defs": {
+        "seat": {
+            "title": "Seat",
+            "description": "A seat: 1 or 2.",
+            "type": "integer",
+            "enum": [
+                1,
+                2
+            ]
+        },
+        "entityId": {
+            "title": "EntityId",
+            "description": "A card, token or effect entity id (a positive integer), or one of the reserved ids g, p1, p2.",
+            "oneOf": [
+                {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                {
+                    "type": "string",
+                    "enum": [
+                        "g",
+                        "p1",
+                        "p2"
+                    ]
+                }
+            ]
+        },
+        "cardId": {
+            "title": "CardId",
+            "description": "A card id (SPEC 6.1, Appendix B.3): SET#NUM, TOKEN:name#id or TOKEN:name.",
+            "type": "string",
+            "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)$"
+        },
+        "audience": {
+            "title": "Audience",
+            "description": "Who knows an identity: everyone, or the listed seats.",
+            "oneOf": [
+                {
+                    "type": "string",
+                    "const": "all"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/seat"
+                    },
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "uniqueItems": true
+                }
+            ]
+        },
+        "attrValue": {
+            "title": "AttrValue",
+            "description": "Any JSON value.",
+            "oneOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/attrValue"
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/attrValue"
+                    }
+                }
+            ]
+        },
+        "attrs": {
+            "title": "Attrs",
+            "description": "Attributes by name. Unknown names are kept.",
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/$defs/attrValue"
+            }
+        },
+        "header": {
+            "title": "Header",
+            "description": "The header tags. Every value is a string; unknown tags are allowed.",
+            "type": "object",
+            "properties": {
+                "Game": {
+                    "type": "string",
+                    "pattern": "^SWU-PGN/0\\.[0-9]+$"
+                },
+                "Visibility": {
+                    "type": "string",
+                    "enum": [
+                        "full",
+                        "perspective:1",
+                        "perspective:2",
+                        "public"
+                    ]
+                },
+                "Steps": {
+                    "type": "string",
+                    "enum": [
+                        "decision",
+                        "event"
+                    ]
+                },
+                "GameId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                },
+                "Date": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+                },
+                "CardPool": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]+(?:,[A-Z0-9]+)*$"
+                },
+                "Engine": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._-]+@[!-~]+$"
+                },
+                "P1Id": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "P2Id": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "P1": {
+                    "type": "string"
+                },
+                "P2": {
+                    "type": "string"
+                },
+                "P1Leader": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)(?:,(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?))?$"
+                },
+                "P1Base": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)$"
+                },
+                "P2Leader": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)(?:,(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?))?$"
+                },
+                "P2Base": {
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)$"
+                },
+                "Result": {
+                    "type": "string",
+                    "enum": [
+                        "P1",
+                        "P2",
+                        "Draw",
+                        "Incomplete"
+                    ]
+                },
+                "Reason": {
+                    "type": "string"
+                },
+                "Rounds": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "EndDate": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+                },
+                "Match": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "Undos": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "WriterErrors": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "GameNumber": {
+                    "type": "string",
+                    "pattern": "^[0-9]*[1-9][0-9]*$"
+                },
+                "WriterRevision": {
+                    "type": "string",
+                    "pattern": "^[0-9]*[1-9][0-9]*$"
+                }
+            },
+            "required": [
+                "Game",
+                "Visibility",
+                "Steps",
+                "GameId",
+                "Date",
+                "CardPool",
+                "Engine",
+                "P1Id",
+                "P2Id",
+                "P1",
+                "P2",
+                "P1Leader",
+                "P1Base",
+                "P2Leader",
+                "P2Base",
+                "Result",
+                "Reason",
+                "Rounds"
+            ],
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "deckLine": {
+            "title": "DeckLine",
+            "description": "One DECKS line (design 4.2).",
+            "type": "object",
+            "properties": {
+                "p": {
+                    "$ref": "#/$defs/seat"
+                },
+                "leaders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/cardId"
+                    },
+                    "minItems": 1
+                },
+                "base": {
+                    "$ref": "#/$defs/cardId"
+                },
+                "complete": {
+                    "type": "boolean"
+                },
+                "main": {
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "prefixItems": [
+                                    {
+                                        "$ref": "#/$defs/cardId"
+                                    },
+                                    {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    }
+                                ],
+                                "items": false,
+                                "minItems": 2
+                            },
+                            {
+                                "type": "array",
+                                "prefixItems": [
+                                    {
+                                        "$ref": "#/$defs/cardId"
+                                    }
+                                ],
+                                "items": false,
+                                "minItems": 1
+                            }
+                        ]
+                    }
+                },
+                "sideboard": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "prefixItems": [
+                            {
+                                "$ref": "#/$defs/cardId"
+                            },
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            }
+                        ],
+                        "items": false,
+                        "minItems": 2
+                    }
+                },
+                "order": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/cardId"
+                    }
+                }
+            },
+            "required": [
+                "p",
+                "leaders",
+                "base",
+                "complete",
+                "main"
+            ],
+            "additionalProperties": false
+        },
+        "cardLine": {
+            "title": "CardLine",
+            "description": "One CARDS line: the display name of a card id.",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/cardId"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "backSideName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "annotation": {
+            "title": "Annotation",
+            "description": "One ANNOTATIONS line, attached to a step by seq.",
+            "type": "object",
+            "properties": {
+                "seq": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "text": {
+                    "type": "string"
+                },
+                "nag": {
+                    "type": "string"
+                },
+                "by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "parent": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "seq"
+            ],
+            "additionalProperties": false
+        },
+        "create": {
+            "title": "CreateRecord",
+            "type": "object",
+            "properties": {
+                "t": {
+                    "const": "create"
+                },
+                "e": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "zone": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "owner": {
+                    "$ref": "#/$defs/seat"
+                },
+                "controller": {
+                    "$ref": "#/$defs/seat"
+                },
+                "parent": {
+                    "$ref": "#/$defs/entityId"
+                },
+                "rel": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "card": {
+                    "$ref": "#/$defs/cardId"
+                },
+                "to": {
+                    "$ref": "#/$defs/audience"
+                },
+                "a": {
+                    "$ref": "#/$defs/attrs"
+                }
+            },
+            "required": [
+                "t",
+                "e",
+                "owner"
+            ],
+            "dependentRequired": {
+                "parent": [
+                    "rel"
+                ],
+                "rel": [
+                    "parent"
+                ]
+            },
+            "if": {
+                "type": "object",
+                "properties": {
+                    "a": {
+                        "type": "object",
+                        "properties": {
+                            "kind": {
+                                "const": "effect"
+                            }
+                        },
+                        "required": [
+                            "kind"
+                        ]
+                    }
+                },
+                "required": [
+                    "a"
+                ]
+            },
+            "then": {
+                "type": "object",
+                "properties": {
+                    "zone": false
+                }
+            },
+            "else": {
+                "type": "object",
+                "properties": {
+                    "zone": true
+                },
+                "required": [
+                    "zone"
+                ]
+            },
+            "additionalProperties": false
+        },
+        "set": {
+            "title": "SetRecord",
+            "type": "object",
+            "properties": {
+                "t": {
+                    "const": "set"
+                },
+                "e": {
+                    "$ref": "#/$defs/entityId"
+                },
+                "zone": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "owner": {
+                    "$ref": "#/$defs/seat"
+                },
+                "controller": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/seat"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "parent": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/entityId"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "rel": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "a": {
+                    "$ref": "#/$defs/attrs"
+                }
+            },
+            "required": [
+                "t",
+                "e"
+            ],
+            "if": {
+                "type": "object",
+                "properties": {
+                    "parent": {
+                        "type": "null"
+                    }
+                },
+                "required": [
+                    "parent"
+                ]
+            },
+            "then": {
+                "type": "object",
+                "properties": {
+                    "rel": {
+                        "type": "null"
+                    }
+                },
+                "required": [
+                    "rel"
+                ]
+            },
+            "dependentSchemas": {
+                "parent": {
+                    "type": "object",
+                    "properties": {
+                        "rel": true
+                    },
+                    "required": [
+                        "rel"
+                    ],
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "parent": {
+                                "not": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "type": "object",
+                        "properties": {
+                            "rel": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "remove": {
+            "title": "RemoveRecord",
+            "type": "object",
+            "properties": {
+                "t": {
+                    "const": "remove"
+                },
+                "e": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "required": [
+                "t",
+                "e"
+            ],
+            "additionalProperties": false
+        },
+        "reveal": {
+            "title": "RevealRecord",
+            "type": "object",
+            "properties": {
+                "t": {
+                    "const": "reveal"
+                },
+                "e": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "card": {
+                    "$ref": "#/$defs/cardId"
+                },
+                "to": {
+                    "$ref": "#/$defs/audience"
+                }
+            },
+            "required": [
+                "t",
+                "e",
+                "card",
+                "to"
+            ],
+            "additionalProperties": false
+        },
+        "step": {
+            "title": "StepRecord",
+            "type": "object",
+            "properties": {
+                "t": {
+                    "const": "step"
+                },
+                "seq": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "ms": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            },
+            "required": [
+                "t",
+                "seq"
+            ],
+            "additionalProperties": false
+        },
+        "block": {
+            "title": "BlockRecord",
+            "type": "object",
+            "properties": {
+                "t": {
+                    "const": "block"
+                },
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "kind": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "p": {
+                    "$ref": "#/$defs/seat"
+                },
+                "src": {
+                    "$ref": "#/$defs/entityId"
+                },
+                "targets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/entityId"
+                    }
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/entityId"
+                    }
+                },
+                "amount": {
+                    "type": "integer"
+                },
+                "parent": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "via": {
+                    "$ref": "#/$defs/entityId"
+                },
+                "group": {
+                    "type": "integer"
+                },
+                "text": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "t",
+                "id",
+                "kind"
+            ],
+            "additionalProperties": false
+        },
+        "record": {
+            "title": "SwuRecord",
+            "description": "Any RECORDS line of a known type.",
+            "oneOf": [
+                {
+                    "$ref": "#/$defs/create"
+                },
+                {
+                    "$ref": "#/$defs/set"
+                },
+                {
+                    "$ref": "#/$defs/remove"
+                },
+                {
+                    "$ref": "#/$defs/reveal"
+                },
+                {
+                    "$ref": "#/$defs/step"
+                },
+                {
+                    "$ref": "#/$defs/block"
+                }
+            ]
+        },
+        "entity": {
+            "title": "Entity",
+            "description": "An entity on a board: its fixed fields and its attributes.",
+            "type": "object",
+            "properties": {
+                "zone": {
+                    "type": "string"
+                },
+                "owner": {
+                    "$ref": "#/$defs/seat"
+                },
+                "controller": {
+                    "$ref": "#/$defs/seat"
+                },
+                "parent": {
+                    "$ref": "#/$defs/entityId"
+                },
+                "rel": {
+                    "type": "string"
+                },
+                "card": {
+                    "type": "string"
+                },
+                "to": {
+                    "$ref": "#/$defs/audience"
+                },
+                "a": {
+                    "$ref": "#/$defs/attrs"
+                }
+            },
+            "required": [
+                "a"
+            ],
+            "additionalProperties": false
+        },
+        "board": {
+            "title": "Board",
+            "description": "The board after applying records. Keys of entities are String(EntityId); g, p1 and p2 are always present.",
+            "type": "object",
+            "properties": {
+                "seq": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "entities": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/$defs/entity"
+                    }
+                }
+            },
+            "required": [
+                "seq",
+                "entities"
+            ],
+            "additionalProperties": false
+        },
+        "file": {
+            "title": "SwuPgnFile",
+            "description": "A parsed file: the structure parse returns and serialize accepts (not a line schema).",
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/$defs/header"
+                },
+                "story": {
+                    "type": "string"
+                },
+                "decks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/deckLine"
+                    }
+                },
+                "cards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/cardLine"
+                    }
+                },
+                "records": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/record"
+                    }
+                },
+                "annotations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/annotation"
+                    }
+                },
+                "unknownSections": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "lines": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "lines"
+                        ],
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "required": [
+                "header",
+                "decks",
+                "cards",
+                "records",
+                "annotations",
+                "unknownSections"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
