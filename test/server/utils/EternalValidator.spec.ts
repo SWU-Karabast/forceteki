@@ -46,6 +46,24 @@ describe('Eternal deck validation', function () {
         });
     });
 
+    describe('suspended base', function () {
+        // The common ban list tests put each suspended card in the main deck; a base is only ever played in
+        // the base slot, so check it is rejected there too. Data Vault raises the minimum deck size by 10.
+        it('should reject Data Vault as the deck\'s base', function () {
+            const deck = buildDeck(getDeckFiller(cardDataGetter, 60, RELEASED_SETS), { base: buildCardEntry(cardDataGetter, 'data-vault') });
+            const failures = validator.validateInternalDeck(deck, eternalProps());
+            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toEqual([
+                jasmine.objectContaining({ reason: IllegalInFormatReason.Suspended })
+            ]);
+        });
+
+        it('should still allow Data Vault as the deck\'s base in Open', function () {
+            const deck = buildDeck(getDeckFiller(cardDataGetter, 60, RELEASED_SETS), { base: buildCardEntry(cardDataGetter, 'data-vault') });
+            const failures = validator.validateInternalDeck(deck, { format: SwuGameFormat.Open, cardPool: CardPool.Current });
+            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
+        });
+    });
+
     registerCommonDeckRuleTests(() => ({ validator, cardDataGetter, leader: LEADER, base: BASE }), {
         format: SwuGameFormat.Eternal,
         cardPool: CardPool.Current,
