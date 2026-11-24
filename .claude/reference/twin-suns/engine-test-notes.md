@@ -74,6 +74,14 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 ## To check later (code scan)
 - Scan every card that says "your base" or "friendly base" and check the code finds the base controlled by the player, not just any friendly base (in Always Two the teammate's base is friendly too). If it does, the Always Two notes about "your own base, not the teammate's" on those cards can go. Until then they stay.
 
+## Indirect damage (test once here, not per card)
+- "A player" (unqualified) can be any player, chosen by the controller of the ability: Twin Suns yourself or any one remaining opponent (never an eliminated player); Always Two yourself, the teammate or either enemy.
+- The receiving player, not the player dealing it, assigns the damage among their own base and units; no other player's base or units are damaged and nobody else assigns it. (Whether a base can be over-assigned is open, below.)
+- "To each opponent" deals it to every remaining opponent separately (Always Two: both enemies, never the teammate), each opponent assigning their own; an eliminated opponent is skipped.
+- Indirect damage counts as dealt by the controller of the ability (or, for an ability granted to a unit, the controller of that unit), not by the player who receives it. A teammate's card dealing indirect damage is not "indirect damage you deal".
+- "If a base was damaged this way" or "each unit damaged this way" looks only at what the receiving player actually assigned.
+- Per-card notes cover only what a card does beyond this (a count, a condition, a follow-up effect, an override of who assigns).
+
 ## Both formats
 - "Choose any number of players / opponents / bases" must support every subset, including none and all, and the controller (and the teammate in Always Two) where the card allows it (R30). The current engine is not set up for this.
 - "Choose N players" (an exact count) must work for any N legal players.
