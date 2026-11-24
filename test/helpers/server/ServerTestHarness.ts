@@ -184,7 +184,7 @@ export class ServerTestHarness {
 
             return new ServerTestHarness(
                 server,
-                new DecklistFixtures(setup.testGameBuilder.cardDataGetter, setup.deckValidator),
+                new DecklistFixtures(setup.deckValidator),
                 restoreEnv,
                 routeRecording
             );

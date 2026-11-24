@@ -12,7 +12,6 @@ import {
     AlertType,
     ChatObjectType,
     EffectName,
-    GameEndReason,
     PhaseName,
     PlayType,
     RelativePlayer,
@@ -1243,6 +1242,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             mainTimeRemainingSeconds: this.actionTimer.mainTimeRemainingSeconds,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             timerIsRunning: this.actionTimer.isRunning,
+            mainTimeGrant: this.actionTimer.lastMainTimeGrant,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
             topCardOfDeck: undefined
@@ -1273,10 +1273,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             return null;
         }
 
-        if (
-            this.game.gameEndReason === GameEndReason.Concede ||
-            this.game.gameEndReason === GameEndReason.PlayerLeft
-        ) {
+        if (this.game.isUndoBlockedByGameEnd) {
             return { quickSnapshotAvailable: QuickUndoAvailableState.NoSnapshotAvailable };
         }
 

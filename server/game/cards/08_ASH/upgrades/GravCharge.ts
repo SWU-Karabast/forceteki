@@ -13,7 +13,7 @@ export default class GravCharge extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Deal 4 damage to attached unit and defeat this upgrade',
-            contextTitle: (context) => `Deal 4 damage to ${context.source.parentCard.title} and defeat this upgrade`,
+            contextTitle: (context) => `Deal 4 damage to ${context.source.isAttached() ? context.source.parentCard.title : 'attached unit'} and defeat this upgrade`,
             when: {
                 onAttackEnd: (event, context) => event.attack.attacker === context.source.parentCard
             },
