@@ -232,15 +232,17 @@ function updateHeader() {
 // "Hide reprints" skips cards printed in more than one set (they are listed once, under one set).
 const shown = (c) => !(ui.hideReprints && c.reprint);
 const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in more than one set. Listed here once.">Reprint${c.alsoIn.length ? ': also ' + esc(c.alsoIn.join(', ')) : ''}</span>` : '');
-const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
+const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : gid === AGREED_GROUP ? agreed(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
 const groupCount = (g, set) => {
-  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || !multiHit(c) || isDone(c)));
+  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || g.id === AGREED_GROUP || !multiHit(c) || isDone(c)));
+  if (g.id === AGREED_GROUP) { return { open: cs.filter((c) => !isComplete(c)).length, total: cs.length }; }
   // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
   if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !isDone(c) && !flagged(c) && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
   return { open: cs.filter((c) => !isDone(c) && !flagged(c) && !res(c, g.id)).length, total: cs.length };
 };
 function viewMatch(c, gid) {
   const v = ui.view || 'open', r = res(c, gid), done = isDone(c);
+  if (gid === AGREED_GROUP) { const v = ui.view || 'open'; return v === 'open' || v === 'agent' ? !isComplete(c) : v === 'done' ? isComplete(c) : v === 'follow' ? false : true; }
   if (gid === AGENT_GROUP) {
     // This list spans groups, so a card's state is judged over every group it matched.
     // Tag and manual groups cannot be marked from this list, so they must not keep a card here after Apply.
@@ -267,7 +269,9 @@ function effSet() {
 }
 function bulkCards() {
   const set = effSet();
-  return DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, ui.group) && (set === 'all' || c.set === set) && viewMatch(c, ui.group));
+  const out = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, ui.group) && (set === 'all' || c.set === set) && viewMatch(c, ui.group));
+  if (ui.group === AGREED_GROUP) { const k = (c) => c.hits.slice().sort().join(','); out.sort((a, b) => k(a).localeCompare(k(b))); }
+  return out;
 }
 function renderBulk() {
   if (!groupById[ui.group]) { ui.group = DATA.groups.find((g) => g.kind === 'tag').id; }
@@ -288,7 +292,7 @@ function renderBulk() {
     sel = new Set(page.filter((c) => g.id !== AGENT_GROUP || !Object.values(rec(c).r || {}).includes('followup')).map((c) => c.id));
   }
   const manual = g.kind === 'manual';
-  const applyLabel = g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
+  const applyLabel = g.id === AGREED_GROUP ? ['Mark reviewed', 'leave'] : g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
   $('app').innerHTML = `
     <div class="bar">
       <select id="bGroup">${opt('tag', 'Review tags')}${opt('manual', 'Special attention')}${opt('watch', 'Other phrases (candidates)')}${opt('passfail', 'Nothing matched')}</select>
@@ -362,6 +366,13 @@ const questionsFor = (c) => (DATA.suggestions && DATA.suggestions[c.id] && DATA.
 // The drafting agent found nothing format-specific: both drafted notes are empty and no question is open.
 // This is only a suggestion; the card is not marked until the reviewer does it.
 const AGENT_GROUP = '__agent';
+// Cards the rules agent reviewed and found nothing against, that already have drafted notes, no open question and no
+// follow-up/manual mark: the drafts can be confirmed together. The list is ordered by matched groups so similar cards sit together.
+const AGREED_GROUP = '__agreed';
+const agreed = (c) => {
+  const d = DATA.suggestions && DATA.suggestions[c.id];
+  return !c.auto && !!d && !!(d.ts || d.a2) && !(d.q && d.q.length) && !(d.agent && d.agent.length) && !flagged(c) && !c.hits.some(isManual);
+};
 const agentEmpty = (c) => {
   const d = DATA.suggestions && DATA.suggestions[c.id], r = rec(c);
   return !c.auto && !!d && !d.ts && !d.a2 && !(d.q && d.q.length) && !(d.agent && d.agent.length) && !r.noteTS && !r.noteA2;
@@ -409,6 +420,12 @@ function wireNotes(page) {
 async function applyBulk(page, g) {
   const updates = [], prev = {};
   for (const c of page) {
+    if (g.id === AGREED_GROUP) {
+      if (!sel.has(c.id)) { continue; }
+      prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
+      updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { tags: [...effTags(c)], reviewed: true }), tileEl(c.id), true) });
+      continue;
+    }
     const r = Object.assign({}, rec(c).r || {}), tags = new Set(rec(c).tags || []);
     if (g.id === AGENT_GROUP) {
       // This list spans groups: mark every group the card matched (tag groups are left for a person to decide).
@@ -563,6 +580,7 @@ async function loadData() {
   DATA = await r.json(); reviews = DATA.reviews;
   // A read-only list of every card the drafting agent cleared (empty draft), including ones already marked.
   DATA.groups.push({ id: AGENT_GROUP, label: 'Agent: no concern (all)', kind: 'watch', desc: 'Every card where the drafting agent found nothing format-specific, including cards you have already marked (their marks are shown on the tile). Applying marks every group the card matched as no concern; deselected cards go to follow-up in every group they matched. Cards you already sent to follow-up start deselected.', re: null });
+  DATA.groups.push({ id: AGREED_GROUP, label: 'Agent agreed: drafts ready (grouped)', kind: 'watch', desc: 'Cards the rules agent reviewed and found nothing against, with drafted notes and no open question. Ordered by matched groups so similar cards sit together. Applying marks the selected cards reviewed with their drafted notes and the suggested tags; deselected cards are left as they are.', re: null });
   groupById = Object.fromEntries(DATA.groups.map((g) => [g.id, g])); byId = Object.fromEntries(DATA.cards.map((c) => [c.id, c]));
 }
 function show() { if (ui.mode === 'single') { renderSingle(); } else { renderBulk(); } }
