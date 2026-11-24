@@ -1,5 +1,6 @@
 // The engine's record of what it sends each player. A capture spec sets up a board the way a card
-// spec does, then saves `game.getState()` at the moments a client would receive a state:
+// spec does, then saves `game.getState()` at the moments a client would receive a state (seen
+// through `SpectatorView` for a spectator, as the Lobby sends it):
 //
 // - `captureState` saves one board for the participants named, as `render/<name>.<participant>.json`.
 //   Render captures are for checking that a client draws a board correctly.
@@ -14,6 +15,8 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { CaptureRun } from './CaptureRun';
+import type { ISpectatedGame } from '../../server/gamenode/SpectatorView';
+import { SpectatorView } from '../../server/gamenode/SpectatorView';
 
 /** The participants a state can be captured for, and the id each is read with. */
 const Participants = {
@@ -44,7 +47,13 @@ type RecordedCommand = typeof RecordedCommands[number];
 type GameMessage = [RecordedCommand, ...unknown[]];
 
 /** The parts of `Game` a capture reads and, for a chain, listens to. */
-type CapturedGame = { getState: (participantId: string) => unknown } & Record<RecordedCommand, (playerId: string, ...args: unknown[]) => unknown>;
+type CapturedGame = ISpectatedGame & { getState: (participantId: string) => Record<string, any> } & Record<RecordedCommand, (playerId: string, ...args: unknown[]) => unknown>;
+
+/** The state `participant` is sent: a spectator's goes through `SpectatorView`, as the Lobby sends it. */
+const stateFor = (game: CapturedGame, participant: Participant) => {
+    const state = game.getState(Participants[participant]);
+    return participant === 'spectator' ? SpectatorView.of(game).gameState(state) : state;
+};
 
 const UuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
@@ -221,7 +230,7 @@ const serialize = (value: unknown) => {
 export const captureState = (game: CapturedGame, name: string, participants: Participant[]) => {
     const run = CaptureRun.get();
     for (const participant of participants) {
-        run.record(`render/${name}.${participant}.json`, serialize(game.getState(Participants[participant])));
+        run.record(`render/${name}.${participant}.json`, serialize(stateFor(game, participant)));
     }
 };
 
@@ -277,7 +286,7 @@ export const captureChain = (game: CapturedGame, name: string) => {
     return {
         step: (participant: Participant) => {
             // copied now, so nothing the game does later can reach it
-            const state = JSON.parse(JSON.stringify(game.getState(Participants[participant])));
+            const state = JSON.parse(JSON.stringify(stateFor(game, participant)));
             steps.push({ participant, state, send: [] });
         },
         save: () => {

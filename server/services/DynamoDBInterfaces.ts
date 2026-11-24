@@ -212,6 +212,27 @@ export interface IServerSettingsEntity {
     updatedAt?: string;
 }
 
+/**
+ * Who a feature flag is turned on for. Every flag is an entry in the `flags` map of one item
+ * (`FEATURE_FLAG` / `GLOBAL`), keyed by `flag`; each change sets only its own entry, so admins changing
+ * different flags at the same time cannot overwrite each other. Which flags exist is defined in code
+ * (`server/utils/featureFlags/FeatureFlags.ts`); an entry for a flag that is no longer defined is ignored.
+ */
+export interface IFeatureFlagEntity {
+    flag: string;
+
+    /** On for every caller, anonymous ones included. While false, only the roles and users below get it. */
+    enabled: boolean;
+
+    /** On for signed-in users who pass the role check for any of these (an admin passes every one). */
+    roles: ServerRole[];
+
+    /** On for these signed-in users. */
+    userIds: string[];
+    updatedBy?: string;
+    updatedAt?: string;
+}
+
 export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',

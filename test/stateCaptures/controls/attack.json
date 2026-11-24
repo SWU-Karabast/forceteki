@@ -128,17 +128,6 @@
               "regroup": true
             },
             "user": {
-              "blockList": [],
-              "settings": {
-                "optionSettings": {
-                  "autoSingleTarget": false
-                }
-              },
-              "promptedActionWindows": {
-                "setup": true,
-                "action": true,
-                "regroup": true
-              },
               "id": "111",
               "username": "player1"
             },
@@ -332,17 +321,6 @@
               "regroup": true
             },
             "user": {
-              "blockList": [],
-              "settings": {
-                "optionSettings": {
-                  "autoSingleTarget": false
-                }
-              },
-              "promptedActionWindows": {
-                "setup": true,
-                "action": true,
-                "regroup": true
-              },
               "id": "222",
               "username": "player2"
             },
@@ -512,17 +490,6 @@
               "regroup": true
             },
             "user": {
-              "blockList": [],
-              "settings": {
-                "optionSettings": {
-                  "autoSingleTarget": false
-                }
-              },
-              "promptedActionWindows": {
-                "setup": true,
-                "action": true,
-                "regroup": true
-              },
               "id": "111",
               "username": "player1"
             },
@@ -715,17 +682,6 @@
               "regroup": true
             },
             "user": {
-              "blockList": [],
-              "settings": {
-                "optionSettings": {
-                  "autoSingleTarget": false
-                }
-              },
-              "promptedActionWindows": {
-                "setup": true,
-                "action": true,
-                "regroup": true
-              },
               "id": "222",
               "username": "player2"
             },
@@ -895,17 +851,6 @@
               "regroup": true
             },
             "user": {
-              "blockList": [],
-              "settings": {
-                "optionSettings": {
-                  "autoSingleTarget": false
-                }
-              },
-              "promptedActionWindows": {
-                "setup": true,
-                "action": true,
-                "regroup": true
-              },
               "id": "111",
               "username": "player1"
             },
@@ -1075,17 +1020,6 @@
               "regroup": true
             },
             "user": {
-              "blockList": [],
-              "settings": {
-                "optionSettings": {
-                  "autoSingleTarget": false
-                }
-              },
-              "promptedActionWindows": {
-                "setup": true,
-                "action": true,
-                "regroup": true
-              },
               "id": "222",
               "username": "player2"
             },

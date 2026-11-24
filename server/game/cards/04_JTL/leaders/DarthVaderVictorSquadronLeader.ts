@@ -28,7 +28,7 @@ export default class DarthVaderVictorSquadronLeader extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
                     controller: context.player,
-                    filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Vehicle) && !attack.attacker.isTokenUnit()
+                    filter: (attack) => context.source !== attack.attacker && attack.attackerAttributes.traits.has(Trait.Vehicle) && !attack.attacker.isTokenUnit()
                 }),
                 onTrue: AbilityHelper.immediateEffects.createTieFighter(),
             })

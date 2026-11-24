@@ -30,7 +30,8 @@ export class SetupPhase extends Phase {
         const mulliganStep: IStep[] = [];
         if (initializeMode !== PhaseInitializeMode.RollbackToWithinPhase || snapshotManager.currentSnapshottedTimepointType === SnapshotTimepoint.Mulligan) {
             mulliganStep.push(
-                new MulliganPrompt(game),
+                // the player with the initiative decides first; their opponent may wait to see what they chose
+                new MulliganPrompt(game, { initiativePlayerChoosesFirst: true }),
                 new SimpleStep(game, () => this.takeSnapshot(SnapshotTimepoint.SetupResource), 'takeSnapshotBeforeResource'),
             );
         }
@@ -39,7 +40,8 @@ export class SetupPhase extends Phase {
             [
                 ...setupStep,
                 ...mulliganStep,
-                new ResourcePrompt(game, 2, true)
+                // the rules give the setup's resource step no order, so both players choose at once, both on the clock
+                new ResourcePrompt(game, 2, { resetActionTimerOnComplete: true })
             ],
             initializeMode
         );

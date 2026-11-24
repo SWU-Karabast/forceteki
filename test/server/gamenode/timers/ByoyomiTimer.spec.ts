@@ -3,14 +3,12 @@ import type { PlayerTimeRemainingStatus } from '../../../../server/game/core/act
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
 import { TestScheduler } from '../../../helpers/server/TestScheduler';
 
-const { turnTimeMs, mainTimeMs, roundEndGrantMs, warningSeconds } = actionTimerLimits;
+const { turnTimeMs, mainTimeMs, roundEndGrantMs, warningSeconds, drawMarginMs } = actionTimerLimits;
 
 /**
- * The two readings the timeout draw rule takes of the opponent's timer, at the unit level: whether they are on the clock
- * (`isCountingDown`) and how long they have until they time out (`msUntilTimeout`). The rule's other cases are pinned on
- * the wire in `ActionTimer`. These are not: in a game without cards, both players' timers always start together, so an
- * opponent is never still in their turn time when the other player runs out, and a stopped timer whose main time has run
- * out is reached only after an undo past the end of a game.
+ * A player's byoyomi timer at the unit level: the two readings the timeout draw rule takes of the opponent's timer, whether
+ * they are on the clock (`isCountingDown`) and how long they have until they time out (`msUntilTimeout`); the draw rule
+ * itself; and the main time given back at the end of a round.
  */
 describe('ByoyomiTimer', function () {
     let clock: TestScheduler;
@@ -18,6 +16,13 @@ describe('ByoyomiTimer', function () {
 
     function newTimer(onMainTimerWarning?: (status: PlayerTimeRemainingStatus) => void): ByoyomiTimer {
         return new ByoyomiTimer({ name: 'player' }, { scheduler: clock, id: 'game' }, () => timeouts++, () => undefined, onMainTimerWarning);
+    }
+
+    /** Spends a whole turn time and then `mainSpentMs` of main time, and stops the timer, keeping the main time left. */
+    async function spendAndStopAsync(timer: ByoyomiTimer, mainSpentMs: number): Promise<void> {
+        timer.start();
+        await clock.advanceAsync(turnTimeMs + mainSpentMs);
+        timer.stop();
     }
 
     beforeEach(function () {
@@ -90,6 +95,70 @@ describe('ByoyomiTimer', function () {
     });
 
     /**
+     * The timeout draw rule: when a player runs out, whether their opponent's timer is close enough to running out too
+     * that the game is a draw, with two timers on one clock. `ActionTimer` has the same cases on the wire, through the
+     * setup's resource step, the one prompt that runs both players' timers at once.
+     */
+    describe('the timeout draw rule', function () {
+        /** A timer for the player who runs out, which records the rule's verdict on `opponent` when it does. */
+        function runningOutAgainst(opponent: () => ByoyomiTimer, verdicts: boolean[]): ByoyomiTimer {
+            return new ByoyomiTimer({ name: 'player' }, { scheduler: clock, id: 'game' }, () => verdicts.push(ByoyomiTimer.isTimeoutDraw(opponent())), () => undefined);
+        }
+
+        it('is a draw when the opponent is on the clock with no more than the draw margin left', async function () {
+            const verdicts: boolean[] = [];
+            const opponent = newTimer();
+            const player = runningOutAgainst(() => opponent, verdicts);
+            // the player starts the margin behind, so the opponent has exactly the margin left when the player runs out
+            await spendAndStopAsync(player, drawMarginMs);
+
+            player.start();
+            opponent.start();
+            await clock.advanceAsync(turnTimeMs + mainTimeMs - drawMarginMs);
+
+            expect(verdicts).toEqual([true]);
+        });
+
+        it('is not a draw when the opponent on the clock has more than the draw margin left', async function () {
+            const verdicts: boolean[] = [];
+            const opponent = newTimer();
+            const player = runningOutAgainst(() => opponent, verdicts);
+            await spendAndStopAsync(player, drawMarginMs + 1);
+
+            player.start();
+            opponent.start();
+            await clock.advanceAsync(turnTimeMs + mainTimeMs - drawMarginMs - 1);
+
+            expect(verdicts).toEqual([false]);
+        });
+
+        it('is a draw when both run out at the same moment', async function () {
+            const verdicts: boolean[] = [];
+            const timers: ByoyomiTimer[] = [];
+            timers.push(runningOutAgainst(() => timers[1], verdicts), runningOutAgainst(() => timers[0], verdicts));
+            timers.forEach((timer) => timer.start());
+
+            await clock.advanceAsync(turnTimeMs + mainTimeMs);
+
+            expect(verdicts).toEqual([true, true]);
+        });
+
+        it('is not a draw when the opponent is off the clock, however little time they have', async function () {
+            const verdicts: boolean[] = [];
+            const opponent = newTimer();
+            const player = runningOutAgainst(() => opponent, verdicts);
+            await spendAndStopAsync(opponent, mainTimeMs - 1_000);
+
+            player.start();
+            await clock.advanceAsync(turnTimeMs + mainTimeMs);
+
+            expect(opponent.msUntilTimeout).withContext('the opponent, stopped with 1 s left')
+                .toBe(1_000);
+            expect(verdicts).toEqual([false]);
+        });
+    });
+
+    /**
      * The main time given back at the end of each round, at the unit level: the cap, once per round, and the scheduled
      * warnings and timeout of a main time counting down. In a game the round ends as the last player answers the resource
      * step, possibly with their main time still counting down. A game without cards then goes straight to the first
@@ -97,13 +166,6 @@ describe('ByoyomiTimer', function () {
      * `RoundEndMainTime` has the rest on the wire.
      */
     describe('the main time given back at the end of a round', function () {
-        /** Spends a whole turn time and then `mainSpentMs` of main time, and stops the timer, keeping the main time left. */
-        async function spendAndStopAsync(timer: ByoyomiTimer, mainSpentMs: number): Promise<void> {
-            timer.start();
-            await clock.advanceAsync(turnTimeMs + mainSpentMs);
-            timer.stop();
-        }
-
         it('adds 10 s to the main time left', async function () {
             const timer = newTimer();
             await spendAndStopAsync(timer, 30_000);

@@ -48,6 +48,28 @@ export interface IQueueFormatKey {
     gamesToWinMode: GamesToWinMode;
 }
 
+/**
+ * The matchmaking queues that exist: each format with the card pools and best-of modes it can be queued
+ * in. `enter-queue` refuses anything else. Keep it in step with the client's `QueueFormatConfigs`
+ * (`forceteki-client`, `_constants/constants.ts`), which decides what the quick match page offers.
+ */
+const queueFormatConfigs: readonly { format: SwuGameFormat; cardPools: CardPool[]; gamesToWinModes: GamesToWinMode[] }[] = [
+    { format: SwuGameFormat.Premier, cardPools: [CardPool.Current, CardPool.NextSet], gamesToWinModes: [GamesToWinMode.BestOfOne, GamesToWinMode.BestOfThree] },
+    { format: SwuGameFormat.Eternal, cardPools: [CardPool.Current, CardPool.NextSet], gamesToWinModes: [GamesToWinMode.BestOfOne, GamesToWinMode.BestOfThree] },
+    { format: SwuGameFormat.Limited, cardPools: [CardPool.Current], gamesToWinModes: [GamesToWinMode.BestOfOne] },
+];
+
+export const queueFormatKeys: readonly IQueueFormatKey[] = queueFormatConfigs.flatMap(({ format, cardPools, gamesToWinModes }) =>
+    cardPools.flatMap((cardPool) => gamesToWinModes.map((gamesToWinMode) => ({ format, cardPool, gamesToWinMode })))
+);
+
+/** Whether there is a matchmaking queue for this combination; the values may be anything a request sent. */
+export function isQueueFormatKey(key: { format: unknown; cardPool: unknown; gamesToWinMode: unknown }): key is IQueueFormatKey {
+    return queueFormatKeys.some((queueKey) =>
+        queueKey.format === key.format && queueKey.cardPool === key.cardPool && queueKey.gamesToWinMode === key.gamesToWinMode
+    );
+}
+
 
 export interface PreviousMatchEntry {
     opponentUserId: string;
@@ -80,13 +102,8 @@ export class QueueHandler {
         this.queues = new Map<string, QueuedPlayer[]>();
         this.playerPreviousMatch = new Map<string, PreviousMatchEntry>();
 
-        for (const format of Object.values(SwuGameFormat)) {
-            for (const cardPool of Object.values(CardPool)) {
-                for (const gamesToWinMode of Object.values(GamesToWinMode)) {
-                    const key: IQueueFormatKey = { format, cardPool, gamesToWinMode };
-                    this.queues.set(JSON.stringify(key), []);
-                }
-            }
+        for (const key of queueFormatKeys) {
+            this.queues.set(this.queueKeyFor(key), []);
         }
 
         // Cleanup previous match entries periodically
@@ -512,8 +529,13 @@ export class QueueHandler {
         return player.searchStartedAt == null ? undefined : this.scheduler.now() - player.searchStartedAt;
     }
 
+    /** The map key for a queue, built field by field so it does not depend on the order a caller's object has them in. */
+    private queueKeyFor({ format, cardPool, gamesToWinMode }: IQueueFormatKey): string {
+        return JSON.stringify({ format, cardPool, gamesToWinMode });
+    }
+
     private getQueueByFormat(key: IQueueFormatKey): QueuedPlayer[] | null {
-        const queue = this.queues.get(JSON.stringify(key));
+        const queue = this.queues.get(this.queueKeyFor(key));
         Contract.assertNotNullLike(queue, `No queue found for ${this.queueKeyToString(key)}`);
         return queue;
     }

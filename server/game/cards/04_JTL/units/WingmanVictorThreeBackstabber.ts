@@ -22,7 +22,7 @@ export default class WingmanVictorThreeBackstabber extends NonLeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose a unit to give an Experience token to',
                 controller: WildcardRelativePlayer.Any,
-                cardCondition: (card, context) => card !== context.source.parentCard,
+                cardCondition: (card, context) => !context.source.isAttached() || card !== context.source.parentCard,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });

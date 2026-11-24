@@ -4,17 +4,17 @@
   "manualMode": false,
   "owner": "player1",
   "players": {
-    "111": {
+    "player-1": {
       "cardPiles": {
         "hand": [
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "hand"
           },
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "hand"
           }
         ],
@@ -24,8 +24,8 @@
             "setId": {
               "set": "LOF"
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [],
             "zone": "outsideTheGame",
             "name": "The Force",
@@ -38,38 +38,38 @@
         "capturedZone": [],
         "resources": [
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "resource",
             "exhausted": true
           },
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "resource",
             "exhausted": true
           },
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "resource",
             "exhausted": true
           },
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "resource",
             "exhausted": false
           },
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "resource",
             "exhausted": false
           },
           {
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "zone": "resource",
             "exhausted": false
           }
@@ -81,8 +81,8 @@
               "set": "SOR",
               "number": 164
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [
               "aggression"
             ],
@@ -106,8 +106,8 @@
             "setId": {
               "set": "SOR"
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [],
             "zone": "groundArena",
             "name": "Experience",
@@ -124,8 +124,8 @@
             "setId": {
               "set": "SOR"
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [],
             "zone": "groundArena",
             "name": "Shield",
@@ -143,8 +143,8 @@
               "set": "SOR",
               "number": 95
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [
               "command",
               "heroism"
@@ -170,8 +170,8 @@
               "set": "SOR",
               "number": 9
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [
               "heroism",
               "command"
@@ -200,8 +200,8 @@
               "set": "SOR",
               "number": 225
             },
-            "controllerId": "111",
-            "ownerId": "111",
+            "controllerId": "player-1",
+            "ownerId": "player-1",
             "aspects": [
               "villainy"
             ],
@@ -234,8 +234,8 @@
             "set": "SOR",
             "number": 9
           },
-          "controllerId": "111",
-          "ownerId": "111",
+          "controllerId": "player-1",
+          "ownerId": "player-1",
           "aspects": [
             "heroism",
             "command"
@@ -263,8 +263,8 @@
           "set": "SHD",
           "number": 22
         },
-        "controllerId": "111",
-        "ownerId": "111",
+        "controllerId": "player-1",
+        "ownerId": "player-1",
         "aspects": [
           "command"
         ],
@@ -280,9 +280,9 @@
         "isDefender": false,
         "upgrades": []
       },
-      "id": "111",
+      "id": "player-1",
       "left": false,
-      "name": "player1",
+      "name": "Player 1",
       "phase": "action",
       "promptedActionWindows": {
         "setup": true,
@@ -290,19 +290,8 @@
         "regroup": true
       },
       "user": {
-        "blockList": [],
-        "settings": {
-          "optionSettings": {
-            "autoSingleTarget": false
-          }
-        },
-        "promptedActionWindows": {
-          "setup": true,
-          "action": true,
-          "regroup": true
-        },
-        "id": "111",
-        "username": "player1"
+        "id": "player-1",
+        "username": "Player 1"
       },
       "promptState": {},
       "isActionPhaseActivePlayer": true,
@@ -320,17 +309,17 @@
       "timerIsRunning": false,
       "numCardsInDeck": 8
     },
-    "222": {
+    "player-2": {
       "cardPiles": {
         "hand": [
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "hand"
           },
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "hand"
           }
         ],
@@ -340,8 +329,8 @@
             "setId": {
               "set": "LOF"
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [],
             "zone": "outsideTheGame",
             "name": "The Force",
@@ -354,38 +343,38 @@
         "capturedZone": [],
         "resources": [
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "resource",
             "exhausted": true
           },
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "resource",
             "exhausted": true
           },
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "resource",
             "exhausted": true
           },
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "resource",
             "exhausted": false
           },
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "resource",
             "exhausted": false
           },
           {
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "zone": "resource",
             "exhausted": false
           }
@@ -397,8 +386,8 @@
               "set": "SOR",
               "number": 164
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [
               "aggression"
             ],
@@ -422,8 +411,8 @@
             "setId": {
               "set": "SOR"
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [],
             "zone": "groundArena",
             "name": "Experience",
@@ -440,8 +429,8 @@
             "setId": {
               "set": "SOR"
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [],
             "zone": "groundArena",
             "name": "Shield",
@@ -459,8 +448,8 @@
               "set": "SOR",
               "number": 95
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [
               "command",
               "heroism"
@@ -486,8 +475,8 @@
               "set": "SOR",
               "number": 9
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [
               "heroism",
               "command"
@@ -516,8 +505,8 @@
               "set": "SOR",
               "number": 225
             },
-            "controllerId": "222",
-            "ownerId": "222",
+            "controllerId": "player-2",
+            "ownerId": "player-2",
             "aspects": [
               "villainy"
             ],
@@ -550,8 +539,8 @@
             "set": "SOR",
             "number": 9
           },
-          "controllerId": "222",
-          "ownerId": "222",
+          "controllerId": "player-2",
+          "ownerId": "player-2",
           "aspects": [
             "heroism",
             "command"
@@ -579,8 +568,8 @@
           "set": "SHD",
           "number": 22
         },
-        "controllerId": "222",
-        "ownerId": "222",
+        "controllerId": "player-2",
+        "ownerId": "player-2",
         "aspects": [
           "command"
         ],
@@ -596,9 +585,9 @@
         "isDefender": false,
         "upgrades": []
       },
-      "id": "222",
+      "id": "player-2",
       "left": false,
-      "name": "player2",
+      "name": "Player 2",
       "phase": "action",
       "promptedActionWindows": {
         "setup": true,
@@ -606,19 +595,8 @@
         "regroup": true
       },
       "user": {
-        "blockList": [],
-        "settings": {
-          "optionSettings": {
-            "autoSingleTarget": false
-          }
-        },
-        "promptedActionWindows": {
-          "setup": true,
-          "action": true,
-          "regroup": true
-        },
-        "id": "222",
-        "username": "player2"
+        "id": "player-2",
+        "username": "Player 2"
       },
       "promptState": {},
       "isActionPhaseActivePlayer": false,

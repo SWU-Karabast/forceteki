@@ -1,4 +1,5 @@
 import { RematchMode } from '../../../../server/game/core/Constants';
+import type { ISerializedMessage } from '../../../../server/game/Interfaces';
 import { premierBestOfThree } from '../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
@@ -10,12 +11,16 @@ const loggedIn: ITestClientOptions = { authenticated: true };
 const alice: ITestClientOptions = { authenticated: true, username: 'Alice' };
 const bob: ITestClientOptions = { authenticated: true, username: 'Bob' };
 
+// names that appear nowhere else in a game (no card is called anything like them), for specs that search everything sent
+const wyvernquill: ITestClientOptions = { authenticated: true, username: 'Wyvernquill' };
+const marrowpike: ITestClientOptions = { authenticated: true, username: 'Marrowpike' };
+
 /**
- * A spectator is shown the players by seat ("Player 1", "Player 2"), never by name. The client does that by
- * finding each player a chat line names as a player part, by id, and showing their seat instead. A username
- * written into the text of a line cannot be swapped, so every line that names a player must name them as a part
- * (`IChatEntry.playerIds`), in the game chat a spectator watches and in the lobby chat a spectator can be sent
- * between the games of a rematch.
+ * A spectator is shown the players by seat ("Player 1", "Player 2"), never by name or account. During a game the
+ * server sends a spectator the players by seat (`SpectatorView`). Every line that names a player must name them as
+ * a part (`IChatEntry.playerIds`) for that to work, since a username written into the text of a line cannot be
+ * swapped; the lobby chat, which a spectator can be sent between the games of a rematch, is still swapped by the
+ * client.
  */
 describe('Spectator identity', function () {
     /** A logged-in spectator, connected to the game in `lobbyId`. */
@@ -31,13 +36,13 @@ describe('Spectator identity', function () {
     serverIntegration(function (contextRef) {
         describe('in the game chat a spectator watches', function () {
             const rematchRequests: [RematchMode, string][] = [
-                [RematchMode.Regular, 'Bob has requested a rematch!'],
-                [RematchMode.Reset, 'Bob has requested a quick rematch!'],
-                [RematchMode.Bo1ConvertToBo3, 'Bob has requested to convert to a best-of-three match!'],
+                [RematchMode.Regular, 'has requested a rematch!'],
+                [RematchMode.Reset, 'has requested a quick rematch!'],
+                [RematchMode.Bo1ConvertToBo3, 'has requested to convert to a best-of-three match!'],
             ];
 
-            for (const [mode, expectedText] of rematchRequests) {
-                it(`names a player who requests a rematch (${mode}) as a player part`, async function () {
+            for (const [mode, request] of rematchRequests) {
+                it(`names a player who requests a rematch (${mode}) by seat`, async function () {
                     const { harness } = contextRef;
                     const { owner, guest, lobbyId } = await harness.startLiveGameAsync(alice, bob);
                     const spectator = await connectedSpectatorAsync(harness, lobbyId);
@@ -46,9 +51,11 @@ describe('Spectator identity', function () {
                     await guest.requestRematchAsync(mode);
 
                     expect(spectator.gameChat).toContain(jasmine.objectContaining({
-                        text: expectedText,
-                        playerIds: [guest.id],
+                        text: `${guest.spectatorSeat.name} ${request}`,
+                        playerIds: [guest.spectatorSeat.id],
                     }));
+                    expect(owner.gameChat).withContext('the players are still sent the name')
+                        .toContain(jasmine.objectContaining({ text: `Bob ${request}`, playerIds: [guest.id] }));
                 });
             }
         });
@@ -101,7 +108,75 @@ describe('Spectator identity', function () {
             });
         });
 
+        describe('in what a spectator is sent during a game', function () {
+            it('shows each player by seat, with no name, account or cosmetics', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync(wyvernquill, marrowpike);
+                const spectator = await connectedSpectatorAsync(harness, lobbyId);
+
+                const players = spectator.gameState.players;
+                expect(Object.keys(players).sort()).toEqual([owner.spectatorSeat.id, guest.spectatorSeat.id].sort());
+                for (const seat of [owner.spectatorSeat, guest.spectatorSeat]) {
+                    expect(players[seat.id].name).toBe(seat.name);
+                    expect(players[seat.id].user).toEqual({ id: seat.id, username: seat.name });
+                }
+            });
+
+            it('never names a player or gives their account id, in any game state or resent message', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync(wyvernquill, marrowpike);
+                await harness.playThroughSetupAsync(owner, guest);
+                await owner.sendGameChatAsync('good luck');
+
+                // joining mid-game, the spectator is sent everything said and logged so far
+                const spectator = await connectedSpectatorAsync(harness, lobbyId);
+                await guest.sendGameChatAsync('you too');
+                await owner.concedeAsync();
+                await guest.requestRematchAsync(RematchMode.Regular);
+                await spectator.retransmitGameMessagesAsync(0, 1000);
+
+                // TODO: once a spectator is sent its own lobby state (spectator projection, part 2), search every frame
+                // a spectator receives, the lobby state included, rather than these two events
+                const frames = [...spectator.receivedEvents('gamestate'), ...spectator.receivedEvents('retransmitResponse')];
+                expect(spectator.receivedEvents('retransmitResponse')[0]?.args[0]?.messages.length)
+                    .withContext('the resend was answered with messages')
+                    .toBeGreaterThan(0);
+                const everythingSent = JSON.stringify(frames);
+                for (const player of [owner, guest]) {
+                    expect(everythingSent).withContext(`${player.username}: username`)
+                        .not.toContain(player.username);
+                    expect(everythingSent).withContext(`${player.username}: id`)
+                        .not.toContain(player.id);
+                }
+            });
+
+            it('leaves what the players are sent unchanged, including the game log they share with the spectator', async function () {
+                const { harness } = contextRef;
+                const { owner, guest, lobbyId } = await harness.startLiveGameAsync(wyvernquill, marrowpike);
+                const spectator = await connectedSpectatorAsync(harness, lobbyId);
+                await owner.sendGameChatAsync('good luck');
+                expect(spectator.gameChat).toContain(jasmine.objectContaining({ senderId: owner.spectatorSeat.id, text: 'good luck' }));
+
+                // asked for again after the spectator was sent it, the line must still name the player
+                await guest.retransmitGameMessagesAsync(0, 1000);
+
+                const resent: ISerializedMessage[] = guest.receivedEvents('retransmitResponse')[0].args[0].messages;
+                const chatLine = resent.find((entry) => Array.isArray(entry.message) && entry.message[1] === ' good luck');
+                expect(chatLine?.message[0]).toEqual(jasmine.objectContaining({ id: owner.id, name: 'Wyvernquill' }));
+                expect(guest.gameState.players[owner.id].name).toBe('Wyvernquill');
+            });
+        });
+
         describe('in what the players are sent', function () {
+            it('gives each player\'s account as only their id, username and cosmetics', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync(wyvernquill, marrowpike);
+
+                for (const player of [owner, guest]) {
+                    expect(Object.keys(owner.gameState.players[player.id].user).sort()).toEqual(['cosmetics', 'id', 'username']);
+                }
+            });
+
             it('never names a spectator or gives their id, in the game or the lobby state', async function () {
                 const { harness } = contextRef;
                 const { owner, guest, lobbyId } = await harness.startLiveGameAsync();

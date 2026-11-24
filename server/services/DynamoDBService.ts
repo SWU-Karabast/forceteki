@@ -32,10 +32,12 @@ import {
     type IServerRoleUserEntity,
     type IServerRoleUsersListsEntity,
     type IServerSettingsEntity,
+    type IFeatureFlagEntity,
     isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import {
+    FeatureFlagEntitySchema,
     IDeckDataEntitySchema,
     IDeckStatsEntitySchema,
     ModActionEntitySchema,
@@ -904,9 +906,13 @@ export class DynamoDBService {
     }
 
     // Server settings methods
+    /**
+     * The read is strongly consistent: the cache re-reads straight after a moderator's change, and must
+     * see that change rather than the state before it.
+     */
     public getServerSettingsAsync(): Promise<IServerSettingsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL');
+            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL', { consistentRead: true });
 
             // A missing item means no moderator has ever set these, which is the state on the first
             // deploy of this feature. Default to enabled so that the rollout itself can't black out
@@ -940,6 +946,51 @@ export class DynamoDBService {
 
             return this.putItemAsync({ pk: 'SERVER_SETTINGS', sk: 'GLOBAL' }, attributes);
         }, 'Error saving server settings');
+    }
+
+    // Feature flag methods
+    /**
+     * Every stored feature flag, from the one item that holds them all in its `flags` map. A flag nobody
+     * has set yet has no entry; an entry that fails validation is logged and skipped, so one bad record
+     * cannot turn every flag off.
+     *
+     * The read is strongly consistent: the cache re-reads straight after an admin's change, and must
+     * see that change rather than the state before it.
+     */
+    public getFeatureFlagsAsync(): Promise<IFeatureFlagEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('FEATURE_FLAG', 'GLOBAL', { consistentRead: true });
+            const entries = Object.entries((result.Item?.flags ?? {}) as Record<string, object>)
+                .map(([flag, state]) => ({ ...state, flag }));
+            return this.validateEachAsync<IFeatureFlagEntity>(FeatureFlagEntitySchema, entries, (entry) => `feature flag ${entry?.flag}`);
+        }, 'Error getting feature flags');
+    }
+
+    /**
+     * Writes one flag's entry in the `flags` map. Only that entry is set, so admins changing different
+     * flags at the same time cannot overwrite each other.
+     */
+    public saveFeatureFlagAsync(flag: IFeatureFlagEntity) {
+        return this.executeDbOperationAsync(async () => {
+            const state: Record<string, unknown> = {
+                enabled: flag.enabled,
+                roles: flag.roles,
+                userIds: flag.userIds
+            };
+
+            // The document client is not configured with removeUndefinedValues, so undefined
+            // fields have to be omitted rather than written.
+            for (const key of ['updatedBy', 'updatedAt'] as const) {
+                if (flag[key] !== undefined) {
+                    state[key] = flag[key];
+                }
+            }
+
+            // a nested path can only be set once its parent map exists, and one update expression cannot
+            // both create the map and set a key inside it, so the first write ever needs a step of its own
+            await this.updateItemAsync('FEATURE_FLAG', 'GLOBAL', 'SET #flags = if_not_exists(#flags, :empty)', { ':empty': {} }, { '#flags': 'flags' });
+            return this.updateItemAsync('FEATURE_FLAG', 'GLOBAL', 'SET #flags.#flag = :state', { ':state': state }, { '#flags': 'flags', '#flag': flag.flag });
+        }, 'Error saving feature flag');
     }
 
     // Mod Actions

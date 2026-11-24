@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 
 import type {
     IDeckDataEntity,
+    IFeatureFlagEntity,
     IModActionEntity,
     IPlayerReportCleanupCursor,
     IPlayerReportEntity,
@@ -17,6 +18,7 @@ import type {
 } from '../../../server/services/DynamoDBInterfaces';
 import { isTrackedModAction, PlayerReportStatus, ServerRole } from '../../../server/services/DynamoDBInterfaces';
 import {
+    FeatureFlagEntitySchema,
     IDeckDataEntitySchema,
     ModActionEntitySchema,
     PlayerReportEntitySchema,
@@ -48,6 +50,7 @@ type FakedMethod =
   | 'getPlayerReportIndexAsync' | 'transitionPlayerReportAsync' | 'queryAttributesByGsiAsync'
   | 'deletePlayerReportLogsAsync' | 'deletePlayerReportAsync' | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync'
   | 'getServerRoleUsersAsync' | 'saveServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
+  | 'getFeatureFlagsAsync' | 'saveFeatureFlagAsync'
   | 'getCosmeticsAsync' | 'saveCosmeticAsync' | 'initializeCosmeticsAsync' | 'deleteCosmeticAsync' | 'clearAllCosmeticsAsync';
 
 /** What {@link FakeDynamoDbService.seedAccount} can set; everything is generated when omitted. */
@@ -139,6 +142,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - a deck is stored as its schema parses it, so only a deck's own fields are kept;
  * - creating a cosmetic with an id that is already taken fails with a `ConditionalCheckFailedException`;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
+ * - a stored feature flag that fails its schema is skipped rather than failing the whole read;
  * - everything read back through a zod schema in production goes through the same schema here.
  *
  * It does not model throttling, eventual consistency or item-size limits. Methods outside
@@ -192,6 +196,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public readonly failingGsiKeys = new Set<string>();
     public roleUsers: IServerRoleUsersListsEntity = copyRoleLists({ admin: [], developer: [], moderator: [], contributor: [] });
     public serverSettings?: IServerSettingsEntity;
+
+    /** Flag name -> stored state, as the `flags` map of the `FEATURE_FLAG` item holds it. */
+    public readonly featureFlags = new Map<string, IFeatureFlagEntity>();
 
     private readonly recordedLogins: string[] = [];
 
@@ -270,6 +277,11 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     public seedSettings(settings: IServerSettingsEntity): void {
         this.serverSettings = settings;
+    }
+
+    /** Stores a flag's state; fields not given are off or empty. */
+    public seedFeatureFlag(flag: Partial<IFeatureFlagEntity> & { flag: string }): void {
+        this.featureFlags.set(flag.flag, { enabled: false, roles: [], userIds: [], ...flag });
     }
 
     public seedModAction(modAction: IModActionEntity): void {
@@ -643,6 +655,21 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         }
 
         this.serverSettings = stored;
+        return Promise.resolve(putResult);
+    }
+
+    // ---- Feature flags ----
+
+    public getFeatureFlagsAsync(): Promise<IFeatureFlagEntity[]> {
+        const valid = [...this.featureFlags.values()]
+            .map((item) => FeatureFlagEntitySchema.safeParse(item))
+            .filter((result) => result.success)
+            .map((result) => result.data);
+        return Promise.resolve(valid);
+    }
+
+    public saveFeatureFlagAsync(flag: IFeatureFlagEntity): Promise<PutCommandOutput> {
+        this.featureFlags.set(flag.flag, { ...flag, roles: [...flag.roles], userIds: [...flag.userIds] });
         return Promise.resolve(putResult);
     }
 

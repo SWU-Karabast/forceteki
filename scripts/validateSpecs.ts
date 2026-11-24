@@ -52,6 +52,7 @@ const undoScenarioSpecsWithOwnHarness = [
     'IntraAction',
     'Performance',
     'PhaseStartAndEnd',
+    'RegroupResourceUndo',
     'SnapshotTypes',
     'UndoConfirmation',
 ];

@@ -3,37 +3,39 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
-import { AllPlayerPrompt } from './AllPlayerPrompt';
-import { PromptType, SelectCardMode } from '../PromptInterfaces';
+import { InitiativePlayerFirstPrompt } from './InitiativePlayerFirstPrompt';
+import type { IInitiativePlayerFirstPromptOptions } from './InitiativePlayerFirstPrompt';
+import { OpponentResourceChoice, PromptType, SelectCardMode } from '../PromptInterfaces';
 import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker';
 import { EventName } from '../../Constants';
 import { GameEvent } from '../../event/GameEvent';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 
-export class ResourcePrompt extends AllPlayerPrompt {
+export type IResourcePromptOptions = IInitiativePlayerFirstPromptOptions;
+
+/** The `arg` of the button a player confirms their resources with. */
+export enum ResourcePromptButtonArg {
+    Done = 'done',
+}
+
+export class ResourcePrompt extends InitiativePlayerFirstPrompt {
     private readonly nCardsToResource: number;
 
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
-    protected playersDone = new Map<string, boolean>();
 
     public constructor(
         game: Game,
         nCardsToResource: number,
-        resetActionTimerOnComplete = false
+        options: IResourcePromptOptions = {}
     ) {
-        super(game, resetActionTimerOnComplete);
+        super(game, options);
 
         this.nCardsToResource = nCardsToResource;
 
         for (const player of game.getPlayers()) {
             this.selectedCards[player.name] = [];
-            this.playersDone[player.name] = false;
         }
-    }
-
-    public override completionCondition(player: Player) {
-        return this.playersDone[player.name];
     }
 
     public override continue() {
@@ -48,14 +50,54 @@ export class ResourcePrompt extends AllPlayerPrompt {
 
     protected override highlightSelectableCards() {
         this.game.getPlayers().forEach((player) => {
-            // cards are only selectable until we've selected as many as allowed
-            if (!this.selectableCards[player.name] && !this.completionCondition(player)) {
-                this.selectableCards[player.name] = player.hand;
-            } else if (this.completionCondition(player)) {
-                this.selectableCards[player.name] = [];
-            }
+            // a player's hand is selectable until they confirm, and again if they cancel what they confirmed
+            this.selectableCards[player.name] = this.completionCondition(player) ? [] : player.hand;
             player.setSelectableCards(this.selectableCards[player.name]);
+            // a player who has confirmed keeps the cards they chose shown as selected while they wait for their opponent
+            player.setSelectedCards(this.selectedCards[player.name]);
         });
+    }
+
+    protected override initiativePlayerChoiceProperties(): Partial<IPlayerPromptStateProperties> {
+        const initiativePlayer = this.game.initiativePlayer;
+
+        if (!this.initiativePlayerHasChosen()) {
+            return {
+                promptDescription: 'Your opponent has not chosen yet',
+                opponentResourceChoice: OpponentResourceChoice.NotChosen,
+            };
+        }
+
+        const count = this.selectedCards[initiativePlayer.name].length;
+        if (count === 0) {
+            return {
+                promptDescription: 'Your opponent has passed resourcing',
+                opponentResourceChoice: OpponentResourceChoice.Passed,
+            };
+        }
+
+        return {
+            promptDescription: `Your opponent has resourced ${count === 1 ? 'a card' : `${count} cards`}`,
+            opponentResourceChoice: OpponentResourceChoice.Resourced,
+        };
+    }
+
+    protected override waitingForInitiativePlayerProperties() {
+        // The prompt stays the resource prompt, with the cards they chose still selected (`highlightSelectableCards` keeps
+        // them), until the player with the initiative has chosen and both resource together.
+        return {
+            menuTitle: 'Waiting for opponent to resource',
+            promptType: PromptType.Resource,
+            // the client keeps a prompt with a card selection mode in the action tray rather than in a popup
+            selectCardMode: SelectCardMode.Multiple,
+        };
+    }
+
+    protected override waitingForOpponentPrompt() {
+        return {
+            menuTitle: 'Waiting for opponent to choose cards to resource',
+            promptType: PromptType.Resource,
+        };
     }
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
@@ -76,7 +118,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             menuTitle: promptText,
             buttons: [{
                 text: selectedCount === 0 && selectCardMode === SelectCardMode.Single ? 'Skip Resourcing' : 'Confirm Resources',
-                arg: 'done',
+                arg: ResourcePromptButtonArg.Done,
                 disabled: !hasEnoughSelected,
             }],
             promptTitle: 'Resource Step',
@@ -109,15 +151,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
         return true;
     }
 
-    public override waitingPrompt() {
-        return {
-            menuTitle: 'Waiting for opponent to choose cards to resource',
-            promptType: PromptType.Resource,
-        };
-    }
-
     public override menuCommand(player: Player, arg: string): boolean {
-        if (arg === 'done') {
+        if (arg === ResourcePromptButtonArg.Done) {
             if (this.completionCondition(player)) {
                 return false;
             }
@@ -157,7 +192,8 @@ export class ResourcePrompt extends AllPlayerPrompt {
     }
 
     public override complete() {
-        this.game.getPlayers().forEach((player) => this.resourceSelectedCards(player));
+        // the player with the initiative resources first, so their card and anything it triggers resolve before their opponent's
+        this.game.getPlayersInInitiativeOrder().forEach((player) => this.resourceSelectedCards(player));
 
         return super.complete();
     }
