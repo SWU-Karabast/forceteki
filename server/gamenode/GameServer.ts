@@ -2366,7 +2366,6 @@ export class GameServer {
         return checkServerRoleUserPrivileges(apiPath, userId, ServerRole.Admin, this.serverRoleUsersCache).success;
     }
 
-    /**
     /** The role lists as the admin role editor shows them: each role's users, and who last changed them, with usernames. */
     private async buildServerRolesResponseAsync(lists: IServerRoleUsersListsEntity) {
         const roles = Object.values(ServerRole);

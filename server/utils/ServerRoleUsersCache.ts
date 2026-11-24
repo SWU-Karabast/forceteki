@@ -63,8 +63,9 @@ export class ServerRoleUsersCache {
     }
 
     /**
-     * Grants a role to a user or takes it away, and refreshes the cache so the change applies at once. The change is
-     * made to the lists as stored now, not to this cache's copy, so it keeps any edit made since the last refresh.
+     * Grants a role to a user or takes it away, and refreshes the cache so the change applies at once (or at the next
+     * refresh, if that read fails). The change is made to the lists as stored now, not to this cache's copy, so it keeps
+     * any edit made since the last refresh.
      * @param note stored beside a newly granted user, to say who they are to whoever reads the lists
      * @param changedById id of the admin making the change; checked against the stored lists, and recorded on them
      * @returns the lists as they now stand, and whether this changed them (false if the user already had the role, or
@@ -94,9 +95,15 @@ export class ServerRoleUsersCache {
             updatedAt: this.scheduler.currentDate().toISOString(),
             updatedById: changedById
         };
-        await db.saveServerRoleUsersAsync(updated, stored.updatedAt);
+        await db.saveServerRoleUsersAsync(updated, role, stored.updatedAt);
 
-        await this.cache.forceRefreshAsync();
+        // the change is stored, so a failed reload must not hide it from the caller; the cache catches up at its next
+        // refresh, and has logged the failure
+        try {
+            await this.cache.forceRefreshAsync();
+        } catch {
+            // already logged by the cache
+        }
 
         return { lists: updated, changed: true };
     }

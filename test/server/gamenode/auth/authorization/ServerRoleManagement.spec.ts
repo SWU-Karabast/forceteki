@@ -115,6 +115,24 @@ describe('Server role management', function () {
                 .toEqual([roles.accounts.moderator.id, latecomer.id, roles.accounts.nobody.id]);
         });
 
+        it('keeps a change made by hand to another role between the server reading the roles and writing them', async function () {
+            const { harness } = contextRef;
+            const admin = harness.createAccountClient(roles.accounts.admin);
+            const latecomer = harness.db.seedAccount({ username: 'latecomer' });
+
+            const readStoredLists = harness.db.getServerRoleUsersAsync.bind(harness.db);
+            spyOn(harness.db, 'getServerRoleUsersAsync').and.callFake(async (options) => {
+                const lists = await readStoredLists(options);
+                harness.db.seedRoles({ moderator: [roles.accounts.moderator.id, latecomer.id] });
+                return lists;
+            });
+
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'developer', granted: true });
+
+            expect(response.status).toBe(200);
+            expect(harness.db.roleUsers.moderator.map((holder) => holder.id)).toEqual([roles.accounts.moderator.id, latecomer.id]);
+        });
+
         it('refuses granting the admin role, which is changed only by hand', async function () {
             const { harness } = contextRef;
             const admin = harness.createAccountClient(roles.accounts.admin);
@@ -263,6 +281,24 @@ describe('Server role management', function () {
                 await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'admin', granted: true });
 
                 expect(posted).toEqual([]);
+            });
+
+            it('still posts a change when reloading the roles after it fails', async function () {
+                const { harness } = contextRef;
+                const admin = harness.createAccountClient(roles.accounts.admin);
+                const posted = capturePostedRoleChanges();
+
+                // the change's own read succeeds, and the reload after the write fails
+                const readStoredLists = harness.db.getServerRoleUsersAsync.bind(harness.db);
+                let reads = 0;
+                spyOn(harness.db, 'getServerRoleUsersAsync').and.callFake((options) =>
+                    (++reads === 1 ? readStoredLists(options) : Promise.reject(new Error('database unavailable'))));
+
+                const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
+
+                expect(response.status).toBe(200);
+                expect(harness.db.roleUsers.moderator.map((holder) => holder.id)).toContain(roles.accounts.nobody.id);
+                expect(posted.map((post) => post.content)).toEqual(['`adminUser` granted the **moderator** role to `nobodyUser`']);
             });
 
             it('still makes the change when Discord is down', async function () {

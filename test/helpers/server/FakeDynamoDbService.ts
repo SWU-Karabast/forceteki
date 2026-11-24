@@ -607,15 +607,20 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         });
     }
 
-    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, previousUpdatedAt: string | undefined): Promise<UpdateCommandOutput> {
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, changedRole: ServerRole, previousUpdatedAt: string | undefined): Promise<UpdateCommandOutput> {
         // like the real service, the write is refused if the change is not stamped with a datetime and an id, or if the
-        // lists changed since they were read
+        // lists changed since they were read, and it writes only the changed role's list
         ServerRoleUsersChangeStampSchema.parse(lists);
         if (this.roleUsers.updatedAt !== previousUpdatedAt) {
             return Promise.reject(conditionalCheckFailed());
         }
 
-        this.roleUsers = { ...copyRoleLists(lists), updatedAt: lists.updatedAt, updatedById: lists.updatedById };
+        this.roleUsers = {
+            ...copyRoleLists(this.roleUsers),
+            [changedRole]: lists[changedRole].map((holder) => ({ ...holder })),
+            updatedAt: lists.updatedAt,
+            updatedById: lists.updatedById
+        };
         return Promise.resolve(updateResult);
     }
 

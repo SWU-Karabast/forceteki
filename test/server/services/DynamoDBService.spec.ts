@@ -297,11 +297,11 @@ describe('DynamoDBService', function () {
             expect(await service.getServerRoleUsersAsync()).toEqual({ admin: [], developer: [], moderator: [], contributor: [] });
         });
 
-        it('writes each role\'s users under its name and removes the old plural attributes, on condition nothing changed since', async function () {
+        it('writes the changed role\'s users under its name, the others only where missing, and removes the old plural attributes, on condition nothing changed since', async function () {
             await service.saveServerRoleUsersAsync({
                 admin: [{ id: adminId }], developer: [], moderator: [{ id: moderatorId }], contributor: [],
                 updatedAt: '2026-11-02T00:00:00.000Z', updatedById: adminId
-            }, '2026-11-01T00:00:00.000Z');
+            }, ServerRole.Moderator, '2026-11-01T00:00:00.000Z');
 
             const updates = (client.send as jasmine.Spy).calls.allArgs()
                 .map(([command]: [unknown]) => command)
@@ -309,7 +309,8 @@ describe('DynamoDBService', function () {
             expect(updates.length).toBe(1);
             const input = updates[0].input;
             expect(input.Key).toEqual({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES' });
-            expect(input.UpdateExpression).toBe('SET #admin = :admin, #developer = :developer, #moderator = :moderator, #contributor = :contributor, ' +
+            expect(input.UpdateExpression).toBe('SET #admin = if_not_exists(#admin, :admin), #developer = if_not_exists(#developer, :developer), ' +
+              '#moderator = :moderator, #contributor = if_not_exists(#contributor, :contributor), ' +
               'updatedAt = :updatedAt, updatedById = :updatedById REMOVE #admins, #developers, #moderators, #contributors');
             expect(input.ExpressionAttributeNames).toEqual({
                 '#admin': 'admin', '#admins': 'admins', '#developer': 'developer', '#developers': 'developers',
@@ -325,8 +326,8 @@ describe('DynamoDBService', function () {
         it('refuses a change not stamped with a datetime and a user id, and sends nothing', function () {
             const lists = { admin: [], developer: [], moderator: [], contributor: [] };
 
-            expect(() => service.saveServerRoleUsersAsync({ ...lists, updatedAt: 'yesterday', updatedById: adminId }, undefined)).toThrow();
-            expect(() => service.saveServerRoleUsersAsync({ ...lists, updatedAt: '2026-11-02T00:00:00.000Z', updatedById: 'adminUser' }, undefined)).toThrow();
+            expect(() => service.saveServerRoleUsersAsync({ ...lists, updatedAt: 'yesterday', updatedById: adminId }, ServerRole.Moderator, undefined)).toThrow();
+            expect(() => service.saveServerRoleUsersAsync({ ...lists, updatedAt: '2026-11-02T00:00:00.000Z', updatedById: 'adminUser' }, ServerRole.Moderator, undefined)).toThrow();
             expect(client.send).not.toHaveBeenCalled();
         });
     });

@@ -863,20 +863,25 @@ export class DynamoDBService {
     }
 
     /**
-     * Writes the role lists under the role names and who changed them, leaving any other field on the item as it is,
-     * and removes the lists' old plural attributes (`admins`, …) so the item holds each list once. The write only
-     * happens if the lists have not changed since they were read, so two changes made at once cannot lose either.
-     * @param lists the lists to store, with `updatedAt` and `updatedById` set
+     * Writes one role's list under its role name and who changed it, leaving any other field on the item as it is, and
+     * removes the lists' old plural attributes (`admins`, …) so the item holds each list once. The other lists are
+     * written only where the item has none under their role names yet, so a hand edit to them is never overwritten.
+     * The write only happens if the lists have not changed since they were read, so two changes made at once cannot
+     * lose either.
+     * @param lists the lists the change was made from, with the changed role's list updated and `updatedAt` and
+     * `updatedById` set
+     * @param changedRole the role whose list changed
      * @param previousUpdatedAt the `updatedAt` of the lists the change was made from; undefined if they had none
      * @throws if `updatedAt` is not an ISO 8601 datetime or `updatedById` not a uuid
      * @throws a `ConditionalCheckFailedException` if the stored lists have changed since
      */
-    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, previousUpdatedAt: string | undefined) {
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, changedRole: ServerRole, previousUpdatedAt: string | undefined) {
         const { updatedAt, updatedById } = ServerRoleUsersChangeStampSchema.parse(lists);
 
         // names go through placeholders, as some (such as `admin`) are DynamoDB reserved words
         const roles = Object.values(ServerRole);
-        const setLists = roles.map((role) => `#${role} = :${role}`).join(', ');
+        // the other lists are still written where they are missing, to move them off the old plural attributes
+        const setLists = roles.map((role) => (role === changedRole ? `#${role} = :${role}` : `#${role} = if_not_exists(#${role}, :${role})`)).join(', ');
         const removeLegacyLists = roles.map((role) => `#${legacyServerRoleListAttribute(role)}`).join(', ');
 
         // not wrapped in another executeDbOperationAsync, which would log a refused write (an expected 409) twice
