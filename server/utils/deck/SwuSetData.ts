@@ -122,7 +122,7 @@ const bannedPremierCards = new Map<string, IBannedCard>([
 ]);
 
 const bannedEternalCards = new Map<string, IBannedCard>([
-    // No currently banned cards for Eternal format
+    ['4028826022', { name: 'data-vault' }],
 ]);
 
 export const formatRules = new Map<SwuGameFormat, IFormatRules>([
