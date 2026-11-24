@@ -1681,7 +1681,14 @@ export class Lobby {
         };
     }
 
-    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
+    /**
+     * What a spectator's client may ask of the lobby, by the command name it sends, and the Lobby method that answers
+     * it. A spectator's commands have their own methods, so what a spectator is sent follows the handler its request
+     * came in on.
+     */
+    private static readonly allowedSpectatorCommands = new Map([
+        ['retransmitGameMessages', 'retransmitGameMessagesToSpectator'],
+    ]);
 
     /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
     private static readonly allowedLobbyCommands = new Set([
@@ -1715,11 +1722,12 @@ export class Lobby {
 
     private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         try {
-            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+            const method = Lobby.allowedSpectatorCommands.get(command);
+            if (!method || typeof this[method] !== 'function') {
                 return;
             }
 
-            await this[command](socket, ...args);
+            await this[method](socket, ...args);
         } catch (error) {
             logger.error('Lobby: error processing spectator lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
@@ -2245,10 +2253,6 @@ export class Lobby {
         return { ...SpectatorView.of(game).gameState(game.getState(spectatorId)), spectatorSummary };
     }
 
-    private isSpectator(userId: string): boolean {
-        return this.spectators.some((spectator) => spectator.id === userId);
-    }
-
     public getSpectatorSummary(): ISpectatorSummary {
         return {
             count: this.spectators.filter((spectator) => spectator.state === 'connected').length,
@@ -2574,6 +2578,21 @@ export class Lobby {
      * Client calls this with (startIndex, endIndex) to get messages in that range.
      */
     private retransmitGameMessages(socket: Socket, startIndex: number, endIndex: number): void {
+        this.sendRetransmitResponse(socket, startIndex, endIndex, (messages) => messages);
+    }
+
+    /** {@link retransmitGameMessages} for a spectator: the messages are always seen through {@link SpectatorView}. */
+    private retransmitGameMessagesToSpectator(socket: Socket, startIndex: number, endIndex: number): void {
+        this.sendRetransmitResponse(socket, startIndex, endIndex, (messages) => SpectatorView.of(this.game).messages(messages));
+    }
+
+    /** Sends the game messages from `startIndex` up to `endIndex`, as `view` shows them to the client asking. */
+    private sendRetransmitResponse(
+        socket: Socket,
+        startIndex: number,
+        endIndex: number,
+        view: (messages: ISerializedMessage[]) => ISerializedMessage[]
+    ): void {
         if (!this.game) {
             return;
         }
@@ -2586,8 +2605,7 @@ export class Lobby {
         const safeEnd = Math.max(safeStart, Math.min(endIndex, totalCount));
 
         const userId = socket.user.getId();
-        const rawMessages = allMessages.slice(safeStart, safeEnd);
-        const requestedMessages = this.isSpectator(userId) ? SpectatorView.of(this.game).messages(rawMessages) : rawMessages;
+        const requestedMessages = view(allMessages.slice(safeStart, safeEnd));
 
         logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
 
