@@ -62,7 +62,6 @@ import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
     ServerRole,
-    serverRoleListKey,
     UsernameChangeSource
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
@@ -2358,7 +2357,7 @@ export class GameServer {
     private async buildServerRolesResponseAsync(lists: IServerRoleUsersListsEntity) {
         const roles = Object.values(ServerRole);
         const usernames = await this.userFactory.getUsernamesAsync([
-            ...roles.flatMap((role) => lists[serverRoleListKey(role)].map((holder) => holder.id)),
+            ...roles.flatMap((role) => lists[role].map((holder) => holder.id)),
             ...(lists.updatedById !== undefined ? [lists.updatedById] : [])
         ]);
 
@@ -2366,7 +2365,7 @@ export class GameServer {
             success: true,
             roles: Object.fromEntries(roles.map((role) => [
                 role,
-                lists[serverRoleListKey(role)].map((holder) => ({
+                lists[role].map((holder) => ({
                     id: holder.id,
                     username: usernames.get(holder.id) ?? null,
                     note: holder.note ?? null

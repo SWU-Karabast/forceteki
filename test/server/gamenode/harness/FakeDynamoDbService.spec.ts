@@ -186,21 +186,21 @@ describe('FakeDynamoDbService', function () {
 
     describe('server roles and settings', function () {
         it('reads missing role lists as four empty lists, and returns copies of seeded ones', async function () {
-            expect(await db.getServerRoleUsersAsync()).toEqual({ admins: [], developers: [], moderators: [], contributors: [] });
+            expect(await db.getServerRoleUsersAsync()).toEqual({ admin: [], developer: [], moderator: [], contributor: [] });
 
-            db.seedRoles({ moderators: ['mod-1'] });
+            db.seedRoles({ moderator: ['mod-1'] });
             const roles = await db.getServerRoleUsersAsync();
-            roles.moderators.push({ id: 'added-by-caller' });
+            roles.moderator.push({ id: 'added-by-caller' });
 
-            expect((await db.getServerRoleUsersAsync()).moderators).toEqual([{ id: 'mod-1' }]);
+            expect((await db.getServerRoleUsersAsync()).moderator).toEqual([{ id: 'mod-1' }]);
         });
 
         it('replaces only the role lists a seed names', function () {
-            db.seedRoles({ admins: ['admin-1'], moderators: ['mod-1'] });
-            db.seedRoles({ moderators: ['mod-2'] });
+            db.seedRoles({ admin: ['admin-1'], moderator: ['mod-1'] });
+            db.seedRoles({ moderator: ['mod-2'] });
 
-            expect(db.roleUsers.admins).toEqual([{ id: 'admin-1' }]);
-            expect(db.roleUsers.moderators).toEqual([{ id: 'mod-2' }]);
+            expect(db.roleUsers.admin).toEqual([{ id: 'admin-1' }]);
+            expect(db.roleUsers.moderator).toEqual([{ id: 'mod-2' }]);
         });
 
         it('reads missing settings as games enabled', async function () {

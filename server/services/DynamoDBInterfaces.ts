@@ -188,11 +188,8 @@ export interface IServerRoleUserEntity {
     note?: string;
 }
 
-export interface IServerRoleUsersListsEntity {
-    admins: IServerRoleUserEntity[];
-    developers: IServerRoleUserEntity[];
-    moderators: IServerRoleUserEntity[];
-    contributors: IServerRoleUserEntity[];
+/** The users holding each server role, under the role's name (`admin`, `developer`, …). */
+export interface IServerRoleUsersListsEntity extends Record<ServerRole, IServerRoleUserEntity[]> {
 
     /**
      * When an admin last changed the lists through the server, as an ISO 8601 datetime, and that admin's id (a uuid).
@@ -200,14 +197,6 @@ export interface IServerRoleUsersListsEntity {
      */
     updatedAt?: string;
     updatedById?: string;
-}
-
-/** The name of the list in {@link IServerRoleUsersListsEntity} that holds a role's users: the role's name, plural. */
-export type ServerRoleListKey = `${ServerRole}s`;
-
-/** The list in {@link IServerRoleUsersListsEntity} that holds the given role's users, such as `admins` for `admin`. */
-export function serverRoleListKey(role: ServerRole): ServerRoleListKey {
-    return `${role}s`;
 }
 
 /**

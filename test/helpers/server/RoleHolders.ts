@@ -38,10 +38,10 @@ export function seedRoleHolders(): ISeededRoleHolders {
             }
 
             db.seedRoles({
-                contributors: [accounts.contributor.id],
-                developers: [accounts.developer.id],
-                moderators: [accounts.moderator.id],
-                admins: [accounts.admin.id],
+                contributor: [accounts.contributor.id],
+                developer: [accounts.developer.id],
+                moderator: [accounts.moderator.id],
+                admin: [accounts.admin.id],
             });
         },
     };

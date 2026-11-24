@@ -1,7 +1,7 @@
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
-import { serverRoleListKey } from '../services/DynamoDBInterfaces';
-import type { IServerRoleUsersListsEntity, ServerRole } from '../services/DynamoDBInterfaces';
+import { ServerRole } from '../services/DynamoDBInterfaces';
+import type { IServerRoleUsersListsEntity } from '../services/DynamoDBInterfaces';
 import type { IScheduler } from './IScheduler';
 import { RealScheduler } from './RealScheduler';
 
@@ -78,20 +78,19 @@ export class ServerRoleUsersCache {
         const stored = await db.getServerRoleUsersAsync({ consistentRead: true });
 
         // the auth check used this cache, which can lag a hand edit by up to a refresh interval
-        if (!stored.admins.some((admin) => admin.id === changedById)) {
+        if (!stored[ServerRole.Admin].some((admin) => admin.id === changedById)) {
             await this.cache.forceRefreshAsync();
             throw new NotStoredAdminError();
         }
 
-        const listKey = serverRoleListKey(role);
-        const holders = stored[listKey];
+        const holders = stored[role];
         if (holders.some((holder) => holder.id === userId) === granted) {
             return { lists: stored, changed: false };
         }
 
         const updated = {
             ...stored,
-            [listKey]: granted ? [...holders, { id: userId, note }] : holders.filter((holder) => holder.id !== userId),
+            [role]: granted ? [...holders, { id: userId, note }] : holders.filter((holder) => holder.id !== userId),
             updatedAt: this.scheduler.currentDate().toISOString(),
             updatedById: changedById
         };
@@ -127,7 +126,7 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.admins.some((adminUser) => adminUser.id === userId);
+        return data[ServerRole.Admin].some((adminUser) => adminUser.id === userId);
     }
 
     /**
@@ -140,7 +139,7 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.developers.some((devUser) => devUser.id === userId);
+        return data[ServerRole.Developer].some((devUser) => devUser.id === userId);
     }
 
     /**
@@ -153,7 +152,7 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.moderators.some((modUser) => modUser.id === userId);
+        return data[ServerRole.Moderator].some((modUser) => modUser.id === userId);
     }
 
     /**
@@ -166,6 +165,6 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data.contributors.some((conUser) => conUser.id === userId);
+        return data[ServerRole.Contributor].some((conUser) => conUser.id === userId);
     }
 }

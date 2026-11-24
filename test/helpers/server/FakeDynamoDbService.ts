@@ -8,14 +8,14 @@ import type {
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
     IPlayerReportLogEntity,
+    IServerRoleUserEntity,
     IServerRoleUsersListsEntity,
     IServerSettingsEntity,
     IUsernameChangeEntity,
     IUserPreferences,
-    IUserProfileDataEntity,
-    ServerRoleListKey
+    IUserProfileDataEntity
 } from '../../../server/services/DynamoDBInterfaces';
-import { isTrackedModAction, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
+import { isTrackedModAction, PlayerReportStatus, ServerRole } from '../../../server/services/DynamoDBInterfaces';
 import {
     IDeckDataEntitySchema,
     ModActionEntitySchema,
@@ -75,7 +75,7 @@ export interface ISeededAccount {
     email: string;
 }
 
-export type ServerRoleLists = Partial<Record<ServerRoleListKey, string[]>>;
+export type ServerRoleLists = Partial<Record<ServerRole, string[]>>;
 
 /** A stored player report record, plus the GSI bucket it is filed under (open, or closed in a month). */
 export interface IStoredPlayerReport {
@@ -95,6 +95,11 @@ let nextSeededAccount = 1;
 /** The error DynamoDB raises when a write's condition expression fails. */
 function conditionalCheckFailed(): Error {
     return Object.assign(new Error('The conditional request failed'), { name: 'ConditionalCheckFailedException' });
+}
+
+/** Each role's users, copied so the caller cannot change the stored lists. */
+function copyRoleLists(lists: Record<ServerRole, IServerRoleUserEntity[]>): Record<ServerRole, IServerRoleUserEntity[]> {
+    return Object.fromEntries(Object.values(ServerRole).map((role) => [role, lists[role].map((holder) => ({ ...holder }))])) as Record<ServerRole, IServerRoleUserEntity[]>;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -185,7 +190,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     /** GSI buckets whose cleanup query throws. */
     public readonly failingGsiKeys = new Set<string>();
-    public roleUsers: IServerRoleUsersListsEntity = { admins: [], developers: [], moderators: [], contributors: [] };
+    public roleUsers: IServerRoleUsersListsEntity = copyRoleLists({ admin: [], developer: [], moderator: [], contributor: [] });
     public serverSettings?: IServerSettingsEntity;
 
     private readonly recordedLogins: string[] = [];
@@ -596,10 +601,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     public getServerRoleUsersAsync(_options: { consistentRead?: boolean } = {}): Promise<IServerRoleUsersListsEntity> {
         return Promise.resolve({
-            admins: this.roleUsers.admins.map((holder) => ({ ...holder })),
-            developers: this.roleUsers.developers.map((holder) => ({ ...holder })),
-            moderators: this.roleUsers.moderators.map((holder) => ({ ...holder })),
-            contributors: this.roleUsers.contributors.map((holder) => ({ ...holder })),
+            ...copyRoleLists(this.roleUsers),
             // set only once an admin has changed the lists through the server
             ...(this.roleUsers.updatedAt !== undefined ? { updatedAt: this.roleUsers.updatedAt, updatedById: this.roleUsers.updatedById } : {}),
         });
@@ -613,15 +615,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
             return Promise.reject(conditionalCheckFailed());
         }
 
-        const { admins, developers, moderators, contributors, updatedAt, updatedById } = lists;
-        this.roleUsers = {
-            admins: admins.map((holder) => ({ ...holder })),
-            developers: developers.map((holder) => ({ ...holder })),
-            moderators: moderators.map((holder) => ({ ...holder })),
-            contributors: contributors.map((holder) => ({ ...holder })),
-            updatedAt,
-            updatedById,
-        };
+        this.roleUsers = { ...copyRoleLists(lists), updatedAt: lists.updatedAt, updatedById: lists.updatedById };
         return Promise.resolve(updateResult);
     }
 

@@ -106,7 +106,7 @@ describe('Server role management', function () {
             const { harness } = contextRef;
             const admin = harness.createAccountClient(roles.accounts.admin);
             const latecomer = harness.db.seedAccount({ username: 'latecomer' });
-            harness.db.seedRoles({ moderators: [roles.accounts.moderator.id, latecomer.id] });
+            harness.db.seedRoles({ moderator: [roles.accounts.moderator.id, latecomer.id] });
 
             const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
 
@@ -123,30 +123,30 @@ describe('Server role management', function () {
 
             expect(response.status).toBe(403);
             expect(response.body).toEqual({ success: false, message: 'The admin role cannot be changed here' });
-            expect(harness.db.roleUsers.admins).toEqual([{ id: roles.accounts.admin.id }]);
+            expect(harness.db.roleUsers.admin).toEqual([{ id: roles.accounts.admin.id }]);
         });
 
         it('refuses removing the admin role, which is changed only by hand', async function () {
             const { harness } = contextRef;
             const admin = harness.createAccountClient(roles.accounts.admin);
             const otherAdmin = harness.db.seedAccount({ username: 'otherAdmin' });
-            harness.db.seedRoles({ admins: [roles.accounts.admin.id, otherAdmin.id] });
+            harness.db.seedRoles({ admin: [roles.accounts.admin.id, otherAdmin.id] });
 
             const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: otherAdmin.id, role: 'admin', granted: false });
 
             expect(response.status).toBe(403);
-            expect(harness.db.roleUsers.admins).toEqual([{ id: roles.accounts.admin.id }, { id: otherAdmin.id }]);
+            expect(harness.db.roleUsers.admin).toEqual([{ id: roles.accounts.admin.id }, { id: otherAdmin.id }]);
         });
 
         it('refuses an admin whose admin role was removed by hand since the server last read the roles', async function () {
             const { harness } = contextRef;
             const formerAdmin = harness.createAccountClient(roles.accounts.admin);
-            harness.db.seedRoles({ admins: [roles.accounts.developer.id] });
+            harness.db.seedRoles({ admin: [roles.accounts.developer.id] });
 
             const response = await formerAdmin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
 
             expect(response.status).toBe(403);
-            expect(harness.db.roleUsers.moderators).toEqual([{ id: roles.accounts.moderator.id }]);
+            expect(harness.db.roleUsers.moderator).toEqual([{ id: roles.accounts.moderator.id }]);
 
             // and the server now knows, so they lose their admin access at once rather than at the next refresh
             const listResponse = await formerAdmin.requestAsync('get', '/api/mod/server-roles');
@@ -160,14 +160,14 @@ describe('Server role management', function () {
             const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: uuid(), role: 'developer', granted: true });
 
             expect(response.status).toBe(404);
-            expect(harness.db.roleUsers.developers).toEqual([{ id: roles.accounts.developer.id }]);
+            expect(harness.db.roleUsers.developer).toEqual([{ id: roles.accounts.developer.id }]);
         });
 
         it('removes a role from a user with no account, such as one deleted since it was granted', async function () {
             const { harness } = contextRef;
             const admin = harness.createAccountClient(roles.accounts.admin);
             const deletedUserId = uuid();
-            harness.db.seedRoles({ developers: [roles.accounts.developer.id, deletedUserId] });
+            harness.db.seedRoles({ developer: [roles.accounts.developer.id, deletedUserId] });
 
             const listed = await admin.requestAsync('get', '/api/mod/server-roles');
             expect(listed.body.roles.developer).toContain({ id: deletedUserId, username: null, note: null });
@@ -175,7 +175,7 @@ describe('Server role management', function () {
             const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: deletedUserId, role: 'developer', granted: false });
 
             expect(response.status).toBe(200);
-            expect(harness.db.roleUsers.developers).toEqual([{ id: roles.accounts.developer.id }]);
+            expect(harness.db.roleUsers.developer).toEqual([{ id: roles.accounts.developer.id }]);
         });
 
         it('refuses a user id that is not a uuid', async function () {
@@ -202,7 +202,7 @@ describe('Server role management', function () {
             const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'developer', granted: true });
 
             expect(response.status).toBe(409);
-            expect(harness.db.roleUsers.developers).toEqual([{ id: roles.accounts.developer.id }]);
+            expect(harness.db.roleUsers.developer).toEqual([{ id: roles.accounts.developer.id }]);
         });
 
         it('reloads the roles after a change with a consistent read, so the cache cannot pick up the lists from before it', async function () {
@@ -273,7 +273,7 @@ describe('Server role management', function () {
                 const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'moderator', granted: true });
 
                 expect(response.status).toBe(200);
-                expect(harness.db.roleUsers.moderators.map((holder) => holder.id)).toContain(roles.accounts.nobody.id);
+                expect(harness.db.roleUsers.moderator.map((holder) => holder.id)).toContain(roles.accounts.nobody.id);
             });
         }, { database: roles.seed, env: { DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL: roleAssignmentWebhookUrl } });
     });
