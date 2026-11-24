@@ -390,7 +390,7 @@ const AF = { ts: 'Twin Suns', a2: 'Always Two', both: 'Both formats' };
 function agentHtml(c) {
   const d = DATA.suggestions && DATA.suggestions[c.id], a = (d && d.agent) || [];
   if (!a.length) { return ''; }
-  return `<details class="tagacc agentbox" open style="margin-top:12px"><summary>Rules agent review (${a.length})</summary>${a.map((x) => `<div class="q" style="margin:6px 0"><span class="fmt">${esc(AK[x.k] || x.k)} · ${esc(AF[x.f] || x.f)}</span><br>${esc(x.q)}${x.a ? `<br><i>${esc(x.a)}</i>` : ''}${x.c ? `<br><span class="src">${esc(x.c)}</span>` : ''}${x.s ? `<br><b>Suggested line:</b> ${esc(x.s)}` : ''}</div>`).join('')}</details>`;
+  return `<details class="tagacc agentbox" style="margin-top:12px"><summary>Rules agent review (${a.length})</summary>${a.map((x) => `<div class="q" style="margin:6px 0"><span class="fmt">${esc(AK[x.k] || x.k)} · ${esc(AF[x.f] || x.f)}</span><br>${esc(x.q)}${x.a ? `<br><i>${esc(x.a)}</i>` : ''}${x.c ? `<br><span class="src">${esc(x.c)}</span>` : ''}${x.s ? `<br><b>Suggested line:</b> ${esc(x.s)}` : ''}</div>`).join('')}</details>`;
 }
 const answerBox = (c) => `<textarea data-f="qAnswer" placeholder="Your ruling / answer to the open question">${esc(rec(c).qAnswer || '')}</textarea>`;
 function noteBox(c, field, placeholder) {
