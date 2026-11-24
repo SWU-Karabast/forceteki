@@ -133,12 +133,13 @@ const isManual = (gid) => groupById[gid].kind === 'manual';
 // others, so it is reviewed once in Single instead (until every group it matched has a result).
 // A card in several groups goes to Single, unless it was already marked in bulk (then its other groups stay in bulk).
 const multiHit = (c) => c.hits.length > 1 && !Object.keys(rec(c).r || {}).length;
-const needsSingle = (c) => !c.auto && !rec(c).reviewed && (c.hits.some(isManual) || c.hits.some((g) => res(c, g) === 'followup') || (multiHit(c) && c.hits.some((g) => !res(c, g))));
+const needsSingle = (c) => !c.auto && !rec(c).reviewed && !bulkDone(c) && (c.hits.some(isManual) || c.hits.some((g) => res(c, g) === 'followup') || (multiHit(c) && c.hits.some((g) => !res(c, g))));
 // Marking a card in any bulk group counts as reviewing the whole card (unless a group was sent to follow-up).
-const bulkDone = (c) => { const v = Object.values(rec(c).r || {}); return v.some((x) => x === 'tag' || x === 'ok') && !v.includes('followup'); };
+// Any "no concern" or tagged mark settles the card for good (a follow-up on another group no longer reopens it).
+const bulkDone = (c) => Object.values(rec(c).r || {}).some((x) => x === 'tag' || x === 'ok');
 const isDone = (c) => rec(c).reviewed || bulkDone(c);
 // A card passed over to follow-up in any group is waiting for Single review, so it is not left open in its other groups.
-const flagged = (c) => !rec(c).reviewed && Object.values(rec(c).r || {}).includes('followup');
+const flagged = (c) => !rec(c).reviewed && !bulkDone(c) && Object.values(rec(c).r || {}).includes('followup');
 const isComplete = (c) => c.auto || rec(c).reviewed || (!needsSingle(c) && (bulkDone(c) || c.hits.every((g) => ['tag', 'ok'].includes(res(c, g)))));
 const effTags = (c) => {
   const r = rec(c);
@@ -232,17 +233,21 @@ function updateHeader() {
 // "Hide reprints" skips cards printed in more than one set (they are listed once, under one set).
 const shown = (c) => !(ui.hideReprints && c.reprint);
 const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in more than one set. Listed here once.">Reprint${c.alsoIn.length ? ': also ' + esc(c.alsoIn.join(', ')) : ''}</span>` : '');
-const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : gid === AGREED_GROUP ? agreed(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
+const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : gid === AGREED_GROUP ? agreed(c) : gid === NOQ_GROUP ? noq(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
+const skippedIn = (gid) => new Set((ui.skipped || {})[gid] || []);
 const groupCount = (g, set) => {
-  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || g.id === AGREED_GROUP || !multiHit(c) || isDone(c)));
-  if (g.id === AGREED_GROUP) { return { open: cs.filter((c) => !isComplete(c)).length, total: cs.length }; }
+  const sk = ui.showSkipped ? new Set() : skippedIn(g.id);
+  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || isAgreedLike(g.id) || !multiHit(c) || isDone(c)));
+  if (isAgreedLike(g.id)) { return { open: cs.filter((c) => !isComplete(c) && !sk.has(c.id)).length, total: cs.length }; }
   // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
-  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !isDone(c) && !flagged(c) && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
-  return { open: cs.filter((c) => !isDone(c) && !flagged(c) && !res(c, g.id)).length, total: cs.length };
+  if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !sk.has(c.id) && !isDone(c) && !flagged(c) && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
+  return { open: cs.filter((c) => !sk.has(c.id) && !isDone(c) && !flagged(c) && !res(c, g.id)).length, total: cs.length };
 };
-function viewMatch(c, gid) {
-  const v = ui.view || 'open', r = res(c, gid), done = isDone(c);
-  if (gid === AGREED_GROUP) { const v = ui.view || 'open'; return v === 'open' || v === 'agent' ? !isComplete(c) : v === 'done' ? isComplete(c) : v === 'follow' ? false : true; }
+function viewMatch(c, gid, view) {
+  const v = view || ui.view || 'open', r = res(c, gid), done = isDone(c);
+  // Same as Unresolved, minus cards that still have an unanswered open question.
+  if (v === 'noq') { return !(questionsFor(c).length && !rec(c).qAnswer) && viewMatch(c, gid, 'open'); }
+  if (isAgreedLike(gid)) { return v === 'open' || v === 'agent' ? !isComplete(c) : v === 'done' ? isComplete(c) : v === 'follow' ? false : true; }
   if (gid === AGENT_GROUP) {
     // This list spans groups, so a card's state is judged over every group it matched.
     // Tag and manual groups cannot be marked from this list, so they must not keep a card here after Apply.
@@ -265,21 +270,26 @@ function viewMatch(c, gid) {
 function effSet() {
   const s = ui.set || 'auto';
   if (s !== 'auto') { return s; }
-  return DATA.sets.find((x) => DATA.cards.some((c) => !c.auto && shown(c) && inGroup(c, ui.group) && c.set === x && viewMatch(c, ui.group))) || 'all';
+  return DATA.sets.find((x) => DATA.cards.some((c) => !c.auto && shown(c) && inGroup(c, ui.group) && c.set === x && viewMatch(c, ui.group) && !(skipping() && !ui.showSkipped && isSkipped(c)))) || 'all';
 }
 function bulkCards() {
   const set = effSet();
   const out = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, ui.group) && (set === 'all' || c.set === set) && viewMatch(c, ui.group));
-  if (ui.group === AGREED_GROUP) { const k = (c) => c.hits.slice().sort().join(','); out.sort((a, b) => k(a).localeCompare(k(b))); }
-  return out;
+  if (isAgreedLike(ui.group)) { const k = (c) => c.hits.slice().sort().join(','); out.sort((a, b) => k(a).localeCompare(k(b))); }
+  return skipping() && !ui.showSkipped ? out.filter((c) => !isSkipped(c)) : out;
 }
+// Skipped cards (kept in this browser, per list) stay out of the Unresolved views until they are shown again or cleared.
+const skipping = () => ['open', 'noq'].includes(ui.view || 'open');
+const skippedIds = () => ((ui.skipped || {})[ui.group] || []);
+const isSkipped = (c) => skippedIds().includes(c.id);
+function addSkipped(cards) { ui.skipped = ui.skipped || {}; const s = new Set(skippedIds()); cards.forEach((c) => s.add(c.id)); ui.skipped[ui.group] = [...s]; saveUi(); }
 function renderBulk() {
   if (!groupById[ui.group]) { ui.group = DATA.groups.find((g) => g.kind === 'tag').id; }
   const g = groupById[ui.group];
   const set = effSet(), choice = ui.set || 'auto';
   const countSet = choice === 'auto' ? 'all' : choice;
   // With the view on Unresolved, groups with nothing left are hidden (the selected one stays so the list is never empty).
-  const hideDone = (ui.view || 'open') === 'open';
+  const hideDone = ['open', 'noq'].includes(ui.view || 'open');
   const opt = (kind, label) => {
     const items = DATA.groups.filter((x) => x.kind === kind).map((x) => ({ x, n: groupCount(x, countSet) })).filter(({ x, n }) => !hideDone || n.open > 0 || x.id === g.id);
     return items.length ? `<optgroup label="${label}">` + items.map(({ x, n }) => `<option value="${x.id}"${x.id === g.id ? ' selected' : ''}>${esc(x.label)} — ${n.open} left / ${n.total}</option>`).join('') + '</optgroup>' : '';
@@ -292,14 +302,15 @@ function renderBulk() {
     sel = new Set(page.filter((c) => g.id !== AGENT_GROUP || !Object.values(rec(c).r || {}).includes('followup')).map((c) => c.id));
   }
   const manual = g.kind === 'manual';
-  const applyLabel = g.id === AGREED_GROUP ? ['Mark reviewed', 'leave'] : g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
+  const applyLabel = isAgreedLike(g.id) ? ['Mark reviewed', 'leave'] : g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
   $('app').innerHTML = `
     <div class="bar">
       <select id="bGroup">${opt('tag', 'Review tags')}${opt('manual', 'Special attention')}${opt('watch', 'Other phrases (candidates)')}${opt('passfail', 'Nothing matched')}</select>
       <select id="bSet"><option value="auto"${choice === 'auto' ? ' selected' : ''}>Auto: ${set === 'all' ? 'all sets' : set}</option><option value="all"${choice === 'all' ? ' selected' : ''}>All sets</option>${DATA.sets.map((s) => `<option value="${s}"${s === choice ? ' selected' : ''}>${s}</option>`).join('')}</select>
-      <select id="bView">${[['open', 'Unresolved'], ['agent', 'Agent: no concern'], ['follow', 'Follow-up'], ['done', 'Resolved'], ['all', 'All']].map(([v, l]) => `<option value="${v}"${v === (ui.view || 'open') ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <select id="bView">${[['open', 'Unresolved'], ['noq', 'Unresolved, no open questions'], ['agent', 'Agent: no concern'], ['follow', 'Follow-up'], ['done', 'Resolved'], ['all', 'All']].map(([v, l]) => `<option value="${v}"${v === (ui.view || 'open') ? ' selected' : ''}>${l}</option>`).join('')}</select>
       <label class="src"><input type="checkbox" id="bHideRe"${ui.hideReprints ? ' checked' : ''}> Hide reprints</label>
       <span class="src">${all.length} card${all.length === 1 ? '' : 's'} in this view</span>
+      ${skipping() && skippedIds().length ? `<button id="bShowSkipped">${ui.showSkipped ? 'Hide' : 'Show'} skipped (${skippedIds().length})</button><button id="bClearSkipped">Clear skipped</button>` : ''}
       <button id="bNewTag">+ New tag</button>
     </div>
     <p class="desc">${esc(g.desc)} ${g.kind === 'tag' ? 'Selected cards get this tag (they need a test of this kind). Deselected cards go to follow-up.' : g.kind === 'passfail' ? 'Selected cards pass (no multiplayer test needed). Deselected cards go to follow-up.' : g.kind === 'watch' ? 'Selected cards are marked no concern. Deselected cards go to follow-up.' : ''}</p>
@@ -308,7 +319,7 @@ function renderBulk() {
     <div class="foot">
       ${manual ? `<button class="primary" id="bOpenSingle">Review these in Single mode</button>` : `
       <button class="primary" id="bApply" ${page.length ? '' : 'disabled'}></button>
-      <button id="bAll">Select all</button><button id="bNone">Select none</button><button id="bSkip" ${all.length > bulkOffset + PAGE_SIZE ? '' : 'disabled'}>Skip these ${PAGE_SIZE}</button>`}
+      <button id="bAll">Select all</button><button id="bNone">Select none</button><button id="bSkip" ${(skipping() ? page.length : all.length > bulkOffset + PAGE_SIZE) ? '' : 'disabled'}>Skip these ${PAGE_SIZE}</button>`}
       <button id="bPrev" ${bulkOffset > 0 ? '' : 'disabled'}>&larr; Previous page</button>
       <button id="bUndo" ${lastBatch ? '' : 'disabled'}>Undo last apply</button>
       <span class="sp">${page.length ? `Showing ${bulkOffset + 1}–${bulkOffset + page.length} of ${all.length}` : ''}</span>
@@ -329,11 +340,12 @@ function renderBulk() {
     for (const t of document.querySelectorAll('.tile[data-id]')) { t.onclick = (ev) => { if (ev.target.closest('a,summary,details,.tnote')) { return; } const id = t.dataset.id; if (sel.has(id)) { sel.delete(id); } else { sel.add(id); } refreshApply(); }; }
     $('bAll').onclick = () => { sel = new Set(page.map((c) => c.id)); refreshApply(); };
     $('bNone').onclick = () => { sel = new Set(); refreshApply(); };
-    $('bSkip').onclick = () => { bulkOffset += PAGE_SIZE; renderBulk(); window.scrollTo(0, 0); };
+    $('bSkip').onclick = () => { if (skipping()) { addSkipped(page); } else { bulkOffset += PAGE_SIZE; } renderBulk(); window.scrollTo(0, 0); };
     $('bApply').onclick = () => applyBulk(page, g);
   } else {
     $('bOpenSingle').onclick = () => { ui.mode = 'single'; ui.sFilter = 'group'; ui.sGroup = g.id; ui.sCard = null; saveUi(); renderSingle(); };
   }
+  if ($('bShowSkipped')) { $('bShowSkipped').onclick = () => { ui.showSkipped = !ui.showSkipped; bulkOffset = 0; saveUi(); renderBulk(); }; $('bClearSkipped').onclick = () => { (ui.skipped || {})[ui.group] = []; ui.showSkipped = false; bulkOffset = 0; saveUi(); renderBulk(); }; }
   $('bPrev').onclick = () => { bulkOffset = Math.max(0, bulkOffset - PAGE_SIZE); renderBulk(); window.scrollTo(0, 0); };
   $('bUndo').onclick = undoBulk;
   updateHeader();
@@ -369,6 +381,10 @@ const AGENT_GROUP = '__agent';
 // Cards the rules agent reviewed and found nothing against, that already have drafted notes, no open question and no
 // follow-up/manual mark: the drafts can be confirmed together. The list is ordered by matched groups so similar cards sit together.
 const AGREED_GROUP = '__agreed';
+const NOQ_GROUP = '__noq';
+const isAgreedLike = (id) => id === AGREED_GROUP || id === NOQ_GROUP;
+// Cards that go through single review (follow-up, manual group or several groups) and have no unanswered open question, in any state.
+const noq = (c) => !c.auto && (c.hits.some(isManual) || Object.values(rec(c).r || {}).includes('followup') || multiHit(c)) && !(questionsFor(c).length && !rec(c).qAnswer);
 const agreed = (c) => {
   const d = DATA.suggestions && DATA.suggestions[c.id];
   return !c.auto && !!d && !!(d.ts || d.a2) && !(d.q && d.q.length) && !(d.agent && d.agent.length) && !flagged(c) && !c.hits.some(isManual);
@@ -420,8 +436,8 @@ function wireNotes(page) {
 async function applyBulk(page, g) {
   const updates = [], prev = {};
   for (const c of page) {
-    if (g.id === AGREED_GROUP) {
-      if (!sel.has(c.id)) { continue; }
+    if (isAgreedLike(g.id)) {
+      if (!sel.has(c.id)) { addSkipped([c]); continue; }
       prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
       updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { tags: [...effTags(c)], reviewed: true }), tileEl(c.id), true) });
       continue;
@@ -438,9 +454,10 @@ async function applyBulk(page, g) {
     prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
     updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { r, tags: [...tags] }), tileEl(c.id), sel.has(c.id)) });
   }
+  if (!updates.length && isAgreedLike(g.id)) { renderBulk(); window.scrollTo(0, 0); return; }
   if (!updates.length || !(await persist(updates))) { return; }
   lastBatch = { prev, label: g.label };
-  if ((ui.view || 'open') !== 'open') { bulkOffset += PAGE_SIZE; }
+  if (!['open', 'noq'].includes(ui.view || 'open')) { bulkOffset += PAGE_SIZE; }
   renderBulk();
   window.scrollTo(0, 0);
 }
@@ -455,7 +472,7 @@ function singleCards() {
   const f = ui.sFilter || 'attention', set = ui.sSet || 'all', q = ($('sSearch') ? $('sSearch').value : (ui.sQuery || '')).trim().toLowerCase();
   return DATA.cards.filter((c) => (set === 'all' || c.set === set) && shown(c)
     && (f === 'all' || (f === 'attention' && needsSingle(c)) || (f === 'unresolved' && !c.auto && !isComplete(c)) || (f === 'reviewed' && !c.auto && isComplete(c)) || (f === 'agent' && agentClear(c))
-      || (f === 'question' && !c.auto && questionsFor(c).length && !rec(c).qAnswer) || (f === 'auto' && c.auto) || (f === 'group' && !c.auto && inGroup(c, ui.sGroup) && !rec(c).reviewed))
+      || (f === 'noq' && needsSingle(c) && !(questionsFor(c).length && !rec(c).qAnswer)) || (f === 'question' && !c.auto && questionsFor(c).length && !rec(c).qAnswer) || (f === 'auto' && c.auto) || (f === 'group' && !c.auto && inGroup(c, ui.sGroup) && !rec(c).reviewed))
     && (!q || (c.name + ' ' + c.subtitle + ' ' + c.fields.map((x) => x.text).join(' ')).toLowerCase().includes(q)));
 }
 function renderSingle(keepId) {
@@ -469,7 +486,7 @@ function drawSingle() {
   const c = singleList[singleIdx];
   if (c) { ui.sCard = c.id; saveUi(); }
   const bar = `<div class="bar">
-      <select id="sFilter">${[['attention', 'Needs single review'], ['question', 'Has open question'], ['unresolved', 'Anything unresolved'], ['reviewed', 'Reviewed'], ['agent', 'Agent: no concern'], ['auto', 'Auto-cleared'], ['all', 'All cards'], ['group', 'By group…']].map(([v, l]) => `<option value="${v}"${v === f ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <select id="sFilter">${[['attention', 'Needs single review'], ['noq', 'Needs review, no open questions'], ['question', 'Has open question'], ['unresolved', 'Anything unresolved'], ['reviewed', 'Reviewed'], ['agent', 'Agent: no concern'], ['auto', 'Auto-cleared'], ['all', 'All cards'], ['group', 'By group…']].map(([v, l]) => `<option value="${v}"${v === f ? ' selected' : ''}>${l}</option>`).join('')}</select>
       ${f === 'group' ? `<select id="sGroup">${DATA.groups.map((g) => `<option value="${g.id}"${g.id === ui.sGroup ? ' selected' : ''}>${esc(g.label)}</option>`).join('')}</select>` : ''}
       <select id="sSet"><option value="all">All sets</option>${DATA.sets.map((s) => `<option value="${s}"${s === set ? ' selected' : ''}>${s}</option>`).join('')}</select>
       <input id="sSearch" type="search" placeholder="Search name/text" value="${esc(ui.sQuery || '')}">
@@ -581,6 +598,7 @@ async function loadData() {
   // A read-only list of every card the drafting agent cleared (empty draft), including ones already marked.
   DATA.groups.push({ id: AGENT_GROUP, label: 'Agent: no concern (all)', kind: 'watch', desc: 'Every card where the drafting agent found nothing format-specific, including cards you have already marked (their marks are shown on the tile). Applying marks every group the card matched as no concern; deselected cards go to follow-up in every group they matched. Cards you already sent to follow-up start deselected.', re: null });
   DATA.groups.push({ id: AGREED_GROUP, label: 'Agent agreed: drafts ready (grouped)', kind: 'watch', desc: 'Cards the rules agent reviewed and found nothing against, with drafted notes and no open question. Ordered by matched groups so similar cards sit together. Applying marks the selected cards reviewed with their drafted notes and the suggested tags; deselected cards are left as they are.', re: null });
+  DATA.groups.push({ id: NOQ_GROUP, label: 'Single-review cards with no open question (grouped)', kind: 'watch', desc: 'Every card that goes through single review and has no unanswered open question, so they can be looked over together. Ordered by matched groups. Applying marks the selected cards reviewed with their drafted notes and suggested tags; deselected cards are left as they are.', re: null });
   groupById = Object.fromEntries(DATA.groups.map((g) => [g.id, g])); byId = Object.fromEntries(DATA.cards.map((c) => [c.id, c]));
 }
 function show() { if (ui.mode === 'single') { renderSingle(); } else { renderBulk(); } }
