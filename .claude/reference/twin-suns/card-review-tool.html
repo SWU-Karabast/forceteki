@@ -233,11 +233,12 @@ function updateHeader() {
 // "Hide reprints" skips cards printed in more than one set (they are listed once, under one set).
 const shown = (c) => !(ui.hideReprints && c.reprint);
 const reprintChip = (c) => (c.reprint ? `<span class="hit" title="Printed in more than one set. Listed here once.">Reprint${c.alsoIn.length ? ': also ' + esc(c.alsoIn.join(', ')) : ''}</span>` : '');
-const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : gid === AGREED_GROUP ? agreed(c) : gid === NOQ_GROUP ? noq(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
+const inGroup = (c, gid) => (gid === AGENT_GROUP ? agentEmpty(c) : gid === AGREED_GROUP ? agreed(c) : gid === NOQ_GROUP ? noq(c) : gid === CHAT_GROUP ? chatCard(c) : (c.hits.includes(gid) || (rec(c).tags || []).includes(gid)));
 const skippedIn = (gid) => new Set((ui.skipped || {})[gid] || []);
 const groupCount = (g, set) => {
   const sk = ui.showSkipped ? new Set() : skippedIn(g.id);
-  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || isAgreedLike(g.id) || !multiHit(c) || isDone(c)));
+  const cs = DATA.cards.filter((c) => !c.auto && shown(c) && inGroup(c, g.id) && (set === 'all' || c.set === set) && (g.id === AGENT_GROUP || isAgreedLike(g.id) || g.id === CHAT_GROUP || !multiHit(c) || isDone(c)));
+  if (g.id === CHAT_GROUP) { return { open: cs.filter((c) => !rec(c).chatOk).length, total: cs.length }; }
   if (isAgreedLike(g.id)) { return { open: cs.filter((c) => !isComplete(c) && !sk.has(c.id)).length, total: cs.length }; }
   // The agent list spans groups, so "left" means a card with a group still unmarked (the same test as its Unresolved view).
   if (g.id === AGENT_GROUP) { return { open: cs.filter((c) => !sk.has(c.id) && !isDone(c) && !flagged(c) && c.hits.some((h) => groupById[h].kind !== 'tag' && groupById[h].kind !== 'manual' && !res(c, h))).length, total: cs.length }; }
@@ -247,6 +248,7 @@ function viewMatch(c, gid, view) {
   const v = view || ui.view || 'open', r = res(c, gid), done = isDone(c);
   // Same as Unresolved, minus cards that still have an unanswered open question.
   if (v === 'noq') { return !(questionsFor(c).length && !rec(c).qAnswer) && viewMatch(c, gid, 'open'); }
+  if (gid === CHAT_GROUP) { return v === 'open' || v === 'agent' || v === 'noq' ? !rec(c).chatOk : v === 'done' ? !!rec(c).chatOk : v === 'follow' ? false : true; }
   if (isAgreedLike(gid)) { return v === 'open' || v === 'agent' ? !isComplete(c) : v === 'done' ? isComplete(c) : v === 'follow' ? false : true; }
   if (gid === AGENT_GROUP) {
     // This list spans groups, so a card's state is judged over every group it matched.
@@ -302,7 +304,7 @@ function renderBulk() {
     sel = new Set(page.filter((c) => g.id !== AGENT_GROUP || !Object.values(rec(c).r || {}).includes('followup')).map((c) => c.id));
   }
   const manual = g.kind === 'manual';
-  const applyLabel = isAgreedLike(g.id) ? ['Mark reviewed', 'leave'] : g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
+  const applyLabel = g.id === CHAT_GROUP ? ['Confirm', 'leave'] : isAgreedLike(g.id) ? ['Mark reviewed', 'leave'] : g.kind === 'tag' ? ['Tag', 'follow up'] : (g.kind === 'passfail' ? ['Pass', 'fail → follow up'] : ['No concern', 'follow up']);
   $('app').innerHTML = `
     <div class="bar">
       <select id="bGroup">${opt('tag', 'Review tags')}${opt('manual', 'Special attention')}${opt('watch', 'Other phrases (candidates)')}${opt('passfail', 'Nothing matched')}</select>
@@ -382,6 +384,9 @@ const AGENT_GROUP = '__agent';
 // follow-up/manual mark: the drafts can be confirmed together. The list is ordered by matched groups so similar cards sit together.
 const AGREED_GROUP = '__agreed';
 const NOQ_GROUP = '__noq';
+// Cards whose notes were written in the chat review (rules-agent test cases). rec.chat marks them; rec.chatOk is your later confirmation.
+const CHAT_GROUP = '__chat';
+const chatCard = (c) => !!rec(c).chat;
 const isAgreedLike = (id) => id === AGREED_GROUP || id === NOQ_GROUP;
 // Cards that go through single review (follow-up, manual group or several groups) and have no unanswered open question, in any state.
 const noq = (c) => !c.auto && (c.hits.some(isManual) || Object.values(rec(c).r || {}).includes('followup') || multiHit(c)) && !(questionsFor(c).length && !rec(c).qAnswer);
@@ -436,6 +441,12 @@ function wireNotes(page) {
 async function applyBulk(page, g) {
   const updates = [], prev = {};
   for (const c of page) {
+    if (g.id === CHAT_GROUP) {
+      if (!sel.has(c.id)) { addSkipped([c]); continue; }
+      prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
+      updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { chatOk: true }), tileEl(c.id), false) });
+      continue;
+    }
     if (isAgreedLike(g.id)) {
       if (!sel.has(c.id)) { addSkipped([c]); continue; }
       prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
@@ -454,7 +465,7 @@ async function applyBulk(page, g) {
     prev[c.id] = reviews[c.id] === undefined ? null : reviews[c.id];
     updates.push({ id: c.id, record: withNotes(Object.assign({}, rec(c), { r, tags: [...tags] }), tileEl(c.id), sel.has(c.id)) });
   }
-  if (!updates.length && isAgreedLike(g.id)) { renderBulk(); window.scrollTo(0, 0); return; }
+  if (!updates.length && (isAgreedLike(g.id) || g.id === CHAT_GROUP)) { renderBulk(); window.scrollTo(0, 0); return; }
   if (!updates.length || !(await persist(updates))) { return; }
   lastBatch = { prev, label: g.label };
   if (!['open', 'noq'].includes(ui.view || 'open')) { bulkOffset += PAGE_SIZE; }
@@ -599,6 +610,7 @@ async function loadData() {
   DATA.groups.push({ id: AGENT_GROUP, label: 'Agent: no concern (all)', kind: 'watch', desc: 'Every card where the drafting agent found nothing format-specific, including cards you have already marked (their marks are shown on the tile). Applying marks every group the card matched as no concern; deselected cards go to follow-up in every group they matched. Cards you already sent to follow-up start deselected.', re: null });
   DATA.groups.push({ id: AGREED_GROUP, label: 'Agent agreed: drafts ready (grouped)', kind: 'watch', desc: 'Cards the rules agent reviewed and found nothing against, with drafted notes and no open question. Ordered by matched groups so similar cards sit together. Applying marks the selected cards reviewed with their drafted notes and the suggested tags; deselected cards are left as they are.', re: null });
   DATA.groups.push({ id: NOQ_GROUP, label: 'Single-review cards with no open question (grouped)', kind: 'watch', desc: 'Every card that goes through single review and has no unanswered open question, so they can be looked over together. Ordered by matched groups. Applying marks the selected cards reviewed with their drafted notes and suggested tags; deselected cards are left as they are.', re: null });
+  DATA.groups.push({ id: CHAT_GROUP, label: 'Chat-reviewed: test cases to look over', kind: 'watch', desc: 'Cards reviewed in the chat, where the rules agent wrote the test cases from your answers. Look through the notes and confirm each card; deselected cards stay for later. Edit a note in its box if it needs a change.', re: null });
   groupById = Object.fromEntries(DATA.groups.map((g) => [g.id, g])); byId = Object.fromEntries(DATA.cards.map((c) => [c.id, c]));
 }
 function show() { if (ui.mode === 'single') { renderSingle(); } else { renderBulk(); } }

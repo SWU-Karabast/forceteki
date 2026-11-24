@@ -48,8 +48,13 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 
 ### Bases and winning
 - A base's damage counts up and can exceed its health. A base at or past its health is not eliminated and has 0 remaining HP (R10, R28).
-- A team wins only when both enemy bases have reached their health. If one teammate wins through a card ability, both win; if one teammate loses through a card ability (Final Showdown), the whole team loses.
+- A team wins only when both enemy bases have reached their health. Whenever one player wins or loses the game through a card effect, both teammates win or lose (general rule, e.g. Final Showdown, Confidence in Victory).
 - Shared turns: one action per team per turn by either teammate; shared initiative; no passing.
+- "You take the initiative" in Always Two (open): the initiative is the team's, and when one teammate takes it neither can take it again. Whether a card worded "when/the next time you take the initiative" (Premonition of Doom) triggers when the teammate takes it is unknown. Decide and test it once here as a general engine behavior; per-card notes only cover what the card does beyond that.
+- "Defeat a base" in Always Two (open): what an ability that defeats a base does mechanically (damage set equal to its health?) is not published. Twin Suns: a defeated base is one with damage at or above its health, so its player is eliminated. Decide and test the Always Two behavior once here as a general engine behavior; per-card notes and questions about it (Grand Moff Tarkin) are dropped.
+- "When you heal damage from your base" in Always Two (open): whether a heal of your base done by the teammate's card or ability counts as you healing it (Darth Sidious) is unknown. Decide and test it once here; per-card notes only cover what the card does beyond that. Twin Suns: the heal of up to 5 for eliminating a player is real healing and triggers "when you heal" abilities for the damage actually healed.
+- Replacing a teammate's attacker (open, Always Two): whether a hand-based replacement such as Asajj Ventress, Death From Above can be used when the TEAMMATE's unit is the attacker, and who controls the unit put into play as the attacker (and so deals the combat damage), are unknown. Decide and test once here; no per-card note on Asajj.
+- Indirect damage and bases (open, Always Two; the Twin Suns answer is also not stated): whether the player assigning indirect damage may put more on a base than it can still take before reaching its health, and where the excess goes. Units can never be over-assigned. The answer is unknown, so it is decided and tested once here as a general engine behavior; per-card notes and open questions about it are dropped.
 
 ## Twin Suns (3-4 players)
 - A player whose base takes damage equal to its health is eliminated, whatever dealt the damage. This core rule is tested once here, not per card; per-card notes only cover what a card does differently.
@@ -61,8 +66,9 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - When a player is eliminated, every card they own is removed from the game immediately, even if another player controls it (to be tested once here).
 - Cards removed from the game by an elimination are not counted as leaving play. If an effect eliminates a player partway through, the rest of the effect that refers to that player's cards fizzles (to be tested once here).
 - Cards the eliminated player controls but does not own go to their owner's discard pile; that move is not a defeat and not leaving play, except that an effect lasting "until it leaves play" ends (to be tested once here).
-- A card that makes a player lose the game (Final Showdown) eliminates them exactly like a defeated base: owned cards removed, no heal for anyone, and the game ends at the end of the phase with the most base HP winning (ties share). Test once here.
+- A card that makes a player lose the game (Final Showdown) eliminates them exactly like a defeated base: owned cards removed, no heal for anyone, and the game ends at the end of the phase with the most remaining base HP winning (ties share). Test once here. For Final Showdown specifically: if nobody is eliminated during the action phase, the player loses at the start of regroup and the game ends at the end of that regroup phase.
 - A card that makes a player win the game (Confidence in Victory) ends the game at once: that player wins, everyone else loses, and the end-of-phase and base-HP rules do not apply. Test once here.
+- Final Showdown engine cases (test once here): two players in the same Twin Suns game each playing it (both lose at the start of regroup, winner by remaining base HP among the survivors); the player who played it being eliminated during the action phase (the delayed regroup loss must not trigger or cause any further effect); in Always Two, a team loss by card effect when the other team has not met the win condition ends the game with the enemy team winning.
 - The effects that do not fizzle mid-effect are still being settled (cards tagged "Twin Suns: Elimination Unclear").
 
 ## To check later (code scan)
