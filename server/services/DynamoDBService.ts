@@ -24,10 +24,12 @@ import type {
 import {
     PlayerReportRole,
     PlayerReportStatus,
+    ServerRole,
     type IDeckDataEntity,
     type IDeckStatsEntity,
     type IUserProfileDataEntity,
     type IUserPreferences,
+    type IServerRoleUserEntity,
     type IServerRoleUsersListsEntity,
     type IServerSettingsEntity,
     type IFeatureFlagEntity,
@@ -42,6 +44,7 @@ import {
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
+    ServerRoleUsersChangeStampSchema,
     UsernameChangeEntitySchema
 } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
@@ -102,6 +105,12 @@ export async function getDynamoDbServiceAsync() {
  */
 const withoutUndefined = <T extends Record<string, any>>(item: T): T =>
     Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined)) as T;
+
+/**
+ * The attribute a role's users were stored under before the lists were keyed by role name: `admins` for `admin`. Read
+ * as a fallback, and removed on the next save.
+ */
+const legacyServerRoleListAttribute = (role: ServerRole): string => `${role}s`;
 
 /** GSI bucket holding every open player report */
 export const OPEN_PLAYER_REPORT_GSI_KEY = 'OPEN_PLAYER_REPORT';
@@ -404,7 +413,10 @@ export class DynamoDBService {
         }, 'DynamoDB queryItems error');
     }
 
-    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>) {
+    /**
+     * @param conditionExpression if given, the update only happens when this holds for the item already stored
+     */
+    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>, conditionExpression?: string) {
         return this.executeDbOperationAsync(() => {
             const commandParams: any = {
                 TableName: this.tableName,
@@ -415,6 +427,9 @@ export class DynamoDBService {
             };
             if (expressionAttributeNames) {
                 commandParams.ExpressionAttributeNames = expressionAttributeNames;
+            }
+            if (conditionExpression) {
+                commandParams.ConditionExpression = conditionExpression;
             }
             const command = new UpdateCommand(commandParams);
             return this.client.send(command);
@@ -827,25 +842,67 @@ export class DynamoDBService {
     }
 
     // Admin user methods
-    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+    /**
+     * @param options.consistentRead read the lists as last written, rather than a possibly older copy; for a change
+     * made from them, so a recent edit is not lost
+     */
+    public getServerRoleUsersAsync(options: { consistentRead?: boolean } = {}): Promise<IServerRoleUsersListsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES');
-            if (!result.Item) {
-                return {
-                    admins: [],
-                    developers: [],
-                    moderators: [],
-                    contributors: []
-                };
-            }
+            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES', options);
+            const item = result.Item;
+
+            // TODO: drop the plural fallback once the item in every environment has been saved under the role names
+            const lists = Object.fromEntries(Object.values(ServerRole).map((role) => [
+                role,
+                item?.[role] ?? item?.[legacyServerRoleListAttribute(role)] ?? []
+            ])) as Record<ServerRole, IServerRoleUserEntity[]>;
 
             return {
-                admins: result.Item.admins || [],
-                developers: result.Item.developers || [],
-                moderators: result.Item.moderators || [],
-                contributors: result.Item.contributors || []
+                ...lists,
+                ...(item?.updatedAt !== undefined ? { updatedAt: item.updatedAt, updatedById: item.updatedById } : {})
             };
         }, 'Error getting admin users');
+    }
+
+    /**
+     * Writes one role's list under its role name and who changed it, leaving any other field on the item as it is, and
+     * removes the lists' old plural attributes (`admins`, …) so the item holds each list once. The other lists are
+     * written only where the item has none under their role names yet, so a hand edit to them is never overwritten.
+     * The write only happens if the lists have not changed since they were read, so two changes made at once cannot
+     * lose either.
+     * @param lists the lists the change was made from, with the changed role's list updated and `updatedAt` and
+     * `updatedById` set
+     * @param changedRole the role whose list changed
+     * @param previousUpdatedAt the `updatedAt` of the lists the change was made from; undefined if they had none
+     * @throws if `updatedAt` is not an ISO 8601 datetime or `updatedById` not a uuid
+     * @throws a `ConditionalCheckFailedException` if the stored lists have changed since
+     */
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, changedRole: ServerRole, previousUpdatedAt: string | undefined) {
+        const { updatedAt, updatedById } = ServerRoleUsersChangeStampSchema.parse(lists);
+
+        // names go through placeholders, as some (such as `admin`) are DynamoDB reserved words
+        const roles = Object.values(ServerRole);
+        // the other lists are still written where they are missing, to move them off the old plural attributes
+        const setLists = roles.map((role) => (role === changedRole ? `#${role} = :${role}` : `#${role} = if_not_exists(#${role}, :${role})`)).join(', ');
+        const removeLegacyLists = roles.map((role) => `#${legacyServerRoleListAttribute(role)}`).join(', ');
+
+        // not wrapped in another executeDbOperationAsync, which would log a refused write (an expected 409) twice
+        return this.updateItemAsync(
+            'SERVER_ROLE_USERS',
+            'ROLES',
+            `SET ${setLists}, updatedAt = :updatedAt, updatedById = :updatedById REMOVE ${removeLegacyLists}`,
+            {
+                ...Object.fromEntries(roles.map((role) => [`:${role}`, lists[role]])),
+                ':updatedAt': updatedAt,
+                ':updatedById': updatedById,
+                ...(previousUpdatedAt !== undefined ? { ':previousUpdatedAt': previousUpdatedAt } : {})
+            },
+            Object.fromEntries(roles.flatMap((role) => [
+                [`#${role}`, role],
+                [`#${legacyServerRoleListAttribute(role)}`, legacyServerRoleListAttribute(role)]
+            ])),
+            previousUpdatedAt !== undefined ? 'updatedAt = :previousUpdatedAt' : 'attribute_not_exists(updatedAt)'
+        );
     }
 
     // Server settings methods

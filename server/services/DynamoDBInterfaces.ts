@@ -180,14 +180,23 @@ export enum ServerRole {
 }
 
 export interface IServerRoleUserEntity {
+
+    /** The user's id, a uuid. */
     id: string;
+
+    /** Who the user is, for whoever reads the stored lists; the server does not use it. */
+    note?: string;
 }
 
-export interface IServerRoleUsersListsEntity {
-    admins: IServerRoleUserEntity[];
-    developers: IServerRoleUserEntity[];
-    moderators: IServerRoleUserEntity[];
-    contributors: IServerRoleUserEntity[];
+/** The users holding each server role, under the role's name (`admin`, `developer`, …). */
+export interface IServerRoleUsersListsEntity extends Record<ServerRole, IServerRoleUserEntity[]> {
+
+    /**
+     * When an admin last changed the lists through the server, as an ISO 8601 datetime, and that admin's id (a uuid).
+     * Absent while the lists have only been edited by hand. Checked by `ServerRoleUsersChangeStampSchema` when written.
+     */
+    updatedAt?: string;
+    updatedById?: string;
 }
 
 /**
