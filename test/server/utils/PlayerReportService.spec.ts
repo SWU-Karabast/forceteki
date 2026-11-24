@@ -11,7 +11,8 @@ import {
 import type { ISerializedMessage } from '../../../server/game/Interfaces';
 import { PlayerReportType } from '../../../server/game/Interfaces';
 import type { INewPlayerReport } from '../../../server/utils/PlayerReportService';
-import { PlayerReportService } from '../../../server/utils/PlayerReportService';
+import { MAX_SAME_USERNAME_ACCOUNTS_CHECKED, PlayerReportService } from '../../../server/utils/PlayerReportService';
+import { getModerationStanding, ModerationStanding } from '../../../server/utils/ModerationStanding';
 import { InvalidReportCursorError, PlayerReportListSort } from '../../../server/utils/PlayerReportListCache';
 import { monthOf } from '../../../server/utils/RetentionBuckets';
 import type { UserFactory } from '../../../server/utils/user/UserFactory';
@@ -305,6 +306,111 @@ describe('PlayerReportService', function() {
 
         it('returns null for an unknown report', async function() {
             expect(await service.getReportDetailAsync('missing')).toBeNull();
+        });
+
+        describe('player profile and standing', function() {
+            const modAction = (id: string, playerId: string, actionType: ModActionType, cancelledAt?: string): IModActionEntity => ({
+                id, playerId, actionType, moderatorId: 'mod-id', moderatorUsername: 'ModAlice', createdAt: '2026-09-01T00:00:00.000Z', cancelledAt,
+            });
+
+            it('includes the last login and creation date from the profile', async function() {
+                db.addProfile({ id: reporter.id, username: 'current-reporter-id', createdAt: '2025-03-04T00:00:00.000Z', lastLogin: '2026-09-30T12:00:00.000Z' });
+                const report = await service.createReportAsync(newReport());
+
+                const detail = await service.getReportDetailAsync(report.id);
+
+                expect(detail.reporter.createdAt).toBe('2025-03-04T00:00:00.000Z');
+                expect(detail.reporter.lastLogin).toBe('2026-09-30T12:00:00.000Z');
+            });
+
+            it('rates a muted player as active, a player with a past mute as history and a warned player as clean', async function() {
+                const report = await service.createReportAsync(newReport());
+                modActionsByPlayer.set(reporter.id, [modAction('w', reporter.id, ModActionType.Warning)]);
+
+                let detail = await service.getReportDetailAsync(report.id);
+                // The fake ModActionService reports the reported player as muted
+                expect(detail.reportedPlayer.standing).toBe(ModerationStanding.Active);
+                expect(detail.reporter.standing).toBe(ModerationStanding.Clean);
+
+                modActionsByPlayer.set(reporter.id, [modAction('m', reporter.id, ModActionType.Mute)]);
+                detail = await service.getReportDetailAsync(report.id);
+                expect(detail.reporter.standing).toBe(ModerationStanding.History);
+            });
+
+            it('counts forced renames and moderator name changes as history, but not cancelled actions or restrictions', function() {
+                const notActive = { isMuted: false, hasPendingRename: false };
+
+                expect(getModerationStanding([modAction('r', 'p', ModActionType.Rename)], notActive)).toBe(ModerationStanding.History);
+                expect(getModerationStanding([modAction('c', 'p', ModActionType.ChangeUsername)], notActive)).toBe(ModerationStanding.History);
+                expect(getModerationStanding([modAction('m', 'p', ModActionType.Mute, '2026-09-02T00:00:00.000Z')], notActive)).toBe(ModerationStanding.Clean);
+                expect(getModerationStanding([
+                    modAction('d', 'p', ModActionType.ReportingDisabled),
+                    modAction('b', 'p', ModActionType.UsernameChangesBlocked),
+                ], notActive)).toBe(ModerationStanding.Clean);
+                expect(getModerationStanding([], { isMuted: false, hasPendingRename: true })).toBe(ModerationStanding.Active);
+            });
+
+            it('lists other accounts with the same name, ignoring case, most severe standing first', async function() {
+                db.addProfile({ id: 'twin-clean', username: 'CURRENT-REPORTED-ID', lastLogin: '2026-09-20T00:00:00.000Z' });
+                db.addProfile({ id: 'twin-history', username: 'current-reported-id', lastLogin: '2026-09-10T00:00:00.000Z' });
+                db.addProfile({ id: 'someone-else', username: 'unrelated' });
+                modActionsByPlayer.set('twin-history', [modAction('r', 'twin-history', ModActionType.Rename)]);
+                const report = await service.createReportAsync(newReport());
+
+                const detail = await service.getReportDetailAsync(report.id);
+
+                expect(detail.reportedPlayer.sameUsername.total).toBe(2);
+                expect(detail.reportedPlayer.sameUsername.accounts.map((account) => [account.playerId, account.standing])).toEqual([
+                    ['twin-history', ModerationStanding.History],
+                    ['twin-clean', ModerationStanding.Clean],
+                ]);
+                expect(detail.reporter.sameUsername).toEqual({ total: 0, accounts: [] });
+            });
+
+            it('checks only a limited number of accounts but still counts all of them', async function() {
+                const extra = MAX_SAME_USERNAME_ACCOUNTS_CHECKED + 2;
+                for (let i = 0; i < extra; i++) {
+                    db.addProfile({ id: `twin-${i}`, username: 'current-reported-id' });
+                }
+                const getHistory = spyOn(db, 'getUserProfileAsync').and.callThrough();
+                const report = await service.createReportAsync(newReport());
+
+                const detail = await service.getReportDetailAsync(report.id);
+
+                expect(detail.reportedPlayer.sameUsername.total).toBe(extra);
+                expect(detail.reportedPlayer.sameUsername.accounts.length).toBe(MAX_SAME_USERNAME_ACCOUNTS_CHECKED);
+                const twinLookups = getHistory.calls.allArgs().filter(([id]) => String(id).startsWith('twin-'));
+                expect(twinLookups.length).toBe(MAX_SAME_USERNAME_ACCOUNTS_CHECKED);
+            });
+
+            it('does not count a username link whose profile no longer exists', async function() {
+                await db.saveUsernameLinkAsync('current-reported-id', 'deleted-account');
+                const report = await service.createReportAsync(newReport());
+
+                const detail = await service.getReportDetailAsync(report.id);
+
+                expect(detail.reportedPlayer.sameUsername).toEqual({ total: 0, accounts: [] });
+            });
+
+            it('still opens the ticket when the same-name lookup fails', async function() {
+                spyOn(db, 'getUserIdsByUsernameAsync').and.rejectWith(new Error('throttled'));
+                const report = await service.createReportAsync(newReport());
+
+                const detail = await service.getReportDetailAsync(report.id);
+
+                expect(detail.reportedPlayer.sameUsername).toBeNull();
+                expect(detail.reportedPlayer.username).toBe('current-reported-id');
+            });
+
+            it('gives players without a profile no dates and no same-name accounts', async function() {
+                db.addProfile({ id: 'other-guest', username: 'Guest' });
+                const report = await service.createReportAsync(newReport({ reportedPlayer: { id: 'anonymous-id', username: 'Guest' } }));
+
+                const detail = await service.getReportDetailAsync(report.id);
+
+                expect(detail.reportedPlayer.lastLogin).toBeUndefined();
+                expect(detail.reportedPlayer.sameUsername).toEqual({ total: 0, accounts: [] });
+            });
         });
     });
 

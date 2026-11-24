@@ -233,6 +233,12 @@ export interface IModActionDefinition {
     /** The moderator supplies the username to apply to the account. */
     requiresNewUsername: boolean;
 
+    /**
+     * A non-cancelled action of this type gives the player a moderation record, shown to moderators as the
+     * player's standing (see ModerationStanding). Mutes and every kind of forced rename count; warnings and
+     * reporting or username restrictions do not.
+     */
+    countsTowardStanding: boolean;
 }
 
 export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
@@ -243,6 +249,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: true,
         cancellable: true,
         requiresNewUsername: false,
+        countsTowardStanding: true,
     },
     [ModActionType.Warning]: {
         tracked: false,
@@ -251,6 +258,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: false,
         cancellable: false,
         requiresNewUsername: false,
+        countsTowardStanding: false,
     },
     [ModActionType.Rename]: {
         tracked: true,
@@ -259,6 +267,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: true,
         cancellable: false,
         requiresNewUsername: false,
+        countsTowardStanding: true,
     },
     [ModActionType.ReportingDisabled]: {
         tracked: true,
@@ -267,6 +276,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: false,
         cancellable: true,
         requiresNewUsername: false,
+        countsTowardStanding: false,
     },
     [ModActionType.UsernameChangesBlocked]: {
         tracked: true,
@@ -275,6 +285,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: false,
         cancellable: true,
         requiresNewUsername: false,
+        countsTowardStanding: false,
     },
     [ModActionType.ChangeUsername]: {
         tracked: false,
@@ -283,6 +294,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         selfResolving: false,
         cancellable: false,
         requiresNewUsername: true,
+        countsTowardStanding: true,
     },
 };
 
