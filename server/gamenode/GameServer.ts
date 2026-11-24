@@ -34,7 +34,7 @@ import { MeleeDeckFetcher } from '../utils/deck/MeleeDeckFetcher';
 import { DeckFetchError } from '../utils/deck/DeckFetchError';
 import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
-import { QueueHandler } from './QueueHandler';
+import { isQueueFormatKey, QueueHandler } from './QueueHandler';
 import { getMatchmakingSearchContext } from './MatchmakingRules';
 import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
@@ -1824,6 +1824,11 @@ export class GameServer {
                 if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
                     logger.error(`GameServer (enter-queue): Invalid card pool parameter ${cardPool}`);
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
+
+                if (!isQueueFormatKey({ format, cardPool, gamesToWinMode })) {
+                    logger.warn(`GameServer (enter-queue): User ${user.getId()} asked for a queue that does not exist: ${format} / ${cardPool} / ${gamesToWinMode}`);
+                    return res.status(400).json({ success: false, message: 'There is no matchmaking queue for that format, card pool and best-of mode' });
                 }
 
                 if (!EnumHelpers.isEnumValue(matchmakingCompetitivenessPreference, MatchmakingCompetitivenessPreference)) {
