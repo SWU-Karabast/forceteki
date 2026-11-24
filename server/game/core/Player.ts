@@ -12,7 +12,6 @@ import {
     AlertType,
     ChatObjectType,
     EffectName,
-    GameEndReason,
     PhaseName,
     PlayType,
     RelativePlayer,
@@ -1271,10 +1270,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             return null;
         }
 
-        if (
-            this.game.gameEndReason === GameEndReason.Concede ||
-            this.game.gameEndReason === GameEndReason.PlayerLeft
-        ) {
+        if (this.game.isUndoBlockedByGameEnd) {
             return { quickSnapshotAvailable: QuickUndoAvailableState.NoSnapshotAvailable };
         }
 

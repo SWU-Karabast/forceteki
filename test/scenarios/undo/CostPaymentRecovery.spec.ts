@@ -1,3 +1,5 @@
+import { GameEndReason } from '../../../server/game/core/Constants';
+
 describe('Cost payment recovery', function() {
     undoIntegration(function(contextRef) {
         // Queen Amidala and The Starhawk share the Mandalorian trait from Foundling, so Queen Amidala can defeat The Starhawk to
@@ -328,6 +330,54 @@ describe('Cost payment recovery', function() {
                 expect(context.player1.readyResourceCount).toBe(3);
                 expect(context.getChatLogs(1)[0]).toContain('player1 abandons playing The Marauder. Costs already paid are not refunded');
                 expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('once the game can no longer be undone because it has ended', function() {
+            // Outside of a lobby the game end is shown as a prompt on top of the current one, so dismiss it to play on
+            const endGameByTimeoutAndPlayOn = () => {
+                const { context } = contextRef;
+
+                context.game.endGame(context.player2.player, GameEndReason.Timeout);
+                context.game.continue();
+                expect(context.game).toBeOver();
+
+                context.player1.clickPrompt('Continue Playing');
+                context.player2.clickPrompt('Continue Playing');
+            };
+
+            it('only offers abandoning the payment', async function() {
+                await setupQueenAmidalaAndStarhawkAsync();
+                const { context } = contextRef;
+
+                endGameByTimeoutAndPlayOn();
+                playMarauderAndDefeatStarhawkWithQueenAmidala();
+
+                expect(context.player1).toHavePrompt('You can no longer pay the cost for The Marauder');
+                expect(context.player1).toHaveExactPromptButtons(['Abandon']);
+                context.player1.clickPrompt('Abandon');
+
+                expect(context.theMarauder).toBeInZone('hand');
+                expect(context.theStarhawk).toBeInZone('discard');
+                expect(context.game).toBeOver();
+            });
+
+            it('abandons the payment if the player chooses to undo after the game ended while the prompt was open', async function() {
+                await setupQueenAmidalaAndStarhawkAsync();
+                const { context } = contextRef;
+
+                playMarauderAndDefeatStarhawkWithQueenAmidala();
+                expect(context.player1).toHaveExactPromptButtons(['Undo']);
+
+                // e.g. the player runs out of time on the prompt
+                endGameByTimeoutAndPlayOn();
+                expect(context.player1).toHaveExactPromptButtons(['Undo']);
+                context.player1.clickPrompt('Undo');
+
+                expect(context.theMarauder).toBeInZone('hand');
+                expect(context.theStarhawk).toBeInZone('discard');
+                expect(context.player1.readyResourceCount).toBe(3);
+                expect(context.game).toBeOver();
             });
         });
     });

@@ -331,6 +331,19 @@ export class Game extends EventEmitter {
         return this.snapshotManager.undoMode !== UndoMode.Disabled;
     }
 
+    /**
+     * True once the game has ended by a concession, a player leaving or a player running out of time, after which it can
+     * no longer be rolled back. Only a game ended by the game rules (a base being defeated) can be undone past its end.
+     */
+    public get isUndoBlockedByGameEnd(): boolean {
+        // gameEndReason is not part of the game state, so it is only trusted while the game is still over
+        return this.isEnded && (
+            this.gameEndReason === GameEndReason.Concede ||
+            this.gameEndReason === GameEndReason.PlayerLeft ||
+            this.gameEndReason === GameEndReason.Timeout
+        );
+    }
+
     public get gameObjectManager(): IGameObjectRegistrar {
         return this._snapshotManager.gameObjectManager;
     }
@@ -1867,7 +1880,7 @@ export class Game extends EventEmitter {
      * @return True if the rollback was successful or we prompted the opponent to confirm, false otherwise
      */
     public rollbackToSnapshot(playerId: string, settings: IGetSnapshotSettings): boolean {
-        if (!this.isUndoEnabled) {
+        if (!this.isUndoEnabled || this.isUndoBlockedByGameEnd) {
             return false;
         }
 
@@ -1897,6 +1910,12 @@ export class Game extends EventEmitter {
         const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
 
         const performRollback = () => {
+            // an undo request can still be open when the game ends, and be allowed afterwards
+            if (this.isUndoBlockedByGameEnd) {
+                this.addAlert(AlertType.Notification, 'The game has ended, so the undo request can no longer be allowed');
+                return false;
+            }
+
             const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
 
             if (!result) {
@@ -1996,6 +2015,11 @@ export class Game extends EventEmitter {
     }
 
     private rollbackForCostPaymentRecovery(player: Player, context: AbilityContext): void {
+        // the game can end while the prompt is open, e.g. by the player running out of time on it
+        if (this.isUndoBlockedByGameEnd) {
+            return;
+        }
+
         const settings = this.getCostPaymentRecoveryRollbackSettings();
         Contract.assertNotNullLike(settings, 'Expected a snapshot for the start of the current action to be available for cost payment recovery');
 
@@ -2037,7 +2061,7 @@ export class Game extends EventEmitter {
 
     /** Returns the settings for rolling back to the start of the current action, or null if there is no snapshot for it */
     private getCostPaymentRecoveryRollbackSettings(): IGetSnapshotSettings | null {
-        if (!this.isUndoEnabled || this.currentPhase !== PhaseName.Action || this.actionPhaseActivePlayer == null) {
+        if (!this.isUndoEnabled || this.isUndoBlockedByGameEnd || this.currentPhase !== PhaseName.Action || this.actionPhaseActivePlayer == null) {
             return null;
         }
 
