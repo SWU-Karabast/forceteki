@@ -96,6 +96,7 @@ export class TestGameServer extends GameServer {
             setup.deckValidator,
             dbServices?.serverRoleUsersCache,
             dbServices?.serverSettingsCache,
+            dbServices?.featureFlagsCache,
             dbServices?.cosmeticsService,
             dbServices?.modActionService,
             setup.testGameBuilder,

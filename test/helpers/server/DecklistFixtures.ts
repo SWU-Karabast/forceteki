@@ -4,7 +4,7 @@ import { EnumHelpers } from '../../../server/game/core/utils/EnumHelpers';
 import type { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
-import { SwuSetId } from '../../../server/utils/deck/SwuSetData';
+import { formatRules, SwuSetId } from '../../../server/utils/deck/SwuSetData';
 
 export interface IDecklistFixtureOptions {
     format?: SwuGameFormat;
@@ -37,18 +37,21 @@ export class DecklistFixtures {
     ) {}
 
     /**
-     * A decklist that passes validation for the given format and card pool.
+     * A decklist that passes validation for the given format and card pool. For a two-leader format
+     * (Faux Suns) it also has a second leader that can legally pair with the first.
      */
     public validDecklist(options: IDecklistFixtureOptions = {}): ISwuDbFormatDecklist {
         const format = options.format ?? SwuGameFormat.Premier;
         const cardPool = options.cardPool ?? CardPool.Current;
         const { leaders, bases, playable } = this.getCandidates(format, cardPool);
+        const rules = formatRules.get(format);
+        const maxCopies = rules?.maxCardCopies ?? 3;
 
         const minDeckSize = this.deckValidator.getMinimumSideboardedDeckSize(bases[0], format);
 
-        // three copies is the common per-card limit, so this needs a third of the deck size in
-        // distinct cards plus a little headroom for cards with a lower override
-        const distinctCardsNeeded = Math.ceil(minDeckSize / 3) + 4;
+        // the deck needs the deck size divided by the per-card limit in distinct cards, plus a little
+        // headroom for cards with a lower override
+        const distinctCardsNeeded = Math.ceil(minDeckSize / maxCopies) + 4;
         if (playable.length < distinctCardsNeeded) {
             throw new Error(
                 `DecklistFixtures: only ${playable.length} legal playable cards found for ${format}/${cardPool}, ` +
@@ -56,7 +59,7 @@ export class DecklistFixtures {
             );
         }
 
-        const deck = this.buildDeckEntries(playable, minDeckSize);
+        const deck = this.buildDeckEntries(playable, minDeckSize, maxCopies);
 
         const decklist: ISwuDbFormatDecklist = {
             metadata: {
@@ -68,9 +71,30 @@ export class DecklistFixtures {
             deck,
         };
 
+        if (rules?.leaderCount === 2) {
+            decklist.secondleader = this.findSecondLeader(decklist, leaders, format, cardPool);
+        }
+
         this.assertValid(decklist, format, cardPool);
 
         return decklist;
+    }
+
+    /**
+     * The first candidate that makes a legal pair with the deck's leader. The pairing rules (no shared
+     * aspect, not the same leader) are the validator's, so they are found by asking it rather than
+     * copied here.
+     */
+    private findSecondLeader(decklist: ISwuDbFormatDecklist, leaders: string[], format: SwuGameFormat, cardPool: CardPool) {
+        for (const candidate of leaders.slice(1)) {
+            const secondleader = { id: candidate, count: 1 };
+            const failures = this.deckValidator.validateSwuDbDeck({ ...decklist, secondleader }, { format, cardPool });
+            if (Object.keys(failures).length === 0) {
+                return secondleader;
+            }
+        }
+
+        throw new Error(`DecklistFixtures: no leader can pair with ${decklist.leader.id} for ${format}/${cardPool}`);
     }
 
     /**
@@ -93,7 +117,7 @@ export class DecklistFixtures {
         };
     }
 
-    private buildDeckEntries(playable: string[], minDeckSize: number) {
+    private buildDeckEntries(playable: string[], minDeckSize: number, maxCopies: number) {
         const deck: { id: string; count: number }[] = [];
         let total = 0;
 
@@ -102,7 +126,7 @@ export class DecklistFixtures {
                 break;
             }
 
-            const count = Math.min(3, minDeckSize - total);
+            const count = Math.min(maxCopies, minDeckSize - total);
             deck.push({ id: setCode, count });
             total += count;
         }

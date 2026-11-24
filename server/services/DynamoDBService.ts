@@ -30,10 +30,12 @@ import {
     type IUserPreferences,
     type IServerRoleUsersListsEntity,
     type IServerSettingsEntity,
+    type IFeatureFlagEntity,
     isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import {
+    FeatureFlagEntitySchema,
     IDeckDataEntitySchema,
     IDeckStatsEntitySchema,
     ModActionEntitySchema,
@@ -883,6 +885,39 @@ export class DynamoDBService {
 
             return this.putItemAsync({ pk: 'SERVER_SETTINGS', sk: 'GLOBAL' }, attributes);
         }, 'Error saving server settings');
+    }
+
+    // Feature flag methods
+    /**
+     * Every stored feature flag. A flag nobody has set yet has no item; an item that fails validation is
+     * logged and skipped, so one bad record cannot turn every flag off.
+     */
+    public getFeatureFlagsAsync(): Promise<IFeatureFlagEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync('FEATURE_FLAG');
+            return this.validateEachAsync<IFeatureFlagEntity>(FeatureFlagEntitySchema, result.Items || [], (item) => `feature flag ${item?.flag}`);
+        }, 'Error getting feature flags');
+    }
+
+    public saveFeatureFlagAsync(flag: IFeatureFlagEntity) {
+        return this.executeDbOperationAsync(() => {
+            const attributes: Record<string, unknown> = {
+                flag: flag.flag,
+                enabled: flag.enabled,
+                roles: flag.roles,
+                userIds: flag.userIds
+            };
+
+            // The document client is not configured with removeUndefinedValues, so undefined
+            // fields have to be omitted rather than written.
+            for (const key of ['updatedBy', 'updatedAt'] as const) {
+                if (flag[key] !== undefined) {
+                    attributes[key] = flag[key];
+                }
+            }
+
+            return this.putItemAsync({ pk: 'FEATURE_FLAG', sk: flag.flag }, attributes);
+        }, 'Error saving feature flag');
     }
 
     // Mod Actions

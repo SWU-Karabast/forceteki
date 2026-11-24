@@ -136,6 +136,7 @@ Server specs live in `test/server/gamenode/<area>/`, grouped by what they are ab
 - `matchmaking/` — queues, matchmaking and the quick-lobby countdown.
 - `timers/` — the action timer during a game: which games are timed, turn and main time, warnings, running out, pauses, the end of a game, reconnects and spectators.
 - `moderation/` — the mod tools end to end: player reports from filing to closing, mod actions issued from a ticket, the report retention cleanup.
+- `featureFlags/` — who an admin turns each feature flag on for, and what each flag gates.
 - `account/` — a logged-in user's own data routes (preferences now; decks, settings and cosmetics as they get specs).
 - `harness/` — specs of the test tooling itself (the harness, the fake DB, the socket.io drift guard, the scheduler), not of the server.
 
