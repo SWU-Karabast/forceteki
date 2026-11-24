@@ -33,7 +33,13 @@ export class SpectatorView {
         players.forEach((player, index) => {
             const seat = SpectatorView.seatAt(index);
             this.seatsByPlayerId.set(player.id, seat);
-            this.seatsByName.set(player.name, seat);
+
+            // TODO: the game records its winners only by name, so when both players share a name `winners` can't tell
+            // them apart. Keeping the first seat matches how the Lobby credits that win (`recordGameResult`); map
+            // winners by id once the engine records them that way (#3219)
+            if (!this.seatsByName.has(player.name)) {
+                this.seatsByName.set(player.name, seat);
+            }
         });
     }
 
