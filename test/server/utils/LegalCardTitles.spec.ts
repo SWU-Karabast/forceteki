@@ -15,7 +15,7 @@ import {
 // cover preview/future sets and ban expiry so these stay valid as the release calendar moves.
 const ROTATED_UNIT = '97th Legion';  // SOR only — rotated out of Premier
 const REPRINTED_UNIT = 'Wampa';      // SOR, reprinted in LOF — still legal in Premier
-const ROTATED_BASE = 'Echo Base';    // SOR only — rotated out of Premier
+const ROTATED_BASE = 'Administrator\'s Tower'; // SOR only — rotated out of Premier
 const SOR_TOKEN = 'Shield';          // token printed in SOR
 
 // Derived from the set data rather than pinned, so these keep pointing at the right sets as releases move

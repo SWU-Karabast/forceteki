@@ -8,7 +8,7 @@ const oneMinuteMs = 60 * 1000;
 /**
  * What the server does with a custom lobby over its life: who owns it, when it goes away, and what happens to
  * a player in it who makes for another lobby or the queue (`GameServer.canUserJoinNewLobby`). The refactor-readiness
- * checklist's rows L1, L3, D1, D2 (for the last player) and B3 to B9.
+ * checklist's rows L1, L3, L6, D1, D2 (for the last player) and B3 to B9.
  */
 describe('Lobby lifecycle', function () {
     /**
@@ -118,6 +118,81 @@ describe('Lobby lifecycle', function () {
                         .toBeFalse();
                 });
             });
+
+            describe('a game nobody has played for two hours', function () {
+                const closedMessage = 'This game was closed because nobody played for a long time';
+
+                async function isSpectatableAsync(harness: ServerTestHarness, lobbyId: string): Promise<boolean> {
+                    const response = await harness.api.get('/api/ongoing-games');
+                    return (response.body.ongoingGames as { id: string }[]).some((game) => game.id === lobbyId);
+                }
+
+                it('is removed, telling both players, once two hours pass without either of them doing anything', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+                    const spectatableBefore = await isSpectatableAsync(harness, lobbyId);
+
+                    await harness.clock.advanceAsync(120 * oneMinuteMs);
+
+                    expect(spectatableBefore).toBeTrue();
+                    expect(await isSpectatableAsync(harness, lobbyId)).toBeFalse();
+                    expect(owner.connectionErrors).toEqual([closedMessage]);
+                    expect(guest.connectionErrors).toEqual([closedMessage]);
+                    expect(harness.server.testLobbies.has(lobbyId)).withContext('the server no longer holds it')
+                        .toBeFalse();
+                });
+
+                it('is removed when its players left the result screen open after the game ended', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+                    await owner.concedeAsync();
+
+                    await harness.clock.advanceAsync(120 * oneMinuteMs);
+
+                    expect(await isSpectatableAsync(harness, lobbyId)).toBeFalse();
+                    expect(guest.connectionErrors).toEqual([closedMessage]);
+                    expect(harness.server.testLobbies.has(lobbyId)).withContext('the server no longer holds it')
+                        .toBeFalse();
+                });
+
+                it('is kept while it has been idle for less than two hours', async function () {
+                    const { harness } = contextRef;
+                    const { owner, lobbyId } = await harness.startLiveGameAsync();
+
+                    await harness.clock.advanceAsync(90 * oneMinuteMs);
+
+                    expect(await isSpectatableAsync(harness, lobbyId)).toBeTrue();
+                    expect(owner.connectionErrors).toEqual([]);
+                });
+
+                it('counts the two hours from the last thing a player did, not from the start of the game', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+                    await harness.clock.advanceAsync(90 * oneMinuteMs);
+
+                    await guest.sendGameChatAsync('still here');
+                    await harness.clock.advanceAsync(90 * oneMinuteMs);
+
+                    expect(await isSpectatableAsync(harness, lobbyId)).toBeTrue();
+                    expect(owner.connectionErrors).toEqual([]);
+
+                    await harness.clock.advanceAsync(60 * oneMinuteMs);
+
+                    expect(await isSpectatableAsync(harness, lobbyId)).toBeFalse();
+                    expect(owner.connectionErrors).toEqual([closedMessage]);
+                });
+
+                it('leaves a lobby that has no game yet alone', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+                    const lobbyId = owner.lobbyId;
+
+                    await harness.clock.advanceAsync(180 * oneMinuteMs);
+
+                    expect(await isListedAsync(harness, lobbyId)).toBeTrue();
+                    expect(owner.connectionErrors).toEqual([]);
+                });
+            });
         });
 
         describe('a player whose lobby closed before their socket arrived', function () {
@@ -195,6 +270,58 @@ describe('Lobby lifecycle', function () {
                 expect(await linkSeatsNewcomerAsync(harness, oldLobbyId)).toBeFalse();
                 expect(harness.server.testLobbies.has(oldLobbyId)).withContext('the server no longer holds it')
                     .toBeFalse();
+            });
+
+            describe('after losing the connection to their lobby (e.g. closing the tab)', function () {
+                it('may create another lobby at once if nobody else was in the old one, which goes away', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+                    const oldLobbyId = owner.lobbyId;
+                    await owner.disconnectTransportAsync();
+
+                    const created = await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(created.status).toBe(200);
+                    expect(await isListedAsync(harness, oldLobbyId)).toBeFalse();
+                    expect(await linkSeatsNewcomerAsync(harness, oldLobbyId)).toBeFalse();
+                    await owner.connectAsync();
+                    expect(owner.lobbyId).withContext('the owner is seated in the new lobby')
+                        .not.toBe(oldLobbyId);
+                    expect(owner.lobbyState.lobbyOwnerId).toBe(owner.id);
+                });
+
+                it('may enter the queue at once if nobody else was in the old lobby', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+                    await owner.disconnectTransportAsync();
+
+                    const queued = await owner.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(queued.status).toBe(200);
+                });
+
+                it('is still refused within 60 seconds while another player is in the old lobby', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest } = await harness.createLobbyWithGuestAsync();
+                    await owner.disconnectTransportAsync();
+
+                    const created = await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(created.status).toBe(403);
+                    expect(created.body).toEqual({ success: false, message: 'User is already in a lobby' });
+                    expect(guest.lobbyState.users.map((user: { id: string }) => user.id)).withContext('the owner keeps their seat in the grace window')
+                        .toContain(owner.id);
+                });
+
+                it('is still refused within 60 seconds while still connected to a lobby they are alone in', async function () {
+                    const { harness } = contextRef;
+                    const owner = await harness.openLobbyAsync();
+
+                    const created = await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+
+                    expect(created.status).toBe(403);
+                    expect(created.body).toEqual({ success: false, message: 'User is already in a lobby' });
+                });
             });
 
             it('may join somewhere else at once if they never connected to the lobby they joined', async function () {

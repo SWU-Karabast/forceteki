@@ -3,6 +3,7 @@ import type DamageModificationAbility from '../../ability/DamageModificationAbil
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';
+import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { registerState, stateRef, stateRefMap } from '../../GameObjectUtils';
@@ -17,11 +18,13 @@ import { registerState, stateRef, stateRefMap } from '../../GameObjectUtils';
  * all abilities (whether before or after this effect is created) and can't be copied to another card.
  *
  * The ability is still bound to the affected card, so it resolves with that card as its source and its controller
- * as the player who resolves it, as for any other replacement effect on that card.
+ * as the player who resolves it, as for any other replacement effect on that card. Chat still credits the player who
+ * created the effect, which may be that card's opponent.
  */
 @registerState()
 export class DamageModificationEffect extends OngoingEffectValueWrapperBase<IDamageModificationAbilityProps> {
     @stateRef() private accessor _source: Card | null = null;
+    @stateRef() private accessor _controller: Player | null = null;
     @stateRefMap() private accessor _abilityByTargetCard = new Map<string, DamageModificationAbility>();
 
     public constructor(game: Game, properties: IDamageModificationAbilityProps) {
@@ -35,6 +38,7 @@ export class DamageModificationEffect extends OngoingEffectValueWrapperBase<IDam
         super.setContext(context);
 
         this._source = context.source;
+        this._controller = context.player;
     }
 
     public override apply(target: InPlayCard) {
@@ -47,6 +51,7 @@ export class DamageModificationEffect extends OngoingEffectValueWrapperBase<IDam
             ...this.getValue(),
             printedAbility: false,
             lastingEffectSource: this._source,
+            lastingEffectController: this._controller,
             abilityIdentifier: `${this._source.internalName}_lasting_damage_modification`
         };
 

@@ -1,8 +1,8 @@
 import { PromptType } from '../../../../server/game/core/gameSteps/PromptInterfaces';
 import { PlayerTimeRemainingStatus } from '../../../../server/game/core/actionTimer/IActionTimer';
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
+import { spendMainTimeAsync, startTimedGameAtFirstActionAsync } from '../../../helpers/server/ActionTimerSteps';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
-import type { IPlayersAtFirstAction, ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import { initiativeChooserOf } from '../../../helpers/server/ServerTestHarness';
 import type { IActionTimerView, TestClient } from '../../../helpers/server/TestClient';
 
@@ -26,16 +26,6 @@ function stopped(mainTimeRemainingSeconds = mainTimeMs / 1000): IActionTimerView
  */
 describe('Action timer', function () {
     serverIntegration(function (contextRef) {
-        async function startAtFirstActionAsync(harness: ServerTestHarness): Promise<IPlayersAtFirstAction> {
-            const { owner, guest } = await harness.startLiveGameAsync();
-            return harness.playThroughSetupAsync(owner, guest);
-        }
-
-        /** Moves the clock through a whole turn time and then `mainTimeRemainingSeconds` of main time, which the player on the clock spends. */
-        async function spendAsync(harness: ServerTestHarness, mainTimeRemainingSeconds: number): Promise<void> {
-            await harness.clock.advanceAsync(turnTimeMs + mainTimeRemainingSeconds * 1000);
-        }
-
         function chatOf(viewer: TestClient): string[] {
             return viewer.gameChat.map((entry) => entry.text);
         }
@@ -70,7 +60,7 @@ describe('Action timer', function () {
 
             it('starts the active player\'s turn time for their action, and stops it when they pass', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
 
                 expect(waiting.timerOf(active)).toEqual(onTurnTime(20));
                 expect(waiting.timerOf(waiting)).toEqual(stopped());
@@ -88,7 +78,7 @@ describe('Action timer', function () {
 
             it('starts every action with a full turn time, even when the player\'s timer is still running from the step before', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
                 await active.clickButtonAsync('Pass');
                 await waiting.clickButtonAsync('Pass');
                 await waiting.clickButtonAsync('Skip Resourcing');
@@ -104,9 +94,9 @@ describe('Action timer', function () {
 
             it('starts both players\' turn time afresh for the regroup phase\'s resource step, even the player who passed last', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
                 await active.clickButtonAsync('Pass');
-                await spendAsync(harness, 10);
+                await spendMainTimeAsync(harness, 10);
 
                 await waiting.clickButtonAsync('Pass');
 
@@ -120,7 +110,7 @@ describe('Action timer', function () {
         describe('turn time and main time', function () {
             it('starts the main time when the turn time runs out, and sends both players the game state at that moment', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
                 const statesSent = () => [active, waiting].map((player) => player.receivedEvents('gamestate').length);
                 const statesBefore = statesSent();
 
@@ -139,10 +129,10 @@ describe('Action timer', function () {
                 });
             });
 
-            it('keeps the main time a player has spent for the rest of the game, giving each new turn its turn time again', async function () {
+            it('keeps the main time a player has spent across actions and phases, giving each new turn its turn time again', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
-                await spendAsync(harness, 30);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+                await spendMainTimeAsync(harness, 30);
                 await active.clickButtonAsync('Pass');
 
                 expect(waiting.timerOf(active)).withContext('while the opponent acts')
@@ -161,14 +151,15 @@ describe('Action timer', function () {
                 expect([active, waiting].some((player) => player.prompt.promptType === PromptType.ActionWindow))
                     .withContext('the next round')
                     .toBeTrue();
-                expect(waiting.timerOf(active).mainTimeRemainingSeconds).toBe(90);
+                expect(waiting.timerOf(active).mainTimeRemainingSeconds).withContext('with the 10 s the end of the round gives back (`RoundEndMainTime`)')
+                    .toBe(100);
             });
         });
 
         describe('warnings', function () {
             it('warns at 30 s of main time left: the timer shows it, the chat says so, and both players are sent it then', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
                 const warning = `${active.username} has 30 seconds of main time remaining.`;
                 await harness.clock.advanceAsync(turnTimeMs);
 
@@ -188,9 +179,9 @@ describe('Action timer', function () {
 
             it('shows danger at 10 s of main time left, and the chat says so', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
                 const danger = `${active.username} has 10 seconds of main time remaining.`;
-                await spendAsync(harness, (mainTimeMs / 1000) - warningSeconds);
+                await spendMainTimeAsync(harness, (mainTimeMs / 1000) - warningSeconds);
 
                 await harness.clock.advanceToDeadlineAsync((warningSeconds - dangerSeconds) * 1000, {
                     justBefore: () => {
@@ -207,8 +198,8 @@ describe('Action timer', function () {
 
             it('clears the warning once the player is no longer spending main time, even with little left', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
-                await spendAsync(harness, (mainTimeMs / 1000) - warningSeconds);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+                await spendMainTimeAsync(harness, (mainTimeMs / 1000) - warningSeconds);
 
                 await active.clickButtonAsync('Pass');
 
@@ -225,7 +216,7 @@ describe('Action timer', function () {
         describe('running out', function () {
             it('ends the game for the opponent when the active player\'s main time runs out', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
 
                 await harness.clock.advanceToDeadlineAsync(turnTimeMs + mainTimeMs, {
                     justBefore: () => {
@@ -249,8 +240,8 @@ describe('Action timer', function () {
 
             it('ends the game for an opponent whose own timer is running, with more than 3 s left, and stops it', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
-                await spendAsync(harness, 90);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+                await spendMainTimeAsync(harness, 90);
                 await active.clickButtonAsync('Pass');
                 await waiting.clickButtonAsync('Pass');
 
@@ -272,8 +263,8 @@ describe('Action timer', function () {
 
             it('lets a waiting opponent win, however little main time they have left', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startAtFirstActionAsync(harness);
-                await spendAsync(harness, 118);
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+                await spendMainTimeAsync(harness, 118);
                 await active.clickButtonAsync('Pass');
 
                 expect(active.timerOf(active)).withContext('waiting, with 2 s of main time')

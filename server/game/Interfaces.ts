@@ -181,6 +181,12 @@ export interface IAbilityProps<TContext extends AbilityContext> {
      * doesn't remove it and it can't be copied.
      */
     lastingEffectSource?: Card;
+
+    /**
+     * Set with `lastingEffectSource`: the player who created the lasting effect. The ability is resolved by the
+     * controller of the card it is on, but chat credits this player with it.
+     */
+    lastingEffectController?: Player;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);

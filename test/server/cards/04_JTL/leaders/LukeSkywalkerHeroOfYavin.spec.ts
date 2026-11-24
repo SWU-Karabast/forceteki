@@ -1,3 +1,4 @@
+import { Trait } from '../../../../../server/game/core/Constants';
 
 describe('Luke Skywalker, Hero of Yavin', function() {
     integration(function(contextRef) {
@@ -355,6 +356,40 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Use it anyway']);
                 context.player1.clickPrompt('Cancel');
             });
+        });
+
+        it('should count a unit that was a Fighter when it attacked even if it is no longer a Fighter', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'luke-skywalker#hero-of-yavin',
+                    spaceArena: ['alliance-xwing']
+                },
+                player2: {
+                    groundArena: ['the-first-legion#vaders-fist']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks with a Fighter unit
+            context.player1.clickCard(context.allianceXwing);
+            context.player1.clickCard(context.p2Base);
+
+            // P2 attacks with The First Legion and makes P1's cards lose the Fighter trait
+            context.player2.clickCard(context.theFirstLegion);
+            context.player2.clickCard(context.p1Base);
+            context.player2.chooseListOption('Fighter');
+            expect(context.allianceXwing.hasSomeTrait(Trait.Fighter)).toBeFalse();
+
+            // Alliance X-Wing was a Fighter when it attacked, so Luke's ability still deals damage
+            context.player1.clickCard(context.lukeSkywalker);
+            context.player1.clickPrompt('If you attacked with a Fighter unit this phase, deal 1 damage to a unit');
+            context.player1.clickCard(context.theFirstLegion);
+
+            expect(context.theFirstLegion.damage).toBe(1);
+            expect(context.lukeSkywalker.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
