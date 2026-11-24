@@ -11,12 +11,19 @@ export const checkServerRoleUserPrivileges = (
     apiPath: string,
     userId: string,
     role: ServerRole,
-    cache: ServerRoleUsersCache
+    cache?: ServerRoleUsersCache
 ): IAuthResponse => {
     if (!userId) {
         return {
             success: false,
             message: 'Authentication required'
+        };
+    }
+
+    if (!cache) {
+        return {
+            success: false,
+            message: 'Server role service unavailable'
         };
     }
 

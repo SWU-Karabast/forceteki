@@ -55,6 +55,44 @@ describe('Luminara Unduli, Besieged General', function() {
                 expect(context.cartelSpacer.getPower()).toBe(2);
             });
 
+            it('should not keep the +2/+0 if the attack is passed after selecting the attacker', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['luminara-unduli#besieged-general'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        groundArena: ['rebel-pathfinder']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.luminaraUnduli);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.rebelPathfinder]);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                context.player1.clickPrompt('Pass attack');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+
+                context.player2.passAction();
+
+                // The buff must not carry over to Battlefield Marine's next attack
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+            });
+
             it('should attack with a unit and give it +2/+0 for the attack when another unit gets played', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -225,6 +263,42 @@ describe('Luminara Unduli, Besieged General', function() {
 
                 expect(context.p2Base.damage).toBe(9);
                 expect(context.luminaraUnduli.getPower()).toBe(7);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('Luminara\'s ability with a unit owned by the opponent', function() {
+            it('should attack with a unit when the player plays an opponent-owned unit from the opponent\'s discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown'],
+                        groundArena: ['luminara-unduli#besieged-general'],
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                // Luminara triggers for player1, who played the unit
+                expect(context.player1).toBeAbleToSelectExactly([context.luminaraUnduli]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.luminaraUnduli);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(9);
                 expect(context.player2).toBeActivePlayer();
             });
         });

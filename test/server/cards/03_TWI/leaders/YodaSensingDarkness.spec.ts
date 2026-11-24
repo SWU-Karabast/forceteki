@@ -39,6 +39,41 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.deck[0]).toBe(context.kraytDragon);
             });
 
+            it('can put the selected card on the bottom of the deck', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'yoda#sensing-darkness',
+                        hand: ['wampa', 'krayt-dragon', 'vanquish'],
+                        deck: ['entrenched', 'r2d2#ignoring-protocol', 'atst'],
+                        resources: 7,
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.yoda);
+                context.player1.clickPrompt('If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player1).toHaveExactPromptButtons(['Top', 'Bottom']);
+                context.player1.clickPrompt('Bottom');
+
+                expect(context.wampa).toBeInZone('deck');
+                expect(context.player1.deck.length).toBe(3);
+                expect(context.player1.deck[2]).toBe(context.wampa);
+                expect(context.player1.deck[0]).toBe(context.r2d2);
+                expect(context.yoda.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('can draw a card then put a card on top/bottom of deck when an enemy leader has left play', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import type { Aspect, Trait } from '../Constants';
 import { ZoneName } from '../Constants';
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ISerializedCardState, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
@@ -12,6 +12,7 @@ import type { Card } from './Card';
 import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import type { ConstantAbility } from '../ability/ConstantAbility';
 import { registerStateBase } from '../GameObjectUtils';
 
@@ -63,11 +64,11 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>, AbilityHelper: IAbilityHelper) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {}
 
     /**
      * Create card abilities for the second leader side by calling subsequent methods with appropriate properties
@@ -86,6 +87,14 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         // leaders are always in a zone where they are allowed to be exhausted
         this.setExhaustEnabled(true);
         this.resolveAbilitiesForNewZone();
+    }
+
+    protected override buildSerializedCardState(): ISerializedCardState {
+        const state = super.buildSerializedCardState();
+        if (!this.onStartingSide) {
+            state.flipped = true;
+        }
+        return state;
     }
 
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false): string {

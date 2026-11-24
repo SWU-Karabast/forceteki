@@ -13,7 +13,7 @@ import { WithPrintedPower } from './PrintedPower';
 import { EnumHelpers } from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, IWhenAttackEndsAbilityProps, WhenTypeOrStandard } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ISerializedCardState, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, IWhenAttackEndsAbilityProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
@@ -39,7 +39,6 @@ import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
@@ -220,7 +219,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private accessor _upgrades: readonly IUpgradeCard[] = null;
 
         @statePrimitive()
-        private accessor _expiredLastingEffectChangedRemainingHp: boolean = false;
+        private accessor _expiredLastingEffectChangedRemainingHp = false;
 
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
@@ -1075,9 +1074,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return false;
             }
             if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
-                // This is needed for abilities that let you play Pilots from the opponent's discard
-                const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
+                return targetCard.canAttachPilot(this) && targetCard.controller === controller;
             }
             if (this.hasSomeTrait(Trait.Pilot) && this.isAttached()) {
                 // A pilot upgrade being moved by an ability (e.g. Survivors' Gauntlet) retains the
@@ -1198,14 +1195,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             };
         }
 
-        public override getCardState(): any {
+        protected override buildSerializedCardState(): ISerializedCardState {
+            const state = super.buildSerializedCardState();
             if (this.isInPlay()) {
-                return {
-                    ...super.getCardState(),
-                    upgrades: this.upgrades,
-                    capturedUnits: this.capturedUnits
-                };
+                this.addAttachedCardsToSerializedState(state, this.upgrades, this.capturedUnits);
             }
+            return state;
         }
 
         public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {

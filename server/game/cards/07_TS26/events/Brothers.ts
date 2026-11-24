@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { AbilityType, DamageModificationType } from '../../../core/Constants';
+import { DamageModificationType } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class Brothers extends EventCard {
@@ -20,9 +20,8 @@ export default class Brothers extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerCondition: (card) => card.unique,
                     attackerLastingEffects: {
-                        effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
+                        effect: AbilityHelper.ongoingEffects.modifyDamage({
                             title: 'Prevent all combat damage that would be dealt to this unit',
-                            type: AbilityType.DamageModification,
                             modificationType: DamageModificationType.PreventAll,
                             damageOfType: DamageSourceType.Attack
                         }),
@@ -35,9 +34,8 @@ export default class Brothers extends EventCard {
                 initiateAttack: {
                     attackerCondition: (card) => card.unique && thenContext.target !== card,
                     attackerLastingEffects: {
-                        effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
+                        effect: AbilityHelper.ongoingEffects.modifyDamage({
                             title: 'Prevent all combat damage that would be dealt to this unit',
-                            type: AbilityType.DamageModification,
                             modificationType: DamageModificationType.PreventAll,
                             damageOfType: DamageSourceType.Attack
                         }),

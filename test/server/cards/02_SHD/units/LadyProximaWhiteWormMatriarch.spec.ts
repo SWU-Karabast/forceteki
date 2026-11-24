@@ -38,5 +38,37 @@ describe('Lady Proxima, White Worm Matriarch', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('should trigger when its controller plays an opponent-owned Underworld unit from the discard pile with Stolen AT-Hauler', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown'],
+                    groundArena: ['lady-proxima#white-worm-matriarch']
+                },
+                player2: {
+                    spaceArena: ['stolen-athauler']
+                }
+            });
+            const { context } = contextRef;
+
+            // Defeat the opponent's Stolen AT-Hauler so player1 may play it from player2's discard pile
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+            // Lady Proxima reacts to player1 playing the opponent-owned Underworld card
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(1);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

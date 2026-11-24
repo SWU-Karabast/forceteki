@@ -129,6 +129,19 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
 
+    /**
+     * Whether this card's abilities read cards through the last known information registry.
+     *
+     * `false`, the default, gives the card a live-only getter (see `ICardStateInternal.forCard`), so
+     * everything it reads is exactly what reading the card directly would give. A card sets this to
+     * `true` once it has been migrated and its tests cover the new semantics.
+     *
+     * Transitional: introduced by the LKI migration so that every card's reads can be rewritten to go
+     * through the getter without changing behavior (phase 3), and removed once every card has opted
+     * in (phase 4). See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-35).
+     */
+    public readonly usesLkiRegistry: boolean = false;
+
     @statePrimitive()
     private accessor _facedown = true;
 
@@ -294,6 +307,28 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this.id;
     }
 
+    /**
+     * Distinguishes successive identities of this physical card (`SWU 8.5.4`).
+     *
+     * A card that leaves play and returns is a different card as far as the game is concerned, and
+     * this counter is what tells the two apart. It also changes when a card moves somewhere hidden,
+     * because tracking information is lost at that point.
+     *
+     * Unlike {@link IInPlayCard.inPlayId} and {@link IInPlayCard.mostRecentInPlayId}, this is safe to
+     * read in any zone and never throws, so it can be used to compare two references to the same
+     * physical card and determine whether they refer to the same identity.
+     *
+     * Cards that can never be in play have only one identity, and report a constant.
+     *
+     * TODO (LKI migration phase 4): give event cards and bases a real counter so that an event card
+     * bouncing between a visible zone and a hidden one is correctly treated as a new identity.
+     * See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
+     */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style -- must be a getter so InPlayCard can override it with the real counter
+    public get identityId(): number {
+        return 0;
+    }
+
     public get traits(): Set<Trait> {
         return this.getTraits();
     }
@@ -323,7 +358,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     @statePrimitive()
-    private accessor nextAbilityIdx: number = 0;
+    private accessor nextAbilityIdx = 0;
 
     public get isImplemented(): boolean {
         // We consider a card "implemented" if it doesn't require any implementation
@@ -1050,7 +1085,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
-                this.zone = this.owner.baseZone;
+                // like resources, the base zone is in play, so the card goes to its controller's base
+                // (e.g. an opponent's Fortify upgrade played with A Fine Addition)
+                this.zone = this.controller.baseZone;
 
                 if (this.isLeader()) {
                     this.zone.setLeader(this);
@@ -1450,14 +1487,6 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return { ...state, ...selectionState };
     }
 
-    public getCardState(): any {
-        return {
-            internalName: this.internalName,
-            controllerId: this.controller.id,
-            type: this.type
-        };
-    }
-
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
@@ -1492,59 +1521,44 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     /**
-     * Captures a card's state
-     * @returns A simplified card state representation
+     * Captures a card's state in the test setup format, e.g. for bug reports
+     * @returns The card's internal name if it has no other state, otherwise the full state. Upgrades return null since they are captured with their parent.
      */
     public captureCardState(): string | ISerializedCardState {
         try {
             if (this.isUpgrade()) {
                 return null;
             }
-            const currentCardState = this.getCardState();
-            if (this.isLeader() && !currentCardState.deployed) {
-                return { card: this.internalName, exhausted: this.exhausted };
-            }
-            // If the card is completely simple with no additional properties, just return its internal name
-            if (!currentCardState.damage &&
-              !currentCardState.upgrades &&
-              !currentCardState.exhausted &&
-              !currentCardState.capturedUnits) {
-                return currentCardState.internalName;
-            }
-            // Return a more detailed card state
-            const cardState: ISerializedCardState = {
-                card: currentCardState.internalName
-            };
 
-            // Add all available properties from ISerializedCardState
-            if (currentCardState.damage !== undefined) {
-                cardState.damage = currentCardState.damage;
-            }
-
-            if (currentCardState.exhausted !== undefined) {
-                cardState.exhausted = currentCardState.exhausted;
-            }
-
-            // Capture upgrades
-            if (currentCardState.upgrades && currentCardState.upgrades.length > 0) {
-                cardState.upgrades = currentCardState.upgrades.map((upgrade) => upgrade.internalName);
-            }
-
-            // Capture captured units if present
-            if (currentCardState.capturedUnits && currentCardState.capturedUnits.length > 0) {
-                cardState.capturedUnits = currentCardState.capturedUnits.map((unit) => unit.internalName);
-            }
-            // if leader unit then it is deployed
-            if (currentCardState.deployed) {
-                cardState.deployed = currentCardState.deployed;
-            }
-            return cardState;
+            const cardState = this.buildSerializedCardState();
+            return Object.keys(cardState).length === 1 ? cardState.card : cardState;
         } catch (error) {
             logger.error('Error capturing card state for bug report', {
                 error: { message: error.message, stack: error.stack },
                 cardId: this.id
             });
             throw error;
+        }
+    }
+
+    /**
+     * Builds the state captured by {@link captureCardState}. Each class that owns a piece of state
+     * adds it in an override, and only when it differs from the test setup default.
+     */
+    protected buildSerializedCardState(): ISerializedCardState {
+        return { card: this.internalName };
+    }
+
+    /**
+     * Adds a card's upgrades and captured units to its captured state, leaving out empty lists like the test setup does.
+     * Shared by the card types that can hold both: units and bases.
+     */
+    protected addAttachedCardsToSerializedState(state: ISerializedCardState, upgrades: readonly { internalName: string }[], capturedUnits: readonly { internalName: string }[]): void {
+        if (upgrades.length > 0) {
+            state.upgrades = upgrades.map((upgrade) => upgrade.internalName);
+        }
+        if (capturedUnits.length > 0) {
+            state.capturedUnits = capturedUnits.map((unit) => unit.internalName);
         }
     }
 

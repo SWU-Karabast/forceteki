@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, WildcardCardType } from '../../../core/Constants';
+import { DamageSystem } from '../../../gameSystems/DamageSystem';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class DarthSidiousThereIsNoMercy extends LeaderUnitCard {
@@ -51,9 +52,7 @@ export default class DarthSidiousThereIsNoMercy extends LeaderUnitCard {
             return false;
         }
 
-        const amount = event.amount ?? event.sourceEventForExcessDamage?.availableExcessDamage;
-
-        if (amount == null || amount < 4) {
+        if (DamageSystem.getDamageAmountDealtToCard(event) < 4) {
             return false;
         }
 

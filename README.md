@@ -15,7 +15,7 @@ Follow these instructions to get to the point of being able to run the [unit tes
 #### Required Software
 
 - Git
-- Node.js v22.x
+- Node.js v26.x (see `.tool-versions`)
 
 ### Install Dependencies
 
@@ -32,6 +32,9 @@ npm run get-cards
 # run this to transpile (build) the code. the 'npm test' command will automatically run it's own build script.
 # rm -r build/  # needed if files are added / deleted / renamed between builds
 npm run build
+
+# set up the local environment (see comments in the example file)
+cp .env.example .env
 
 # run this to build and start the server. If you don't have an .env file, it'll create one.
 npm run dev
@@ -87,10 +90,10 @@ Once you have vscode set up, use the `Debug All Jasmine Tests` profile or open a
 
 For testing on mobile devices connected to your local network:
 
-1. Edit `.env` and add ADDITIONAL_CORS_ORIGINS="http://your-local-ip:3000"
-2. Restart the development server for the Back-End
-3. Update the Front-End with its instructions to allow mobile local connections
-4. Connect to your-local-ip:3000 on the web browser of your mobile device
+1. In `.env`, set `ADDITIONAL_CORS_ORIGINS=http://your-local-ip:3000` (the frontend origin, without a trailing slash).
+2. Follow the [frontend mobile testing instructions](https://github.com/SWU-Karabast/forceteki-client#mobile-testing-and-custom-environment) to use the same IP for both URLs.
+3. Restart both development servers.
+4. Open `http://your-local-ip:3000` and sign in again; do not mix `localhost` and an IP.
 
 ### FAQ
 Q. I ran into this error: Importing card class with repeated id!: <card id>

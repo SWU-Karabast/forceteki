@@ -5,7 +5,7 @@ import { Contract } from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
 import type { ActionAbilityBase } from '../ability/ActionAbility';
-import type { IEpicActionProps } from '../../Interfaces';
+import type { IEpicActionProps, ISerializedCardState } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
@@ -15,6 +15,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
 import { registerStateBase, statePrimitive, stateRef, stateRefArray } from '../GameObjectUtils';
@@ -148,6 +149,12 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         };
     }
 
+    protected override buildSerializedCardState(): ISerializedCardState {
+        const state = super.buildSerializedCardState();
+        this.addAttachedCardsToSerializedState(state, this.upgrades, this.capturedUnits);
+        return state;
+    }
+
     protected override getAbilityRegistrar(): IBaseAbilityRegistrar {
         return {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<BaseCard>,
@@ -156,11 +163,11 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 
     private initializeCaptureZone() {
         this._captureZone = new CaptureZone(this.game, this.owner, this);

@@ -80,7 +80,7 @@ export const rotationBlocks: IRotationBlock[] = [
             { id: SwuSetId.LAW, releaseStage: ReleaseStage.Released, mainline: true },
             { id: SwuSetId.ASH, releaseStage: ReleaseStage.Released, mainline: true },
             { id: SwuSetId.HMW, releaseStage: ReleaseStage.Released, mainline: true },
-            { id: SwuSetId.IC27, releaseStage: ReleaseStage.Next, mainline: false }
+            { id: SwuSetId.IC27, releaseStage: ReleaseStage.Released, mainline: false }
         ]
     },
 ];
@@ -114,11 +114,15 @@ export interface IFormatRules {
 }
 
 const bannedPremierCards = new Map<string, IBannedCard>([
-    ['5648009238', { name: 'cad-bane#still-faster-than-you' }]
+    ['5648009238', { name: 'cad-bane#still-faster-than-you' }],
+    ['5876721507', { name: 'aggressive-negotiations' }],
+    ['6078486694', { name: 'chimaera#a-frightening-reality' }],
+    ['6057506500', { name: 'koska-reeves#warrior-of-mandalore' }],
+    ['8371755043', { name: 'neel#the-cutest-boy' }],
 ]);
 
 const bannedEternalCards = new Map<string, IBannedCard>([
-    // No currently banned cards for Eternal format
+    ['4028826022', { name: 'data-vault' }],
 ]);
 
 export const formatRules = new Map<SwuGameFormat, IFormatRules>([

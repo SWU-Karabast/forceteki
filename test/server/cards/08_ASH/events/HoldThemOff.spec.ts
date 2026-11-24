@@ -173,7 +173,6 @@ describe('Hold Them Off', function() {
 
                 context.player1.clickCard(context.blueLeader);
                 context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
                 context.player1.clickPrompt('Pass');
 
                 context.player2.passAction();

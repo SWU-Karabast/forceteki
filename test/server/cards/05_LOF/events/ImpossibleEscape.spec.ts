@@ -17,20 +17,23 @@ describe('Impossible Escape ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.impossibleEscape);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-            context.player1.clickPrompt('Trigger');
-            expect(context.player1).toHaveEnabledPromptButtons([
-                'Use the Force',
+            expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
+            expect(context.player1).toHaveExactPromptButtons([
                 'Exhaust a friendly unit',
+                'Use the Force',
+                'Pass'
             ]);
 
+            // Resolve the first effect
             context.player1.clickPrompt('Use the Force');
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-
-            context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1.hasTheForce).toBeFalse();
             expect(context.atst.exhausted).toBeFalse();
+
+            // Resolve the second effect
+            expect(context.player1).toHavePrompt('Exhaust an enemy unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
             expect(context.battlefieldMarine.exhausted).toBeTrue();
             expect(context.wampa).toBeInZone('hand', context.player1);
         });
@@ -52,28 +55,28 @@ describe('Impossible Escape ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.impossibleEscape);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
             expect(context.player1).toHaveEnabledPromptButtons([
-                'Use the Force',
                 'Exhaust a friendly unit',
+                'Use the Force',
+                'Pass'
             ]);
 
             context.player1.clickPrompt('Exhaust a friendly unit');
             expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-
             context.player1.clickCard(context.atst);
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-
-            context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1.hasTheForce).toBeTrue();
             expect(context.atst.exhausted).toBeTrue();
+
+            expect(context.player1).toHavePrompt('Exhaust an enemy unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
             expect(context.battlefieldMarine.exhausted).toBeTrue();
             expect(context.wampa).toBeInZone('hand', context.player1);
         });
 
-        it('can choose to use the Force to do nothing', async function () {
+        it('cannot choose to use the force if there is no Force token', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -90,22 +93,17 @@ describe('Impossible Escape ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.impossibleEscape);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
             expect(context.player1).toHaveEnabledPromptButtons([
-                '(No effect) Use the Force',
                 'Exhaust a friendly unit',
+                'Pass'
             ]);
 
-            context.player1.clickPrompt('(No effect) Use the Force');
-            expect(context.player1.hasTheForce).toBeFalse();
-            expect(context.atst.exhausted).toBeFalse();
-            expect(context.battlefieldMarine.exhausted).toBeFalse();
-            expect(context.wampa).toBeInZone('deck', context.player1);
+            context.player1.clickPrompt('Pass');
+            expect(context.player2).toBeActivePlayer();
         });
 
-        it('can choose to exhaust a friendly unit to do nothing', async function () {
+        it('cannot choose to exhaust a friendly unit if there are no friendly units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -121,18 +119,14 @@ describe('Impossible Escape ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.impossibleEscape);
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Use the Force',
-                '(No effect) Exhaust a friendly unit',
+                'Pass',
             ]);
 
-            context.player1.clickPrompt('(No effect) Exhaust a friendly unit');
-            expect(context.player1.hasTheForce).toBeTrue();
-            expect(context.battlefieldMarine.exhausted).toBeFalse();
-            expect(context.wampa).toBeInZone('deck', context.player1);
+            context.player1.clickPrompt('Pass');
+            expect(context.player2).toBeActivePlayer();
         });
 
         describe('when the opponent has no units', function () {
@@ -150,12 +144,11 @@ describe('Impossible Escape ability', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.impossibleEscape);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
                 expect(context.player1).toHaveEnabledPromptButtons([
-                    'Use the Force',
                     'Exhaust a friendly unit',
+                    'Use the Force',
+                    'Pass',
                 ]);
 
                 context.player1.clickPrompt('Use the Force');
@@ -177,12 +170,11 @@ describe('Impossible Escape ability', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.impossibleEscape);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
                 expect(context.player1).toHaveEnabledPromptButtons([
-                    'Use the Force',
                     'Exhaust a friendly unit',
+                    'Use the Force',
+                    'Pass',
                 ]);
 
                 context.player1.clickPrompt('Exhaust a friendly unit');
@@ -208,12 +200,10 @@ describe('Impossible Escape ability', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.impossibleEscape);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
-
-                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePrompt('Choose an effect. If you do either, exhaust an enemy unit and draw a card');
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Use the Force',
-                    '(No effect) Exhaust a friendly unit',
+                    'Pass',
                 ]);
 
                 context.player1.clickPrompt('Use the Force');

@@ -326,6 +326,89 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should increase the damage dealt by Adamant Ewoks\'s when-played ability to 2 for both the base and the unit target', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['adamant-ewoks'],
+                        groundArena: ['ty-yorrick#monster-hunter', 'village-tender'],
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.adamantEwoks);
+                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to a base and 1 damage to an enemy unit');
+                context.player1.clickPrompt('Trigger');
+
+                // the optional increase happens when the ability is initiated, before targets are selected
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a base');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to an enemy unit');
+                context.player1.clickCard(context.atst);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(2);
+            });
+
+            it('should increase Ninth Sister\'s ability damage to 4, defeating a 1-hp unit and triggering Darth Sidious\'s ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        groundArena: ['ty-yorrick#monster-hunter'],
+                        hand: ['ninth-sister#hulking-inquisitor']
+                    },
+                    player2: {
+                        base: 'tarkintown',
+                        groundArena: ['porg'],
+                        hand: ['fleet-lieutenant']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ninthSister);
+
+                // opponent discards fleet-lieutenant (3 cost)
+                expect(context.player2).toHavePrompt('Choose a card to discard for Ninth Sister\'s effect');
+                context.player2.clickCard(context.fleetLieutenant);
+                expect(context.fleetLieutenant).toBeInZone('discard');
+
+                expect(context.player1).toHavePassAbilityPrompt('Deal 3 damage divided as you choose among any number of units');
+                context.player1.clickPrompt('Trigger');
+
+                // the optional increase happens when the if-you-do ability is initiated, before the damage is distributed
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                // the total damage is increased from 3 to 4 before being distributed
+                expect(context.player1).toHavePrompt('Distribute 4 damage among targets');
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.porg, 4],
+                ]));
+
+                expect(context.porg).toBeInZone('discard');
+
+                // dealing 4 damage to a unit triggers the deployed Darth Sidious's ability
+                expect(context.player1).toHavePrompt('Deal 1 damage to a different unit or base');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(2);
+            });
+
             it('should increase damage dealt by Arena Nexu and Darth Sidious\' abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -371,6 +454,32 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.arenaNexu.exhausted).toBeFalse();
                 expect(context.p1Base.damage).toBe(2);
                 expect(context.p2Base.damage).toBe(8);
+            });
+
+            it('should not offer an increase for a friendly ability whose only nested effect is a delayed effect', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['ty-yorrick#monster-hunter', 'maul#master-of-the-shadow-collective'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Maul's when-attack-ends ability takes control "until Maul leaves the arena" via a delayed effect,
+                // whose properties depend on a unit not yet chosen when the ability is initiated
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Select a unit to take control of until Maul leaves the arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
             });
         });
     });

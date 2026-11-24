@@ -4,6 +4,7 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
+import type { Player } from '../Player';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
@@ -16,6 +17,12 @@ export abstract class CardAbility extends CardAbilityStep {
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
     public readonly printedAbility: boolean;
 
+    /** If this is how a lasting effect applies to the card rather than an ability the card has, the card that created the effect (see `IAbilityProps.lastingEffectSource`) */
+    public readonly lastingEffectSource?: Card;
+
+    /** If this is how a lasting effect applies to the card, the player who created the effect (see `IAbilityProps.lastingEffectController`) */
+    public readonly lastingEffectController?: Player;
+
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
@@ -24,12 +31,18 @@ export abstract class CardAbility extends CardAbilityStep {
         this.limit.ability = this;
 
         this.printedAbility = properties.printedAbility ?? true;
+        this.lastingEffectSource = properties.lastingEffectSource;
+        this.lastingEffectController = properties.lastingEffectController;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
 
         // if an ability name wasn't provided, assume this ability was created for some one-off purpose and not attached to the card
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
+    }
+
+    public override get stepIdentifier(): string {
+        return this.abilityIdentifier;
     }
 
     private zoneOrDefault(card, zone): ZoneFilter | ZoneFilter[] {

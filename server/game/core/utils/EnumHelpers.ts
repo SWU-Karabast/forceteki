@@ -2,8 +2,6 @@ import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, TokenName } from 
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName, TokenCardName, TokenUpgradeName, TokenUnitName } from '../Constants';
 import type { Player } from '../Player';
 import { Helpers } from './Helpers';
-import type { TimedModActionType } from '../../../services/DynamoDBInterfaces';
-import { ModActionType } from '../../../services/DynamoDBInterfaces';
 
 // Cache for enum lookup maps (lowercase string -> enum value)
 const enumLookupCache = new Map<object, Map<string, unknown>>();
@@ -148,6 +146,20 @@ export namespace EnumHelpers {
         }
     };
 
+    /**
+     * True if moving from `from` to `to` loses the information the game had about the card, which is
+     * what makes it a new copy (`SWU 8.5.4`).
+     *
+     * Mirrors the increment condition in `InPlayCard.initializeForCurrentZone`: a move from a
+     * visible zone (an arena, the discard pile, capture) into a hidden one (hand, resources, deck).
+     * Moving between two hidden zones loses nothing that was not already unknown, and moving from
+     * hidden to visible gains information rather than losing it.
+     */
+    export const zoneMoveLosesCardInformation = (from: ZoneName, to: ZoneName) => {
+        return isHiddenFromOpponent(to, RelativePlayer.Self) &&
+          !isHiddenFromOpponent(from, RelativePlayer.Self);
+    };
+
     // return true if the card zone matches one of the allowed zone filters
     export const cardZoneMatches = (cardZone: ZoneName, zoneFilter: ZoneFilter | ZoneFilter[]) => {
         if (!Array.isArray(zoneFilter)) {
@@ -179,9 +191,19 @@ export namespace EnumHelpers {
         return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
     };
 
+    /**
+     * A card keeps its controller while it moves between the zones where control can differ from ownership
+     * (the arenas, the resource zone and the base zone) and goes back to its owner when it leaves them
+     * (e.g. a unit or base upgrade going to the discard pile).
+     *
+     * The base zone has to count on the way in as well as on the way out: a card that changes controller as
+     * it enters the base zone (e.g. an opponent's Fortify upgrade played from their resources) would
+     * otherwise be reset to its owner and land in the owner's base instead of the controller's.
+     */
     export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
-        const nextZoneName = asConcreteZone(nextZone);
-        return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
+        const isControlledZone = (zoneName: ZoneName) => isArena(zoneName) || zoneName === ZoneName.Resource || zoneName === ZoneName.Base;
+
+        return isControlledZone(prevZone) && !isControlledZone(asConcreteZone(nextZone));
     };
 
     export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | WildcardCardType.LeaderUnit | CardType.BasicUnit | CardType.NonTokenLeaderUnit | CardType.TokenLeaderUnit | CardType.TokenUnit => {
@@ -369,7 +391,3 @@ export namespace EnumHelpers {
         }
     };
 }
-
-export const isTimedModAction = (actionType: ModActionType): actionType is TimedModActionType => {
-    return actionType === ModActionType.Mute || actionType === ModActionType.Rename;
-};

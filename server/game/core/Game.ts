@@ -1,11 +1,11 @@
 import { EventEmitter } from 'events';
 
 import type { IScheduler } from '../../utils/IScheduler';
+import { ByoyomiTimer } from './actionTimer/ByoyomiTimer';
 import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
 import { Player } from './Player';
-import { Spectator } from '../../Spectator';
 import { AnonymousSpectator } from '../../AnonymousSpectator';
 import { GamePipeline } from './GamePipeline';
 import { SetupPhase } from './gameSteps/phases/SetupPhase';
@@ -16,11 +16,17 @@ import MenuPrompt from './gameSteps/prompts/MenuPrompt';
 import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
 import { OptionalTriggerPrompt } from './gameSteps/prompts/OptionalTriggerPrompt';
 import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/OptionalTriggerPrompt';
+import { ActionSelectionPrompt } from './gameSteps/prompts/ActionSelectionPrompt';
+import type { IActionSelectionPromptProperties } from './gameSteps/prompts/ActionSelectionPrompt';
+import { ModalEffectSelectionPrompt } from './gameSteps/prompts/ModalEffectSelectionPrompt';
+import type { IModalEffectSelectionPromptProperties } from './gameSteps/prompts/ModalEffectSelectionPrompt';
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
+import type { OngoingEffect } from './ongoingEffect/OngoingEffect';
 import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
+import type { PreResolvedOptionalChoice } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
@@ -73,6 +79,9 @@ import { defaultCostPaymentRecoveryPolicy } from './cost/CostPaymentRecovery';
 import type { ICostPaymentRecoveryPolicy, ICostPaymentRecoveryRequest } from './cost/CostPaymentRecovery';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { LkiRegistry } from './lki/LkiRegistry';
+import type { ICardStateInternal } from './lki/CardStateGetter';
+import { CardStateGetter } from './lki/CardStateGetter';
 import { getAbilityHelper } from '../AbilityHelper';
 import type { IAbilityHelper } from '../AbilityHelper';
 import { PhaseInitializeMode } from './gameSteps/phases/Phase';
@@ -107,11 +116,12 @@ import type {
 } from './gameSteps/PromptInterfaces';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
-import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { AnimationRecorder } from './animation/AnimationRecorder';
+import { buildAnimationDescriptors } from './animation/AnimationLibrary';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -240,6 +250,11 @@ export class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
+    /** Whether the lobby is done with this game (see {@link dispose}). */
+    public get isDisposed(): boolean {
+        return this._disposed;
+    }
+
     public get isEnded(): boolean {
         return this.state.winnerNames.length > 0;
     }
@@ -316,8 +331,31 @@ export class Game extends EventEmitter {
         return this.snapshotManager.undoMode !== UndoMode.Disabled;
     }
 
+    /**
+     * True once the game has ended by a concession, a player leaving or a player running out of time, after which it can
+     * no longer be rolled back. Only a game ended by the game rules (a base being defeated) can be undone past its end.
+     */
+    public get isUndoBlockedByGameEnd(): boolean {
+        // gameEndReason is not part of the game state, so it is only trusted while the game is still over
+        return this.isEnded && (
+            this.gameEndReason === GameEndReason.Concede ||
+            this.gameEndReason === GameEndReason.PlayerLeft ||
+            this.gameEndReason === GameEndReason.Timeout
+        );
+    }
+
     public get gameObjectManager(): IGameObjectRegistrar {
         return this._snapshotManager.gameObjectManager;
+    }
+
+    /** Serves card properties, resolving reads against last known information where appropriate. */
+    public get lkiRegistry(): LkiRegistry {
+        return this._lkiRegistry;
+    }
+
+    /** Engine-facing card state accessor. Card implementations receive the narrower facade. */
+    public get cardStates(): ICardStateInternal {
+        return this._cardStateGetter;
     }
 
     public get randomGenerator(): IRandomness {
@@ -351,15 +389,17 @@ export class Game extends EventEmitter {
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
+    private readonly _lkiRegistry: LkiRegistry;
+    private readonly _cardStateGetter: CardStateGetter;
 
     public ongoingEffectEngine: OngoingEffectEngine;
     public abilityHelper: IAbilityHelper;
-    public playersAndSpectators: Record<string, Player | Spectator>;
+    public playersById: Record<string, Player>;
     public chatMessageOffsets: Map<string, number>;
     public gameChat: GameChat;
+    public readonly animations: AnimationRecorder;
     public pipeline: GamePipeline;
     public id: string;
-    public allowSpectators: boolean;
     private freeUndoLimit: UndoLimit;
     public owner: string;
     public started: boolean;
@@ -383,15 +423,15 @@ export class Game extends EventEmitter {
      * instead of restarting it. Not part of the game state, since it must survive the rollback.
      */
     private _resumeActionTimerAfterRollback = false;
+    private _disposed = false;
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
 
     /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
     public readonly scheduler: IScheduler;
-    public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
-    public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
+    public readonly onBo3SetForfeit?: (losingPlayerId: string, game: Game) => void;
     public manualMode: boolean;
     public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
@@ -429,16 +469,18 @@ export class Game extends EventEmitter {
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
+        this._lkiRegistry = new LkiRegistry();
+        this._cardStateGetter = new CardStateGetter(() => this._lkiRegistry);
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);
 
-        this.playersAndSpectators = {};
+        this.playersById = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this.animations = new AnimationRecorder(this, buildAnimationDescriptors());
         this.pipeline = new GamePipeline();
         this.id = details.id;
-        this.allowSpectators = details.allowSpectators;
 
         this.freeUndoLimit = details.undoMode === UndoMode.Request
             ? new PerGameUndoLimit(1)
@@ -456,7 +498,6 @@ export class Game extends EventEmitter {
         this.playerHasBeenPrompted = new Map();
 
         this.scheduler = details.scheduler;
-        this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
         this.onBo3SetForfeit = details.onBo3SetForfeit;
 
@@ -509,16 +550,12 @@ export class Game extends EventEmitter {
         );
 
         details.players.forEach((player) => {
-            this.playersAndSpectators[player.id] = new Player(
+            this.playersById[player.id] = new Player(
                 player.id,
                 player,
                 this,
                 details.useActionTimer ?? false
             );
-        });
-
-        details.spectators?.forEach((spectator) => {
-            this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
         this.spaceArena = new SpaceArenaZone(this);
@@ -617,29 +654,22 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Checks if a player is a spectator
+     * Checks whether a state viewer is a seated player rather than a spectator
      */
-    public isSpectator(player: Player | Spectator | AnonymousSpectator): player is Spectator | AnonymousSpectator {
-        return !this.isPlayer(player);
-    }
-
-    /**
-     * Checks if a player is a player
-     */
-    public isPlayer(player: Player | Spectator | AnonymousSpectator): player is Player {
+    public isPlayer(player: Player | AnonymousSpectator): player is Player {
         return player.constructor === Player;
     }
 
     /**
-     * Checks whether a player/spectator is still in the game
+     * Checks whether a player is still in the game
      */
     public hasPlayerNotInactive(playerName: string): boolean {
-        const player = this.playersAndSpectators[playerName];
+        const player = this.playersById[playerName];
         if (!player) {
             return false;
         }
 
-        return !this.isPlayer(player) || !player.left;
+        return !player.left;
     }
 
     /**
@@ -654,14 +684,14 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Get all players (not spectators) in the game
+     * Get all players in the game
      */
     public getPlayers(): Player[] {
-        return Object.values(this.playersAndSpectators).filter((player): player is Player => this.isPlayer(player));
+        return Object.values(this.playersById);
     }
 
     /**
-     * Returns the Player object (not spectator) for a name
+     * Returns the Player object for a name
      */
     public getPlayerByName(playerName: string): Player {
         const player = this.getPlayers().find((player) => player.name === playerName);
@@ -676,11 +706,10 @@ export class Game extends EventEmitter {
      * Returns the Player object for an id
      */
     public getPlayerById(playerId: string): Player {
-        Contract.assertHasProperty(this.playersAndSpectators, playerId);
+        Contract.assertHasProperty(this.playersById, playerId);
 
-        const player = this.playersAndSpectators[playerId];
+        const player = this.playersById[playerId];
         Contract.assertNotNullLike(player, `Player with id ${playerId} not found`);
-        Contract.assertTrue(this.isPlayer(player), `Player ${player.name} is a spectator`);
 
         return player;
     }
@@ -696,7 +725,7 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Get all players (not spectators) with the first player at index 0
+     * Get all players with the first player at index 0
      */
     public getPlayersInInitiativeOrder(): Player[] {
         return this.getPlayers().sort((a) => (a.hasInitiative() ? -1 : 1));
@@ -704,20 +733,6 @@ export class Game extends EventEmitter {
 
     public getActivePlayer(): Player | null {
         return this.currentPhase === PhaseName.Action ? this.actionPhaseActivePlayer : this.initiativePlayer;
-    }
-
-    /**
-     * Get all players and spectators in the game
-     */
-    public getPlayersAndSpectators(): Record<string, Player | Spectator> {
-        return this.playersAndSpectators;
-    }
-
-    /**
-     * Get all spectators in the game
-     */
-    public getSpectators(): Spectator[] {
-        return Object.values(this.playersAndSpectators).filter((player): player is Spectator => this.isSpectator(player));
     }
 
     /**
@@ -853,33 +868,40 @@ export class Game extends EventEmitter {
         return this._resumeActionTimerAfterRollback;
     }
 
-    public restartAllActionTimers(): void {
-        this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
-    }
-
-    public onPlayerAction(playerId: string): void {
-        const player = this.getPlayerById(playerId);
-
-        player.incrementActionId();
+    /**
+     * Stops what this game has scheduled (its players' action timers), for a lobby that is done with it. Nothing a disposed
+     * game scheduled acts afterwards.
+     */
+    public dispose(): void {
+        this._disposed = true;
+        for (const player of this.getPlayers()) {
+            player.actionTimer.stop();
+        }
     }
 
     public onGameTimerExpired(player: Player): null {
-        if (this.isEnded) {
+        if (this.isEnded || this._disposed) {
             // Stale timer fired after game already ended (e.g. for a previous game in a Bo3 set).
             // Skip to avoid spurious endGame / onBo3SetForfeit side effects on the wrong game.
             return null;
         }
 
-        player.opponent.actionTimer.stop();
+        // A draw if the opponent was about to time out too: their timer running (or running out at this same moment), and
+        // no more than the margin left, counting turn and main time. A waiting opponent wins however little time they have.
+        // Read before their timer is stopped, which would drop their turn time.
+        const opponentTimer = player.opponent.actionTimer;
+        const isDraw = opponentTimer.isCountingDown && opponentTimer.msUntilTimeout <= ByoyomiTimer.TimeoutDrawMarginSeconds * 1000;
+
+        opponentTimer.stop();
         this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);
 
-        if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
+        if (isDraw) {
             // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
             this.endGame([player, player.opponent], GameEndReason.Timeout);
         } else {
             // Single player timeout - forfeit Bo3 set if applicable
             if (this.onBo3SetForfeit) {
-                this.onBo3SetForfeit(player.id);
+                this.onBo3SetForfeit(player.id, this);
             }
             this.endGame(player.opponent, GameEndReason.Timeout);
         }
@@ -951,7 +973,7 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
-        this._router.handleGameEnd();
+        this._router.handleGameEnd(this);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
         if (typeof this._router.sendGameState === 'function') {
@@ -968,7 +990,7 @@ export class Game extends EventEmitter {
      * which can otherwise cause stale state pushes from a prior game in a Bo3 set.
      */
     public sendTimerUpdatedGameStateToPlayers() {
-        if (this.isEnded) {
+        if (this.isEnded || this._disposed) {
             return;
         }
         if (typeof this._router?.sendGameState === 'function') {
@@ -1006,9 +1028,7 @@ export class Game extends EventEmitter {
             return;
         }
 
-        if (!this.isSpectator(player)) {
-            this.gameChat.addChatMessage(player, message);
-        }
+        this.gameChat.addChatMessage(player, message);
     }
 
     /**
@@ -1101,6 +1121,24 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new OptionalTriggerPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player to choose one of a clicked card's available actions, rendering each action as a card button.
+     */
+    public promptWithActionSelection(player: Player, properties: IActionSelectionPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new ActionSelectionPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player to choose one of a modal ability's options, rendering each option as a card button.
+     */
+    public promptWithModalEffectSelection(player: Player, properties: IModalEffectSelectionPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new ModalEffectSelectionPrompt(this, player, properties));
     }
 
     public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {
@@ -1431,6 +1469,13 @@ export class Game extends EventEmitter {
     }
 
     private roundEnded(): void {
+        // a game that has ended is not timed, so it gives no time back; an undo back before its end lets the grant happen
+        if (!this.isEnded) {
+            for (const player of this.getPlayers()) {
+                player.actionTimer.grantRoundEndMainTime(this.roundNumber);
+            }
+        }
+
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
 
         // at end of round, any tokens (except the Force tokens) in outsideTheGameZone are removed completely
@@ -1473,8 +1518,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean, preResolvedOptional?: PreResolvedOptionalChoice): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements, preResolvedOptional);
         this.queueStep(resolver);
         return resolver;
     }
@@ -1532,87 +1577,6 @@ export class Game extends EventEmitter {
         return new AbilityContext({ game: this, player: player });
     }
 
-    public watch(socketId: string, user: IUser): boolean {
-        if (!this.allowSpectators) {
-            return false;
-        }
-
-        this.playersAndSpectators[user.username] = new Spectator(socketId, user);
-        this.addMessage('{0} has joined the game as a spectator', user.username);
-
-        return true;
-    }
-
-    public join(socketId: string, user: IUser): boolean {
-        if (this.started || this.getPlayers().length === 2) {
-            return false;
-        }
-
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
-
-        return true;
-    }
-
-    public leave(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        this.addMessage('{0} has left the game', playerName);
-
-        if (this.isSpectator(player) || !this.started) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            player.left = true;
-
-            if (!this.finishedAt) {
-                this.finishedAt = new Date();
-            }
-        }
-    }
-
-    public disconnect(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        this.addMessage('{0} has disconnected', player);
-
-        if (this.isSpectator(player)) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            player.disconnected = true;
-            player.socket = undefined;
-        }
-    }
-
-    public failedConnect(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        if (this.isSpectator(player) || !this.started) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            this.addMessage('{0} has failed to connect to the game', player);
-
-            player.disconnected = true;
-
-            if (!this.finishedAt) {
-                this.finishedAt = new Date();
-            }
-        }
-    }
-
     public reconnect(socket: any, playerName: string): void {
         const player = this.getPlayerByName(playerName);
         if (!player) {
@@ -1652,7 +1616,7 @@ export class Game extends EventEmitter {
         }
     }
 
-    public resolveGameState(hasChanged = false, events: GameEvent[] = []): void {
+    public resolveGameState(hasChanged = false, events: GameEvent[] = [], triggeredDelayedEffects: OngoingEffect<any>[] = []): void {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
             movedCard.resolveAbilitiesForNewZone();
@@ -1661,7 +1625,7 @@ export class Game extends EventEmitter {
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
-            this.ongoingEffectEngine.checkDelayedEffects(events);
+            this.ongoingEffectEngine.checkDelayedEffects(events, triggeredDelayedEffects);
         }
 
         // check for a game state change (recalculating attack stats if necessary)
@@ -1782,7 +1746,7 @@ export class Game extends EventEmitter {
     public getState(notInactivePlayerId: string) {
         const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
-            const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
+            const activePlayer = this.playersById[notInactivePlayerId] || new AnonymousSpectator();
 
             if (this._serializationFailure) {
                 return {
@@ -1825,17 +1789,14 @@ export class Game extends EventEmitter {
                     totalMessages: totalMessages,
                     initiativeClaimed: this.isInitiativeClaimed,
                     clientUIProperties: this.clientUIProperties,
-                    spectators: this.getSpectators().map((spectator) => {
-                        return {
-                            id: spectator.id,
-                            name: spectator.name
-                        };
-                    }),
+                    // the engine does not track spectators (the Lobby does), but the client still tests membership in this field
+                    spectators: [],
                     started: this.started,
                     format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                     ongoingEffects,
+                    ...this.animations.readFor(notInactivePlayerId, this.isPlayer(activePlayer) ? activePlayer : null),
                 };
 
                 // Advance the offset for this participant
@@ -1919,7 +1880,7 @@ export class Game extends EventEmitter {
      * @return True if the rollback was successful or we prompted the opponent to confirm, false otherwise
      */
     public rollbackToSnapshot(playerId: string, settings: IGetSnapshotSettings): boolean {
-        if (!this.isUndoEnabled) {
+        if (!this.isUndoEnabled || this.isUndoBlockedByGameEnd) {
             return false;
         }
 
@@ -1949,6 +1910,12 @@ export class Game extends EventEmitter {
         const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
 
         const performRollback = () => {
+            // an undo request can still be open when the game ends, and be allowed afterwards
+            if (this.isUndoBlockedByGameEnd) {
+                this.addAlert(AlertType.Notification, 'The game has ended, so the undo request can no longer be allowed');
+                return false;
+            }
+
             const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
 
             if (!result) {
@@ -2048,6 +2015,11 @@ export class Game extends EventEmitter {
     }
 
     private rollbackForCostPaymentRecovery(player: Player, context: AbilityContext): void {
+        // the game can end while the prompt is open, e.g. by the player running out of time on it
+        if (this.isUndoBlockedByGameEnd) {
+            return;
+        }
+
         const settings = this.getCostPaymentRecoveryRollbackSettings();
         Contract.assertNotNullLike(settings, 'Expected a snapshot for the start of the current action to be available for cost payment recovery');
 
@@ -2089,7 +2061,7 @@ export class Game extends EventEmitter {
 
     /** Returns the settings for rolling back to the start of the current action, or null if there is no snapshot for it */
     private getCostPaymentRecoveryRollbackSettings(): IGetSnapshotSettings | null {
-        if (!this.isUndoEnabled || this.currentPhase !== PhaseName.Action || this.actionPhaseActivePlayer == null) {
+        if (!this.isUndoEnabled || this.isUndoBlockedByGameEnd || this.currentPhase !== PhaseName.Action || this.actionPhaseActivePlayer == null) {
             return null;
         }
 

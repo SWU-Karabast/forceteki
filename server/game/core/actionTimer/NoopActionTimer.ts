@@ -1,5 +1,5 @@
 import { ByoyomiTimer } from './ByoyomiTimer';
-import type { IByoyomiTimer } from './IByoyomiTimer';
+import type { IByoyomiTimer, IMainTimeGrant } from './IByoyomiTimer';
 import { PlayerTimeRemainingStatus } from './IActionTimer';
 
 /**
@@ -14,11 +14,6 @@ export class NoopActionTimer implements IByoyomiTimer {
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public get isPaused(): boolean {
         return false;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public get timeRemainingSeconds(): number | null {
-        return null;
     }
 
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
@@ -36,16 +31,27 @@ export class NoopActionTimer implements IByoyomiTimer {
         return ByoyomiTimer.MainTimeLimitSeconds;
     }
 
-    public get totalTimeRemainingSeconds(): number {
-        // Return full main timer when disabled (no pressure on player)
-        return ByoyomiTimer.MainTimeLimitSeconds;
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get isCountingDown(): boolean {
+        return false;
     }
 
-    public start() {
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get msUntilTimeout(): number {
+        // a disabled timer never times anyone out
+        return Number.POSITIVE_INFINITY;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get lastMainTimeGrant(): IMainTimeGrant | null {
+        return null;
+    }
+
+    public grantRoundEndMainTime(_round: number) {
         return;
     }
 
-    public restartIfRunning() {
+    public start() {
         return;
     }
 

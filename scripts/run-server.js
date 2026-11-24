@@ -4,29 +4,7 @@ const childProcess = require('child_process');
 const envPath = '.env';
 
 function createEnvFile() {
-    const defaultEnvFields = {
-        GAME_NODE_HOST: 'localhost',
-        GAME_NODE_NAME: 'test1',
-        GAME_NODE_SOCKET_IO_PORT: '9500',
-        ENVIRONMENT: 'development',
-        NEXTAUTH_SECRET: 'verysecret',
-        // set this to "true" to force the local dev server to use action timers in public games
-        USE_LOCAL_ACTION_TIMER: 'false',
-        // set this to "true" to enable the use of local DynamoDB for account testing
-        USE_LOCAL_DYNAMODB: 'false',
-        DISCORD_BUG_REPORT_WEBHOOK_URL: '',
-        DISCORD_PLAYER_REPORT_WEBHOOK_URL: '',
-        DISCORD_ERROR_REPORT_WEBHOOK_URL: '',
-        SWUSTATS_API_KEY: '',
-        FORCE_ENABLE_STATS_LOGGING: 'false',
-        FORCE_BLOCK_BO3_ANON_LOCAL: 'false',
-    };
-    return fs.writeFile(
-        envPath,
-        Object.entries(defaultEnvFields)
-            .map(([key, value]) => `${key}="${value}"`)
-            .join('\n')
-    );
+    return fs.copyFile('.env.example', envPath);
 }
 
 async function fileExists(path) {

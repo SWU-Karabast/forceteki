@@ -55,7 +55,7 @@ describe('Coleman Trebor, Jedi Rescuer', function() {
             expect(context.getChatLogs(3)).toEqual([
                 'player1 plays Coleman Trebor',
                 'player1 uses Coleman Trebor to deal 1 damage to player2\'s base',
-                'player2 uses Echo Base\'s gained ability from Close the Shield Gate to prevent all damage to their base'
+                'player2 uses Close the Shield Gate\'s effect to prevent all damage to their base'
             ]);
         });
     });

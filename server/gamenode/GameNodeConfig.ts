@@ -1,5 +1,20 @@
+export enum MatchmakingCompetitivenessPreferencePolicyKey {
+    SamePreferenceOnlyDurationMs = 'samePreferenceOnlyDurationMs',
+    NoPreferenceDurationMs = 'noPreferenceDurationMs',
+}
+
+export interface IMatchmakingPreferencePolicy {
+    [MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs]: number;
+    [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: number;
+}
+
+export const defaultMatchmakingPreferencePolicy: Readonly<IMatchmakingPreferencePolicy> = {
+    [MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 15_000,
+    [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: 15_000,
+};
+
 /**
- * Behavioural switches for the game node.
+ * Behavioural configuration for the game node.
  *
  * These were previously read from `process.env.ENVIRONMENT` at each use site, which made them
  * invisible to callers and impossible to exercise: a test process has to run as `development` to
@@ -17,8 +32,14 @@ export interface IGameNodeConfig {
     /** Whether anonymous users may create, join or queue for a public best-of-three. */
     allowAnonymousBestOfThree: boolean;
 
+    /** Whether anonymous users may chat, and whether chat stays open against an anonymous opponent. */
+    allowAnonymousChat: boolean;
+
     /** Whether the cooldown that stops two players immediately rematching is applied. */
     enforceRematchCooldown: boolean;
+
+    /** Preference search windows; omitted policies use defaultMatchmakingPreferencePolicy. */
+    matchmakingPreferencePolicy?: Readonly<IMatchmakingPreferencePolicy>;
 
     /** Whether public and quick-match games use action timers. */
     actionTimersEnabled: boolean;
@@ -41,7 +62,9 @@ export function buildGameNodeConfigFromEnvironment(): IGameNodeConfig {
     return {
         allowAnonymousSpectators: isDevelopment,
         allowAnonymousBestOfThree: isDevelopment && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true',
+        allowAnonymousChat: isDevelopment && process.env.FORCE_ENABLE_ANON_CHAT === 'true',
         enforceRematchCooldown: !isDevelopment,
+        matchmakingPreferencePolicy: { ...defaultMatchmakingPreferencePolicy },
         actionTimersEnabled: !isDevelopment || process.env.USE_LOCAL_ACTION_TIMER === 'true',
         clientBaseUrl: isDevelopment ? 'http://localhost:3000' : 'https://karabast.net',
         metricsLoggingEnabled: !isDevelopment || process.env.FORCE_ENABLE_STATS_LOGGING === 'true',

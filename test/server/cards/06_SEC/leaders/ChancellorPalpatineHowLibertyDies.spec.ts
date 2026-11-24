@@ -59,7 +59,6 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
 
                 // Play Dogmatic for 3
                 context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.dogmaticShockSquad).toBeInZone('groundArena');
 
@@ -96,7 +95,6 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
 
                 // Play Jar Jar Binks for 2
                 context.player1.clickPrompt('Play Jar Jar Binks using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.jarJarBinks).toBeInZone('groundArena');
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies); // Give Palp +2/+2

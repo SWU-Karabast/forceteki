@@ -7,6 +7,7 @@ import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 import { registerState } from '../../core/GameObjectUtils';
+import { TextHelper } from '../../core/utils/TextHelper';
 
 @registerState()
 export class RestoreAbility extends TriggeredAbilityBase {
@@ -14,7 +15,7 @@ export class RestoreAbility extends TriggeredAbilityBase {
 
     public static buildRestoreAbilityProperties<TSource extends Card = Card>(restoreAmount: number): ITriggeredAbilityProps<TSource> {
         return {
-            title: `Restore ${restoreAmount}`,
+            title: `${TextHelper.Restore(restoreAmount)}`,
             when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
             zoneFilter: WildcardZoneName.AnyArena,
             immediateEffect: GameSystemLibrary.heal((context) => ({

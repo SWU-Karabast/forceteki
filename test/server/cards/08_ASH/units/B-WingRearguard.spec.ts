@@ -117,7 +117,6 @@ describe('B-Wing Rear Guard', function() {
 
             context.player1.clickCard(context.blueLeader);
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            context.player1.clickPrompt('Trigger');
 
             context.player2.clickCard(context.awing);
             expect(context.player2).toBeAbleToSelectExactly([context.bwingRearguard]);

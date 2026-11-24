@@ -1,8 +1,7 @@
-import type { Game } from '../Game';
-import type { Player } from '../Player';
+import type { IActionTimerGame, IActionTimerPlayer } from './GameActionTimer';
 import { GameActionTimer } from './GameActionTimer';
 import { PlayerTimeRemainingStatus } from './IActionTimer';
-import type { IByoyomiTimer } from './IByoyomiTimer';
+import type { IByoyomiTimer, IMainTimeGrant } from './IByoyomiTimer';
 
 /**
  * Two-stage "byoyomi" style timer that wraps two GameActionTimer instances.
@@ -12,6 +11,7 @@ import type { IByoyomiTimer } from './IByoyomiTimer';
  *
  * When the turn timer expires, the main timer becomes active (starts or resumes).
  * When the main timer expires, the onTimeout callback is invoked.
+ * At the end of each round some main time is given back (default 10s), up to the full main time.
  */
 export class ByoyomiTimer implements IByoyomiTimer {
     /** Time limit for each turn/prompt in seconds */
@@ -24,6 +24,15 @@ export class ByoyomiTimer implements IByoyomiTimer {
     public static readonly MainTimeWarningSeconds = 30;
     public static readonly MainTimeDangerSeconds = 10;
 
+    /** Main time given back to each player at the end of every round, up to {@link MainTimeLimitSeconds} (seconds). */
+    public static readonly RoundEndMainTimeGrantSeconds = 10;
+
+    /**
+     * When a player's main time runs out, the game is a draw if the opponent's timer is running and they are this close to
+     * timing out too, counting turn and main time (seconds).
+     */
+    public static readonly TimeoutDrawMarginSeconds = 3;
+
     private readonly turnTimer: GameActionTimer;
     private readonly mainTimer: GameActionTimer;
     private readonly onTimeout: () => void;
@@ -35,6 +44,18 @@ export class ByoyomiTimer implements IByoyomiTimer {
 
     private _isPaused = false;
 
+    /**
+     * The latest round whose end has given main time. The timer is not part of the game state, so an undo leaves this as
+     * it is, which is what stops a round's end from giving time twice.
+     */
+    private lastGrantedRound = 0;
+    private _lastMainTimeGrant: IMainTimeGrant | null = null;
+
+    /** A copy, since the game state it is sent in is changed in place before it goes out. */
+    public get lastMainTimeGrant(): IMainTimeGrant | null {
+        return this._lastMainTimeGrant == null ? null : { ...this._lastMainTimeGrant };
+    }
+
     public get isRunning(): boolean {
         return this.turnTimer.isRunning || this.mainTimer.isRunning;
     }
@@ -43,23 +64,22 @@ export class ByoyomiTimer implements IByoyomiTimer {
         return this._isPaused;
     }
 
-    public get timeRemainingSeconds(): number | null {
-        return this.isOnMainTimer
-            ? this.mainTimer.timeRemainingSeconds
-            : this.turnTimer.timeRemainingSeconds;
-    }
-
     public get turnTimeRemainingSeconds(): number | null {
         return this.isOnMainTimer ? null : this.turnTimer.timeRemainingSeconds;
     }
 
     public get mainTimeRemainingSeconds(): number {
-        // Main timer always has a value - either running/paused time or full time if not yet started
-        return this.mainTimer.timeRemainingSeconds ?? ByoyomiTimer.MainTimeLimitSeconds;
+        // the main timer is started (and paused) when it is built, so it has no time left only once it has run out
+        return this.mainTimer.timeRemainingSeconds ?? 0;
     }
 
-    public get totalTimeRemainingSeconds(): number {
-        return (this.turnTimeRemainingSeconds ?? 0) + this.mainTimeRemainingSeconds;
+    public get isCountingDown(): boolean {
+        return this.isOnMainTimer ? this.mainTimer.isRunningOrRunningOut : this.turnTimer.isRunningOrRunningOut;
+    }
+
+    public get msUntilTimeout(): number {
+        const turnMs = this.isOnMainTimer ? 0 : (this.turnTimer.timeRemainingMs ?? 0);
+        return turnMs + (this.mainTimer.timeRemainingMs ?? 0);
     }
 
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
@@ -81,10 +101,9 @@ export class ByoyomiTimer implements IByoyomiTimer {
     }
 
     public constructor(
-        player: Player,
-        game: Game,
+        player: IActionTimerPlayer,
+        game: IActionTimerGame,
         onTimeout: () => void,
-        checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean,
         sendUpdatedGameState: () => void,
         onMainTimerWarning?: (status: PlayerTimeRemainingStatus) => void
     ) {
@@ -97,8 +116,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
             ByoyomiTimer.TurnTimeLimitSeconds,
             player,
             game,
-            () => this.onTurnTimerExpired(),
-            (promptUuid: string, playerActionId: number) => checkLiveStatus(promptUuid, playerActionId)
+            () => this.onTurnTimerExpired()
         );
 
         // Create main timer - when it expires, call the timeout callback
@@ -106,8 +124,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
             ByoyomiTimer.MainTimeLimitSeconds,
             player,
             game,
-            () => this.onMainTimerExpired(),
-            (promptUuid: string, playerActionId: number) => checkLiveStatus(promptUuid, playerActionId)
+            () => this.onMainTimerExpired()
         );
 
         // Warning handlers fire as the player burns main time. They set the timer's
@@ -149,29 +166,12 @@ export class ByoyomiTimer implements IByoyomiTimer {
     }
 
     /**
-     * Restarts the timer if it's currently running.
-     * Resets back to turn timer, pausing main timer to preserve its elapsed time.
-     */
-    public restartIfRunning(): void {
-        this._isPaused = false;
-        if (!this.isRunning) {
-            return;
-        }
-
-        // Pause main timer if it's running (preserve remaining time)
-        if (this.mainTimer.isRunning) {
-            this.mainTimer.pause();
-        }
-        this.isOnMainTimer = false;
-        this.mainTimer.resetStatus();
-        this.turnTimer.start();
-    }
-
-    /**
-     * Stops the turn timer and pauses the main timer (preserving its remaining time).
+     * Stops the turn timer and pauses the main timer (preserving its remaining time). A stopped player is off the clock,
+     * even one whose main time has run out, until their timer is started again.
      */
     public stop(): void {
         this._isPaused = false;
+        this.isOnMainTimer = false;
         this.turnTimer.stop();
         // Pause main timer instead of stopping to preserve remaining time
         if (this.mainTimer.isRunning) {
@@ -183,13 +183,21 @@ export class ByoyomiTimer implements IByoyomiTimer {
     public resume(): void {
         this._isPaused = false;
         if (this.isOnMainTimer) {
-            this.mainTimer.resume();
+            this.resumeMainTimer();
         } else {
             this.turnTimer.resume();
         }
     }
 
+    /**
+     * Pauses the timer, keeping the time left, so {@link resume} carries on from there. Does nothing to a timer that is not
+     * running, which then starts afresh at its next {@link start}.
+     */
     public pause(): void {
+        if (!this.isRunning) {
+            return;
+        }
+
         this._isPaused = true;
         if (this.isOnMainTimer) {
             this.mainTimer.pause();
@@ -200,13 +208,28 @@ export class ByoyomiTimer implements IByoyomiTimer {
         }
     }
 
+    public grantRoundEndMainTime(round: number): void {
+        if (round <= this.lastGrantedRound) {
+            return;
+        }
+        this.lastGrantedRound = round;
+
+        const missingMs = ByoyomiTimer.MainTimeLimitSeconds * 1000 - (this.mainTimer.timeRemainingMs ?? 0);
+        const grantMs = Math.max(0, Math.min(ByoyomiTimer.RoundEndMainTimeGrantSeconds * 1000, missingMs));
+        const addedMs = this.mainTimer.addTimeMs(grantMs);
+
+        this._lastMainTimeGrant = { round, seconds: Math.floor(addedMs / 1000) };
+    }
+
     /**
      * Called when the turn timer expires.
      * Transitions to the main timer (starts or resumes it).
      */
     private onTurnTimerExpired(): void {
         this.isOnMainTimer = true;
-        this.mainTimer.resume();
+        if (!this.resumeMainTimer()) {
+            return;
+        }
 
         // Notify the game to push updated state to players
         // so the FE knows we've transitioned to main timer
@@ -214,8 +237,22 @@ export class ByoyomiTimer implements IByoyomiTimer {
     }
 
     /**
+     * Starts the main time counting down again. A player with no main time left times out instead, at once, since the
+     * main timer cannot count down from nothing. Returns whether the main time is counting down.
+     */
+    private resumeMainTimer(): boolean {
+        if ((this.mainTimer.timeRemainingMs ?? 0) <= 0) {
+            this.onTimeout();
+            return false;
+        }
+
+        this.mainTimer.resume();
+        return true;
+    }
+
+    /**
      * Called when the main timer expires.
-     * Invokes the timeout callback (player gets kicked).
+     * Invokes the timeout callback (the player times out, and the game ends).
      */
     private onMainTimerExpired(): void {
         this.onTimeout();

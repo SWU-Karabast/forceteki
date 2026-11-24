@@ -2,7 +2,7 @@ import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import { Aspect, CardType, CardPool, SwuGameFormat, WildcardCardType } from '../../game/core/Constants';
-import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
+import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties, IDeckbuildingCandidates } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import { Contract } from '../../game/core/utils/Contract';
@@ -252,6 +252,45 @@ export class DeckValidator {
 
         this.legalCardTitlesCache.set(cacheKey, legalTitles);
         return legalTitles;
+    }
+
+    /**
+     * The cards a legal decklist for this format and card pool could use: every card in a legal set that is not
+     * suspended, once each under the set code of its own printing, split by where a decklist puts it. In each list the
+     * cards whose abilities are implemented come first, then set-code order, so the result is the same on every run.
+     */
+    public getDeckbuildingCandidates(format: SwuGameFormat, cardPool: CardPool): IDeckbuildingCandidates {
+        const legalSets = DeckValidator.getLegalSets(format, cardPool, this.getSetCatalog());
+        const byLocation = new Map<DecklistLocation, ICardCheckData[]>([
+            [DecklistLocation.Leader, []],
+            [DecklistLocation.Base, []],
+            [DecklistLocation.Deck, []],
+        ]);
+
+        for (const [cardId, cardData] of this.cardData) {
+            const location = this.getCardLocation(cardData);
+            if (location == null || !cardData.sets.some((set) => legalSets.has(set)) || this.isSuspended(cardId, format, legalSets)) {
+                continue;
+            }
+
+            byLocation.get(location).push(cardData);
+        }
+
+        const toSortedSetCodes = (candidates: ICardCheckData[]) => candidates
+            .map((cardData) => ({ setCode: DeckValidator.getSetCode(cardData), implemented: cardData.implemented }))
+            .sort((a, b) => Number(b.implemented) - Number(a.implemented) || a.setCode.localeCompare(b.setCode))
+            .map((candidate) => candidate.setCode);
+
+        return {
+            leaders: toSortedSetCodes(byLocation.get(DecklistLocation.Leader)),
+            bases: toSortedSetCodes(byLocation.get(DecklistLocation.Base)),
+            deckCards: toSortedSetCodes(byLocation.get(DecklistLocation.Deck)),
+        };
+    }
+
+    /** The SWUDB set code of a card's own printing, e.g. `SOR_010`. */
+    private static getSetCode(cardData: ICardCheckData): string {
+        return `${cardData.setId.set}_${String(cardData.setId.number).padStart(3, '0')}`;
     }
 
     public getMinimumSideboardedDeckSize(baseId: string, format: SwuGameFormat): number {
@@ -519,7 +558,7 @@ export class DeckValidator {
     }
 
     protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, legalSets: Set<SwuSetId>, failures: IDeckValidationFailures) {
-        const setCode = `${cardData.setId.set}_${String(cardData.setId.number).padStart(3, '0')}`;
+        const setCode = DeckValidator.getSetCode(cardData);
 
         const isLegalInFormat = cardData.sets.some((set) => legalSets.has(set));
         if (!isLegalInFormat) {

@@ -140,5 +140,42 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Quinlan Vos\'s leader undeployed ability should trigger when its controller plays a unit owned by the opponent from the opponent\'s discard pile', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown'],
+                    leader: 'quinlan-vos#sticking-the-landing',
+                },
+                player2: {
+                    groundArena: ['echo-base-defender', 'wampa', 'battlefield-marine'],
+                    spaceArena: ['stolen-athauler']
+                },
+            });
+
+            const { context } = contextRef;
+
+            // defeat the opponent's Stolen AT-Hauler, its When Defeated lets player1 play it from player2's discard pile
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // play the 3-cost Stolen AT-Hauler owned by player2
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to an enemy unit that costs the same as the played unit');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
+            context.player1.clickCard(context.echoBaseDefender);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.echoBaseDefender.damage).toBe(1);
+            expect(context.quinlanVos.exhausted).toBeTrue();
+        });
     });
 });

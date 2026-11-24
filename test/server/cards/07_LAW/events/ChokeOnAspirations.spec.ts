@@ -123,6 +123,60 @@ describe('Choke On Aspirations', function () {
                 expect(context.p1Base.damage).toBe(3); // Base starts with 6 damage and should heal 3 damage because the unit survived
             });
 
+            // The damage step makes one damage event per unit chosen, so choosing no unit (no damage at all) leaves only the distribute event; the "if it survives"
+            // condition used to read the second event by index and threw. It is the damage event that is read now, found by what it is.
+            it('should deal no damage when no unit is chosen and heal nothing from your base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['choke-on-aspirations'],
+                        groundArena: ['battlefield-marine'],
+                        base: { card: 'chopper-base', damage: 6 }
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chokeOnAspirations);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.setDistributeDamagePromptState(new Map([]));
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.chokeOnAspirations).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(6);
+            });
+
+            it('should heal from your base exactly the damage dealt to a unit that survives', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['choke-on-aspirations'],
+                        groundArena: ['battlefield-marine'],
+                        base: { card: 'chopper-base', damage: 6 }
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chokeOnAspirations);
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.battlefieldMarine, 2],
+                ]));
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.p1Base.damage).toBe(4);
+            });
+
             it('should deal up to 5 damage to a friendly unit with a shield and heal no damage from your base', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

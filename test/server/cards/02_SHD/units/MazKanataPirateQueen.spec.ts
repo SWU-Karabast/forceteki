@@ -56,5 +56,33 @@ describe('Maz Kanata, Pirate Queen', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('should give herself an Experience when her controller plays an opponent-owned unit from the discard pile with Stolen AT-Hauler', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown'],
+                    groundArena: ['maz-kanata#pirate-queen']
+                },
+                player2: {
+                    spaceArena: ['stolen-athauler']
+                }
+            });
+            const { context } = contextRef;
+
+            // Defeat the opponent's Stolen AT-Hauler so player1 may play it from player2's discard pile
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+            // Maz Kanata reacts to player1 playing the opponent-owned unit
+            expect(context.mazKanata).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

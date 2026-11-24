@@ -10,7 +10,6 @@ interface ISpecificTimeHandler {
 
 /**
  * Simple action timer that can schedule handlers at specific time intervals.
- * Subclasses can extend this with context-specific logic (e.g., Game/Player checks).
  */
 export class SimpleActionTimer {
     protected readonly timeLimitMs: number;
@@ -44,6 +43,34 @@ export class SimpleActionTimer {
         const referenceTime = this.pauseTime ?? this.scheduler.currentDate();
         const remainingMs = this.endTime.getTime() - referenceTime.getTime();
         return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : null;
+    }
+
+    /**
+     * Milliseconds left: `null` if the timer is not started (or was stopped), and 0 once it has run out.
+     *
+     * The precision is not the point: no player would notice a fraction of a second either side of a limit, and real timers
+     * fire a few milliseconds late anyway. The timeout draw rule reads this rather than {@link timeRemainingSeconds} for two
+     * other reasons. A timer that has run out reads 0 here, where `timeRemainingSeconds` gives `null`, which is easy to
+     * mistake for "never started" (a run-out main timer was once read as a full one that way). And times can be added
+     * before any rounding: two rounded-up seconds values can add up to a second more than the time actually left.
+     */
+    public get timeRemainingMs(): number | null {
+        if (this.endTime === null) {
+            return null;
+        }
+
+        const referenceTime = this.pauseTime ?? this.scheduler.currentDate();
+        return Math.max(0, this.endTime.getTime() - referenceTime.getTime());
+    }
+
+    /**
+     * Whether the timer is counting down: running, or run out and neither stopped, paused nor started again since. Unlike
+     * {@link isRunning}, this holds at the instant a timer runs out, so two timers that run out together both count,
+     * whichever timeout is handled first. A timer that has run out keeps counting this way until it is stopped, so an
+     * owner that reads this after handling the timeout must stop the timer first.
+     */
+    public get isRunningOrRunningOut(): boolean {
+        return this.isRunning || (this.endTime !== null && this.pauseTime === null && this.timeRemainingMs === 0);
     }
 
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
@@ -151,11 +178,28 @@ export class SimpleActionTimer {
     }
 
     /**
-     * Called before firing a handler. Override in subclasses to add safety checks.
-     * If this returns false, the handler will not be fired and the timer will be stopped.
+     * Adds time to a timer that is running or paused, keeping it running or paused. A running timer's handlers are
+     * scheduled again for the new time left, so a handler that has already fired fires again if the timer now has more
+     * time left than its target. Adds nothing to a timer that is not started, was stopped, or has run out, since it has
+     * nothing to count down. Returns the milliseconds added.
      */
-    protected shouldFireHandler(): boolean {
-        return true;
+    public addTimeMs(timeMs: number): number {
+        Contract.assertTrue(timeMs >= 0, `Time to add must be non-negative: ${timeMs}`);
+
+        const timeRemainingMs = this.timeRemainingMs;
+        if (timeMs === 0 || timeRemainingMs == null || timeRemainingMs <= 0) {
+            return 0;
+        }
+
+        if (this.isPaused) {
+            this.endTime = new Date(this.endTime.getTime() + timeMs);
+            return timeMs;
+        }
+
+        this.clearTimers();
+        this.endTime = null;
+        this.initializeTimersForTimeRemaining(timeRemainingMs + timeMs);
+        return timeMs;
     }
 
     protected getTimeLimitMs(): number {
@@ -177,19 +221,14 @@ export class SimpleActionTimer {
         this.endTime = new Date(this.scheduler.now() + timeRemainingMs);
         this.pauseTime = null;
 
-        const safeCallHandler = (handler: IActionTimerHandler) => {
-            if (!this.shouldFireHandler()) {
-                this.stop();
-                return;
-            }
-
+        const callHandler = (handler: IActionTimerHandler) => {
             handler((newStatus: PlayerTimeRemainingStatus) => this._timeRemainingStatus = newStatus);
         };
 
         for (const handler of this.onSpecificTimeHandlers) {
             if (timeRemainingMs > handler.fireOnRemainingTimeMs) {
                 const timer = this.scheduler.setTimeout(
-                    () => safeCallHandler(handler.handler),
+                    () => callHandler(handler.handler),
                     timeRemainingMs - handler.fireOnRemainingTimeMs,
                     this.errorContext
                 );
