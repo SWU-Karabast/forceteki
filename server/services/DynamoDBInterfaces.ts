@@ -180,6 +180,8 @@ export enum ServerRole {
 }
 
 export interface IServerRoleUserEntity {
+
+    /** The user's id, a uuid. */
     id: string;
 
     /** Who the user is, for whoever reads the stored lists; the server does not use it. */
@@ -192,18 +194,21 @@ export interface IServerRoleUsersListsEntity {
     moderators: IServerRoleUserEntity[];
     contributors: IServerRoleUserEntity[];
 
-    /** When an admin last changed the lists through the server, and who. Absent while they have only been edited by hand. */
+    /**
+     * When an admin last changed the lists through the server, as an ISO 8601 datetime, and that admin's id (a uuid).
+     * Absent while the lists have only been edited by hand. Checked by `ServerRoleUsersChangeStampSchema` when written.
+     */
     updatedAt?: string;
-    updatedBy?: string;
+    updatedById?: string;
 }
 
-/** The list in {@link IServerRoleUsersListsEntity} that holds each role's users. */
-export const ServerRoleListKeys: Record<ServerRole, 'admins' | 'developers' | 'moderators' | 'contributors'> = {
-    [ServerRole.Admin]: 'admins',
-    [ServerRole.Developer]: 'developers',
-    [ServerRole.Moderator]: 'moderators',
-    [ServerRole.Contributor]: 'contributors',
-};
+/** The name of the list in {@link IServerRoleUsersListsEntity} that holds a role's users: the role's name, plural. */
+export type ServerRoleListKey = `${ServerRole}s`;
+
+/** The list in {@link IServerRoleUsersListsEntity} that holds the given role's users, such as `admins` for `admin`. */
+export function serverRoleListKey(role: ServerRole): ServerRoleListKey {
+    return `${role}s`;
+}
 
 /**
  * Global, runtime-toggleable server settings. Stored as a single item so that moderators can

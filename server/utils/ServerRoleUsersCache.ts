@@ -1,6 +1,6 @@
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
-import { ServerRoleListKeys } from '../services/DynamoDBInterfaces';
+import { serverRoleListKey } from '../services/DynamoDBInterfaces';
 import type { IServerRoleUsersListsEntity, ServerRole } from '../services/DynamoDBInterfaces';
 import type { IScheduler } from './IScheduler';
 import { RealScheduler } from './RealScheduler';
@@ -34,7 +34,8 @@ export class ServerRoleUsersCache {
             refreshIntervalMinutes,
             async () => {
                 const db = await getDynamoDbServiceAsync();
-                return await db.getServerRoleUsersAsync();
+                // consistent, because it also runs straight after a change, when a lagging read would bring the old lists back
+                return await db.getServerRoleUsersAsync({ consistentRead: true });
             },
             'ServerRoleUsersCache',
             scheduler
@@ -65,24 +66,24 @@ export class ServerRoleUsersCache {
      * Grants a role to a user or takes it away, and refreshes the cache so the change applies at once. The change is
      * made to the lists as stored now, not to this cache's copy, so it keeps any edit made since the last refresh.
      * @param note stored beside a newly granted user, to say who they are to whoever reads the lists
-     * @param changedBy the admin making the change; checked against the stored lists, and their username recorded on them
+     * @param changedById id of the admin making the change; checked against the stored lists, and recorded on them
      * @returns the lists as they now stand, and whether this changed them (false if the user already had the role, or
      * already did not)
-     * @throws a {@link NotStoredAdminError} if `changedBy` is not an admin in the stored lists, in which case the cache
+     * @throws a {@link NotStoredAdminError} if `changedById` is not an admin in the stored lists, in which case the cache
      * is refreshed so they lose their admin access at once
      * @throws a `ConditionalCheckFailedException` if the lists changed between being read and written
      */
-    public async setUserRoleAsync(userId: string, role: ServerRole, granted: boolean, note: string, changedBy: { id: string; username: string }): Promise<{ lists: IServerRoleUsersListsEntity; changed: boolean }> {
+    public async setUserRoleAsync(userId: string, role: ServerRole, granted: boolean, note: string, changedById: string): Promise<{ lists: IServerRoleUsersListsEntity; changed: boolean }> {
         const db = await getDynamoDbServiceAsync();
         const stored = await db.getServerRoleUsersAsync({ consistentRead: true });
 
         // the auth check used this cache, which can lag a hand edit by up to a refresh interval
-        if (!stored.admins.some((admin) => admin.id === changedBy.id)) {
+        if (!stored.admins.some((admin) => admin.id === changedById)) {
             await this.cache.forceRefreshAsync();
             throw new NotStoredAdminError();
         }
 
-        const listKey = ServerRoleListKeys[role];
+        const listKey = serverRoleListKey(role);
         const holders = stored[listKey];
         if (holders.some((holder) => holder.id === userId) === granted) {
             return { lists: stored, changed: false };
@@ -92,7 +93,7 @@ export class ServerRoleUsersCache {
             ...stored,
             [listKey]: granted ? [...holders, { id: userId, note }] : holders.filter((holder) => holder.id !== userId),
             updatedAt: this.scheduler.currentDate().toISOString(),
-            updatedBy: changedBy.username
+            updatedById: changedById
         };
         await db.saveServerRoleUsersAsync(updated, stored.updatedAt);
 

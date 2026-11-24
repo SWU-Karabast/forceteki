@@ -62,7 +62,7 @@ import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
     ServerRole,
-    ServerRoleListKeys,
+    serverRoleListKey,
     UsernameChangeSource
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
@@ -2261,14 +2261,16 @@ export class GameServer {
                     return res.status(403).json({ success: false, message: 'The admin role cannot be changed here' });
                 }
 
+                // a role can be removed from a user with no account, such as one deleted since it was granted
                 const username = (await this.userFactory.getUsernamesAsync([userId])).get(userId);
-                if (username === undefined) {
+                if (username === undefined && granted) {
                     return res.status(404).json({ success: false, message: 'Player not found' });
                 }
+                const userLabel = username ?? userId;
 
                 let result: { lists: IServerRoleUsersListsEntity; changed: boolean };
                 try {
-                    result = await this.serverRoleUsersCache.setUserRoleAsync(userId, role, granted, username, { id: req.user.getId(), username: req.user.getUsername() });
+                    result = await this.serverRoleUsersCache.setUserRoleAsync(userId, role, granted, userLabel, req.user.getId());
                 } catch (error) {
                     if (error instanceof NotStoredAdminError) {
                         logger.warn(`GameServer: ${req.user.getUsername()} tried to change a server role after losing the admin role`, { userId: req.user.getId() });
@@ -2281,7 +2283,7 @@ export class GameServer {
                 }
 
                 if (result.changed) {
-                    logger.info(`GameServer: ${req.user.getUsername()} ${granted ? 'granted' : 'removed'} the ${role} role ${granted ? 'to' : 'from'} ${username}`, {
+                    logger.info(`GameServer: ${req.user.getUsername()} ${granted ? 'granted' : 'removed'} the ${role} role ${granted ? 'to' : 'from'} ${userLabel}`, {
                         changedBy: req.user.getId(),
                         userId,
                         role,
@@ -2290,7 +2292,7 @@ export class GameServer {
 
                     // not awaited: the change is already stored, so a Discord outage must not fail the request
                     this.discordDispatcher.formatAndSendServerRoleChangeAsync({
-                        user: { id: userId, username },
+                        user: { id: userId, username: userLabel },
                         role,
                         granted,
                         changedBy: { id: req.user.getId(), username: req.user.getUsername() }
@@ -2352,28 +2354,33 @@ export class GameServer {
     }
 
     /**
-     * The subset of server settings that is safe to expose to any client.
-     */
-    /** The role lists as the admin role editor shows them: each role's users with their usernames. */
+    /** The role lists as the admin role editor shows them: each role's users, and who last changed them, with usernames. */
     private async buildServerRolesResponseAsync(lists: IServerRoleUsersListsEntity) {
         const roles = Object.values(ServerRole);
-        const usernames = await this.userFactory.getUsernamesAsync(roles.flatMap((role) => lists[ServerRoleListKeys[role]].map((holder) => holder.id)));
+        const usernames = await this.userFactory.getUsernamesAsync([
+            ...roles.flatMap((role) => lists[serverRoleListKey(role)].map((holder) => holder.id)),
+            ...(lists.updatedById !== undefined ? [lists.updatedById] : [])
+        ]);
 
         return {
             success: true,
             roles: Object.fromEntries(roles.map((role) => [
                 role,
-                lists[ServerRoleListKeys[role]].map((holder) => ({
+                lists[serverRoleListKey(role)].map((holder) => ({
                     id: holder.id,
                     username: usernames.get(holder.id) ?? null,
                     note: holder.note ?? null
                 }))
             ])),
             updatedAt: lists.updatedAt ?? null,
-            updatedBy: lists.updatedBy ?? null
+            // the username, as the role editor shows it; the stored lists keep the id
+            updatedBy: lists.updatedById !== undefined ? usernames.get(lists.updatedById) ?? lists.updatedById : null
         };
     }
 
+    /**
+     * The subset of server settings that is safe to expose to any client.
+     */
     private getPublicServerSettings() {
         const settings = this.serverSettingsCache?.getSettings();
         return {

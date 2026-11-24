@@ -40,6 +40,7 @@ import {
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
+    ServerRoleUsersChangeStampSchema,
     UsernameChangeEntitySchema
 } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
@@ -853,7 +854,7 @@ export class DynamoDBService {
                 moderators: result.Item.moderators || [],
                 contributors: result.Item.contributors || [],
                 updatedAt: result.Item.updatedAt,
-                updatedBy: result.Item.updatedBy
+                updatedById: result.Item.updatedById
             };
         }, 'Error getting admin users');
     }
@@ -861,29 +862,31 @@ export class DynamoDBService {
     /**
      * Writes the four role lists and who changed them, leaving any other field on the item as it is. The write only
      * happens if the lists have not changed since they were read, so two changes made at once cannot lose either.
-     * @param lists the lists to store, with `updatedAt` and `updatedBy` set
+     * @param lists the lists to store, with `updatedAt` and `updatedById` set
      * @param previousUpdatedAt the `updatedAt` of the lists the change was made from; undefined if they had none
+     * @throws if `updatedAt` is not an ISO 8601 datetime or `updatedById` not a uuid
      * @throws a `ConditionalCheckFailedException` if the stored lists have changed since
      */
     public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, previousUpdatedAt: string | undefined) {
-        return this.executeDbOperationAsync(() => {
-            return this.updateItemAsync(
-                'SERVER_ROLE_USERS',
-                'ROLES',
-                'SET admins = :admins, developers = :developers, moderators = :moderators, contributors = :contributors, updatedAt = :updatedAt, updatedBy = :updatedBy',
-                {
-                    ':admins': lists.admins,
-                    ':developers': lists.developers,
-                    ':moderators': lists.moderators,
-                    ':contributors': lists.contributors,
-                    ':updatedAt': lists.updatedAt,
-                    ':updatedBy': lists.updatedBy,
-                    ...(previousUpdatedAt !== undefined ? { ':previousUpdatedAt': previousUpdatedAt } : {})
-                },
-                undefined,
-                previousUpdatedAt !== undefined ? 'updatedAt = :previousUpdatedAt' : 'attribute_not_exists(updatedAt)'
-            );
-        }, 'Error saving server role users');
+        const { updatedAt, updatedById } = ServerRoleUsersChangeStampSchema.parse(lists);
+
+        // not wrapped in another executeDbOperationAsync, which would log a refused write (an expected 409) twice
+        return this.updateItemAsync(
+            'SERVER_ROLE_USERS',
+            'ROLES',
+            'SET admins = :admins, developers = :developers, moderators = :moderators, contributors = :contributors, updatedAt = :updatedAt, updatedById = :updatedById',
+            {
+                ':admins': lists.admins,
+                ':developers': lists.developers,
+                ':moderators': lists.moderators,
+                ':contributors': lists.contributors,
+                ':updatedAt': updatedAt,
+                ':updatedById': updatedById,
+                ...(previousUpdatedAt !== undefined ? { ':previousUpdatedAt': previousUpdatedAt } : {})
+            },
+            undefined,
+            previousUpdatedAt !== undefined ? 'updatedAt = :previousUpdatedAt' : 'attribute_not_exists(updatedAt)'
+        );
     }
 
     // Server settings methods

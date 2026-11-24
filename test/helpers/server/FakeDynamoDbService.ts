@@ -12,7 +12,8 @@ import type {
     IServerSettingsEntity,
     IUsernameChangeEntity,
     IUserPreferences,
-    IUserProfileDataEntity
+    IUserProfileDataEntity,
+    ServerRoleListKey
 } from '../../../server/services/DynamoDBInterfaces';
 import { isTrackedModAction, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
 import {
@@ -21,6 +22,7 @@ import {
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
+    ServerRoleUsersChangeStampSchema,
     UsernameChangeEntitySchema
 } from '../../../server/services/DynamoDBInterfaceSchemas';
 import type { DynamoDBService, PlayerReportTransitionResult } from '../../../server/services/DynamoDBService';
@@ -73,7 +75,7 @@ export interface ISeededAccount {
     email: string;
 }
 
-export type ServerRoleLists = Partial<Record<'admins' | 'developers' | 'moderators' | 'contributors', string[]>>;
+export type ServerRoleLists = Partial<Record<ServerRoleListKey, string[]>>;
 
 /** A stored player report record, plus the GSI bucket it is filed under (open, or closed in a month). */
 export interface IStoredPlayerReport {
@@ -599,24 +601,26 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
             moderators: this.roleUsers.moderators.map((holder) => ({ ...holder })),
             contributors: this.roleUsers.contributors.map((holder) => ({ ...holder })),
             // set only once an admin has changed the lists through the server
-            ...(this.roleUsers.updatedAt !== undefined ? { updatedAt: this.roleUsers.updatedAt, updatedBy: this.roleUsers.updatedBy } : {}),
+            ...(this.roleUsers.updatedAt !== undefined ? { updatedAt: this.roleUsers.updatedAt, updatedById: this.roleUsers.updatedById } : {}),
         });
     }
 
     public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, previousUpdatedAt: string | undefined): Promise<UpdateCommandOutput> {
-        // like the real service, the write is refused if the lists changed since they were read
+        // like the real service, the write is refused if the change is not stamped with a datetime and an id, or if the
+        // lists changed since they were read
+        ServerRoleUsersChangeStampSchema.parse(lists);
         if (this.roleUsers.updatedAt !== previousUpdatedAt) {
             return Promise.reject(conditionalCheckFailed());
         }
 
-        const { admins, developers, moderators, contributors, updatedAt, updatedBy } = lists;
+        const { admins, developers, moderators, contributors, updatedAt, updatedById } = lists;
         this.roleUsers = {
             admins: admins.map((holder) => ({ ...holder })),
             developers: developers.map((holder) => ({ ...holder })),
             moderators: moderators.map((holder) => ({ ...holder })),
             contributors: contributors.map((holder) => ({ ...holder })),
             updatedAt,
-            updatedBy,
+            updatedById,
         };
         return Promise.resolve(updateResult);
     }

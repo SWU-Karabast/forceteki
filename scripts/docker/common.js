@@ -104,6 +104,7 @@ function buildServerEnv() {
         DISCORD_BUG_REPORT_WEBHOOK_URL: 'http://localhost/disabled',
         DISCORD_ERROR_REPORT_WEBHOOK_URL: 'http://localhost/disabled',
         DISCORD_PLAYER_REPORT_WEBHOOK_URL: 'http://localhost/disabled',
+        DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL: 'http://localhost/disabled',
         PROFILE_CAPTURE_SECRET: 'local',
         SWUSTATS_API_KEY: 'local',
         SWUSTATS_CLIENT_ID: 'local',

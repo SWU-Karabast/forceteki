@@ -1,4 +1,5 @@
 import type FormData from 'form-data';
+import { v4 as uuid } from 'uuid';
 import * as Util from '../../../../../server/Util';
 import { seedRoleHolders } from '../../../../helpers/server/RoleHolders';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
@@ -71,6 +72,10 @@ describe('Server role management', function () {
             expect(response.body.roles.developer).toContain({ id: roles.accounts.nobody.id, username: 'nobodyUser', note: 'nobodyUser' });
             expect(response.body.updatedBy).toBe('adminUser');
             expect(await isDeveloperAsync(player)).toBeTrue();
+
+            // the stored lists record who changed them by id, and when
+            expect(harness.db.roleUsers.updatedById).toBe(roles.accounts.admin.id);
+            expect(harness.db.roleUsers.updatedAt).toBe(harness.clock.currentDate().toISOString());
         });
 
         it('removes a role, which applies at once', async function () {
@@ -94,7 +99,7 @@ describe('Server role management', function () {
 
             expect(response.status).toBe(200);
             expect(response.body.roles.developer).toEqual([{ id: roles.accounts.developer.id, username: 'developerUser', note: null }]);
-            expect(harness.db.roleUsers.updatedBy).toBeUndefined();
+            expect(harness.db.roleUsers.updatedById).toBeUndefined();
         });
 
         it('keeps a change made by hand since the server last read the roles', async function () {
@@ -148,14 +153,68 @@ describe('Server role management', function () {
             expect(listResponse.status).toBe(403);
         });
 
-        it('refuses a user with no account', async function () {
+        it('refuses granting a role to a user with no account', async function () {
             const { harness } = contextRef;
             const admin = harness.createAccountClient(roles.accounts.admin);
 
-            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: 'no-such-user', role: 'developer', granted: true });
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: uuid(), role: 'developer', granted: true });
 
             expect(response.status).toBe(404);
             expect(harness.db.roleUsers.developers).toEqual([{ id: roles.accounts.developer.id }]);
+        });
+
+        it('removes a role from a user with no account, such as one deleted since it was granted', async function () {
+            const { harness } = contextRef;
+            const admin = harness.createAccountClient(roles.accounts.admin);
+            const deletedUserId = uuid();
+            harness.db.seedRoles({ developers: [roles.accounts.developer.id, deletedUserId] });
+
+            const listed = await admin.requestAsync('get', '/api/mod/server-roles');
+            expect(listed.body.roles.developer).toContain({ id: deletedUserId, username: null, note: null });
+
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: deletedUserId, role: 'developer', granted: false });
+
+            expect(response.status).toBe(200);
+            expect(harness.db.roleUsers.developers).toEqual([{ id: roles.accounts.developer.id }]);
+        });
+
+        it('refuses a user id that is not a uuid', async function () {
+            const { harness } = contextRef;
+            const admin = harness.createAccountClient(roles.accounts.admin);
+
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: 'not-a-user-id', role: 'developer', granted: false });
+
+            expect(response.status).toBe(400);
+        });
+
+        it('refuses a change when the roles were changed by someone else at the same time', async function () {
+            const { harness } = contextRef;
+            const admin = harness.createAccountClient(roles.accounts.admin);
+
+            // another admin's change lands between this change reading the lists and writing them
+            const readStoredLists = harness.db.getServerRoleUsersAsync.bind(harness.db);
+            spyOn(harness.db, 'getServerRoleUsersAsync').and.callFake(async (options) => {
+                const lists = await readStoredLists(options);
+                harness.db.roleUsers.updatedAt = '2026-01-01T00:00:00.000Z';
+                return lists;
+            });
+
+            const response = await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'developer', granted: true });
+
+            expect(response.status).toBe(409);
+            expect(harness.db.roleUsers.developers).toEqual([{ id: roles.accounts.developer.id }]);
+        });
+
+        it('reloads the roles after a change with a consistent read, so the cache cannot pick up the lists from before it', async function () {
+            const { harness } = contextRef;
+            const admin = harness.createAccountClient(roles.accounts.admin);
+            const reads = spyOn(harness.db, 'getServerRoleUsersAsync').and.callThrough();
+
+            await admin.requestAsync('post', '/api/mod/server-roles', { userId: roles.accounts.nobody.id, role: 'developer', granted: true });
+
+            // the fake is always consistent, so this checks what the server asks for rather than what it gets
+            expect(reads.calls.count()).toBe(2);
+            expect(reads.calls.allArgs()).toEqual([[{ consistentRead: true }], [{ consistentRead: true }]]);
         });
 
         it('refuses a role that does not exist', async function () {
