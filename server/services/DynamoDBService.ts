@@ -849,9 +849,13 @@ export class DynamoDBService {
     }
 
     // Server settings methods
+    /**
+     * The read is strongly consistent: the cache re-reads straight after a moderator's change, and must
+     * see that change rather than the state before it.
+     */
     public getServerSettingsAsync(): Promise<IServerSettingsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL');
+            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL', { consistentRead: true });
 
             // A missing item means no moderator has ever set these, which is the state on the first
             // deploy of this feature. Default to enabled so that the rollout itself can't black out
