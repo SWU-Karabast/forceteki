@@ -886,11 +886,9 @@ export class Game extends EventEmitter {
             return null;
         }
 
-        // A draw if the opponent was about to time out too: their timer running (or running out at this same moment), and
-        // no more than the margin left, counting turn and main time. A waiting opponent wins however little time they have.
-        // Read before their timer is stopped, which would drop their turn time.
+        // a draw if the opponent was about to time out too; read before their timer is stopped, which would drop their turn time
         const opponentTimer = player.opponent.actionTimer;
-        const isDraw = opponentTimer.isCountingDown && opponentTimer.msUntilTimeout <= ByoyomiTimer.TimeoutDrawMarginSeconds * 1000;
+        const isDraw = ByoyomiTimer.isTimeoutDraw(opponentTimer);
 
         opponentTimer.stop();
         this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);
@@ -1959,8 +1957,14 @@ export class Game extends EventEmitter {
             return true;
         }
 
-        // check if opponent has revealed information on their turn
         const player = this.getPlayerById(playerId);
+
+        // the opponent has been shown a choice the player made in the open prompt, which rolling back would undo
+        if (this.getCurrentOpenPrompt()?.hasShownChoiceToOpponent(player)) {
+            return true;
+        }
+
+        // check if opponent has revealed information on their turn
         const opponent = player.opponent;
 
         // if it's the undoing player's action, no risk of revealed information
