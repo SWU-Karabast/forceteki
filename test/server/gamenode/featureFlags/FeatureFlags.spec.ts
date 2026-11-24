@@ -1,4 +1,5 @@
 import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../../server/game/core/Constants';
+import { GameServer } from '../../../../server/gamenode/GameServer';
 import { ServerRole } from '../../../../server/services/DynamoDBInterfaces';
 import { FeatureFlag } from '../../../../server/utils/featureFlags/FeatureFlags';
 import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
@@ -15,6 +16,11 @@ const fauxSunsBestOfOne = {
 };
 
 const notAvailable = { success: false, message: 'Faux Suns is not available yet' };
+
+const oneMinuteMs = 60 * 1000;
+
+/** How long the server waits between re-reading the flags, which is production's own setting. */
+const flagRefreshIntervalMs = GameServer.ServerCacheRefreshMinutes * oneMinuteMs;
 
 async function createFauxSunsLobbyAsync(harness: ServerTestHarness, client: TestClient) {
     return await client.createLobbyAsync({
@@ -173,6 +179,26 @@ describe('Feature flags', function () {
         });
     });
 
+    // The server reads the flags at startup and then at a fixed interval, so a change written to the database by
+    // anything other than this server's admin route (another server, a script) takes effect at the next refresh.
+    describe('changed in the database by something other than this server', function () {
+        serverIntegration(function (contextRef) {
+            it('are not noticed until the flags are next refreshed', async function () {
+                const { harness } = contextRef;
+                const client = harness.createAccountClient(roles.accounts.nobody);
+                harness.db.seedFeatureFlag({ flag: FeatureFlag.FauxSunsAccess, userIds: [roles.accounts.nobody.id] });
+
+                const before = await clientFlagsAsync(client);
+                await harness.clock.advanceAsync(flagRefreshIntervalMs - oneMinuteMs);
+                const justBefore = await clientFlagsAsync(client);
+                await harness.clock.advanceAsync(oneMinuteMs);
+                const after = await clientFlagsAsync(client);
+
+                expect([before, justBefore, after]).toEqual([{ fauxSunsAccess: false }, { fauxSunsAccess: false }, { fauxSunsAccess: true }]);
+            });
+        }, { database: roles.seed });
+    });
+
     describe('in the admin panel', function () {
         serverIntegration(function (contextRef) {
             it('are listed with their definition and their default state', async function () {
@@ -247,6 +273,19 @@ describe('Feature flags', function () {
 
                 expect(response.status).toBe(200);
                 expect(await clientFlagsAsync(client)).toEqual({ fauxSunsAccess: true });
+            });
+
+            // nobody can sign in without a database, so the admin routes refuse the caller before reaching their own
+            // no-database answer
+            it('cannot be listed or changed, since nobody can sign in as an admin', async function () {
+                const client = contextRef.harness.createClient();
+
+                const list = await client.requestAsync('get', '/api/mod/feature-flags');
+                const change = await client.requestAsync('post', `/api/mod/feature-flags/${FeatureFlag.FauxSunsAccess}`, { enabled: false });
+
+                const refused = { success: false, message: 'Authentication required' };
+                expect([list.status, change.status]).toEqual([401, 401]);
+                expect([list.body, change.body]).toEqual([refused, refused]);
             });
         }, { database: false });
     });
