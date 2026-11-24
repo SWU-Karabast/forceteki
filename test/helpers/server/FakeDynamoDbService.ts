@@ -190,7 +190,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public roleUsers: IServerRoleUsersListsEntity = { admins: [], developers: [], moderators: [], contributors: [] };
     public serverSettings?: IServerSettingsEntity;
 
-    /** Flag name -> stored state, as the `FEATURE_FLAG` items hold it. */
+    /** Flag name -> stored state, as the `flags` map of the `FEATURE_FLAG` item holds it. */
     public readonly featureFlags = new Map<string, IFeatureFlagEntity>();
 
     private readonly recordedLogins: string[] = [];

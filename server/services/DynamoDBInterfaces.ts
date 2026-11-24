@@ -204,9 +204,10 @@ export interface IServerSettingsEntity {
 }
 
 /**
- * Who a feature flag is turned on for. Stored as one item per flag, so admins changing different flags
- * at the same time cannot overwrite each other. Which flags exist is defined in code
- * (`server/utils/featureFlags/FeatureFlags.ts`); an item for a flag that is no longer defined is ignored.
+ * Who a feature flag is turned on for. Every flag is an entry in the `flags` map of one item
+ * (`FEATURE_FLAG` / `GLOBAL`), keyed by `flag`; each change sets only its own entry, so admins changing
+ * different flags at the same time cannot overwrite each other. Which flags exist is defined in code
+ * (`server/utils/featureFlags/FeatureFlags.ts`); an entry for a flag that is no longer defined is ignored.
  */
 export interface IFeatureFlagEntity {
     flag: string;
