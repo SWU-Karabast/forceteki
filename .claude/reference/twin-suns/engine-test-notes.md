@@ -48,7 +48,7 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 
 ### Bases and winning
 - A base's damage counts up and can exceed its health. A base at or past its health is not eliminated and has 0 remaining HP (R10, R28).
-- A team wins only when both enemy bases have reached their health. If one teammate wins through a card ability, both win.
+- A team wins only when both enemy bases have reached their health. If one teammate wins through a card ability, both win; if one teammate loses through a card ability (Final Showdown), the whole team loses.
 - Shared turns: one action per team per turn by either teammate; shared initiative; no passing.
 
 ## Twin Suns (3-4 players)
@@ -61,7 +61,9 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - When a player is eliminated, every card they own is removed from the game immediately, even if another player controls it (to be tested once here).
 - Cards removed from the game by an elimination are not counted as leaving play. If an effect eliminates a player partway through, the rest of the effect that refers to that player's cards fizzles (to be tested once here).
 - Cards the eliminated player controls but does not own go to their owner's discard pile; that move is not a defeat and not leaving play, except that an effect lasting "until it leaves play" ends (to be tested once here).
-- The effects that do not fizzle mid-effect, and the end of the game via card abilities, are still being settled (cards tagged "Twin Suns: Elimination Unclear").
+- A card that makes a player lose the game (Final Showdown) eliminates them exactly like a defeated base: owned cards removed, no heal for anyone, and the game ends at the end of the phase with the most base HP winning (ties share). Test once here.
+- A card that makes a player win the game (Confidence in Victory) ends the game at once: that player wins, everyone else loses, and the end-of-phase and base-HP rules do not apply. Test once here.
+- The effects that do not fizzle mid-effect are still being settled (cards tagged "Twin Suns: Elimination Unclear").
 
 ## To check later (code scan)
 - Scan every card that says "your base" or "friendly base" and check the code finds the base controlled by the player, not just any friendly base (in Always Two the teammate's base is friendly too). If it does, the Always Two notes about "your own base, not the teammate's" on those cards can go. Until then they stay.
@@ -70,4 +72,4 @@ Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) an
 - "Choose any number of players / opponents / bases" must support every subset, including none and all, and the controller (and the teammate in Always Two) where the card allows it (R30). The current engine is not set up for this.
 - "Choose N players" (an exact count) must work for any N legal players.
 - Choices made in turn by each player go clockwise starting with the player who played the card; "in player order" starts to the active player's left (R9). Cards that depend on this are reviewed manually.
-- Pilots can be attached to, or deployed onto, a teammate's Vehicle in Always Two (to be tested). The player who plays or deploys the Pilot controls the upgrade, and the Vehicle keeps its controller. Whose triggers apply to the Pilot's own text and to what it grants is still unknown, as is Bounty collection when a teammate defeats the unit (tagged "Always Two: Rules Unknown").
+- Pilots can be attached to, or deployed onto, a teammate's Vehicle in Always Two (to be tested). The player who plays or deploys the Pilot controls the upgrade, and the Vehicle keeps its controller. What a Pilot grants to the Vehicle belongs to the Vehicle's controller ("you" in any granted ability is the controller of the card that has it, in both formats); the Pilot's own text uses the player who plays or controls the Pilot. Bounty on a Vehicle defeated by a teammate follows the Bounty rule above.
