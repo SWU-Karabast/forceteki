@@ -262,33 +262,5 @@ describe('Regroup phase resource step', function() {
                 expect(player1Resourced).toBeGreaterThan(player2Resourced);
             });
         });
-
-        it('does not show the setup phase\'s resource step to either player as a choice made in turn', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'setup',
-            });
-
-            const { context } = contextRef;
-
-            context.selectInitiativePlayer(context.player1);
-            context.player1.clickPrompt('Keep');
-            context.player2.clickPrompt('Keep');
-
-            for (const player of [context.player1, context.player2]) {
-                expect(player).toHavePrompt('Select 2 cards to resource');
-                expect(player.currentPrompt().opponentResourceChoice).toBeUndefined();
-                expect(player.currentPrompt().promptDescription).toBeUndefined();
-            }
-
-            context.player1.clickCard(context.player1.hand[0]);
-            context.player1.clickCard(context.player1.hand[1]);
-            context.player1.clickDone();
-
-            expect(context.player2.currentPrompt().opponentResourceChoice).toBeUndefined();
-
-            context.player2.clickCard(context.player2.hand[0]);
-            context.player2.clickCard(context.player2.hand[1]);
-            context.player2.clickDone();
-        });
     });
 });

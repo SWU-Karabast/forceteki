@@ -40,6 +40,13 @@ export enum OpponentResourceChoice {
     Passed = 'passed',
 }
 
+/** In the setup phase's mulligan, what the player with the initiative has chosen, as their opponent is shown it. */
+export enum OpponentMulliganChoice {
+    NotChosen = 'notChosen',
+    Mulligan = 'mulligan',
+    Keep = 'keep',
+}
+
 export interface IButton {
     text: string;
     arg: string;

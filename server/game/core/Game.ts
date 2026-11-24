@@ -886,11 +886,9 @@ export class Game extends EventEmitter {
             return null;
         }
 
-        // A draw if the opponent was about to time out too: their timer running (or running out at this same moment), and
-        // no more than the margin left, counting turn and main time. A waiting opponent wins however little time they have.
-        // Read before their timer is stopped, which would drop their turn time.
+        // a draw if the opponent was about to time out too; read before their timer is stopped, which would drop their turn time
         const opponentTimer = player.opponent.actionTimer;
-        const isDraw = opponentTimer.isCountingDown && opponentTimer.msUntilTimeout <= ByoyomiTimer.TimeoutDrawMarginSeconds * 1000;
+        const isDraw = ByoyomiTimer.isTimeoutDraw(opponentTimer);
 
         opponentTimer.stop();
         this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);

@@ -33,6 +33,18 @@ export class ByoyomiTimer implements IByoyomiTimer {
      */
     public static readonly TimeoutDrawMarginSeconds = 3;
 
+    /**
+     * Whether a player's timing out is a draw: the opponent's timer is running (or running out at this same moment) with no
+     * more than {@link TimeoutDrawMarginSeconds} left, counting turn and main time. A waiting opponent wins however little
+     * time they have. Read before the opponent's timer is stopped, which would drop their turn time.
+     *
+     * Both players' timers run at once only in the setup's resource step: in the mulligan and the regroup phase's resource
+     * step, the player without the initiative is off the clock until the player with it has chosen.
+     */
+    public static isTimeoutDraw(opponentTimer: Pick<IByoyomiTimer, 'isCountingDown' | 'msUntilTimeout'>): boolean {
+        return opponentTimer.isCountingDown && opponentTimer.msUntilTimeout <= ByoyomiTimer.TimeoutDrawMarginSeconds * 1000;
+    }
+
     private readonly turnTimer: GameActionTimer;
     private readonly mainTimer: GameActionTimer;
     private readonly onTimeout: () => void;
