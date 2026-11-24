@@ -28,6 +28,7 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Contract } from '../game/core/utils/Contract';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
+import { buildTestDecklist } from '../utils/deck/TestDecklistBuilder';
 import { DeckSource, type IDeckValidationProperties, type ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { SwuDbDeckFetcher } from '../utils/deck/SwuDbDeckFetcher';
 import { MeleeDeckFetcher } from '../utils/deck/MeleeDeckFetcher';
@@ -2342,6 +2343,23 @@ export class GameServer {
             } catch (err) {
                 logger.error('GameServer: Error in test-game=setups:', err);
                 next(err);
+            }
+        });
+
+        // a legal decklist built from the local card data, so local testing never needs a third-party deck link
+        app.get('/api/test-deck', (req, res) => {
+            const { format: requestedFormat = SwuGameFormat.Premier, cardPool: requestedCardPool = CardPool.Current } = req.query;
+            const [format] = typeof requestedFormat === 'string' ? EnumHelpers.tryConvertToEnum(requestedFormat, SwuGameFormat) : [];
+            const [cardPool] = typeof requestedCardPool === 'string' ? EnumHelpers.tryConvertToEnum(requestedCardPool, CardPool) : [];
+            if (!format || !cardPool) {
+                return res.status(400).json({ success: false, message: `Unknown format or card pool: ${String(requestedFormat)}/${String(requestedCardPool)}` });
+            }
+
+            try {
+                const deck = buildTestDecklist(this.deckValidator, { format, cardPool });
+                return res.status(200).json({ success: true, deck });
+            } catch (err) {
+                return res.status(400).json({ success: false, message: err.message });
             }
         });
 
