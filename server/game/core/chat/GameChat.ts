@@ -1,6 +1,6 @@
 import type { GameObject } from '../GameObject';
 import type { ISerializedMessage } from '../../Interfaces';
-import type { ChatObjectType } from '../Constants';
+import { ChatObjectType } from '../Constants';
 import { ChatHelpers } from './ChatHelpers';
 
 /**
@@ -35,7 +35,7 @@ export class GameChat {
         const playerArg = {
             name: player.name || player.username,
             id: player.id,
-            type: 'playerChat'
+            type: ChatObjectType.PlayerChat
         };
 
         this.addMessage('{0} {1}', playerArg, message);
@@ -78,7 +78,7 @@ export class GameChat {
         }
 
         const firstElement = message[0];
-        return typeof firstElement === 'object' && !!firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat';
+        return typeof firstElement === 'object' && !!firstElement && 'type' in firstElement && firstElement['type'] === ChatObjectType.PlayerChat;
     }
 
     private formatMessage(format: string, args: MsgArg[]): string | string[] {
