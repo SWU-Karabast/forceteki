@@ -124,54 +124,14 @@ export class ServerRoleUsersCache {
     }
 
     /**
-     * Checks if a user is an admin.
-     * @param userId - The user ID to check
-     * @returns true if the user is an admin, false otherwise
+     * Whether the user holds the role itself. Which roles pass a check for another role (admin passes every check) is
+     * decided by `checkServerRoleUserPrivileges`.
      */
-    public isAdmin(userId: string): boolean {
+    public hasRole(userId: string, role: ServerRole): boolean {
         const data = this.cache.getValue();
         if (!data) {
             return false;
         }
-        return data[ServerRole.Admin].some((adminUser) => adminUser.id === userId);
-    }
-
-    /**
-     * Checks if a user is a developer.
-     * @param userId - The user ID to check
-     * @returns true if the user is a developer, false otherwise
-     */
-    public isDeveloper(userId: string): boolean {
-        const data = this.cache.getValue();
-        if (!data) {
-            return false;
-        }
-        return data[ServerRole.Developer].some((devUser) => devUser.id === userId);
-    }
-
-    /**
-     * Checks if a user is a moderator.
-     * @param userId - The user ID to check
-     * @returns true if the user is a moderator, false otherwise
-     */
-    public isModerator(userId: string): boolean {
-        const data = this.cache.getValue();
-        if (!data) {
-            return false;
-        }
-        return data[ServerRole.Moderator].some((modUser) => modUser.id === userId);
-    }
-
-    /**
-     * Checks if a user is a contributor.
-     * @param userId - The user ID to check
-     * @returns true if the user is a contributor, false otherwise
-     */
-    public isContributor(userId: string): boolean {
-        const data = this.cache.getValue();
-        if (!data) {
-            return false;
-        }
-        return data[ServerRole.Contributor].some((conUser) => conUser.id === userId);
+        return data[role].some((holder) => holder.id === userId);
     }
 }
