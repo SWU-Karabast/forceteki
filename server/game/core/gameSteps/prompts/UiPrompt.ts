@@ -101,7 +101,8 @@ export abstract class UiPrompt extends BaseStep {
         return this.menuCommand(player, arg, uuid);
     }
 
-    public waitingPrompt() {
+    /** The prompt shown to `player` while this prompt is not waiting on them. */
+    public waitingPrompt(player: Player) {
         return { menuTitle: 'Waiting for opponent' };
     }
 
@@ -120,7 +121,7 @@ export abstract class UiPrompt extends BaseStep {
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
             } else {
                 player.activeForPreviousPrompt = false;
-                player.setPrompt(this.waitingPrompt());
+                player.setPrompt(this.waitingPrompt(player));
                 this.stopPlayerActionTimer(player);
             }
         }
@@ -188,7 +189,8 @@ export abstract class UiPrompt extends BaseStep {
         Contract.assertEqual(uuid, this.uuid);
     }
 
-    private addButtonDefaultsToPrompt(original?: IPlayerPromptStateProperties) {
+    /** Fills in the `command` and prompt `uuid` each button sends back when clicked. */
+    protected addButtonDefaultsToPrompt(original?: IPlayerPromptStateProperties) {
         Contract.assertNotNullLike(original);
 
         const newPrompt = { ...original };

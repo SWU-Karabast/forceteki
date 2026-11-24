@@ -2,7 +2,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
-import { ResourcePrompt } from './ResourcePrompt';
+import { ResourcePrompt, ResourcePromptButtonArg } from './ResourcePrompt';
 import type { IResourcePromptOptions } from './ResourcePrompt';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
@@ -32,7 +32,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
             menuTitle: promptText,
             buttons: [{
                 text: selectedCount === 0 ? 'Skip Resourcing' : 'Confirm Resources',
-                arg: 'done',
+                arg: ResourcePromptButtonArg.Done,
                 disabled: !hasEnoughSelected,
             }],
             promptTitle: VariableResourcePrompt.title,

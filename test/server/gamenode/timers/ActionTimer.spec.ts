@@ -116,6 +116,27 @@ describe('Action timer', function () {
                 expect(active.timerOf(waiting)).withContext('once the player with the initiative has chosen')
                     .toEqual(onTurnTime(20, 110));
             });
+
+            it('keeps the clock of the player without the initiative stopped when they cancel a choice made before the player with it', async function () {
+                const { harness } = contextRef;
+                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
+                await active.clickButtonAsync('Pass');
+                await waiting.clickButtonAsync('Pass');
+
+                // `active` kept the initiative; `waiting` chooses first, then takes it back
+                await waiting.clickButtonAsync('Skip Resourcing');
+                await waiting.clickButtonAsync('Cancel');
+
+                expect(waiting.prompt.buttons.map((button) => button.text)).withContext('choosing again')
+                    .toEqual(['Skip Resourcing']);
+                expect(active.timerOf(waiting)).withContext('while the player with the initiative is still choosing')
+                    .toEqual(stopped());
+
+                await active.clickButtonAsync('Skip Resourcing');
+
+                expect(active.timerOf(waiting)).withContext('once the player with the initiative has chosen')
+                    .toEqual(onTurnTime(20));
+            });
         });
 
         describe('turn time and main time', function () {

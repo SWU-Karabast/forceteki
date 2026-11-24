@@ -21,6 +21,13 @@ export interface IResourcePromptOptions {
     initiativePlayerChoosesFirst?: boolean;
 }
 
+/** The `arg` of each button a resource prompt shows. */
+export enum ResourcePromptButtonArg {
+    Done = 'done',
+    Waiting = 'waiting',
+    Cancel = 'cancel',
+}
+
 const OpponentResourceChoiceText: Record<OpponentResourceChoice, string> = {
     [OpponentResourceChoice.NotChosen]: 'Your opponent has not chosen yet',
     [OpponentResourceChoice.Resourced]: 'Your opponent has resourced a card',
@@ -71,13 +78,11 @@ export class ResourcePrompt extends AllPlayerPrompt {
 
     protected override highlightSelectableCards() {
         this.game.getPlayers().forEach((player) => {
-            // cards are only selectable until we've selected as many as allowed
-            if (!this.selectableCards[player.name] && !this.completionCondition(player)) {
-                this.selectableCards[player.name] = player.hand;
-            } else if (this.completionCondition(player)) {
-                this.selectableCards[player.name] = [];
-            }
+            // a player's hand is selectable until they confirm, and again if they cancel what they confirmed
+            this.selectableCards[player.name] = this.completionCondition(player) ? [] : player.hand;
             player.setSelectableCards(this.selectableCards[player.name]);
+            // a player who has confirmed keeps the cards they chose shown as selected while they wait for their opponent
+            player.setSelectedCards(this.selectedCards[player.name]);
         });
     }
 
@@ -142,7 +147,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             menuTitle: promptText,
             buttons: [{
                 text: selectedCount === 0 && selectCardMode === SelectCardMode.Single ? 'Skip Resourcing' : 'Confirm Resources',
-                arg: 'done',
+                arg: ResourcePromptButtonArg.Done,
                 disabled: !hasEnoughSelected,
             }],
             promptTitle: 'Resource Step',
@@ -175,15 +180,63 @@ export class ResourcePrompt extends AllPlayerPrompt {
         return true;
     }
 
-    public override waitingPrompt() {
+    public override waitingPrompt(player: Player) {
+        if (this.isWaitingOnInitiativePlayerFor(player)) {
+            // The player without the initiative has confirmed before the player with it. Their prompt stays the resource
+            // prompt, with the card they chose still selected (`highlightSelectableCards` keeps it) and its button shown
+            // as waiting, until the player with the initiative has chosen and both resource together. Until then they
+            // can cancel their choice and choose again.
+            return this.addButtonDefaultsToPrompt({
+                menuTitle: 'Waiting for opponent to resource',
+                promptType: PromptType.Resource,
+                // the client keeps a prompt with a card selection mode in the action tray rather than in a popup
+                selectCardMode: SelectCardMode.Multiple,
+                // the client draws the buttons in this order, Cancel to the left of Waiting
+                buttons: [
+                    { text: 'Cancel', arg: ResourcePromptButtonArg.Cancel },
+                    { text: 'Waiting', arg: ResourcePromptButtonArg.Waiting, disabled: true },
+                ],
+                promptUuid: this.uuid,
+            });
+        }
+
         return {
             menuTitle: 'Waiting for opponent to choose cards to resource',
             promptType: PromptType.Resource,
         };
     }
 
+    public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
+        // Cancel comes from a player the prompt is no longer waiting on, which the usual path refuses, so it is handled here
+        if (arg === ResourcePromptButtonArg.Cancel) {
+            return this.cancelChoice(player, uuid);
+        }
+
+        return super.onMenuCommand(player, arg, uuid, method);
+    }
+
+    /**
+     * Takes back the choice of the player without the initiative, who confirmed before the player with it, so they choose
+     * again, with the cards they had chosen still selected. Their opponent is shown nothing of it, as they were shown
+     * nothing of the choice. Returns false, changing nothing, for a cancel that does not apply.
+     */
+    private cancelChoice(player: Player, uuid: string): boolean {
+        if (uuid !== this.uuid || !this.canCancelChoice(player)) {
+            return false;
+        }
+
+        this.playersDone[player.name] = false;
+        return true;
+    }
+
+    private canCancelChoice(player: Player): boolean {
+        return this.isWaitingOnInitiativePlayerFor(player) &&
+          this.completionCondition(player) &&
+          !this.completionCondition(this.game.initiativePlayer);
+    }
+
     public override menuCommand(player: Player, arg: string): boolean {
-        if (arg === 'done') {
+        if (arg === ResourcePromptButtonArg.Done) {
             if (this.completionCondition(player)) {
                 return false;
             }
