@@ -34,9 +34,15 @@ describe('checkServerRoleUserPrivileges', function () {
         expect(checkServerRoleUserPrivileges('/api/test', 'user-1', ServerRole.Moderator, holding()).message).toBe('Moderator privileges required');
     });
 
-    it('refuses a check for a role it does not know, even for a user holding every role', function () {
-        const everyRole = holding(...Object.values(ServerRole));
+    for (const unknownRole of ['superuser', '__proto__', 'constructor', 'toString']) {
+        it(`refuses a check for a role it does not know (${unknownRole}), even for a user holding every role`, function () {
+            const everyRole = { hasRole: () => true };
 
-        expect(checkServerRoleUserPrivileges('/api/test', 'user-1', 'superuser' as ServerRole, everyRole).success).toBeFalse();
-    });
+            const result = checkServerRoleUserPrivileges('/api/test', 'user-1', unknownRole as ServerRole, everyRole);
+
+            // refused by the lookup itself, not by an error the check happens to catch
+            expect(result.success).toBeFalse();
+            expect(result.message).not.toBe('Error checking user privileges');
+        });
+    }
 });

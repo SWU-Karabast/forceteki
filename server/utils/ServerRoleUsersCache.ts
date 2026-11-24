@@ -132,6 +132,8 @@ export class ServerRoleUsersCache {
         if (!data) {
             return false;
         }
-        return data[role].some((holder) => holder.id === userId);
+        // only an own list counts, so a value that is not a role (such as `__proto__`) is held by nobody
+        const holders = Object.prototype.hasOwnProperty.call(data, role) ? data[role] : undefined;
+        return Array.isArray(holders) && holders.some((holder) => holder.id === userId);
     }
 }

@@ -39,8 +39,9 @@ export const checkServerRoleUserPrivileges = (
     }
 
     try {
-        // a value that is not a known role (only possible through a cast) passes nothing
-        const passingRoles = RolesPassingCheck[role] ?? [];
+        // a value that is not a known role (only possible through a cast) passes nothing; checked as an own key, so a
+        // name such as `__proto__` or `constructor` is not found on the object's prototype
+        const passingRoles = Object.prototype.hasOwnProperty.call(RolesPassingCheck, role) ? RolesPassingCheck[role] : [];
         if (!passingRoles.some((passingRole) => cache.hasRole(userId, passingRole))) {
             return {
                 success: false,
