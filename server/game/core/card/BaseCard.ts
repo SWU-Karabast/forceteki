@@ -5,7 +5,7 @@ import { Contract } from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
 import type { ActionAbilityBase } from '../ability/ActionAbility';
-import type { IEpicActionProps } from '../../Interfaces';
+import type { IEpicActionProps, ISerializedCardState } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
@@ -147,6 +147,12 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
             isDefender: this.isDefending(),
             upgrades: this.upgrades.map((upgrade) => upgrade.getSummary(activePlayer, overrideHidden)),
         };
+    }
+
+    protected override buildSerializedCardState(): ISerializedCardState {
+        const state = super.buildSerializedCardState();
+        this.addAttachedCardsToSerializedState(state, this.upgrades, this.capturedUnits);
+        return state;
     }
 
     protected override getAbilityRegistrar(): IBaseAbilityRegistrar {

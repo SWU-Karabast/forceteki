@@ -167,13 +167,10 @@ Rules:
 
 ## Manual testing against the client
 
-`npm run dev` creates a default `.env` if missing and starts the node on 9500. With `ENVIRONMENT=development` the server loads the test harness, so you can boot a scripted board:
+`npm run dev` creates a default `.env` if missing and starts the node on 9500. With `ENVIRONMENT=development` the server loads the test harness and its development-only routes:
 
-```bash
-curl -s -X POST http://localhost:9500/api/start-test-game -H "Content-Type: application/json" -d '{"filename":"myScenario.json"}'
-```
-
-which reads `test/gameSetups/<filename>` using the same setup schema as `setupTestAsync`. Those files are gitignored apart from `testGameTemplate.json`.
+- **Test games.** A dev user (Order66 or ThisIsTheWay, signed in through the client's dev sign-in) boots a scripted board from the client's Test tab, which calls `POST /api/start-test-game` with a file from `test/gameSetups/`, in the same setup schema as `setupTestAsync`. Those files are gitignored apart from `testGameTemplate.json`. The route needs that dev user's session, so a bare `curl` is refused.
+- **Test decks.** `GET /api/test-deck?format=<format>&cardPool=<pool>` returns a legal decklist built from the local card data by `server/utils/deck/TestDecklistBuilder.ts` (which the specs' `DecklistFixtures` also use). The client's development-only **Queue With Test Deck**, **Create Game With Test Deck** and **Load Test Deck** buttons play with it straight away.
 
 ## Conventions and gotchas
 

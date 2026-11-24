@@ -154,6 +154,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
 
     // development only: the local test-game tooling, and the two destructive cosmetics routes
     { method: 'get', path: '/api/test-game-setups', access: 'public', devOnly: true, unauthenticated: served(200) },
+    { method: 'get', path: '/api/test-deck', access: 'public', devOnly: true, unauthenticated: served(200) },
     { method: 'post', path: '/api/start-test-game', access: 'signed-in', devOnly: true, unauthenticated: refused },
     { method: 'delete', path: '/api/cosmetics', access: 'admin', devOnly: true, unauthenticated: refused },
     { method: 'post', path: '/api/cosmetics-reset', access: 'admin', devOnly: true, unauthenticated: refused },

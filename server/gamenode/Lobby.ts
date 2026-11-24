@@ -523,6 +523,17 @@ export class Lobby {
         return this.userLastActivity.get(userId);
     }
 
+    /** When anyone last did something in this lobby, or when it was created if nobody has yet */
+    public getLastActivity(): Date {
+        let lastActivity = this.lobbyCreateTime;
+        for (const activity of this.userLastActivity.values()) {
+            if (activity > lastActivity) {
+                lastActivity = activity;
+            }
+        }
+        return lastActivity;
+    }
+
     private createLobbyLink(): string {
         return `${this.config.clientBaseUrl}/lobby?lobbyId=${this._id}`;
     }
@@ -1324,6 +1335,11 @@ export class Lobby {
 
     public isEmpty(): boolean {
         return this.users.length === 0;
+    }
+
+    /** Whether the user has lost their connection to this lobby (e.g. closed the tab) while no other player is in it */
+    public isAbandonedBy(userId: string): boolean {
+        return this.users.length === 1 && this.users[0].id === userId && this.users[0].state === 'disconnected';
     }
 
     /**

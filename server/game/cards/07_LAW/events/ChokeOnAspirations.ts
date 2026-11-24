@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { EventName, MetaEventName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { Trait } from '../../../core/Constants';
 
 export default class ChokeOnAspirations extends EventCard {
@@ -24,11 +24,16 @@ export default class ChokeOnAspirations extends EventCard {
                 cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle),
                 maxTargets: 1,
             }),
-            ifYouDo: (ifYouDoContext) => ({
-                title: 'If it survives, heal damage from your base equal to the damage dealt this way',
-                ifYouDoCondition: () => !ifYouDoContext.events[1].willDefeat,
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: ifYouDoContext.events[0].totalDistributed, target: ifYouDoContext.player.base })
-            })
+            ifYouDo: (ifYouDoContext) => {
+                // Choosing no unit makes no damage event, so the events are found by what they are, not by their index
+                const distributeEvent = ifYouDoContext.events.find((event) => event.name === MetaEventName.DistributeDamage);
+                const damageEvent = ifYouDoContext.events.find((event) => event.name === EventName.OnDamageDealt);
+                return {
+                    title: 'If it survives, heal damage from your base equal to the damage dealt this way',
+                    ifYouDoCondition: () => damageEvent != null && !damageEvent.willDefeat,
+                    immediateEffect: AbilityHelper.immediateEffects.heal({ amount: distributeEvent?.totalDistributed ?? 0, target: ifYouDoContext.player.base })
+                };
+            }
         });
     }
 }

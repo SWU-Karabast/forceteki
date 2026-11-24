@@ -1,3 +1,4 @@
+import { GameEndReason } from '../../../server/game/core/Constants';
 
 describe('Undo confirmation', function() {
     undoIntegration(function(contextRef) {
@@ -1396,6 +1397,169 @@ describe('Undo confirmation', function() {
                 expect(result2).toBeFalse();
                 expect(context.player1).toBeActivePlayer();
             });
+        });
+
+        describe('When the game ends while an undo request is open, because', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['republic-arc170']
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        hasInitiative: true,
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+                context.ignoreUnresolvedActionPhasePrompts = true;
+
+                // Generate a quick snapshot
+                context.player2.passAction();
+
+                context.player1.clickCard(context.republicArc170);
+                context.player1.clickCard(context.p2Base);
+
+                contextRef.snapshot.quickRollback(context.player2.id);
+                expect(context.player1).toHaveConfirmUndoPrompt();
+            });
+
+            // Outside of a lobby the game end is shown as a prompt on top of the pending undo request, so dismiss it first
+            function dismissGameOverPrompt(context: SwuTestContext) {
+                context.game.continue();
+                expect(context.game).toBeOver();
+
+                context.player1.clickPrompt('Continue Playing');
+                context.player2.clickPrompt('Continue Playing');
+                expect(context.player1).toHaveConfirmUndoPrompt();
+            }
+
+            function expectRequestAllowedWithoutRollback(context: SwuTestContext, winner: 'player1' | 'player2') {
+                context.player1.clickPrompt('Allow');
+
+                expect(context.getChatLog()).toContain('The game has ended, so the undo request can no longer be allowed');
+                expect(context.game).toBeOver();
+                expect(context[winner]).toBeGameWinner();
+                expect(context.p2Base.damage).toBe(3);
+            }
+
+            it('the requesting player left, allowing it does not roll back the game', function () {
+                const { context } = contextRef;
+
+                // the same call the lobby makes when a player leaves a game in progress
+                context.game.endGame(context.player1.player, GameEndReason.PlayerLeft);
+                dismissGameOverPrompt(context);
+
+                expectRequestAllowedWithoutRollback(context, 'player1');
+            });
+
+            it('the requesting player conceded, allowing it does not roll back the game', function () {
+                const { context } = contextRef;
+
+                context.game.concede(context.player2.id);
+                dismissGameOverPrompt(context);
+
+                expectRequestAllowedWithoutRollback(context, 'player1');
+
+                // a new request is refused as well
+                const result = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(result).toBeFalse();
+                expect(context.player1).not.toHaveConfirmUndoPrompt();
+                expect(context.game).toBeOver();
+            });
+
+            it('the requesting player ran out of time, allowing it does not roll back the game', function () {
+                const { context } = contextRef;
+
+                context.game.endGame(context.player1.player, GameEndReason.Timeout);
+                dismissGameOverPrompt(context);
+
+                expectRequestAllowedWithoutRollback(context, 'player1');
+            });
+
+            it('the deciding player ran out of time, allowing it does not roll back the game', function () {
+                const { context } = contextRef;
+
+                context.game.endGame(context.player2.player, GameEndReason.Timeout);
+                dismissGameOverPrompt(context);
+
+                expectRequestAllowedWithoutRollback(context, 'player2');
+            });
+        });
+
+        it('should refuse an undo request once a player has run out of time', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['republic-arc170']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    hasInitiative: true,
+                },
+                enableConfirmationToUndo: true,
+            });
+
+            const { context } = contextRef;
+            context.ignoreUnresolvedActionPhasePrompts = true;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            context.player1.clickCard(context.republicArc170);
+            context.player1.clickCard(context.p2Base);
+
+            context.game.endGame(context.player1.player, GameEndReason.Timeout);
+            context.game.continue();
+            expect(context.game).toBeOver();
+
+            const result = contextRef.snapshot.rollbackToSnapshot({
+                type: 'quick',
+                playerId: context.player2.id
+            });
+
+            expect(result).toBeFalse();
+            expect(context.player1).not.toHaveConfirmUndoPrompt();
+            expect(context.game).toBeOver();
+            expect(context.p2Base.damage).toBe(3);
+        });
+
+        it('should reopen the game when an undo takes it back before a base was defeated', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['republic-arc170']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    base: { card: 'energy-conversion-lab', damage: 24 },
+                    hasInitiative: true,
+                },
+                enableConfirmationToUndo: true,
+            });
+
+            const { context } = contextRef;
+            context.ignoreUnresolvedActionPhasePrompts = true;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            context.player1.clickCard(context.republicArc170);
+            context.player1.clickCard(context.p2Base);
+            expect(context.player1).toBeGameWinner();
+
+            contextRef.snapshot.quickRollback(context.player2.id);
+            expect(context.player1).toHaveConfirmUndoPrompt();
+            context.player1.clickPrompt('Allow');
+
+            expect(context.game).not.toBeOver();
+            expect(context.p2Base.damage).toBe(24);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
