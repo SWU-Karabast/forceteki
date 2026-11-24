@@ -5,6 +5,7 @@ import type { IScheduler } from '../../../server/utils/IScheduler';
 import { ModActionService } from '../../../server/utils/ModActionService';
 import { ServerRoleUsersCache } from '../../../server/utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../../../server/utils/ServerSettingsCache';
+import { FeatureFlagsCache } from '../../../server/utils/featureFlags/FeatureFlagsCache';
 import type { FakeDynamoDbService } from './FakeDynamoDbService';
 import { overrideEnv } from './ServerTestEnv';
 
@@ -12,6 +13,7 @@ import { overrideEnv } from './ServerTestEnv';
 export interface ITestDbServices {
     readonly serverRoleUsersCache: ServerRoleUsersCache;
     readonly serverSettingsCache: ServerSettingsCache;
+    readonly featureFlagsCache: FeatureFlagsCache;
     readonly cosmeticsService: CosmeticsService;
     readonly modActionService: ModActionService;
 
@@ -41,7 +43,7 @@ export function routeDatabaseThrough(fake: FakeDynamoDbService): void {
 }
 
 /**
- * Builds the real role, settings, cosmetics and mod-action services over `fake`, driven by `scheduler`
+ * Builds the real role, settings, feature flag, cosmetics and mod-action services over `fake`, driven by `scheduler`
  * so their refresh timers and clocks are the spec's virtual ones.
  */
 export async function createTestDbServicesAsync(fake: FakeDynamoDbService, scheduler: IScheduler): Promise<ITestDbServices> {
@@ -55,17 +57,20 @@ export async function createTestDbServicesAsync(fake: FakeDynamoDbService, sched
     try {
         const serverRoleUsersCache = await ServerRoleUsersCache.createAsync(GameServer.ServerCacheRefreshMinutes, scheduler);
         const serverSettingsCache = await ServerSettingsCache.createAsync(GameServer.ServerCacheRefreshMinutes, scheduler);
+        const featureFlagsCache = await FeatureFlagsCache.createAsync(GameServer.ServerCacheRefreshMinutes, serverRoleUsersCache, scheduler);
         const cosmeticsService = await CosmeticsService.createAsync(scheduler);
         const modActionService = await ModActionService.createAsync(scheduler);
 
         return {
             serverRoleUsersCache,
             serverSettingsCache,
+            featureFlagsCache,
             cosmeticsService,
             modActionService,
             stop: () => {
                 serverRoleUsersCache.stop();
                 serverSettingsCache.stop();
+                featureFlagsCache.stop();
                 cosmeticsService.stop();
                 modActionService.stop();
             },
