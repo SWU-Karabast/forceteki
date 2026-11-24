@@ -102,6 +102,40 @@ describe('Overall game mechanics', function() {
             expect(game.getErrorHistory().errors.map((recorded) => recorded.message)).toEqual(['halting']);
         });
 
+        it('should record a serialization failure as a severe error, after the router has handled it', function() {
+            const { game, router } = buildGame();
+            const error = new Error('serialization failed');
+            let historySeenByRouter: string[];
+            router.handleSerializationFailure.and.callFake(() => {
+                historySeenByRouter = game.getErrorHistory().errors.map((recorded) => recorded.message);
+                throw error;
+            });
+
+            expect(() => game.reportSerializationFailure(error)).toThrow(error);
+            // the lobby catches the rethrown error and records it again, which must not add a second entry
+            game.recordError(error);
+
+            expect(historySeenByRouter).toEqual([]);
+            const history = game.getErrorHistory();
+            expect(history.totalCount).toBe(1);
+            expect(history.errors[0].message).toBe('serialization failed');
+            expect(history.errors[0].severity).toBe(GameErrorSeverity.SevereHaltGame);
+        });
+
+        it('should record a repeated serialization failure as a severe error too', function() {
+            const { game, router } = buildGame();
+            router.handleSerializationFailure.and.callFake((_game: unknown, error: Error) => {
+                throw error;
+            });
+
+            expect(() => game.reportSerializationFailure(new Error('first'))).toThrowError('first');
+            expect(() => game.reportSerializationFailure(new Error('second'))).toThrowError('second');
+
+            expect(router.handleSerializationFailure).toHaveBeenCalledTimes(1);
+            expect(game.getErrorHistory().errors.map((recorded) => recorded.severity))
+                .toEqual([GameErrorSeverity.SevereHaltGame, GameErrorSeverity.SevereHaltGame]);
+        });
+
         it('should record the same error object only once', function() {
             const { game } = buildGame();
             const error = new Error('reported, then rethrown');

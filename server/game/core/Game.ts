@@ -620,12 +620,19 @@ export class Game extends EventEmitter {
     public reportSerializationFailure(error: Error): never {
         // if we've already seen a serialization failure, we may be in an infinite loop while try to report it, so just throw
         if (this._serializationFailure) {
+            this.recordError(error, GameErrorSeverity.SevereHaltGame);
             throw error;
         }
 
         this._serializationFailure = true;
 
-        this._router.handleSerializationFailure(this, error);
+        try {
+            this._router.handleSerializationFailure(this, error);
+        } finally {
+            // recorded after the router has handled it, as in reportError, and before the lobby catches the rethrown
+            // error and records it with the default severity (which is then a no-op for the same error object)
+            this.recordError(error, GameErrorSeverity.SevereHaltGame);
+        }
 
         // we won't reach here, this is just to make TS happy about the return type
         throw error;
