@@ -30,7 +30,6 @@ export default class AllianceShieldGenerator extends UpgradeCard {
     }
 
     private wouldDealFiveOrMoreDamage(context: TriggeredAbilityContext) {
-        const amount = DamageSystem.getDamageAmountDealtToCard(context.event) ?? 0;
-        return amount >= 5;
+        return DamageSystem.getDamageAmountDealtToCard(context.event) >= 5;
     }
 }
