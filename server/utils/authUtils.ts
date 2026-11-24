@@ -7,11 +7,22 @@ interface IAuthResponse {
     message: string;
 }
 
+/**
+ * The roles that pass a check for each role: admin passes every check, and developers and moderators also pass a
+ * contributor check. A role must be listed here to be checked at all; a check for any other value is refused.
+ */
+const RolesPassingCheck: Record<ServerRole, readonly ServerRole[]> = {
+    [ServerRole.Admin]: [ServerRole.Admin],
+    [ServerRole.Developer]: [ServerRole.Admin, ServerRole.Developer],
+    [ServerRole.Moderator]: [ServerRole.Admin, ServerRole.Moderator],
+    [ServerRole.Contributor]: [ServerRole.Admin, ServerRole.Developer, ServerRole.Moderator, ServerRole.Contributor],
+};
+
 export const checkServerRoleUserPrivileges = (
     apiPath: string,
     userId: string,
     role: ServerRole,
-    cache?: ServerRoleUsersCache
+    cache?: Pick<ServerRoleUsersCache, 'hasRole'>
 ): IAuthResponse => {
     if (!userId) {
         return {
@@ -28,38 +39,14 @@ export const checkServerRoleUserPrivileges = (
     }
 
     try {
-        switch (role) {
-            case ServerRole.Admin:
-                if (!cache.isAdmin(userId)) {
-                    return {
-                        success: false,
-                        message: 'Admin privileges required'
-                    };
-                }
-                break;
-            case ServerRole.Developer:
-                if (!cache.isAdmin(userId) && !cache.isDeveloper(userId)) {
-                    return {
-                        success: false,
-                        message: 'Developer privileges required'
-                    };
-                }
-                break;
-            case ServerRole.Moderator:
-                if (!cache.isAdmin(userId) && !cache.isModerator(userId)) {
-                    return {
-                        success: false,
-                        message: 'Moderator privileges required'
-                    };
-                }
-                break;
-            case ServerRole.Contributor:
-                if (!cache.isAdmin(userId) && !cache.isContributor(userId) && !cache.isDeveloper(userId) && !cache.isModerator(userId)) {
-                    return {
-                        success: false,
-                        message: 'Contributor privileges required'
-                    };
-                }
+        // a value that is not a known role (only possible through a cast) passes nothing; checked as an own key, so a
+        // name such as `__proto__` or `constructor` is not found on the object's prototype
+        const passingRoles = Object.prototype.hasOwnProperty.call(RolesPassingCheck, role) ? RolesPassingCheck[role] : [];
+        if (!passingRoles.some((passingRole) => cache.hasRole(userId, passingRole))) {
+            return {
+                success: false,
+                message: `${role.charAt(0).toUpperCase()}${role.slice(1)} privileges required`
+            };
         }
 
         return {
