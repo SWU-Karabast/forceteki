@@ -441,7 +441,9 @@ does to the timer. Depends only on core.
   it does wait on whose timer is not running. So the turn time starts again when a player becomes active again, while
   consecutive prompts for a player who stays active share it. `ActionWindow` stops the active player's timer as each
   action starts, so every action starts with full turn time, and the regroup phase stops both players' timers before
-  its resource step, so both start it with full turn time. Prompts built with `resetActionTimerOnComplete` (the
+  its resource step, so both start it with full turn time. In that step the player with the initiative chooses first, so
+  the other player's timer stays stopped (their prompt's `actionTimerRuns` is false) until the player with the initiative
+  has confirmed their choice, and it then starts with full turn time. Prompts built with `resetActionTimerOnComplete` (the
   initiative choice and the setup resource prompt) stop it when they complete.
 - *What the client is sent.* The game state is pushed when the turn time runs out and at 30 s and 10 s of main time left;
   the two thresholds also add a chat alert. The client counts down between pushes. It reads `turnTimeRemainingSeconds`,
@@ -474,7 +476,7 @@ each player's game state, the chat, and the winners.
 | Row | Behaviour | Status |
 |---|---|---|
 | T1 | which games have timers: quick-match and public-lobby games with `actionTimersEnabled` on; not a private lobby, nor with the setting off (no running timer, full main time) | covered (`TimedGames`) |
-| T2 | a player's turn time starts afresh when a prompt starts waiting on them, at each action, and for both players at the regroup phase's resource step (decided 2026-11-09); a player a prompt does not wait on has a stopped timer: the initiative choice (one player), the mulligan (both), an action, and a pass handing the timer over | covered (`ActionTimer`, *starting and stopping*) |
+| T2 | a player's turn time starts afresh when a prompt starts waiting on them, at each action, and for both players at the regroup phase's resource step (decided 2026-11-09), where the player without the initiative is not timed until the player with it has chosen (decided 2026-11-23); a player a prompt does not wait on has a stopped timer: the initiative choice (one player), the mulligan (both), an action, and a pass handing the timer over | covered (`ActionTimer`, *starting and stopping*) |
 | T3 | the turn time running out starts the main time, and the game state is sent at that moment | covered (`ActionTimer`) |
 | T4 | each new turn starts with full turn time; the main time keeps what is left, across actions, phases and rounds, plus the time each round's end gives back (row T16) | covered (`ActionTimer`) |
 | T5 | the warnings at 30 s and 10 s of main time: the status, the chat alert and a state push; the status clears once the player is no longer spending main time | covered (`ActionTimer`, *warnings*) |

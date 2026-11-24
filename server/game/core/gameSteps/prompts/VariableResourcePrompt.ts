@@ -3,6 +3,7 @@ import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
+import type { IResourcePromptOptions } from './ResourcePrompt';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
 export class VariableResourcePrompt extends ResourcePrompt {
@@ -11,10 +12,10 @@ export class VariableResourcePrompt extends ResourcePrompt {
     private readonly minCardsToResource: number;
     private readonly maxCardsToResource: number;
 
-    public constructor(game: Game, minCardsToResource: number, maxCardsToResource: number) {
+    public constructor(game: Game, minCardsToResource: number, maxCardsToResource: number, options: IResourcePromptOptions = {}) {
         Contract.assertTrue(maxCardsToResource > minCardsToResource, 'VariableResourcePrompt requires different min and max card counts. For fixed card count, use ResourcePrompt.');
 
-        super(game, maxCardsToResource);
+        super(game, maxCardsToResource, options);
 
         this.minCardsToResource = minCardsToResource;
         this.maxCardsToResource = maxCardsToResource;

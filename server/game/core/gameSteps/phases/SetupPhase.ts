@@ -39,7 +39,7 @@ export class SetupPhase extends Phase {
             [
                 ...setupStep,
                 ...mulliganStep,
-                new ResourcePrompt(game, 2, true)
+                new ResourcePrompt(game, 2, { resetActionTimerOnComplete: true })
             ],
             initializeMode
         );

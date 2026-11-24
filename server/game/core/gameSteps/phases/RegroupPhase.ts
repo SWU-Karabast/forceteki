@@ -87,7 +87,9 @@ export class RegroupPhase extends Phase {
             player.actionTimer.stop();
         }
 
-        this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
+        // the player with the initiative resources first: their opponent may wait to see what they chose, without their
+        // own timer running in the meantime
+        this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1, { initiativePlayerChoosesFirst: true }));
     }
 
     private readyAllCards(initializeMode: PhaseInitializeMode) {

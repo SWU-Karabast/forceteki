@@ -110,7 +110,9 @@ export abstract class UiPrompt extends BaseStep {
             if (this.activeCondition(player)) {
                 this.playersActiveForPrompt.push(player);
 
-                if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
+                if (!this.actionTimerRuns(player)) {
+                    this.stopPlayerActionTimer(player);
+                } else if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
                     this.startPlayerActionTimer(player);
                 }
 
@@ -148,6 +150,22 @@ export abstract class UiPrompt extends BaseStep {
 
     public isAllPlayerPrompt(): this is AllPlayerPrompt {
         return false;
+    }
+
+    /**
+     * Whether `player` has made a choice in this prompt that their opponent has been shown while the prompt is still open.
+     * Rolling back undoes that choice, so in a game where undo needs approval, `player` must then ask their opponent.
+     */
+    public hasShownChoiceToOpponent(player: Player): boolean {
+        return false;
+    }
+
+    /**
+     * Whether the action timer of `player`, who is active for this prompt, is counting down. While this is false their
+     * timer is stopped, and it starts with a full turn time once it is true again.
+     */
+    protected actionTimerRuns(player: Player): boolean {
+        return true;
     }
 
     protected isOpponentRevealNewInfoPrompt(): boolean {

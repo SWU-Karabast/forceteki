@@ -1959,8 +1959,14 @@ export class Game extends EventEmitter {
             return true;
         }
 
-        // check if opponent has revealed information on their turn
         const player = this.getPlayerById(playerId);
+
+        // the opponent has been shown a choice the player made in the open prompt, which rolling back would undo
+        if (this.getCurrentOpenPrompt()?.hasShownChoiceToOpponent(player)) {
+            return true;
+        }
+
+        // check if opponent has revealed information on their turn
         const opponent = player.opponent;
 
         // if it's the undoing player's action, no risk of revealed information

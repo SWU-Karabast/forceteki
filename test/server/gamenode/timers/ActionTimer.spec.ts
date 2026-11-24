@@ -92,7 +92,7 @@ describe('Action timer', function () {
                 expect(waiting.timerOf(active)).toEqual(onTurnTime(20));
             });
 
-            it('starts both players\' turn time afresh for the regroup phase\'s resource step, even the player who passed last', async function () {
+            it('starts the turn time of the player with the initiative afresh for the regroup phase\'s resource step, and their opponent\'s only once they have chosen', async function () {
                 const { harness } = contextRef;
                 const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
                 await active.clickButtonAsync('Pass');
@@ -100,10 +100,21 @@ describe('Action timer', function () {
 
                 await waiting.clickButtonAsync('Pass');
 
+                // `active` kept the initiative, so `waiting`, who passed last, chooses after them and may wait for them
                 expect(waiting.prompt.promptType).toBe(PromptType.Resource);
-                expect(active.timerOf(waiting)).withContext('the player who passed last, with the main time they spent')
-                    .toEqual(onTurnTime(20, 110));
                 expect(active.timerOf(active)).toEqual(onTurnTime(20));
+                expect(active.timerOf(waiting)).withContext('the player without the initiative, with the main time they spent')
+                    .toEqual(stopped(110));
+
+                await harness.clock.advanceAsync(15_000);
+                expect(active.timerOf(waiting)).withContext('waiting costs them no time')
+                    .toEqual(stopped(110));
+
+                await active.clickButtonAsync('Skip Resourcing');
+
+                expect(waiting.prompt.promptType).toBe(PromptType.Resource);
+                expect(active.timerOf(waiting)).withContext('once the player with the initiative has chosen')
+                    .toEqual(onTurnTime(20, 110));
             });
         });
 
@@ -143,7 +154,8 @@ describe('Action timer', function () {
                 expect(active.prompt.promptType).withContext('the regroup phase')
                     .toBe(PromptType.Resource);
                 expect(waiting.timerOf(active)).toEqual(onTurnTime(20, 90));
-                expect(waiting.timerOf(waiting)).toEqual(onTurnTime(20, 120));
+                expect(waiting.timerOf(waiting)).withContext('choosing after the player with the initiative, so not timed until they have')
+                    .toEqual(stopped(120));
 
                 await active.clickButtonAsync('Skip Resourcing');
                 await waiting.clickButtonAsync('Skip Resourcing');
@@ -240,22 +252,22 @@ describe('Action timer', function () {
 
             it('ends the game for an opponent whose own timer is running, with more than 3 s left, and stops it', async function () {
                 const { harness } = contextRef;
-                const { active, waiting } = await startTimedGameAtFirstActionAsync(harness);
-                await spendMainTimeAsync(harness, 90);
-                await active.clickButtonAsync('Pass');
-                await waiting.clickButtonAsync('Pass');
+                const { owner, guest } = await harness.startLiveGameAsync();
+                const { chooser, other } = initiativeChooserOf(owner, guest);
+                await harness.clock.advanceAsync(turnTimeMs + 90_000);
+                await chooser.clickButtonAsync('Yourself');
 
-                // in the regroup phase's resource step both timers run: the active player has 30 s of main time left
-                expect(waiting.timerOf(waiting)).toEqual(onTurnTime(20, 120));
+                // the mulligan waits on both players, so both timers run: the chooser has 30 s of main time left
+                expect(other.timerOf(other)).toEqual(onTurnTime(20, 120));
 
                 await harness.clock.advanceToDeadlineAsync(turnTimeMs + 30_000, {
                     justBefore: () => {
-                        expect(waiting.gameState.winners).toEqual([]);
+                        expect(other.gameState.winners).toEqual([]);
                     },
                     atDeadline: () => {
-                        expect(waiting.gameState.winners).toEqual([waiting.username]);
-                        expect(chatOf(waiting)).toContain(`Game ended due to ${active.username} timing out.`);
-                        expect(waiting.timerOf(waiting).isRunning).withContext('the opponent\'s timer stops')
+                        expect(other.gameState.winners).toEqual([other.username]);
+                        expect(chatOf(other)).toContain(`Game ended due to ${chooser.username} timing out.`);
+                        expect(other.timerOf(other).isRunning).withContext('the opponent\'s timer stops')
                             .toBeFalse();
                     },
                 });
