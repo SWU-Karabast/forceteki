@@ -87,4 +87,16 @@ function loadCards() {
     return CARDS;
 }
 
-module.exports = { loadCards, CARD_DIR };
+const SET_ORDER = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'IBH', 'SEC', 'LAW', 'TS26', 'ASH', 'HMW', 'IC27'];
+
+// Every non-token card with its tests (from card-notes.json's shape: { id: { ts: [], a2: [] } }), in set order.
+// Used by the local viewer's API and by the static viewer build, so both show the same data.
+function buildCardList(notes) {
+    const rank = (s) => { const i = SET_ORDER.indexOf(s); return i < 0 ? 100 : i; };
+    return Object.values(loadCards())
+        .filter((c) => !c.token && c.set)
+        .map((c) => Object.assign({}, c, { ts: (notes[c.id] || {}).ts || [], a2: (notes[c.id] || {}).a2 || [], reviewed: !!notes[c.id] }))
+        .sort((a, b) => rank(a.set) - rank(b.set) || a.set.localeCompare(b.set) || a.num.localeCompare(b.num) || a.id.localeCompare(b.id));
+}
+
+module.exports = { loadCards, buildCardList, SET_ORDER, CARD_DIR };

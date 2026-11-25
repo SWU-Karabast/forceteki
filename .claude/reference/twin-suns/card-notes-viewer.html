@@ -82,6 +82,7 @@ textarea { width:100%; min-height:44px; resize:none; overflow:hidden; }
 .tests li { margin:0 0 10px; padding:8px 12px; background:var(--bg); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:6px; }
 .none { color:var(--muted); font-style:italic; margin:4px 0 12px; }
 .edit { display:none; }
+.readonly [data-edit], .readonly .edit { display:none !important; }
 .card.editing .edit { display:block; }
 .card.editing .view { display:none; }
 .status { color:var(--muted); font-size:13px; }
@@ -100,6 +101,7 @@ textarea { width:100%; min-height:44px; resize:none; overflow:hidden; }
   </select>
   <input id="which" type="hidden" value="any">
   <span id="count" class="status"></span>
+  <span id="snapshot" class="status" hidden></span>
   <label class="switch" title="Switch between card images and a list"><span class="lbl" id="lbl-img">Images</span><input type="checkbox" id="mode"><span class="track"></span><span class="lbl" id="lbl-list">List</span></label>
   <div class="nav" id="whichnav" hidden></div>
   <div class="nav" id="types"></div>
@@ -200,7 +202,15 @@ function arenaNav() {
 function fit(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + ta.offsetHeight - ta.clientHeight) + 'px'; }
 
 async function load() {
-  CARDS = await (await fetch('/api/cards')).json();
+  // The static build (build-static-viewer.js) embeds the data and is read-only; the local server serves it live and allows edits.
+  if (window.NOTES_STATIC) {
+    CARDS = window.NOTES_STATIC;
+    document.body.classList.add('readonly');
+    $('snapshot').textContent = 'Read-only snapshot' + (window.NOTES_BUILT ? ', built ' + window.NOTES_BUILT : '');
+    $('snapshot').hidden = false;
+  } else {
+    CARDS = await (await fetch('/api/cards')).json();
+  }
   const sets = [...new Set(CARDS.map((c) => c.set))];
   $('set').innerHTML = '<option value="">All sets</option>' + sets.map((s) => `<option>${s}</option>`).join('');
   nav('types', 'Type', TYPES, 'type');

@@ -6,13 +6,12 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { loadCards } = require('./card-text');
+const { loadCards, buildCardList } = require('./card-text');
 
 const PORT = Number(process.env.PORT) || 8123;
 const LAN = process.env.LAN === '1';
 const NOTES = path.join(__dirname, 'card-notes.json');
 const PAGE = path.join(__dirname, 'card-notes-viewer.html');
-const SET_ORDER = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'IBH', 'SEC', 'LAW', 'TS26', 'ASH', 'HMW', 'IC27'];
 const lanIps = LAN ? Object.values(os.networkInterfaces()).flat().filter((i) => i && i.family === 'IPv4' && !i.internal).map((i) => i.address) : [];
 const allowedHosts = ['localhost', '127.0.0.1', ...lanIps].map((h) => `${h}:${PORT}`);
 
@@ -24,14 +23,7 @@ function writeNotes(notes) {
 }
 const lines = (a) => (Array.isArray(a) ? a : []).map((l) => String(l).trim()).filter(Boolean);
 
-function cardList() {
-    const notes = readNotes();
-    const rank = (s) => { const i = SET_ORDER.indexOf(s); return i < 0 ? 100 : i; };
-    return Object.values(loadCards())
-        .filter((c) => !c.token && c.set)
-        .map((c) => Object.assign({}, c, { ts: (notes[c.id] || {}).ts || [], a2: (notes[c.id] || {}).a2 || [], reviewed: !!notes[c.id] }))
-        .sort((a, b) => rank(a.set) - rank(b.set) || a.set.localeCompare(b.set) || a.num.localeCompare(b.num) || a.id.localeCompare(b.id));
-}
+const cardList = () => buildCardList(readNotes());
 
 http.createServer((req, res) => {
     if (!allowedHosts.includes(req.headers.host)) { res.writeHead(403); res.end('forbidden host'); return; }

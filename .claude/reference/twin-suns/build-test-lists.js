@@ -2,10 +2,9 @@
 // Run: node build-test-lists.js   (needs test/json from `npm run get-cards`).
 const fs = require('fs');
 const path = require('path');
-const { loadCards } = require('./card-text');
+const { loadCards, SET_ORDER } = require('./card-text');
 
 const OUT_DIR = path.join(__dirname, 'card-test-needs');
-const SET_ORDER = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'IBH', 'SEC', 'LAW', 'TS26', 'ASH', 'HMW', 'IC27'];
 const notes = JSON.parse(fs.readFileSync(path.join(__dirname, 'card-notes.json'), 'utf8'));
 const cards = loadCards();
 
