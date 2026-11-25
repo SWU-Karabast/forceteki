@@ -76,6 +76,10 @@ function loadCards() {
             set: d.setId && d.setId.set,
             num: d.setId && d.setId.number != null ? String(d.setId.number).padStart(3, '0') : '',
             type: d.types.join(' '),
+            types: d.types,
+            aspects: d.aspects || [],
+            arena: d.arena || '',
+            cost: d.cost == null ? null : Number(d.cost),
             token: d.types.includes('token'),
             fields: fields.map((f) => ({ label: f.label + (f.errata ? ' (errata)' : ''), text: f.text.replace(/<[^>]+>/g, '') }))
         };
