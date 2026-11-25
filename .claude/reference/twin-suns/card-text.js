@@ -94,7 +94,8 @@ const SET_ORDER = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'IBH', 'SEC', 'LAW', 'TS26
 function buildCardList(notes) {
     const rank = (s) => { const i = SET_ORDER.indexOf(s); return i < 0 ? 100 : i; };
     return Object.values(loadCards())
-        .filter((c) => !c.token && c.set)
+        // TST is only the placeholder "Mock Unreleased Unit" from scripts/mockdata.js, not a real set.
+        .filter((c) => !c.token && c.set && c.set !== 'TST')
         .map((c) => Object.assign({}, c, { ts: (notes[c.id] || {}).ts || [], a2: (notes[c.id] || {}).a2 || [], reviewed: !!notes[c.id] }))
         .sort((a, b) => rank(a.set) - rank(b.set) || a.set.localeCompare(b.set) || a.num.localeCompare(b.num) || a.id.localeCompare(b.id));
 }
