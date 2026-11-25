@@ -24,7 +24,7 @@ export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCar
 }
 
 export abstract class TriggerWindowBase extends BaseStep {
-    /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
+    /** Triggered effects / abilities that have not yet been resolved, organized by the player who orders them (see {@link getOrderingPlayer}) */
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
     /** Already resolved effects / abilities */
@@ -173,12 +173,18 @@ export abstract class TriggerWindowBase extends BaseStep {
             existingEvents.push(context.event);
             this.triggeredAbilityEvents.set(context.ability, existingEvents);
 
-            if (!this.unresolved.has(context.player)) {
-                this.unresolved.set(context.player, [context]);
+            const orderingPlayer = this.getOrderingPlayer(context);
+            if (!this.unresolved.has(orderingPlayer)) {
+                this.unresolved.set(orderingPlayer, [context]);
             } else {
-                this.unresolved.get(context.player).push(context);
+                this.unresolved.get(orderingPlayer).push(context);
             }
         }
+    }
+
+    /** The player who chooses when this ability resolves relative to the others in the window */
+    protected getOrderingPlayer(context: TriggeredAbilityContext): Player {
+        return context.player;
     }
 
     protected assertWindowResolutionNotStarted(triggerTypeName: string, source: Card) {

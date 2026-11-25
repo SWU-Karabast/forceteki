@@ -8,6 +8,7 @@ import type { Game } from '../../Game';
 import { TriggerWindowBase } from './TriggerWindowBase';
 import type Shield from '../../../cards/01_SOR/tokens/Shield';
 import type { GameEvent } from '../../event/GameEvent';
+import type { Player } from '../../Player';
 import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 
 export class ReplacementEffectWindow extends TriggerWindowBase {
@@ -78,6 +79,15 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
         }
 
         super.addTriggeredAbilityToWindow(context);
+    }
+
+    /**
+     * The controller of the affected game object orders the replacement effects on it, whoever controls those effects
+     * (SWU 7.7.5.e). The effects themselves still resolve as their own controller's. Events that aren't about a card
+     * have no affected object to go by, so those effects are ordered by their own controller.
+     */
+    protected override getOrderingPlayer(context: TriggeredAbilityContext): Player {
+        return context.event.card?.controller ?? super.getOrderingPlayer(context);
     }
 
     private getAllReplacedAbilities(context: TriggeredAbilityContext, event: GameEvent): Set<PlayerOrCardAbility> {
@@ -156,10 +166,11 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
 
         // add any selected trigger that came from the stash (not already present in `unresolved`)
         for (const selected of selectedShieldEffects) {
-            const playerAbilities = this.unresolved.get(selected.player) ?? [];
+            const orderingPlayer = this.getOrderingPlayer(selected);
+            const playerAbilities = this.unresolved.get(orderingPlayer) ?? [];
             if (!playerAbilities.includes(selected)) {
                 playerAbilities.push(selected);
-                this.unresolved.set(selected.player, playerAbilities);
+                this.unresolved.set(orderingPlayer, playerAbilities);
             }
         }
 
