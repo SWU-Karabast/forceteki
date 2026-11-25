@@ -1,0 +1,11 @@
+# Open questions (Twin Suns and Always Two)
+
+Behaviours the rules do not state and no one has ruled on. Each is decided and tested once at the engine level (see `engine-test-notes.md`); the per-card tests do not repeat them.
+
+1. **Indirect damage on a base (Always Two only).** May the player assigning indirect damage put more on a base than it can still take before reaching its health? If so, where does the excess go (best reading: it stays on the base)? Units can never be over-assigned. In Twin Suns a base at its health is eliminated, so the question does not arise. Cards: Tactical Heavy Bomber, Guerilla Soldier, Torpedo Barrage.
+2. **"When you take the initiative" when the teammate takes it (Always Two).** The initiative is shared by the team; when one teammate takes it neither can take it again. Do triggers worded "when you take the initiative" fire for the other teammate? ("If you have the initiative" is settled: the team's initiative counts for both.) Cards: Premonition of Doom, Ziton Moj, Grogu, Ezra Bridger, The Mandalorian (We Can't Keep Running).
+3. **"Defeat a base" in Always Two.** What does an ability that defeats a base do (damage set equal to its health?) when a base at its health does not eliminate the player? In Twin Suns it eliminates the player. Card: Grand Moff Tarkin.
+4. **A teammate healing your base (Always Two).** Does a heal of your base caused by your teammate's card count as "you heal damage from your base"? Card: Darth Sidious.
+5. **Replacing a teammate's attacker (Always Two).** Can Asajj Ventress (Death From Above) be used when the teammate's unit is the attacker, and who controls the unit put into play as the attacker? Card: Asajj Ventress, Death From Above.
+6. **An effect with no "then" that eliminates a player partway (Twin Suns).** Does the later part still resolve? Operation Cinder is ruled (the part after "then" does not resolve). Urgent Mission's "Draw 2 cards" after its 2 damage eliminates the controller is not. Card: Urgent Mission.
+7. **Always Two seating within a team.** "The player to their right" is a teammate for one player on each team and an enemy for the other, but which seat each player takes is not defined, so who takes whose unit cannot be fixed. Card: Impropriety Among Thieves.

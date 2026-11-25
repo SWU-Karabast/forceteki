@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card test notes</title>
+<style>
+:root { --bg:#fafaf7; --panel:#fff; --text:#1d1d1b; --muted:#66665f; --line:#dcdcd2; --accent:#2f5fb0; }
+@media (prefers-color-scheme: dark) { :root { --bg:#161718; --panel:#1f2123; --text:#e8e8e3; --muted:#9a9a92; --line:#33363a; --accent:#7ba4e6; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
+header { position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+header h1 { font-size:17px; margin:0 8px 0 0; }
+select, input, button, textarea { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
+button { cursor:pointer; }
+button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+main { max-width:900px; margin:0 auto; padding:16px; }
+.card { display:grid; grid-template-columns:150px 1fr; gap:16px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin:14px 0; }
+.card img { width:100%; border-radius:8px; }
+.noimg { border:1px dashed var(--line); border-radius:8px; padding:24px 6px; text-align:center; color:var(--muted); font-size:12px; }
+h2 { font-size:16px; margin:0 0 4px; }
+.txt { color:var(--muted); font-size:13px; margin:0 0 8px; white-space:pre-wrap; }
+label { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:8px 0 2px; }
+textarea { width:100%; min-height:64px; resize:vertical; }
+.row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.status { color:var(--muted); font-size:13px; }
+@media (max-width:640px) { .card { grid-template-columns:1fr; } .card img { max-width:150px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Card test notes</h1>
+  <select id="set"></select>
+  <select id="show">
+    <option value="tests">With tests</option>
+    <option value="reviewed">Reviewed</option>
+    <option value="all">All cards</option>
+  </select>
+  <input id="q" type="search" placeholder="Search name or text">
+  <span id="count" class="status"></span>
+</header>
+<main id="list"></main>
+<script>
+let CARDS = [];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const PAGE = 25;
+let shown = PAGE;
+
+async function load() {
+  CARDS = await (await fetch('/api/cards')).json();
+  const sets = [...new Set(CARDS.map((c) => c.set))];
+  $('set').innerHTML = '<option value="">All sets</option>' + sets.map((s) => `<option>${s}</option>`).join('');
+  for (const id of ['set', 'show', 'q']) { $(id).oninput = () => { shown = PAGE; render(); }; }
+  render();
+}
+
+function matches(c) {
+  const set = $('set').value, show = $('show').value, q = $('q').value.trim().toLowerCase();
+  if (set && c.set !== set) { return false; }
+  if (show === 'tests' && !(c.ts.length || c.a2.length)) { return false; }
+  if (show === 'reviewed' && !c.reviewed) { return false; }
+  if (q && !(c.name + ' ' + c.subtitle + ' ' + c.fields.map((f) => f.text).join(' ')).toLowerCase().includes(q)) { return false; }
+  return true;
+}
+
+function image(slot, c) {
+  const bare = String(parseInt(c.num, 10));
+  const urls = [...new Set([c.num, bare, bare.padStart(2, '0')])].map((n) => `https://swudb.com/images/cards/${c.set}/${n}.png`);
+  const img = slot.querySelector('img'), miss = slot.querySelector('.noimg');
+  const next = (i) => {
+    if (i >= urls.length) { miss.hidden = false; return; }
+    const p = new Image(); p.referrerPolicy = 'no-referrer';
+    p.onload = () => { img.src = urls[i]; img.hidden = false; };
+    p.onerror = () => next(i + 1);
+    p.src = urls[i];
+  };
+  next(0);
+}
+
+function render() {
+  const list = CARDS.filter(matches);
+  $('count').textContent = `${list.length} cards`;
+  const page = list.slice(0, shown);
+  $('list').innerHTML = page.map((c) => `
+    <article class="card" data-id="${esc(c.id)}">
+      <div class="img"><img hidden alt="${esc(c.name)}" referrerpolicy="no-referrer"><div class="noimg" hidden>${esc(c.name)}</div></div>
+      <div>
+        <h2>${esc(c.name)}${c.subtitle ? ' — ' + esc(c.subtitle) : ''} <span class="status">${c.set} #${c.num}</span></h2>
+        <p class="txt">${c.fields.map((f) => esc(f.label + ': ' + f.text)).join('\n')}</p>
+        <label>Twin Suns tests (one per line)</label><textarea data-k="ts">${esc(c.ts.join('\n'))}</textarea>
+        <label>Always Two tests (one per line)</label><textarea data-k="a2">${esc(c.a2.join('\n'))}</textarea>
+        <div class="row"><button class="primary" data-save>Save</button><span class="status"></span></div>
+      </div>
+    </article>`).join('') + (list.length > shown ? '<p><button id="more">Show more</button></p>' : '');
+  document.querySelectorAll('.card').forEach((el) => {
+    const c = CARDS.find((x) => x.id === el.dataset.id);
+    if (/^\d+$/.test(c.num)) { image(el.querySelector('.img'), c); } else { el.querySelector('.noimg').hidden = false; }
+    el.querySelector('[data-save]').onclick = async () => {
+      const get = (k) => el.querySelector(`[data-k="${k}"]`).value.split('\n').map((l) => l.trim()).filter(Boolean);
+      const st = el.querySelector('.status:last-child');
+      const r = await fetch('/api/save', { method: 'POST', headers: { 'content-type': 'application/json', 'x-notes-viewer': '1' }, body: JSON.stringify({ id: c.id, ts: get('ts'), a2: get('a2') }) });
+      if (r.ok) { c.ts = get('ts'); c.a2 = get('a2'); c.reviewed = true; st.textContent = 'Saved'; } else { st.textContent = 'Save failed'; }
+    };
+  });
+  const more = $('more');
+  if (more) { more.onclick = () => { shown += PAGE; render(); }; }
+}
+load();
+</script>
+</body>
+</html>

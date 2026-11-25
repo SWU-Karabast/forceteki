@@ -2,7 +2,7 @@
 
 Behaviors that belong to the engine rather than to any one card. They are tested once, in the engine scenarios (`test/scenarios/`), and are deliberately left out of the per-card notes. Each item is a requirement to test, not a record of a code change; the user's note on the first two is that no new code is expected, but the behavior still has to be tested.
 
-Sources: `format-rules.md` (rulings R1-R31 and the official Doubles overview) and the review decisions made while going through the cards.
+Sources: `rulings.md` (judge rulings and deductions) and the review decisions made while going through the cards.
 
 ## Always Two (Doubles)
 
