@@ -93,8 +93,10 @@ These supersede the "open" items and assumptions elsewhere in this file for the 
 | R53 | Always Two: the initiative is the team's | In Always Two the initiative is shared by the team, so "if you have the initiative" is true for both teammates whenever their team has it, whichever teammate claimed it. Only a card that cares which player took the "claim the initiative" action (not just who holds it) can distinguish the teammates. (Anthony, 2026-11-24, on Allegiant General Pryde.) |
 | R54 | Both formats: "that player" after a card returns to its owner's hand | When a card says to return a unit to its owner's hand and then "that player" does something (The Will of the Force: discards a random card), "that player" is the unit's owner, whose hand it returned to, not its controller, when they differ (a unit taken by Pantoran Starship Thief, or a teammate's unit). (Anthony, 2026-11-24, on The Will of the Force.) |
 | R55 | Both formats: "an opponent" repeated in separate sentences | When one triggered ability says "an opponent" in two separate sentences (Broken Horn: hand size, then resources), the player chooses an opponent for each sentence separately; the two choices may be different players (an enemy in Always Two, never the teammate). (Anthony, 2026-11-24, on Broken Horn.) |
+| R56 | Always Two: a teammate's Credit token for your own costs | A player cannot defeat their teammate's Credit token to pay 1 resource less on their own cost: the Credit token's own text is used by its controller. A teammate's Credit tokens are still friendly Credit tokens for cards that count or defeat them (R23). (Anthony, 2026-11-24.) |
+| R57 | Both formats: "choose a unit controlled by each player" | An effect that has the controller choose a unit controlled by each player (Impropriety Among Thieves) needs a unit that meets the criteria from every player still in the game; if any player cannot meet them, the event fizzles and nothing changes control. (Anthony, 2026-11-24.) |
 
-Deferred rulings (still open): Always Two "When you take the initiative" with a teammate taking it (unknown; the cards stay as open questions), Always Two indirect damage assigned to a base past its health (unknown; best reading: units can never be over-assigned, but a base might be, with the excess staying on it; CR v9.0 8.35.3 caps units only), Twin Suns attacker takes control of the defender mid-attack, whether an eliminated player can share a win; Always Two base at 0 HP edge cases, seating and choice order, whether a teammate's plays satisfy "you play" effects beyond R6.
+Deferred rulings (still open; the others in the old list are answered, see R1-R2, R7-R10, R17-R18, R39-R42): Always Two "When you take the initiative" with a teammate taking it (unknown), Always Two indirect damage assigned to a base past its health (unknown; best reading: units can never be over-assigned, but a base might be, with the excess staying on it; CR v9.0 8.35.3 caps units only), what "defeat a base" does in Always Two, whether a teammate's heal of your base counts as "you heal", and replacing a teammate's attacker (Asajj Ventress, Death From Above). See open-questions.html.
 
 ## Twin Suns (3-4 players, free-for-all)
 
@@ -114,7 +116,7 @@ Deferred rulings (still open): Always Two "When you take the initiative" with a 
 | Simultaneous triggers | The active player chooses the order. |
 | Deckbuilding | Two different leaders, singleton, 80+ cards. |
 
-Deferred rulings: attacker takes control of the defender mid-attack, controlled-not-owned cards on elimination, per-card comparison cards ("most", "fewer than"), whether an eliminated player can share a win.
+Deferred rulings: all answered since (attacker takes control of the defender mid-attack: the attack continues with the new controller as the defending player; controlled-not-owned cards on elimination: R42; per-card comparison cards: R1, R2, R17, R18, R40; whether an eliminated player can share a win: no, eliminated players are not players for any effect).
 
 ## Always Two / Doubles (2v2, teams) — from the announcement
 
