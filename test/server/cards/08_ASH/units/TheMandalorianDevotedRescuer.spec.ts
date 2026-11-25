@@ -28,6 +28,9 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.theMandalorian.damage).toBe(0);
                 expect(context.wampa.damage).toBe(3); // combat damage still dealt back to attacker
 
+                // The log names the protected unit, not The Mandalorian
+                expect(context.getChatLogs(5)).toContain('player1 uses The Mandalorian to prevent all damage to Battlefield Marine');
+
                 // Wampa has Overwhelm, but fully preventing the damage means the defender is not
                 // defeated — no excess damage is dealt to the base (CR 7.5.7.C)
                 expect(context.p1Base.damage).toBe(0);
