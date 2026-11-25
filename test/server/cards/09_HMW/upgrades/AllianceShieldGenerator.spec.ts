@@ -274,5 +274,64 @@ describe('Alliance Shield Generator', function() {
             expect(context.p1Base.damage).toBe(3);
             expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
         });
+
+        describe('when Yoda, A Disturbing Puzzle prevents the same damage', function() {
+            const yodaTitle = 'Prevent all combat damage that would be dealt to and dealt by this unit';
+            const generatorTitle = 'Prevent 5 or more damage to the attached base, then defeat this upgrade and draw a card';
+
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'kestro-city', upgrades: ['alliance-shield-generator'] },
+                        groundArena: ['yoda#a-disturbing-puzzle'],
+                        deck: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['strike-team-vanguard'],
+                    }
+                });
+            });
+
+            function attackBaseWithUnitChosenByYoda(context) {
+                // Yoda attacks and chooses Strike Team Vanguard, so its combat damage is prevented this phase
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.strikeTeamVanguard);
+
+                // Strike Team Vanguard (5 power) attacks the base, so both effects would replace the same damage
+                context.player2.clickCard(context.strikeTeamVanguard);
+                context.player2.clickCard(context.p1Base);
+
+                // The base is the affected game object, so its controller orders the effects, not the attacker
+                expect(context.player1).toHaveExactPromptButtons([yodaTitle, generatorTitle]);
+            }
+
+            it('should leave the upgrade in play if the controller of the base resolves the prevention from Yoda first', function() {
+                const { context } = contextRef;
+
+                attackBaseWithUnitChosenByYoda(context);
+                context.player1.clickPrompt(yodaTitle);
+
+                // There is no damage left for the generator to prevent
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
+                expect(context.wampa).toBeInZone('deck');
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should defeat the upgrade and draw a card if the controller of the base resolves it first', function() {
+                const { context } = contextRef;
+
+                attackBaseWithUnitChosenByYoda(context);
+                context.player1.clickPrompt(generatorTitle);
+
+                // The damage is prevented by the generator, so Yoda's prevention has nothing left to replace
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.allianceShieldGenerator).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('hand');
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });

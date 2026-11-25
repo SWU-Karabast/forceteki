@@ -1,13 +1,10 @@
 describe('Yoda, A Disturbing Puzzle', function() {
     integration(function(contextRef) {
-        const preventionTitle = 'Prevent all combat damage that would be dealt to and dealt by this unit';
-
-        // The damage dealt to and the damage dealt by the chosen unit are two simultaneous replacements of the
-        // same gained ability, so its controller is asked to resolve the grouped triggers
-        function resolveBothPreventions(player) {
-            expect(player).toHavePrompt(`Resolve "${preventionTitle}"`);
-            expect(player).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
-            player.clickPrompt('Resolve all (2)');
+        // The damage dealt to and the damage dealt by the chosen unit are replaced separately, and each is ordered by the
+        // controller of the card it would be dealt to, so the attacking player chooses which player goes first
+        function resolveBothPreventions(attackingPlayer) {
+            expect(attackingPlayer).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+            attackingPlayer.clickPrompt('You');
         }
 
         describe('Yoda\'s On Attack ability', function() {
@@ -36,7 +33,7 @@ describe('Yoda, A Disturbing Puzzle', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce, context.tielnFighter]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
-                resolveBothPreventions(context.player2);
+                resolveBothPreventions(context.player1);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine.damage).toBe(0);
@@ -118,7 +115,7 @@ describe('Yoda, A Disturbing Puzzle', function() {
 
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
-                resolveBothPreventions(context.player2);
+                resolveBothPreventions(context.player1);
 
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine.damage).toBe(0);
