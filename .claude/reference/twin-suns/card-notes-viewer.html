@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Card test notes</title>
 <style>
-:root { --bg:#fafaf7; --panel:#fff; --text:#1d1d1b; --muted:#66665f; --line:#dcdcd2; --accent:#2f5fb0; }
-@media (prefers-color-scheme: dark) { :root { --bg:#161718; --panel:#1f2123; --text:#e8e8e3; --muted:#9a9a92; --line:#33363a; --accent:#7ba4e6; } }
+/* Dark by default on every device. */
+:root { color-scheme:dark; --bg:#161718; --panel:#1f2123; --text:#e8e8e3; --muted:#9a9a92; --line:#33363a; --accent:#3d6fcf; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
-header { position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+header { position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:10px max(16px, calc((100vw - 1500px) / 2)); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 #q { flex:1 1 220px; min-width:150px; max-width:380px; }
 select, input, button, textarea { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
 button { cursor:pointer; }
 button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
-main { max-width:1200px; margin:0 auto; padding:16px; }
+main { max-width:1500px; margin:0 auto; padding:16px; }
 #list { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:14px; align-items:start; }
 #list > p { grid-column:1 / -1; }
 .card { min-width:0; scroll-margin-top:var(--hdr, 180px); }
@@ -86,6 +86,20 @@ textarea { width:100%; min-height:44px; resize:none; overflow:hidden; }
 .card.editing .edit { display:block; }
 .card.editing .view { display:none; }
 .status { color:var(--muted); font-size:13px; }
+/* Desktop: larger cards, a bigger detail panel, roomier rows. */
+@media (min-width:900px) {
+  body { font-size:16px; }
+  header { gap:10px; }
+  .nav button { padding:11px 6px; font-size:15px; }
+  .nav button:has(.sym) { padding:7px 6px; }
+  .sym { width:34px; height:34px; }
+  #list { grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:20px; padding-top:6px; }
+  .thumb .cap { font-size:13px; }
+  .card.open .detail { grid-template-columns:280px minmax(0, 1fr); gap:28px; padding:20px; }
+  .card.open .detail .txt { font-size:14px; }
+  .tests li { padding:10px 14px; }
+  #list.list .rowhead, #list.list .rowsum { padding:11px 16px; }
+}
 @media (max-width:640px) { #list { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px; } .card.open .detail { grid-template-columns:1fr; } .card.open .detail .img img { max-width:150px; } }
 </style>
 </head>
@@ -118,7 +132,13 @@ const PAGE = 12;
 const LIST_PAGE = 25;
 let listMode = false;
 try { listMode = localStorage.getItem('notesViewerMode') === 'list'; } catch (e) { /* no storage */ }
-const perPage = () => (listMode ? LIST_PAGE : PAGE);
+// On a wide screen the grid has more columns of bigger cards: show three full rows (same sizes as the desktop CSS).
+function perPage() {
+  if (listMode) { return LIST_PAGE; }
+  if (window.innerWidth < 900) { return PAGE; }
+  const cols = Math.max(1, Math.floor((Math.min(window.innerWidth, 1500) - 32 + 20) / (190 + 20)));
+  return cols * 3;
+}
 let pageNo = 0;
 const TYPES = ['base', 'leader', 'unit', 'event', 'upgrade'];
 const ARENAS = ['space', 'ground'];
@@ -335,6 +355,8 @@ function render() {
     if (numeric) { image(el.querySelector('.timg'), c); } else { el.querySelector('.timg .noimg').hidden = false; }
     let detailImage = false;
     const openCard = () => {
+      // Only one card is open at a time: opening this one folds any other open card back up.
+      document.querySelectorAll('.card.open').forEach((other) => { if (other !== el) { other.classList.remove('open', 'editing'); } });
       el.classList.add('open');
       if (!detailImage) { detailImage = true; if (numeric) { image(el.querySelector('.detail .img'), c); } else { el.querySelector('.detail .noimg').hidden = false; } }
       el.querySelectorAll('textarea').forEach(fit);
