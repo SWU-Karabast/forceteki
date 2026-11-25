@@ -43,7 +43,7 @@ export class DamageModificationSystem<
                 case DamageModificationType.PreventAll:
                     return {
                         format: 'prevent all damage to {0}',
-                        args: [this.getTargetMessage(context.source, context)],
+                        args: [this.getTargetMessage(context.event.card, context)],
                     };
                 case DamageModificationType.Reduce:
                     return {

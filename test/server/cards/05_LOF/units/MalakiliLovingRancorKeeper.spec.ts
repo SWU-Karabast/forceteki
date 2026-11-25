@@ -74,6 +74,35 @@ describe('Malakili, Loving Rancor Keeper', function () {
             expect(context.malakili.damage).toBe(0);
             expect(context.wampa.damage).toBe(0);
             expect(context.battlefieldMarine.damage).toBe(0);
+
+            // Each prevention names the unit it protects, not Malakili
+            const chatLogs = context.getChatLogs(10);
+            expect(chatLogs).toContain('player1 uses Malakili to prevent all damage to Malakili');
+            expect(chatLogs).toContain('player1 uses Malakili to prevent all damage to Wampa');
+            expect(chatLogs).toContain('player1 uses Malakili to prevent all damage to Battlefield Marine');
+        });
+
+        it('Malakili\'s ability should prevent damage a friendly Creature unit deals to itself, without stopping the rest of that ability', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['malakili#loving-rancor-keeper', { card: 'arena-nexu#starved-for-prey', damage: 1 }]
+                }
+            });
+            const { context } = contextRef;
+
+            // Attack with Arena Nexu and trigger its on attack ability
+            context.player1.clickCard(context.arenaNexu);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.arenaNexu);
+
+            // The damage is prevented, so Grit does not go up, but the Nexu still readies
+            expect(context.player2).toBeActivePlayer();
+            expect(context.arenaNexu.damage).toBe(1);
+            expect(context.arenaNexu.exhausted).toBeFalse();
+            expect(context.p2Base.damage).toBe(3);
+            expect(context.getChatLogs(1)).toEqual(['player1 uses Malakili to prevent all damage to Arena Nexu']);
         });
 
         it('Malakili\'s ability should not prevent attack damage', async function () {
