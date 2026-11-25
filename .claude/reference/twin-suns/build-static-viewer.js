@@ -11,9 +11,12 @@ const page = fs.readFileSync(path.join(__dirname, 'card-notes-viewer.html'), 'ut
 
 // "<" is escaped so no card text can end the script block early.
 const json = JSON.stringify(cards).replace(/</g, '\\u003c');
-const built = new Date().toISOString().slice(0, 10);
+const built = new Date().toISOString()
+    .slice(0, 10);
 const marker = '<script>\nlet CARDS = [];';
-if (!page.includes(marker)) { throw new Error('Could not find the viewer script in card-notes-viewer.html'); }
+if (!page.includes(marker)) {
+    throw new Error('Could not find the viewer script in card-notes-viewer.html');
+}
 const html = page.replace(marker, () => `<script>window.NOTES_BUILT = ${JSON.stringify(built)}; window.NOTES_STATIC = ${json};</script>\n${marker}`);
 
 const out = path.join(__dirname, 'card-notes-viewer-static.html');

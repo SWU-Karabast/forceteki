@@ -12,14 +12,19 @@ function applyErrata(fields, rules, id) {
     if (!rules) {
         return;
     }
-    const lines = rules.split('\n').map((l) => l.trim()).filter((l) => /^\(?ERRATA\)?:?/i.test(l) && !/Templating update|Trait|Name:/i.test(l));
+    const lines = rules.split('\n').map((l) => l.trim())
+        .filter((l) => (/^\(?ERRATA\)?:?/i).test(l) && !(/Templating update|Trait|Name:/i).test(l));
     for (const line of lines) {
         const e = line.replace(/^\(?ERRATA\)?:?\s*/i, '');
         if (id === 'krrsantan#hit-and-run') {
-            fields.forEach((f) => { f.text = f.text.replace(/Return this unit to your hand \(from play\)\./, "Return this unit to its owner's hand."); f.errata = true; });
+            fields.forEach((f) => {
+                f.text = f.text.replace(/Return this unit to your hand \(from play\)\./, 'Return this unit to its owner\'s hand.'); f.errata = true;
+            });
             continue;
         }
-        const lead = (t) => { const m = t.match(/^[^:]{1,25}:/); return (m ? m[0] : t.slice(0, 12)).toLowerCase(); };
+        const lead = (t) => {
+            const m = t.match(/^[^:]{1,25}:/); return (m ? m[0] : t.slice(0, 12)).toLowerCase();
+        };
         const key = lead(e);
         let done = false;
         for (const f of fields) {
@@ -58,16 +63,26 @@ function loadCards() {
             continue;
         }
         let d;
-        try { d = JSON.parse(fs.readFileSync(path.join(CARD_DIR, file), 'utf8')); } catch (e) { continue; }
+        try {
+            d = JSON.parse(fs.readFileSync(path.join(CARD_DIR, file), 'utf8'));
+        } catch (e) {
+            continue;
+        }
         if (!d.internalName || !d.types || CARDS[d.internalName]) {
             continue;
         }
         const isBase = d.types.includes('base');
         const isLeader = d.types.includes('leader');
         const fields = [];
-        if (d.text) { fields.push({ label: isLeader ? 'Leader side' : 'Text', text: d.text }); }
-        if (d.deployBox) { fields.push({ label: 'Deployed', text: d.deployBox }); }
-        if (d.epicAction && isBase) { fields.push({ label: 'Epic Action', text: d.epicAction }); }
+        if (d.text) {
+            fields.push({ label: isLeader ? 'Leader side' : 'Text', text: d.text });
+        }
+        if (d.deployBox) {
+            fields.push({ label: 'Deployed', text: d.deployBox });
+        }
+        if (d.epicAction && isBase) {
+            fields.push({ label: 'Epic Action', text: d.epicAction });
+        }
         applyErrata(fields, d.rules, d.internalName);
         CARDS[d.internalName] = {
             id: d.internalName,
@@ -92,7 +107,9 @@ const SET_ORDER = ['SOR', 'SHD', 'TWI', 'JTL', 'LOF', 'IBH', 'SEC', 'LAW', 'TS26
 // Every non-token card with its tests (from card-notes.json's shape: { id: { ts: [], a2: [] } }), in set order.
 // Used by the local viewer's API and by the static viewer build, so both show the same data.
 function buildCardList(notes) {
-    const rank = (s) => { const i = SET_ORDER.indexOf(s); return i < 0 ? 100 : i; };
+    const rank = (s) => {
+        const i = SET_ORDER.indexOf(s); return i < 0 ? 100 : i;
+    };
     return Object.values(loadCards())
         // TST is only the placeholder "Mock Unreleased Unit" from scripts/mockdata.js, not a real set.
         .filter((c) => !c.token && c.set && c.set !== 'TST')
