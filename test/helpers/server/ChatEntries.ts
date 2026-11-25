@@ -18,10 +18,20 @@ export interface IChatEntry {
      * names shown by name.
      */
     text: string;
+
+    /**
+     * The ids of the players the line names as player parts, in order. `text` shows each of them by name, but a
+     * client can show them by seat instead to someone who should not see names. A name written into the text
+     * itself appears in `text` without an id here, and cannot be hidden.
+     */
+    playerIds: string[];
 }
 
 /** The marker the server puts first in a player's chat message (`GameChat.addChatMessage`). */
 const playerChatMarker = 'playerChat';
+
+/** The type of a part naming a player (`ChatObjectType.Player`). */
+const playerPartType = 'player';
 
 function render(part: unknown): string {
     if (typeof part === 'string') {
@@ -45,20 +55,38 @@ function render(part: unknown): string {
     return '';
 }
 
+function playerIdsIn(part: unknown): string[] {
+    if (Array.isArray(part)) {
+        return part.flatMap(playerIdsIn);
+    }
+    if (part !== null && typeof part === 'object') {
+        const { type, id, message } = part as { type?: unknown; id?: unknown; message?: unknown };
+        if (type === playerPartType && typeof id === 'string') {
+            return [id];
+        }
+        if (message !== undefined) {
+            return playerIdsIn(message);
+        }
+    }
+
+    return [];
+}
+
 function toChatEntry(serialized: ISerializedMessage): IChatEntry {
     const message: unknown = serialized?.message;
 
     if (message !== null && typeof message === 'object' && 'alert' in message) {
         const alert = (message as { alert: { type: string; message: unknown } }).alert;
-        return { alertType: alert.type, text: render(alert.message) };
+        return { alertType: alert.type, text: render(alert.message), playerIds: playerIdsIn(alert.message) };
     }
 
     if (Array.isArray(message) && message[0]?.type === playerChatMarker) {
         // the server formats a chat message as '{0} {1}': the sender, a space, then what they wrote
-        return { senderId: message[0].id, text: render(message.slice(1)).replace(/^ /, '') };
+        const said = message.slice(1);
+        return { senderId: message[0].id, text: render(said).replace(/^ /, ''), playerIds: playerIdsIn(said) };
     }
 
-    return { text: render(message) };
+    return { text: render(message), playerIds: playerIdsIn(message) };
 }
 
 /** Reads a chat's serialized messages (`lobbystate.gameChat.messages`, or `gamestate.newMessages`) as entries. */

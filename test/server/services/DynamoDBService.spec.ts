@@ -2,7 +2,7 @@ import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DeleteCommand, GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { IDeckDataEntity, IModActionEntity, IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
-import { ModActionType, UsernameChangeSource } from '../../../server/services/DynamoDBInterfaces';
+import { ModActionType, ServerRole, UsernameChangeSource } from '../../../server/services/DynamoDBInterfaces';
 import { DynamoDBService } from '../../../server/services/DynamoDBService';
 import type { IItemKey } from '../../../server/services/DynamoDBService';
 import type { ICosmeticEntity } from '../../../server/utils/cosmetics/CosmeticsInterfaces';
@@ -255,5 +255,80 @@ describe('DynamoDBService', function () {
                 expect(client.send).not.toHaveBeenCalled();
             });
         }
+    });
+
+    describe('the server role lists', function () {
+        const adminId = '3f2a1c4e-0000-4000-8000-000000000001';
+        const moderatorId = '3f2a1c4e-0000-4000-8000-000000000002';
+
+        function storeRolesItem(item: Record<string, unknown> | undefined): void {
+            (client.send as jasmine.Spy).and.callFake((command: unknown) =>
+                Promise.resolve(command instanceof GetCommand ? { Item: item } : {}));
+        }
+
+        it('reads each role\'s users from the attribute named for the role', async function () {
+            storeRolesItem({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES', admin: [{ id: adminId }], moderator: [{ id: moderatorId }],
+                updatedAt: '2026-11-01T00:00:00.000Z', updatedById: adminId });
+
+            expect(await service.getServerRoleUsersAsync()).toEqual({
+                admin: [{ id: adminId }], developer: [], moderator: [{ id: moderatorId }], contributor: [],
+                updatedAt: '2026-11-01T00:00:00.000Z', updatedById: adminId
+            });
+        });
+
+        // TODO: remove with the plural fallback, once the item in every environment has been saved under the role names
+        it('reads an item not yet saved under the role names from the old plural attributes', async function () {
+            storeRolesItem({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES', admins: [{ id: adminId, note: 'someone' }], moderators: [{ id: moderatorId }] });
+
+            expect(await service.getServerRoleUsersAsync()).toEqual({
+                admin: [{ id: adminId, note: 'someone' }], developer: [], moderator: [{ id: moderatorId }], contributor: []
+            });
+        });
+
+        it('prefers the attribute named for the role over an old plural one', async function () {
+            storeRolesItem({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES', admin: [{ id: adminId }], admins: [{ id: moderatorId }] });
+
+            expect((await service.getServerRoleUsersAsync())[ServerRole.Admin]).toEqual([{ id: adminId }]);
+        });
+
+        it('reads no users when there is no item', async function () {
+            storeRolesItem(undefined);
+
+            expect(await service.getServerRoleUsersAsync()).toEqual({ admin: [], developer: [], moderator: [], contributor: [] });
+        });
+
+        it('writes the changed role\'s users under its name, the others only where missing, and removes the old plural attributes, on condition nothing changed since', async function () {
+            await service.saveServerRoleUsersAsync({
+                admin: [{ id: adminId }], developer: [], moderator: [{ id: moderatorId }], contributor: [],
+                updatedAt: '2026-11-02T00:00:00.000Z', updatedById: adminId
+            }, ServerRole.Moderator, '2026-11-01T00:00:00.000Z');
+
+            const updates = (client.send as jasmine.Spy).calls.allArgs()
+                .map(([command]: [unknown]) => command)
+                .filter((command): command is UpdateCommand => command instanceof UpdateCommand);
+            expect(updates.length).toBe(1);
+            const input = updates[0].input;
+            expect(input.Key).toEqual({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES' });
+            expect(input.UpdateExpression).toBe('SET #admin = if_not_exists(#admin, :admin), #developer = if_not_exists(#developer, :developer), ' +
+              '#moderator = :moderator, #contributor = if_not_exists(#contributor, :contributor), ' +
+              'updatedAt = :updatedAt, updatedById = :updatedById REMOVE #admins, #developers, #moderators, #contributors');
+            expect(input.ExpressionAttributeNames).toEqual({
+                '#admin': 'admin', '#admins': 'admins', '#developer': 'developer', '#developers': 'developers',
+                '#moderator': 'moderator', '#moderators': 'moderators', '#contributor': 'contributor', '#contributors': 'contributors'
+            });
+            expect(input.ExpressionAttributeValues).toEqual({
+                ':admin': [{ id: adminId }], ':developer': [], ':moderator': [{ id: moderatorId }], ':contributor': [],
+                ':updatedAt': '2026-11-02T00:00:00.000Z', ':updatedById': adminId, ':previousUpdatedAt': '2026-11-01T00:00:00.000Z'
+            });
+            expect(input.ConditionExpression).toBe('updatedAt = :previousUpdatedAt');
+        });
+
+        it('refuses a change not stamped with a datetime and a user id, and sends nothing', function () {
+            const lists = { admin: [], developer: [], moderator: [], contributor: [] };
+
+            expect(() => service.saveServerRoleUsersAsync({ ...lists, updatedAt: 'yesterday', updatedById: adminId }, ServerRole.Moderator, undefined)).toThrow();
+            expect(() => service.saveServerRoleUsersAsync({ ...lists, updatedAt: '2026-11-02T00:00:00.000Z', updatedById: 'adminUser' }, ServerRole.Moderator, undefined)).toThrow();
+            expect(client.send).not.toHaveBeenCalled();
+        });
     });
 });

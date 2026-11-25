@@ -1,13 +1,18 @@
-# 1. Ignore everything by default
+# Allowlist. The image is built from source inside Docker, so only what the Dockerfile COPYs belongs
+# in the build context. The local node_modules/ and build/ are deliberately left out. CDK also uses
+# this file when fingerprinting and staging the image asset, which keeps `cdk synth` fast.
 *
 
-# 2. Allowlist specific folders
-!/build
+!/package.json
+!/package-lock.json
+!/.npmrc
+!/.tool-versions
+!/tsconfig.json
+!/card-data-version.txt
+!/scripts
 !/server
-!/node_modules
-!/package*.json
 
-# 3. Re-include only test/json
+# Card data from `npm run get-cards`: re-include only test/json
 !/test
 /test/*
 !/test/json

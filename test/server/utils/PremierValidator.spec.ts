@@ -60,7 +60,7 @@ describe('Premier deck validation', function () {
     describe('format legality', function () {
         it('should reject a rotated-out base in the base slot', function () {
             const filler = getDeckFiller(cardDataGetter, 50, PREMIER_SETS);
-            const deck = buildDeck(filler, { base: buildCardEntry(cardDataGetter, 'echo-base') }); // If Echo Base is ever reprinted, we will need to change this
+            const deck = buildDeck(filler, { base: buildCardEntry(cardDataGetter, 'administrators-tower') }); // SOR only; if it is ever reprinted, we will need to change this
             const failures = validator.validateInternalDeck(deck, premierProps());
             expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
             expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);

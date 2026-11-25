@@ -7,6 +7,7 @@ import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHar
 
 const userKeysTheFrontEndReads = [
     'activeCosmetics',
+    'featureFlags',
     'id',
     'moderation',
     'needsUsernameChange',

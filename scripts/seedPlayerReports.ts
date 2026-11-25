@@ -160,10 +160,10 @@ async function run() {
 
     if (GRANT_MODERATOR_TO_ORDER66) {
         await service.putItemAsync({ pk: 'SERVER_ROLE_USERS', sk: 'ROLES' }, {
-            admins: [],
-            developers: [],
-            moderators: [{ id: 'exe66', note: 'Local test moderator (Order66)' }],
-            contributors: [],
+            admin: [],
+            developer: [],
+            moderator: [{ id: 'exe66', note: 'Local test moderator (Order66)' }],
+            contributor: [],
             updatedAt: new Date().toISOString(),
         });
     }

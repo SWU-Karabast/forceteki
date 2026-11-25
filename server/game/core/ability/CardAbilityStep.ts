@@ -108,15 +108,29 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
             return;
         }
 
-        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
+        const cardAbility = context.ability?.isCardAbility() ? context.ability : null;
+        const gainAbilitySource = cardAbility?.gainAbilitySource;
+        const lastingEffectSource = cardAbility?.lastingEffectSource;
 
-        const messageArgs: MsgArg[] = [context.player, ` ${messageVerb} `, context.source];
-        if (gainAbilitySource) {
-            if (gainAbilitySource !== context.source) {
-                messageArgs.push('\'s gained ability from ', gainAbilitySource);
+        // A lasting effect is resolved by the controller of the card it is on, but chat credits the player who created
+        // it. The effect is described from that player's side too, so their opponent's base reads as "player2's base".
+        const messagePlayer = (lastingEffectSource && cardAbility.lastingEffectController) || context.player;
+        const messageContext = messagePlayer === context.player ? context : context.copy({ player: messagePlayer });
+
+        const messageArgs: MsgArg[] = [messagePlayer, ` ${messageVerb} `];
+        if (lastingEffectSource) {
+            // e.g. "player1 uses Shien Flurry's effect to prevent 2 damage to Obi-Wan Kenobi"
+            messageArgs.push(lastingEffectSource, '\'s effect');
+        } else {
+            messageArgs.push(context.source);
+
+            if (gainAbilitySource) {
+                if (gainAbilitySource !== context.source) {
+                    messageArgs.push('\'s gained ability from ', gainAbilitySource);
+                }
+            } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
+                messageArgs.push(` using ${TextHelper.Smuggle}`);
             }
-        } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
-            messageArgs.push(` using ${TextHelper.Smuggle}`);
         }
         const costMessages = this.getCostsMessages(context);
 
@@ -133,11 +147,11 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
         if (!effectMessage) {
             const gameActions: GameSystem[] = this.getGameSystems(context).filter((gameSystem: GameSystem) => gameSystem.hasLegalTarget(context));
             if (gameActions.length === 1) {
-                [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
+                [effectMessage, extraArgs] = gameActions[0].getEffectMessage(messageContext);
             } else if (gameActions.length > 1) {
                 effectMessage = ChatHelpers.formatWithLength(gameActions.length, 'to ');
                 extraArgs = gameActions.map((gameAction): FormatMessage => {
-                    const [message, args] = gameAction.getEffectMessage(context);
+                    const [message, args] = gameAction.getEffectMessage(messageContext);
                     return { format: message, args: Helpers.asArray(args) };
                 });
             }
@@ -148,7 +162,7 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
 
         if (extraArgs) {
             if (typeof extraArgs === 'function') {
-                extraArgs = extraArgs(context);
+                extraArgs = extraArgs(messageContext);
             }
             effectArgs = effectArgs.concat(extraArgs);
         }

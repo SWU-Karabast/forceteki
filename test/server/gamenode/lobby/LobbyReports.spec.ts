@@ -1,9 +1,14 @@
-import { PlayerReportType } from '../../../../server/game/Interfaces';
+import { PlayerReportType, ReportType } from '../../../../server/game/Interfaces';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import type { ITestClientOptions, TestClient } from '../../../helpers/server/TestClient';
 
 const loggedIn: ITestClientOptions = { authenticated: true };
+
+interface ICapturedDiscordReport {
+    reportType: ReportType;
+    formatArgs: unknown[];
+}
 
 /**
  * The client only offers bug and player reports to logged-in players, and player reports only against
@@ -11,9 +16,12 @@ const loggedIn: ITestClientOptions = { authenticated: true };
  */
 describe('Lobby reports', function () {
     serverIntegration(function (contextRef) {
-        /** Swaps the reporter's lobby's Discord dispatcher for one that records the reports it would send. */
-        function captureDiscordReports(harness: ServerTestHarness, reporter: TestClient): unknown[] {
-            const sent: unknown[] = [];
+        /**
+         * Swaps the reporter's lobby's Discord dispatcher for one that records the reports it would send.
+         * With `discordDown`, every send fails the way a rejected webhook call does.
+         */
+        function captureDiscordReports(harness: ServerTestHarness, reporter: TestClient, { discordDown = false } = {}): ICapturedDiscordReport[] {
+            const sent: ICapturedDiscordReport[] = [];
 
             // `Lobby` builds its own `DiscordDispatcher`, so the only way to intercept it is to overwrite the private
             // field. This is the one remaining reach into private state in this suite; it goes when the dispatcher
@@ -21,13 +29,20 @@ describe('Lobby reports', function () {
             // eslint-disable-next-line no-restricted-syntax
             const lobby = harness.server.testLobbyFor(reporter.id) as any;
             lobby.discordDispatcher = {
-                formatReport: (...args: unknown[]) => ({ args }),
-                formatAndSendBugReportAsync: (report: unknown) => {
-                    sent.push(report);
+                formatReport: (...formatArgs: unknown[]) => ({ formatArgs }),
+                formatAndSendReportAsync: (report: { formatArgs: unknown[] }, reportType: ReportType) => {
+                    if (discordDown) {
+                        return Promise.reject(new Error('webhook unavailable'));
+                    }
+                    sent.push({ reportType, formatArgs: report.formatArgs });
                     return Promise.resolve(true);
                 },
             };
             return sent;
+        }
+
+        function playerReportResults(reporter: TestClient): boolean[] {
+            return reporter.receivedEvents('playerReportResult').map((e) => e.args[0].success);
         }
 
         it('forwards a bug report between two logged-in players', async function () {
@@ -37,7 +52,94 @@ describe('Lobby reports', function () {
 
             await reporter.submitBugReportAsync('a real bug');
 
-            expect(sent.length).toBe(1);
+            expect(sent.map((report) => report.reportType)).toEqual([ReportType.BugReport]);
+        });
+
+        it('sends a bug report the game state in the test setup format, so it can be loaded as a test setup', async function () {
+            const { harness } = contextRef;
+            const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+            const sent = captureDiscordReports(harness, reporter);
+
+            await reporter.submitBugReportAsync('a real bug');
+
+            // formatReport(description, gameState, ...)
+            const gameState = sent[0].formatArgs[1] as { player1: { leader: unknown; base: unknown }; player2: { leader: unknown; base: unknown } };
+            // at the start of a game nothing differs from the setup defaults, so leaders and bases are just their names
+            for (const player of [gameState.player1, gameState.player2]) {
+                expect(typeof player.leader).toBe('string');
+                expect(typeof player.base).toBe('string');
+            }
+        });
+
+        // While the mod tools dashboard rolls out, Discord keeps getting every player report as a backup
+        describe('a player report, stored for the mod tools and sent to Discord as a backup,', function () {
+            it('goes to both, the Discord copy with the offense and the chat', async function () {
+                const { harness } = contextRef;
+                const { first: reporter, second: reported } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                const sent = captureDiscordReports(harness, reporter);
+
+                await reported.sendGameMessageAsync('chat', 'you are terrible');
+                await reporter.submitPlayerReportAsync('they were rude', PlayerReportType.ChatHarrasment);
+
+                expect(playerReportResults(reporter)).toEqual([true]);
+                expect(harness.db.playerReports.size).toBe(1);
+                expect(sent.map((report) => report.reportType)).toEqual([ReportType.PlayerReport]);
+                // formatReport(description, gameState, playerReportType, user, opponent, messages, ..., chatMessages)
+                const [description, , offense, , opponent, , , , , , , , , chatMessages] = sent[0].formatArgs;
+                expect(description).toBe('they were rude');
+                expect(offense).toBe(PlayerReportType.ChatHarrasment);
+                expect(opponent).toEqual(jasmine.objectContaining({ id: reported.id }));
+                expect(JSON.stringify(chatMessages)).toContain('you are terrible');
+            });
+
+            it('is still stored when Discord is down', async function () {
+                const { harness } = contextRef;
+                const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                captureDiscordReports(harness, reporter, { discordDown: true });
+
+                await reporter.submitPlayerReportAsync('they were rude', PlayerReportType.ChatHarrasment);
+
+                expect(playerReportResults(reporter)).toEqual([true]);
+                expect(harness.db.playerReports.size).toBe(1);
+            });
+
+            it('still reaches Discord when it cannot be stored', async function () {
+                const { harness } = contextRef;
+                const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                const sent = captureDiscordReports(harness, reporter);
+                harness.db.failPlayerReportSaves = true;
+
+                await reporter.submitPlayerReportAsync('they were rude', PlayerReportType.ChatHarrasment);
+
+                expect(playerReportResults(reporter)).toEqual([true]);
+                expect(sent.length).toBe(1);
+                expect(harness.db.playerReports.size).toBe(0);
+            });
+
+            it('fails when it can neither be stored nor sent to Discord', async function () {
+                const { harness } = contextRef;
+                const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
+                captureDiscordReports(harness, reporter, { discordDown: true });
+                harness.db.failPlayerReportSaves = true;
+
+                await reporter.submitPlayerReportAsync('they were rude', PlayerReportType.ChatHarrasment);
+
+                expect(playerReportResults(reporter)).toEqual([false]);
+            });
+        });
+
+        it('tells the game chat who sent a report, naming them as a player part rather than in the text', async function () {
+            const { harness } = contextRef;
+            const { first: reporter, second: opponent } = await harness.startQuickGameAsync({ ...loggedIn, username: 'Alice' }, loggedIn);
+            captureDiscordReports(harness, reporter);
+
+            await reporter.submitBugReportAsync('a real bug');
+
+            // a client finds a player part by id, so it can show a spectator the player's seat rather than their name
+            expect(opponent.gameChat).toContain(jasmine.objectContaining({
+                text: 'Alice has submitted a bug report',
+                playerIds: [reporter.id],
+            }));
         });
 
         it('drops a bug report from an anonymous player', async function () {
@@ -59,7 +161,8 @@ describe('Lobby reports', function () {
             await reporter.submitPlayerReportAsync('they were rude', PlayerReportType.ChatHarrasment);
 
             expect(sent.length).toBe(0);
-            expect(reporter.receivedEvents('playerReportResult').map((e) => e.args[0].success)).toEqual([false]);
+            expect(harness.db.playerReports.size).toBe(0);
+            expect(playerReportResults(reporter)).toEqual([false]);
         });
     });
 });

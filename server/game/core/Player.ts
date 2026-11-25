@@ -12,7 +12,6 @@ import {
     AlertType,
     ChatObjectType,
     EffectName,
-    GameEndReason,
     PhaseName,
     PlayType,
     RelativePlayer,
@@ -1196,7 +1195,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     public getStateSummary(activePlayer) {
         const isActivePlayer = activePlayer === this;
         const promptState = isActivePlayer ? this._promptState.getState() : {};
-        const { ...safeUser } = this.user;
 
         let isActionPhaseActivePlayer = null;
         if (this.game.actionPhaseActivePlayer != null) {
@@ -1229,7 +1227,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             phase: this.game.currentPhase,
             promptedActionWindows: this.promptedActionWindows,
             // stats: this.getStats(),
-            user: safeUser,
+            // only what the client shows: an opponent has no need for this player's settings or block list
+            user: { id: this.user.id, username: this.user.username, cosmetics: this.user.cosmetics },
             promptState: promptState,
             isActionPhaseActivePlayer,
             clock: undefined,
@@ -1240,6 +1239,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             mainTimeRemainingSeconds: this.actionTimer.mainTimeRemainingSeconds,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             timerIsRunning: this.actionTimer.isRunning,
+            mainTimeGrant: this.actionTimer.lastMainTimeGrant,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
             topCardOfDeck: undefined
@@ -1270,10 +1270,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             return null;
         }
 
-        if (
-            this.game.gameEndReason === GameEndReason.Concede ||
-            this.game.gameEndReason === GameEndReason.PlayerLeft
-        ) {
+        if (this.game.isUndoBlockedByGameEnd) {
             return { quickSnapshotAvailable: QuickUndoAvailableState.NoSnapshotAvailable };
         }
 

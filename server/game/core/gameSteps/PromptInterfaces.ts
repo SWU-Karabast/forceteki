@@ -30,6 +30,23 @@ export enum PromptType {
     ModalEffectSelection = 'modalEffectSelection',
 }
 
+/**
+ * In the regroup phase's resource step, what the player with the initiative has chosen, as their opponent is shown it.
+ * The opponent learns only whether a card was resourced, never which one.
+ */
+export enum OpponentResourceChoice {
+    NotChosen = 'notChosen',
+    Resourced = 'resourced',
+    Passed = 'passed',
+}
+
+/** In the setup phase's mulligan, what the player with the initiative has chosen, as their opponent is shown it. */
+export enum OpponentMulliganChoice {
+    NotChosen = 'notChosen',
+    Mulligan = 'mulligan',
+    Keep = 'keep',
+}
+
 export interface IButton {
     text: string;
     arg: string;
@@ -82,9 +99,23 @@ export interface IActionSelectionButton extends IButtonWithSourceCard {
     gained: boolean;
 }
 
+/**
+ * Why a modal ability's option can't be chosen. Each value is the text the client shows verbatim as the option's
+ * badge, so keep the values human-readable: the wording can then change without a client release.
+ */
+export enum ModalEffectUnavailableReason {
+    AlreadyChosen = 'Already chosen',
+}
+
 /** A card button for one of a modal ability's options in the modal-effect selection prompt. */
 export interface IModalEffectSelectionButton extends IButtonWithSourceCard {
     hasLegalEffects: boolean;
+
+    /**
+     * Present (with `disabled: true`) when the option can't be chosen right now, e.g. because it was already chosen.
+     * The client shows it as the button's badge.
+     */
+    unavailableReason?: ModalEffectUnavailableReason;
 }
 
 /**

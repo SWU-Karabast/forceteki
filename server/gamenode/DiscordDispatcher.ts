@@ -2,15 +2,28 @@ import FormData from 'form-data';
 import type { User } from '../utils/user/User';
 import { httpPostFormData } from '../Util';
 import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
-    MessageText } from '../game/Interfaces';
+    MessageText, PlayerReportType } from '../game/Interfaces';
+import { ReportType } from '../game/Interfaces';
 import { logger } from '../logger';
 import { Helpers } from '../game/core/utils/Helpers';
 import type { MatchmakingType } from './Lobby';
 import type { SwuGameFormat } from '../game/core/Constants';
+import type { ServerRole } from '../services/DynamoDBInterfaces';
 
 interface IDiscordFormat {
     content: string;
     embeds: any[];
+
+    /** Which mentions in the message may ping anyone; `{ parse: [] }` lets none of them. */
+    allowed_mentions?: { parse: string[] };
+}
+
+/** A server role granted to a user or taken away by an admin, for the role assignment channel. */
+export interface IServerRoleChangeNotice {
+    user: { id: string; username: string };
+    role: ServerRole;
+    granted: boolean;
+    changedBy: { id: string; username: string };
 }
 
 type EitherPostResponseOrBoolean = string | boolean;
@@ -18,12 +31,13 @@ type EitherPostResponseOrBoolean = string | boolean;
 export interface IDiscordDispatcher {
 
     /**
-     * Format the bug report as a Discord message and dispatch it.
-     * Player reports are not sent to Discord; they are stored for the mod tools by PlayerReportService.
+     * Format the bug or player report as a Discord message and dispatch it.
+     * Player reports are also stored for the mod tools by PlayerReportService; the Discord copy is a backup.
      * @param report The report data
+     * @param reportType the type of report
      * @returns Promise that returns the response body as a string if successful, throws an error otherwise
      */
-    formatAndSendBugReportAsync(report: ISerializedReportState): Promise<EitherPostResponseOrBoolean>;
+    formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean>;
 
     /**
      * Format the undo failure report as a Discord message and dispatch it
@@ -68,6 +82,15 @@ export interface IDiscordDispatcher {
         gameFormat: SwuGameFormat,
         matchType: MatchmakingType,
     ): Promise<EitherPostResponseOrBoolean>;
+
+    /**
+     * Post a server role granted or removed by an admin to the role assignment channel, so every change to who holds a
+     * role is seen.
+     * @param change Who the role was changed for, which role, and who changed it
+     * @returns Promise that returns the response body as a string if successful, false if no webhook is configured,
+     * throws an error otherwise
+     */
+    formatAndSendServerRoleChangeAsync(change: IServerRoleChangeNotice): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -76,12 +99,16 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public static readonly EmptyMessagesPlaceholder = '(no messages)';
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
+    private readonly _playerReportWebhookUrl: string;
+    private readonly _roleAssignmentWebhookUrl: string;
     private _serverErrorCount = 0;
     private _undoErrorCount = 0;
 
     public constructor() {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
         this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
+        this._playerReportWebhookUrl = process.env.DISCORD_PLAYER_REPORT_WEBHOOK_URL || '';
+        this._roleAssignmentWebhookUrl = process.env.DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL || '';
         if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
             if (!this._bugReportWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for bug reports. Bug reports cannot be sent to Discord.');
@@ -89,12 +116,31 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             if (!this._serverErrorWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for server error reports. Server error reports cannot be sent to Discord.');
             }
+            if (!this._playerReportWebhookUrl) {
+                throw new Error('No Discord webhook URL configured for player reports. Player reports cannot be sent to Discord.');
+            }
+            if (!this._roleAssignmentWebhookUrl) {
+                throw new Error('No Discord webhook URL configured for role assignments. Server role changes cannot be sent to Discord.');
+            }
         }
     }
 
-    public async formatAndSendBugReportAsync(report: ISerializedReportState): Promise<EitherPostResponseOrBoolean> {
-        const reportTypeLabel = 'Bug report';
-        const webhookLink = this._bugReportWebhookUrl;
+    public async formatAndSendReportAsync(report: ISerializedReportState, reportType: ReportType): Promise<EitherPostResponseOrBoolean> {
+        let reportTypeLabel: string;
+        let webhookLink: string;
+
+        switch (reportType) {
+            case ReportType.BugReport:
+                reportTypeLabel = 'Bug report';
+                webhookLink = this._bugReportWebhookUrl;
+                break;
+            case ReportType.PlayerReport:
+                reportTypeLabel = 'Player report';
+                webhookLink = this._playerReportWebhookUrl;
+                break;
+            default:
+                throw new Error(`Unsupported reportType: ${(reportType as any)}`);
+        }
 
         // Always log the report
         const logData = {
@@ -138,6 +184,21 @@ export class DiscordDispatcher implements IDiscordDispatcher {
                 inline: true,
             },
         ];
+
+        if (reportType === ReportType.PlayerReport) {
+            fields.push(
+                {
+                    name: 'Reported Player',
+                    value: `${report.opponent.username} (${report.opponent.id})`,
+                    inline: true,
+                },
+                {
+                    name: 'Offense',
+                    value: `${report.playerReportType}`,
+                    inline: true,
+                }
+            );
+        }
 
         fields.push(
             {
@@ -189,11 +250,14 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             });
         }
 
-        fields.push({
-            name: 'Game State',
-            value: 'See attached JSON file for complete game state',
-            inline: false
-        });
+        // Add game state field
+        if (reportType === ReportType.BugReport) {
+            fields.push({
+                name: 'Game State',
+                value: 'See attached JSON file for complete game state',
+                inline: false
+            });
+        }
 
         // Create FormData for sending file attachment
         const formData = new FormData();
@@ -215,8 +279,15 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         formData.append('payload_json', JSON.stringify(data));
 
         const timestamp = new Date().getTime();
-        this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp);
-        this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
+        if (reportType === ReportType.BugReport) {
+            this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp);
+            this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
+        } else {
+            this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username);
+            if (report.chatMessages) {
+                this.addGameMessagesToForm(formData, report.chatMessages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username, 'files[2]', 'report-chat-only');
+            }
+        }
 
         // Send to Discord webhook with file attachment using our custom function
         try {
@@ -494,6 +565,53 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
     }
 
+    public formatAndSendServerRoleChangeAsync(change: IServerRoleChangeNotice): Promise<EitherPostResponseOrBoolean> {
+        if (!this._roleAssignmentWebhookUrl) {
+            // If no webhook URL is configured, just log it
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Server role change could not be sent to Discord: No webhook URL configured for role assignments');
+            }
+            return Promise.resolve(false);
+        }
+
+        // names in code spans, so a character such as `_` cannot turn into formatting
+        const nameAndId = (person: { id: string; username: string }) => `\`${person.username}\` (${person.id})`;
+
+        const data: IDiscordFormat = {
+            content: `\`${change.changedBy.username}\` ${change.granted ? 'granted' : 'removed'} the **${change.role}** role ${change.granted ? 'to' : 'from'} \`${change.user.username}\``,
+            embeds: [
+                {
+                    title: change.granted ? 'Server role granted' : 'Server role removed',
+                    color: change.granted ? 0x2ECC71 : 0xE67E22, // green for granted, orange for removed
+                    fields: [
+                        {
+                            name: 'User',
+                            value: nameAndId(change.user),
+                            inline: true,
+                        },
+                        {
+                            name: 'Role',
+                            value: change.role,
+                            inline: true,
+                        },
+                        {
+                            name: 'Changed by',
+                            value: nameAndId(change.changedBy),
+                            inline: true,
+                        },
+                    ],
+                    timestamp: new Date().toISOString(),
+                },
+            ],
+            allowed_mentions: { parse: [] },
+        };
+
+        const formData = new FormData();
+        formData.append('payload_json', JSON.stringify(data));
+
+        return httpPostFormData(this._roleAssignmentWebhookUrl, formData);
+    }
+
     /**
      * Discord stores attachments on S3 and fetches a byte range for its inline text preview. A 0-byte file makes
      * that range request fail, so the preview shows S3's `InvalidRange` XML error instead of the content.
@@ -571,6 +689,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     public formatReport(
         description: string,
         gameState: ISerializedGameState,
+        playerReportType: PlayerReportType | null,
         user: User,
         opponent: { id: string; username: string },
         messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[],
@@ -581,10 +700,12 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         gameId?: string,
         screenResolution?: { width: number; height: number } | null,
         viewport?: { width: number; height: number } | null,
+        chatMessages?: ISerializedMessage[]
     ): ISerializedReportState {
         return {
             description: sanitizeForJson(description),
             gameState,
+            playerReportType,
             reporter: {
                 id: user.getId(),
                 username: user.getUsername(),
@@ -598,6 +719,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             lobbyId,
             gameId,
             messages,
+            chatMessages,
             timestamp: new Date().toISOString(),
             screenResolution,
             viewport,

@@ -42,6 +42,12 @@ describe('Yoda, A Disturbing Puzzle', function() {
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.yoda.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
+
+                // the chosen unit's controller resolves the prevention, but it is Yoda's controller's effect
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Yoda\'s effect to prevent all damage to Battlefield Marine',
+                    'player1 uses Yoda\'s effect to prevent all damage to Battlefield Marine'
+                ]);
             });
 
             it('should deal combat damage normally if the ability is declined', function () {
@@ -219,6 +225,68 @@ describe('Yoda, A Disturbing Puzzle', function() {
 
                 expect(context.battlefieldMarine.damage).toBe(1);
                 expect(context.p2Base.damage).toBe(6);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        // Yoda's prevention is a lasting effect, not an ability the chosen unit gains, so losing all abilities doesn't remove it
+        describe('Yoda\'s prevention when the chosen unit loses all abilities', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['yoda#a-disturbing-puzzle']
+                    }
+                });
+            });
+
+            function useKazudaOnBattlefieldMarine(context) {
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
+                context.player1.clickCard(context.battlefieldMarine);
+            }
+
+            it('should still prevent combat damage if the unit loses all abilities after Yoda chooses it', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.yoda);
+                context.player2.clickCard(context.p1Base);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                useKazudaOnBattlefieldMarine(context);
+
+                // The extra action from Kazuda: the chosen unit attacks Yoda
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.yoda);
+                resolveBothPreventions(context.player1);
+
+                expect(context.yoda.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should still prevent combat damage if Yoda chooses a unit that has already lost all abilities', function () {
+                const { context } = contextRef;
+
+                useKazudaOnBattlefieldMarine(context);
+                context.player1.passAction();
+
+                context.player2.clickCard(context.yoda);
+                context.player2.clickCard(context.p1Base);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.yoda);
+                resolveBothPreventions(context.player1);
+
+                expect(context.yoda.damage).toBe(0);
+                expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
         });

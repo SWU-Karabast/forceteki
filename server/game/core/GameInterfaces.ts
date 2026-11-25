@@ -16,8 +16,6 @@ export interface GameConfiguration {
     id: string;
     owner: string;
     players: IUser[];
-    spectators?: IUser[];
-    allowSpectators: boolean;
 
     /** The deck/rules format being played. Defaults to Premier when omitted. */
     format?: SwuGameFormat;

@@ -1,7 +1,7 @@
 import type { IActionTimerGame, IActionTimerPlayer } from './GameActionTimer';
 import { GameActionTimer } from './GameActionTimer';
 import { PlayerTimeRemainingStatus } from './IActionTimer';
-import type { IByoyomiTimer } from './IByoyomiTimer';
+import type { IByoyomiTimer, IMainTimeGrant } from './IByoyomiTimer';
 
 /**
  * Two-stage "byoyomi" style timer that wraps two GameActionTimer instances.
@@ -11,6 +11,7 @@ import type { IByoyomiTimer } from './IByoyomiTimer';
  *
  * When the turn timer expires, the main timer becomes active (starts or resumes).
  * When the main timer expires, the onTimeout callback is invoked.
+ * At the end of each round some main time is given back (default 10s), up to the full main time.
  */
 export class ByoyomiTimer implements IByoyomiTimer {
     /** Time limit for each turn/prompt in seconds */
@@ -23,11 +24,26 @@ export class ByoyomiTimer implements IByoyomiTimer {
     public static readonly MainTimeWarningSeconds = 30;
     public static readonly MainTimeDangerSeconds = 10;
 
+    /** Main time given back to each player at the end of every round, up to {@link MainTimeLimitSeconds} (seconds). */
+    public static readonly RoundEndMainTimeGrantSeconds = 10;
+
     /**
      * When a player's main time runs out, the game is a draw if the opponent's timer is running and they are this close to
      * timing out too, counting turn and main time (seconds).
      */
     public static readonly TimeoutDrawMarginSeconds = 3;
+
+    /**
+     * Whether a player's timing out is a draw: the opponent's timer is running (or running out at this same moment) with no
+     * more than {@link TimeoutDrawMarginSeconds} left, counting turn and main time. A waiting opponent wins however little
+     * time they have. Read before the opponent's timer is stopped, which would drop their turn time.
+     *
+     * Both players' timers run at once only in the setup's resource step: in the mulligan and the regroup phase's resource
+     * step, the player without the initiative is off the clock until the player with it has chosen.
+     */
+    public static isTimeoutDraw(opponentTimer: Pick<IByoyomiTimer, 'isCountingDown' | 'msUntilTimeout'>): boolean {
+        return opponentTimer.isCountingDown && opponentTimer.msUntilTimeout <= ByoyomiTimer.TimeoutDrawMarginSeconds * 1000;
+    }
 
     private readonly turnTimer: GameActionTimer;
     private readonly mainTimer: GameActionTimer;
@@ -39,6 +55,18 @@ export class ByoyomiTimer implements IByoyomiTimer {
     private isOnMainTimer = false;
 
     private _isPaused = false;
+
+    /**
+     * The latest round whose end has given main time. The timer is not part of the game state, so an undo leaves this as
+     * it is, which is what stops a round's end from giving time twice.
+     */
+    private lastGrantedRound = 0;
+    private _lastMainTimeGrant: IMainTimeGrant | null = null;
+
+    /** A copy, since the game state it is sent in is changed in place before it goes out. */
+    public get lastMainTimeGrant(): IMainTimeGrant | null {
+        return this._lastMainTimeGrant == null ? null : { ...this._lastMainTimeGrant };
+    }
 
     public get isRunning(): boolean {
         return this.turnTimer.isRunning || this.mainTimer.isRunning;
@@ -190,6 +218,19 @@ export class ByoyomiTimer implements IByoyomiTimer {
         } else {
             this.turnTimer.pause();
         }
+    }
+
+    public grantRoundEndMainTime(round: number): void {
+        if (round <= this.lastGrantedRound) {
+            return;
+        }
+        this.lastGrantedRound = round;
+
+        const missingMs = ByoyomiTimer.MainTimeLimitSeconds * 1000 - (this.mainTimer.timeRemainingMs ?? 0);
+        const grantMs = Math.max(0, Math.min(ByoyomiTimer.RoundEndMainTimeGrantSeconds * 1000, missingMs));
+        const addedMs = this.mainTimer.addTimeMs(grantMs);
+
+        this._lastMainTimeGrant = { round, seconds: Math.floor(addedMs / 1000) };
     }
 
     /**

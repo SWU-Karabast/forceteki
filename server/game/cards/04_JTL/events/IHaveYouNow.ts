@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { AbilityType, DamageModificationType, Trait } from '../../../core/Constants';
+import { DamageModificationType, Trait } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class IHaveYouNow extends EventCard {
@@ -14,12 +14,11 @@ export default class IHaveYouNow extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Attack with a ${TextHelper.Trait.Vehicle} unit`,
+            title: `Attack with a ${TextHelper.Trait.Vehicle} unit. Prevent all damage that would be dealt to it during this attack`,
             initiateAttack: {
                 attackerCondition: (card, context) => card.controller === context.source.controller && card.hasSomeTrait(Trait.Vehicle),
-                attackerLastingEffects: [{ effect: AbilityHelper.ongoingEffects.gainAbility({
+                attackerLastingEffects: [{ effect: AbilityHelper.ongoingEffects.modifyDamage({
                     title: 'Prevent all damage that would be dealt to it during this attack',
-                    type: AbilityType.DamageModification,
                     modificationType: DamageModificationType.PreventAll
                 }) }]
             }

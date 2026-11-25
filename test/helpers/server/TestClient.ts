@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import type { Response as SupertestResponse } from 'supertest';
 
-import type { IByoyomiTimer } from '../../../server/game/core/actionTimer/IByoyomiTimer';
+import type { IByoyomiTimer, IMainTimeGrant } from '../../../server/game/core/actionTimer/IByoyomiTimer';
 import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, RematchMode, SwuGameFormat } from '../../../server/game/core/Constants';
 import { SnapshotType } from '../../../server/game/core/Constants';
 import type { IButton, IStatefulPromptResults } from '../../../server/game/core/gameSteps/PromptInterfaces';
@@ -19,6 +19,8 @@ import { FakeIoSocket } from './FakeIoSocket';
 import type { RouteMethod } from './RouteRecorder';
 import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
+import type { ISpectatorSeat } from '../../../server/gamenode/SpectatorView';
+import { SpectatorView } from '../../../server/gamenode/SpectatorView';
 import { AnonymousUser } from '../../../server/utils/user/User';
 
 /** Options for {@link TestClient.create}. */
@@ -121,6 +123,9 @@ function isConnectionRejected(result: IConnectResult): result is { connected: fa
 export class TestClient {
     private _socket: FakeIoSocket | null = null;
     private _previousSocket: FakeIoSocket | null = null;
+
+    /** Whether this client last connected as a spectator, so it is sent the players by seat. */
+    private connectedAsSpectator = false;
 
     private constructor(
         private readonly harness: ServerTestHarness,
@@ -337,6 +342,7 @@ export class TestClient {
             },
         });
 
+        this.connectedAsSpectator = !!options.spectator;
         const authResult = await this.harness.server.authenticateSocketAsync(fakeSocket);
         if (!isSuccessfulSocketAuth(authResult)) {
             return { connected: false, errorMessage: authResult.errorMessage };
@@ -612,21 +618,55 @@ export class TestClient {
     }
 
     /**
-     * `player`'s action timer as this client was last sent it. `player` is this client, its opponent, or a player it
-     * is watching. The client counts down between game states, so this is the time left as of the latest one.
+     * How a spectator is sent this player (`SpectatorView`): by the seat they sit in, numbered in the order the game
+     * lists its players, which is the order of this player's own latest game state. Throws if they have not been sent one.
      */
-    public timerOf(player: TestClient): IActionTimerView {
-        const playerState = this.gameState?.players?.[player.id];
-        if (!playerState) {
-            throw new Error(`TestClient: user ${this.id} has not been sent a game state with player ${player.id} in it`);
+    public get spectatorSeat(): ISpectatorSeat {
+        const index = Object.keys(this.gameState?.players ?? {}).indexOf(this.id);
+        if (index === -1) {
+            throw new Error(`TestClient: user ${this.id} has not been sent a game state with themselves in it`);
         }
 
+        return SpectatorView.seatAt(index);
+    }
+
+    /**
+     * `player`'s action timer as this client was last sent it. `player` is this client, its opponent, or a player it
+     * is watching (whom a spectator is sent by {@link spectatorSeat}). The client counts down between game states, so
+     * this is the time left as of the latest one.
+     */
+    public timerOf(player: TestClient): IActionTimerView {
+        const playerState = this.playerStateOf(player);
         return {
             turnTimeRemainingSeconds: playerState.turnTimeRemainingSeconds ?? null,
             mainTimeRemainingSeconds: playerState.mainTimeRemainingSeconds,
             timeRemainingStatus: playerState.timeRemainingStatus,
             isRunning: playerState.timerIsRunning,
         };
+    }
+
+    /**
+     * The main time `player` was last given back at the end of a round, as this client was last sent it (`mainTimeGrant`,
+     * which forceteki-client animates), or null before any round has ended or in a game without timers (the game state
+     * leaves the field out then, as it does every null). Kept apart from {@link timerOf} because it is a record of a past
+     * event, not the timer's current state.
+     */
+    public mainTimeGrantOf(player: TestClient): IMainTimeGrant | null {
+        return this.playerStateOf(player).mainTimeGrant ?? null;
+    }
+
+    /**
+     * `player`'s part of the latest game state this client was sent (keyed by {@link spectatorSeat} when this client is
+     * a spectator); throws if it has not been sent one with them in it.
+     */
+    private playerStateOf(player: TestClient): any {
+        const playerKey = this.connectedAsSpectator ? player.spectatorSeat.id : player.id;
+        const playerState = this.gameState?.players?.[playerKey];
+        if (!playerState) {
+            throw new Error(`TestClient: user ${this.id} has not been sent a game state with player ${playerKey} in it`);
+        }
+
+        return playerState;
     }
 
     /**

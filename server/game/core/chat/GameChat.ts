@@ -1,8 +1,20 @@
 import type { GameObject } from '../GameObject';
 import type { ISerializedMessage } from '../../Interfaces';
+import { ChatObjectType } from '../Constants';
 import { ChatHelpers } from './ChatHelpers';
 
-export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
+/**
+ * A player named in a message, in the same shape as a `Player`'s short summary. For a chat with no engine
+ * `Player` to pass (the lobby chat). A client finds the player by `id`, so it can show them by seat rather than
+ * by name to someone who should not see names, which it cannot do for a name written into the text.
+ */
+export interface IChatPlayer {
+    id: string;
+    name: string;
+    type: ChatObjectType.Player;
+}
+
+export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | IChatPlayer | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];
@@ -23,7 +35,7 @@ export class GameChat {
         const playerArg = {
             name: player.name || player.username,
             id: player.id,
-            type: 'playerChat'
+            type: ChatObjectType.PlayerChat
         };
 
         this.addMessage('{0} {1}', playerArg, message);
@@ -66,7 +78,7 @@ export class GameChat {
         }
 
         const firstElement = message[0];
-        return typeof firstElement === 'object' && !!firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat';
+        return typeof firstElement === 'object' && !!firstElement && 'type' in firstElement && firstElement['type'] === ChatObjectType.PlayerChat;
     }
 
     private formatMessage(format: string, args: MsgArg[]): string | string[] {

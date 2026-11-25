@@ -173,6 +173,20 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     gainAbilitySource?: Card;
 
     printedAbility?: boolean;
+
+    /**
+     * Set when this ability is how a lasting effect created by this card applies to the card the ability is on (e.g.
+     * "for this phase, prevent all damage that would be dealt to that unit"). The ability is not one of that card's
+     * abilities: it is held by the lasting effect rather than added to the card, so the card losing all abilities
+     * doesn't remove it and it can't be copied.
+     */
+    lastingEffectSource?: Card;
+
+    /**
+     * Set with `lastingEffectSource`: the player who created the lasting effect. The ability is resolved by the
+     * controller of the card it is on, but chat credits this player with it.
+     */
+    lastingEffectController?: Player;
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
@@ -519,11 +533,13 @@ export interface IReportPlayer {
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
+    playerReportType: PlayerReportType;
     reporter: IReportPlayer;
     opponent: IReportPlayer;
     lobbyId: string;
     timestamp: string;
     messages: ISerializedMessage[];
+    chatMessages?: ISerializedMessage[];
     gameStepsSinceLastUndo: string;
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;

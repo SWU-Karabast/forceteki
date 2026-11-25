@@ -101,7 +101,8 @@ export abstract class UiPrompt extends BaseStep {
         return this.menuCommand(player, arg, uuid);
     }
 
-    public waitingPrompt() {
+    /** The prompt shown to `player` while this prompt is not waiting on them. */
+    public waitingPrompt(player: Player) {
         return { menuTitle: 'Waiting for opponent' };
     }
 
@@ -110,7 +111,9 @@ export abstract class UiPrompt extends BaseStep {
             if (this.activeCondition(player)) {
                 this.playersActiveForPrompt.push(player);
 
-                if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
+                if (!this.actionTimerRuns(player)) {
+                    this.stopPlayerActionTimer(player);
+                } else if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
                     this.startPlayerActionTimer(player);
                 }
 
@@ -118,7 +121,7 @@ export abstract class UiPrompt extends BaseStep {
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
             } else {
                 player.activeForPreviousPrompt = false;
-                player.setPrompt(this.waitingPrompt());
+                player.setPrompt(this.waitingPrompt(player));
                 this.stopPlayerActionTimer(player);
             }
         }
@@ -150,6 +153,22 @@ export abstract class UiPrompt extends BaseStep {
         return false;
     }
 
+    /**
+     * Whether `player` has made a choice in this prompt that their opponent has been shown while the prompt is still open.
+     * Rolling back undoes that choice, so in a game where undo needs approval, `player` must then ask their opponent.
+     */
+    public hasShownChoiceToOpponent(player: Player): boolean {
+        return false;
+    }
+
+    /**
+     * Whether the action timer of `player`, who is active for this prompt, is counting down. While this is false their
+     * timer is stopped, and it starts with a full turn time once it is true again.
+     */
+    protected actionTimerRuns(player: Player): boolean {
+        return true;
+    }
+
     protected isOpponentRevealNewInfoPrompt(): boolean {
         return true;
     }
@@ -170,7 +189,8 @@ export abstract class UiPrompt extends BaseStep {
         Contract.assertEqual(uuid, this.uuid);
     }
 
-    private addButtonDefaultsToPrompt(original?: IPlayerPromptStateProperties) {
+    /** Fills in the `command` and prompt `uuid` each button sends back when clicked. */
+    protected addButtonDefaultsToPrompt(original?: IPlayerPromptStateProperties) {
         Contract.assertNotNullLike(original);
 
         const newPrompt = { ...original };

@@ -78,8 +78,10 @@ describe('Regroup phase', function() {
                     expect(context.player1).toHaveExactPromptButtons(['Confirm Resources']);
                     expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
 
+                    // player2 claimed the initiative, so player1 has chosen first and waits for player2
                     context.player1.clickDone();
-                    expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
+                    expect(context.player1).toHavePrompt('Waiting for opponent to resource');
+                    expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Waiting']);
                     expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
                     context.player2.clickDone();
 

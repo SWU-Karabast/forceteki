@@ -213,13 +213,16 @@ describe('Vigilance', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
-                // the only unit in play was defeated, so there is no longer a unit to give a Shield token to
+                // the only unit in play was defeated, so there is no longer a unit to give a Shield token to,
+                // and the chosen option is shown but can't be chosen again
                 expect(context.player1).toHavePrompt('Choose 1 effect for Vigilance');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Discard 6 cards from an opponent\'s deck.',
                     'Heal 5 damage from a base.',
+                    '(Already chosen) Defeat a unit with 3 or less remaining HP.',
                     '(No effect) Give a Shield token to a unit.'
                 ]);
+                expect(context.player1).toHaveDisabledPromptButton('(Already chosen) Defeat a unit with 3 or less remaining HP.');
 
                 context.player1.clickPrompt('(No effect) Give a Shield token to a unit.');
                 expect(context.player2).toBeActivePlayer();
