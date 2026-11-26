@@ -25,6 +25,8 @@ import type { IScheduler } from './IScheduler';
 import { RealScheduler } from './RealScheduler';
 import type { IPlayerReportListQuery, IPlayerReportPage } from './PlayerReportListCache';
 import { PlayerReportListCache } from './PlayerReportListCache';
+import type { ModerationStanding } from './ModerationStanding';
+import { bySeverityDescending, getModerationStanding } from './ModerationStanding';
 
 export interface IReportParticipant {
     id: string;
@@ -45,14 +47,47 @@ export interface INewPlayerReport {
     chatMessages: ISerializedMessage[];
 }
 
+/** Another account that has the same username as a report participant */
+export interface ISameUsernameAccount {
+    playerId: string;
+    username: string;
+    createdAt: string;
+    lastLogin: string;
+    standing: ModerationStanding;
+}
+
+export interface ISameUsernameSummary {
+
+    /** Every other account with the name, ignoring case */
+    total: number;
+
+    /** The first MAX_SAME_USERNAME_ACCOUNTS_CHECKED of them, most severe standing first */
+    accounts: ISameUsernameAccount[];
+}
+
+/**
+ * Accounts sharing a name are looked up one by one, so a name taken by very many accounts is only sampled.
+ * Real names are shared by a handful of accounts at most.
+ */
+export const MAX_SAME_USERNAME_ACCOUNTS_CHECKED = 10;
+
 /** Everything a moderator needs to judge one side of a report */
 export interface IPlayerReportPlayerContext {
     playerId: string;
 
     /** Current username; the report keeps the name at report time */
     username: string;
+
+    /** Both undefined for players without a profile (playing without an account) */
     createdAt?: string;
+    lastLogin?: string;
     isMuted: boolean;
+
+    /** Whether the player has an active or past mute or forced rename */
+    standing: ModerationStanding;
+
+    /** Other accounts with the same current username; null if they could not be looked up */
+    sameUsername: ISameUsernameSummary | null;
     activeRename: IActiveModActionCacheEntry | null;
 
     /** Id of the active ReportingDisabled mod action, if the player may currently not file reports */
@@ -572,13 +607,23 @@ export class PlayerReportService {
         ]);
 
         const newestFirst = (a: IPlayerReportIndexEntity, b: IPlayerReportIndexEntity) => b.createdAt.localeCompare(a.createdAt);
+        const isMuted = modActionService?.isPlayerMuted(playerId) ?? false;
+        const activeRename = modActionService?.playerActiveRename(playerId) ?? null;
+
+        // Players without a profile have no username link, so there is nothing to compare against
+        const sameUsername = profile
+            ? await this.getSameUsernameSummaryAsync(profile.username, playerId)
+            : { total: 0, accounts: [] };
 
         return {
             playerId,
             username: profile?.username ?? usernameAtReport,
             createdAt: profile?.createdAt,
-            isMuted: modActionService?.isPlayerMuted(playerId) ?? false,
-            activeRename: modActionService?.playerActiveRename(playerId) ?? null,
+            lastLogin: profile?.lastLogin,
+            isMuted,
+            standing: getModerationStanding(modActions, { isMuted, hasPendingRename: !!activeRename }),
+            sameUsername,
+            activeRename,
             activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(playerId) ?? null,
             activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(playerId) ?? null,
             modActions,
@@ -586,6 +631,49 @@ export class PlayerReportService {
             reportsAgainst: reportIndex.filter((entry) => entry.role === PlayerReportRole.ReportedPlayer).sort(newestFirst),
             reportsFiled: reportIndex.filter((entry) => entry.role === PlayerReportRole.ReportSubmitter).sort(newestFirst),
         };
+    }
+
+    /**
+     * The other accounts named like the player, through the username links Find User searches as well. A failure
+     * here only loses this hint, so it is logged and reported as null instead of failing the whole ticket.
+     */
+    private async getSameUsernameSummaryAsync(username: string, playerId: string): Promise<ISameUsernameSummary | null> {
+        try {
+            const dbService = await this.requireDbServiceAsync();
+            const modActionService = this.getModActionService();
+            const otherIds = (await dbService.getUserIdsByUsernameAsync(username)).filter((id) => id !== playerId);
+
+            const accounts = await Promise.all(otherIds.slice(0, MAX_SAME_USERNAME_ACCOUNTS_CHECKED).map(async (id): Promise<ISameUsernameAccount | null> => {
+                const [profile, modActions] = await Promise.all([
+                    dbService.getUserProfileAsync(id),
+                    this.userFactory.getModActionHistoryAsync(id),
+                ]);
+                if (!profile) {
+                    return null;
+                }
+                const isMuted = modActionService?.isPlayerMuted(id) ?? false;
+                const hasPendingRename = !!modActionService?.playerActiveRename(id);
+                return {
+                    playerId: id,
+                    username: profile.username,
+                    createdAt: profile.createdAt,
+                    lastLogin: profile.lastLogin,
+                    standing: getModerationStanding(modActions, { isMuted, hasPendingRename }),
+                };
+            }));
+
+            const found = accounts
+                .filter((account): account is ISameUsernameAccount => !!account)
+                .sort((a, b) => bySeverityDescending(a.standing, b.standing) || b.lastLogin.localeCompare(a.lastLogin));
+
+            // A link whose profile is gone is not an account, so it is not counted either
+            return { total: otherIds.length - (accounts.length - found.length), accounts: found };
+        } catch (error) {
+            logger.error(`PlayerReportService: Could not look up accounts named like player ${playerId}`, {
+                error: { message: error.message, stack: error.stack },
+            });
+            return null;
+        }
     }
 
     private buildLog(
