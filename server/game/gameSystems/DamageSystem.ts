@@ -169,7 +169,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertHasProperty(event, 'sourceEventForExcessDamage', 'Damage event does not have damage amount or source event to get excess damage amount from');
         Contract.assertHasProperty(event.sourceEventForExcessDamage, 'availableExcessDamage', 'Damage event is missing excess damage amount');
 
-        return event.sourceEventForExcessDamage.availableExcessDamage;
+        // an ability damage increase (e.g. Ty Yorrick) only applies if there is excess damage left to deal
+        const excessDamage = event.sourceEventForExcessDamage.availableExcessDamage;
+        return excessDamage > 0 ? excessDamage + (event.abilityDamageIncrease ?? 0) : excessDamage;
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -340,6 +342,11 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         if (properties.amount != null) {
             event.amount = properties.amount;
+        }
+
+        // the excess damage amount is only known when the event resolves, so the increase is added then
+        if (context.pendingAbilityDamageIncrease > 0) {
+            event.abilityDamageIncrease = context.pendingAbilityDamageIncrease;
         }
     }
 
