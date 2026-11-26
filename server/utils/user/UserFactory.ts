@@ -25,6 +25,11 @@ const getDefaultCosmeticsPreferences = () => ({
     background: null,
 });
 
+const getDefaultKeyboardShortcuts = () => ({
+    passTurn: 'SPACE',
+    undo: 'U',
+});
+
 const getDefaultGameOptionsPreferences = () => ({
     muteChat: false,
     cardLanguage: CardImageLocale.English,
@@ -39,6 +44,7 @@ export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
     gameOptions: getDefaultGameOptionsPreferences(),
+    keyboardShortcuts: getDefaultKeyboardShortcuts(),
 });
 
 

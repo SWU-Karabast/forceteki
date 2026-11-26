@@ -97,6 +97,11 @@ export enum TimerVisibility {
     HideAll = 'hideAll',
 }
 
+export interface IKeyboardShortcuts {
+    passTurn?: string;
+    undo?: string;
+}
+
 export enum DateFormat {
     MMDDYYYY = 'MMDDYYYY',
     DDMMYYYY = 'DDMMYYYY',
@@ -130,6 +135,7 @@ export interface IUserPreferences {
             singleTarget?: boolean;
         };
     };
+    keyboardShortcuts?: IKeyboardShortcuts;
 }
 
 // Define user interface
