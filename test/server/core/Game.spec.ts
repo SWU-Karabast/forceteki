@@ -1,5 +1,6 @@
 import GameFlowWrapper from '../../helpers/GameFlowWrapper';
 import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
+import { GameErrorSeverity } from '../../../server/game/core/Constants';
 
 describe('Overall game mechanics', function() {
     describe('game startup state', function() {
@@ -42,6 +43,137 @@ describe('Overall game mechanics', function() {
 
             expect(game.playableCardTitles).toEqual(['Battlefield Marine', 'Wampa']);
             expect(game.allNonLeaderCardTitles).toEqual(['Battlefield Marine', 'Echo Base', 'Wampa']);
+        });
+    });
+
+    describe('error history for bug reports', function() {
+        function buildGame() {
+            const router = jasmine.createSpyObj('router', ['handleError', 'handleSerializationFailure']);
+            const game = new GameFlowWrapper(
+                new UnitTestCardDataGetter('test/json'),
+                router,
+                { id: 'player1', username: 'player1' },
+                { id: 'player2', username: 'player2' }
+            ).game;
+            return { game, router };
+        }
+
+        it('should start empty', function() {
+            const { game } = buildGame();
+
+            expect(game.getErrorHistory()).toEqual({ totalCount: 0, errors: [] });
+        });
+
+        it('should record reported errors with their severity and still pass them to the router', function() {
+            const { game, router } = buildGame();
+            const error = new Error('something broke');
+
+            game.reportError(error, GameErrorSeverity.SevereGameMessageOnly);
+
+            expect(router.handleError).toHaveBeenCalledWith(game, error, GameErrorSeverity.SevereGameMessageOnly);
+            const history = game.getErrorHistory();
+            expect(history.totalCount).toBe(1);
+            expect(history.errors.length).toBe(1);
+            expect(history.errors[0].message).toBe('something broke');
+            expect(history.errors[0].severity).toBe(GameErrorSeverity.SevereGameMessageOnly);
+            expect(history.errors[0].stack).toBe(error.stack);
+            expect(Date.parse(history.errors[0].timestamp)).not.toBeNaN();
+        });
+
+        it('should let the router see only the errors before the one it is handling', function() {
+            const { game, router } = buildGame();
+            const historiesSeenByRouter: string[][] = [];
+            router.handleError.and.callFake(() => historiesSeenByRouter.push(game.getErrorHistory().errors.map((error) => error.message)));
+
+            game.reportError(new Error('first'));
+            game.reportError(new Error('second'));
+
+            expect(historiesSeenByRouter).toEqual([[], ['first']]);
+            expect(game.getErrorHistory().totalCount).toBe(2);
+        });
+
+        it('should still record an error when the router rethrows it to halt the game', function() {
+            const { game, router } = buildGame();
+            const error = new Error('halting');
+            router.handleError.and.throwError(error);
+
+            expect(() => game.reportError(error, GameErrorSeverity.SevereHaltGame)).toThrow(error);
+
+            expect(game.getErrorHistory().errors.map((recorded) => recorded.message)).toEqual(['halting']);
+        });
+
+        it('should record a serialization failure as a severe error, after the router has handled it', function() {
+            const { game, router } = buildGame();
+            const error = new Error('serialization failed');
+            let historySeenByRouter: string[];
+            router.handleSerializationFailure.and.callFake(() => {
+                historySeenByRouter = game.getErrorHistory().errors.map((recorded) => recorded.message);
+                throw error;
+            });
+
+            expect(() => game.reportSerializationFailure(error)).toThrow(error);
+            // the lobby catches the rethrown error and records it again, which must not add a second entry
+            game.recordError(error);
+
+            expect(historySeenByRouter).toEqual([]);
+            const history = game.getErrorHistory();
+            expect(history.totalCount).toBe(1);
+            expect(history.errors[0].message).toBe('serialization failed');
+            expect(history.errors[0].severity).toBe(GameErrorSeverity.SevereHaltGame);
+        });
+
+        it('should record a repeated serialization failure as a severe error too', function() {
+            const { game, router } = buildGame();
+            router.handleSerializationFailure.and.callFake((_game: unknown, error: Error) => {
+                throw error;
+            });
+
+            expect(() => game.reportSerializationFailure(new Error('first'))).toThrowError('first');
+            expect(() => game.reportSerializationFailure(new Error('second'))).toThrowError('second');
+
+            expect(router.handleSerializationFailure).toHaveBeenCalledTimes(1);
+            expect(game.getErrorHistory().errors.map((recorded) => recorded.severity))
+                .toEqual([GameErrorSeverity.SevereHaltGame, GameErrorSeverity.SevereHaltGame]);
+        });
+
+        it('should record the same error object only once', function() {
+            const { game } = buildGame();
+            const error = new Error('reported, then rethrown');
+
+            game.reportError(error, GameErrorSeverity.SevereHaltGame);
+            game.recordError(error);
+
+            expect(game.getErrorHistory().totalCount).toBe(1);
+        });
+
+        it('should record thrown values that are not Error objects', function() {
+            const { game } = buildGame();
+
+            game.recordError('plain string' as unknown as Error);
+
+            expect(game.getErrorHistory().errors[0].message).toBe('plain string');
+        });
+
+        it('should keep only the most recent errors but count all of them', function() {
+            const { game } = buildGame();
+
+            for (let i = 0; i < 25; i++) {
+                game.recordError(new Error(`error ${i}`));
+            }
+
+            const history = game.getErrorHistory();
+            expect(history.totalCount).toBe(25);
+            expect(history.errors.map((error) => error.message)).toEqual(['error 20', 'error 21', 'error 22', 'error 23', 'error 24']);
+        });
+
+        it('should return a copy that later errors do not change', function() {
+            const { game } = buildGame();
+            game.recordError(new Error('first'));
+
+            const history = game.getErrorHistory();
+            game.recordError(new Error('second'));
+
+            expect(history.errors.length).toBe(1);
         });
     });
 

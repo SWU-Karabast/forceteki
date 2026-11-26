@@ -1813,6 +1813,7 @@ export class Lobby {
             }
         } catch (error) {
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            this.game?.recordError(error);
         }
     }
 
@@ -1900,7 +1901,8 @@ export class Lobby {
                 player2Id,
                 this.gameFormat,
                 this.matchmakingType,
-                this.game.gameStepsSinceLastUndo
+                this.game.gameStepsSinceLastUndo,
+                game.getErrorHistory()
             )
                 .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
@@ -1935,7 +1937,8 @@ export class Lobby {
             player2Id,
             this.gameFormat,
             this.matchmakingType,
-            this.game.gameStepsSinceLastUndo
+            this.game.gameStepsSinceLastUndo,
+            game.getErrorHistory()
         )
             .catch((e) => logger.error('Server error could not be sent to Discord: Unhandled error', { error: { message: e.message, stack: e.stack }, lobbyId: this.id }));
 
@@ -2873,7 +2876,9 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport
+                viewport,
+                undefined,
+                this.game?.getErrorHistory()
             );
 
             const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);

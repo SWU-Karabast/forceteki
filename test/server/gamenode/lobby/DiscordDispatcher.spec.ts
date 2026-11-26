@@ -1,10 +1,11 @@
 import type FormData from 'form-data';
 import * as Util from '../../../../server/Util';
 import { DiscordDispatcher } from '../../../../server/gamenode/DiscordDispatcher';
-import { SwuGameFormat } from '../../../../server/game/core/Constants';
+import { GameErrorSeverity, SwuGameFormat } from '../../../../server/game/core/Constants';
 import { MatchmakingType } from '../../../../server/gamenode/Lobby';
 import { PlayerReportType, ReportType } from '../../../../server/game/Interfaces';
-import type { ISerializedMessage, ISerializedReportState } from '../../../../server/game/Interfaces';
+import { getDiscordEmbedFields, getDiscordFileParts } from '../../../helpers/server/DiscordWebhookForms';
+import type { IGameErrorHistory, IGameErrorRecord, ISerializedMessage, ISerializedReportState } from '../../../../server/game/Interfaces';
 
 describe('DiscordDispatcher', function() {
     const reporter = { id: 'reporter-id', username: 'Reporter', playerInGameState: 'player1' };
@@ -35,33 +36,19 @@ describe('DiscordDispatcher', function() {
         matchType: MatchmakingType.PrivateLobby,
     });
 
+    const gameError = (message: string, stack?: string): IGameErrorRecord => ({
+        timestamp: '2026-01-01T00:00:00.000Z',
+        severity: GameErrorSeverity.Normal,
+        message,
+        stack,
+    });
+
     const buildPlayerReport = (messages: ISerializedMessage[], chatMessages?: ISerializedMessage[]): ISerializedReportState => ({
         ...buildBugReport(messages),
         description: 'reported',
         playerReportType: PlayerReportType.ChatHarrasment,
         chatMessages,
     });
-
-    /** Splits the multipart body into its file parts, keyed by form field name. */
-    const getFileParts = (formData: FormData): Map<string, string> => {
-        const body = formData.getBuffer().toString('utf8');
-        const parts = body.split(`--${formData.getBoundary()}`);
-        const files = new Map<string, string>();
-        for (const part of parts) {
-            const match = (/name="(files\[\d+\])"; filename="[^"]*"\r\nContent-Type: [^\r]*\r\n\r\n([\s\S]*)\r\n$/).exec(part);
-            if (match) {
-                files.set(match[1], match[2]);
-            }
-        }
-        return files;
-    };
-
-    /** The `[name, value]` of each field in the message's embed. */
-    const getEmbedFields = (formData: FormData): string[][] => {
-        const body = formData.getBuffer().toString('utf8');
-        const payloadJson = (/name="payload_json"\r\n\r\n(.*)\r\n/).exec(body)[1];
-        return JSON.parse(payloadJson).embeds[0].fields.map((field: { name: string; value: string }) => [field.name, field.value]);
-    };
 
     describe('formatMessagesToAttachmentText', function() {
         it('returns a placeholder instead of an empty string when there are no messages', function() {
@@ -77,6 +64,20 @@ describe('DiscordDispatcher', function() {
                 reporter.id, opponent.id, reporter.username, opponent.username
             );
             expect(text).toBe('<Reporter>: hi\n<Opponent>: go away');
+        });
+    });
+
+    describe('formatGameErrorsToText', function() {
+        it('lists the errors oldest first, each with its stack', function() {
+            const text = DiscordDispatcher.formatGameErrorsToText({ totalCount: 2, errors: [gameError('first', 'Error: first\n    at somewhere'), gameError('second')] });
+
+            expect(text).toBe('[2026-01-01T00:00:00.000Z] (normal) first\nError: first\n    at somewhere\n\n[2026-01-01T00:00:00.000Z] (normal) second');
+        });
+
+        it('says when older errors were left out', function() {
+            const text = DiscordDispatcher.formatGameErrorsToText({ totalCount: 25, errors: [gameError('first'), gameError('second')] });
+
+            expect(text).toBe('Showing the last 2 of 25 errors\n\n[2026-01-01T00:00:00.000Z] (normal) first\n\n[2026-01-01T00:00:00.000Z] (normal) second');
         });
     });
 
@@ -122,7 +123,7 @@ describe('DiscordDispatcher', function() {
                 await dispatcher.formatAndSendReportAsync(buildBugReport([logMessage('Reporter attacks')]), ReportType.BugReport);
 
                 expect(sentUrl).toBe(bugReportWebhookUrl);
-                const files = getFileParts(sentForm);
+                const files = getDiscordFileParts(sentForm);
                 expect(files.get('files[0]')).toBe('null');
                 expect(files.get('files[1]')).toBe('Reporter attacks');
             });
@@ -132,8 +133,29 @@ describe('DiscordDispatcher', function() {
 
                 await dispatcher.formatAndSendReportAsync(buildBugReport([]), ReportType.BugReport);
 
-                const files = getFileParts(sentForm);
+                const files = getDiscordFileParts(sentForm);
                 expect(files.get('files[1]')).toBe(DiscordDispatcher.EmptyMessagesPlaceholder);
+            });
+
+            it('attaches the earlier game errors and counts them in the embed when there were any', async function() {
+                const dispatcher = new DiscordDispatcher();
+                const gameErrors: IGameErrorHistory = { totalCount: 1, errors: [gameError('boom', 'Error: boom\n    at somewhere')] };
+
+                await dispatcher.formatAndSendReportAsync({ ...buildBugReport([]), gameErrors }, ReportType.BugReport);
+
+                expect(getDiscordFileParts(sentForm).get('files[2]')).toBe('[2026-01-01T00:00:00.000Z] (normal) boom\nError: boom\n    at somewhere');
+                expect(getDiscordEmbedFields(sentForm)).toContain(['Game Errors', '1']);
+            });
+
+            it('attaches no game errors file when there were none', async function() {
+                const dispatcher = new DiscordDispatcher();
+
+                await dispatcher.formatAndSendReportAsync({ ...buildBugReport([]), gameErrors: { totalCount: 0, errors: [] } }, ReportType.BugReport);
+                expect(getDiscordFileParts(sentForm).has('files[2]')).toBeFalse();
+                expect(getDiscordEmbedFields(sentForm)).toContain(['Game Errors', '0']);
+
+                await dispatcher.formatAndSendReportAsync(buildBugReport([]), ReportType.BugReport);
+                expect(getDiscordFileParts(sentForm).has('files[2]')).toBeFalse();
             });
         });
 
@@ -144,7 +166,7 @@ describe('DiscordDispatcher', function() {
                 await dispatcher.formatAndSendReportAsync(buildPlayerReport([logMessage('Reporter attacks')], []), ReportType.PlayerReport);
 
                 expect(sentUrl).toBe(playerReportWebhookUrl);
-                const fields = getEmbedFields(sentForm);
+                const fields = getDiscordEmbedFields(sentForm);
                 expect(fields).toContain(['Reported Player', 'Opponent (opponent-id)']);
                 expect(fields).toContain(['Offense', PlayerReportType.ChatHarrasment]);
                 expect(fields.map(([name]) => name)).not.toContain('Game State');
@@ -155,7 +177,7 @@ describe('DiscordDispatcher', function() {
 
                 await dispatcher.formatAndSendReportAsync(buildPlayerReport([logMessage('Reporter attacks')], []), ReportType.PlayerReport);
 
-                const files = getFileParts(sentForm);
+                const files = getDiscordFileParts(sentForm);
                 expect(files.get('files[1]')).toBe('Reporter attacks');
                 expect(files.get('files[2]')).toBe(DiscordDispatcher.EmptyMessagesPlaceholder);
             });
@@ -165,10 +187,62 @@ describe('DiscordDispatcher', function() {
 
                 await dispatcher.formatAndSendReportAsync(buildPlayerReport([], [chatMessage(opponent.id, 'y', 'gg')]), ReportType.PlayerReport);
 
-                const files = getFileParts(sentForm);
+                const files = getDiscordFileParts(sentForm);
                 expect(files.get('files[1]')).toBe(DiscordDispatcher.EmptyMessagesPlaceholder);
                 expect(files.get('files[2]')).toBe('<Opponent>: gg');
             });
+        });
+    });
+
+    describe('formatAndSendServerErrorAsync', function() {
+        const serverErrorWebhookUrl = 'https://discord.invalid/server-error-webhook';
+        let originalServerErrorWebhookUrl: string | undefined;
+        let sentForm: FormData | null;
+
+        beforeEach(function() {
+            originalServerErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL;
+            process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL = serverErrorWebhookUrl;
+            sentForm = null;
+            spyOn(Util, 'httpPostFormData').and.callFake((_url: string, formData: FormData) => {
+                sentForm = formData;
+                return Promise.resolve('');
+            });
+        });
+
+        afterEach(function() {
+            if (originalServerErrorWebhookUrl === undefined) {
+                delete process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL;
+            } else {
+                process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL = originalServerErrorWebhookUrl;
+            }
+        });
+
+        const sendServerErrorAsync = (dispatcher: DiscordDispatcher, earlierGameErrors?: IGameErrorHistory) =>
+            dispatcher.formatAndSendServerErrorAsync(
+                'Severe game error reported', new Error('current'), null, [], 'lobby-id', reporter.id, opponent.id,
+                SwuGameFormat.Premier, MatchmakingType.PrivateLobby, 0, earlierGameErrors
+            );
+
+        it('attaches the earlier game errors next to the stack trace of the current one', async function() {
+            const dispatcher = new DiscordDispatcher();
+
+            await sendServerErrorAsync(dispatcher, { totalCount: 1, errors: [gameError('earlier')] });
+
+            const files = getDiscordFileParts(sentForm);
+            expect(files.get('files[2]')).toContain('Error: current');
+            expect(files.get('files[3]')).toBe('[2026-01-01T00:00:00.000Z] (normal) earlier');
+            expect(getDiscordEmbedFields(sentForm)).toContain(['Earlier Game Errors', '1']);
+        });
+
+        it('attaches no earlier errors file when there were none', async function() {
+            const dispatcher = new DiscordDispatcher();
+
+            await sendServerErrorAsync(dispatcher, { totalCount: 0, errors: [] });
+            expect(getDiscordFileParts(sentForm).has('files[3]')).toBeFalse();
+            expect(getDiscordEmbedFields(sentForm)).toContain(['Earlier Game Errors', '0']);
+
+            await sendServerErrorAsync(dispatcher);
+            expect(getDiscordFileParts(sentForm).has('files[3]')).toBeFalse();
         });
     });
 });
