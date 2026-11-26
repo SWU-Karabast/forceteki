@@ -1,4 +1,4 @@
-import type { IKeywordProperties, KeywordNameOrProperties } from '../../../Interfaces';
+import type { IKeywordProperties, KeywordNameOrProperties, INumericKeywordProperties } from '../../../Interfaces';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { Helpers } from '../../utils/Helpers';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
@@ -8,6 +8,14 @@ import type { FormatMessage } from '../../chat/GameChat';
 
 import { registerState } from '../../GameObjectUtils';
 import { TextHelper } from '../../utils/TextHelper';
+
+/**
+ * A numeric keyword (Raid, Restore, Exploit) with an amount of 0 or less is not gained at all, e.g. "gains Raid 1 for each
+ * damaged enemy unit" while no enemy unit is damaged: the unit does not have Raid, instead of having a "Raid 0".
+ */
+function isGained(props: IKeywordProperties): boolean {
+    return !(KeywordHelpers.isNumericType[props.keyword] && (props as INumericKeywordProperties).amount <= 0);
+}
 
 @registerState()
 export class GainKeyword extends OngoingEffectValueWrapperBase<IKeywordProperties | IKeywordProperties[]> {
@@ -20,11 +28,11 @@ export class GainKeyword extends OngoingEffectValueWrapperBase<IKeywordPropertie
         };
 
         if (Array.isArray(keywordProps)) {
-            super(game, keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)), effectDescription);
+            super(game, keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)).filter(isGained), effectDescription);
         } else if (typeof keywordProps === 'string') {
             super(game, { keyword: keywordProps }, effectDescription);
         } else {
-            super(game, keywordProps, effectDescription);
+            super(game, isGained(keywordProps) ? keywordProps : [], effectDescription);
         }
     }
 
