@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const CARD_DIR = path.join(__dirname, '..', '..', '..', 'test', 'json', 'Card');
+const CARD_DIR = path.join(__dirname, '..', '..', 'test', 'json', 'Card');
 
 // Errata that rewrites ability text replaces the matching printed segment (same opening words), or the whole field
 // when the card has only one field; if nothing matches it is added as its own field. Errata about templating,
