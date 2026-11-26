@@ -44,6 +44,15 @@ export interface RegisterStateOptions {
 
 type StateHydrationHandler = (instance: GameObjectBase, rawValue: unknown) => void;
 
+interface StateCopyOperation {
+    field: string;
+    hydrator: StateHydrationHandler | null;
+}
+
+// Decorator metadata is fixed once a class is defined. Cache only its copy
+// instructions, never any instance state or resolved GameObject references.
+const stateCopyPlans = new WeakMap<object, readonly StateCopyOperation[]>();
+
 // Registers how a state field should be rebuilt from raw copied state during copyState().
 function registerStateHydrator(metaState: Record<string | symbol, unknown>, fieldName: string, hydrator: StateHydrationHandler) {
     const hydrationMetadata = (metaState[stateHydrationMetadata] ??= {}) as Record<string, StateHydrationHandler>;
@@ -726,11 +735,31 @@ function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, 
 }
 
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
-    let baseClass = Object.getPrototypeOf(instance);
+    const instancePrototype = Object.getPrototypeOf(instance);
+    let copyPlan = stateCopyPlans.get(instancePrototype);
+    if (!copyPlan) {
+        copyPlan = buildStateCopyPlan(instancePrototype);
+        stateCopyPlans.set(instancePrototype, copyPlan);
+    }
+
+    for (const operation of copyPlan) {
+        if (operation.hydrator === null) {
+            instance[operation.field] = newState[operation.field];
+        } else {
+            operation.hydrator(instance, newState[operation.field]);
+        }
+    }
+}
+
+function buildStateCopyPlan(instancePrototype: object): readonly StateCopyOperation[] {
+    const copyPlan: StateCopyOperation[] = [];
+    let baseClass = instancePrototype;
     let isFullCopy = false;
     if (baseClass.constructor[Symbol.metadata][bulkCopyMetadata]) {
         isFullCopy = true;
     }
+    // Preserve the original derived-to-base order, including wrapper classes
+    // that intentionally visit the same metadata more than once.
     while (baseClass) {
         const metadata = baseClass.constructor[Symbol.metadata];
         // Pull out any data provided by @registerState for this class.
@@ -744,7 +773,7 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
             if (!isFullCopy && metaState[stateSimpleMetadata]) {
                 const metaSimples = metaState[stateSimpleMetadata] as string[];
                 for (const field of metaSimples) {
-                    instance[field] = newState[field];
+                    copyPlan.push({ field, hydrator: null });
                 }
             }
 
@@ -752,31 +781,31 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
             if (metaState[stateArrayMetadata]) {
                 const metaArrays = metaState[stateArrayMetadata] as string[];
                 for (const field of metaArrays) {
-                    hydrationMetadata[field](instance, newState[field]);
+                    copyPlan.push({ field, hydrator: hydrationMetadata[field] });
                 }
             }
             if (metaState[stateMapMetadata]) {
                 const metaMaps = metaState[stateMapMetadata] as string[];
                 for (const field of metaMaps) {
-                    hydrationMetadata[field](instance, newState[field]);
+                    copyPlan.push({ field, hydrator: hydrationMetadata[field] });
                 }
             }
             if (metaState[stateSetMetadata]) {
                 const metaSets = metaState[stateSetMetadata] as string[];
                 for (const field of metaSets) {
-                    hydrationMetadata[field](instance, newState[field]);
+                    copyPlan.push({ field, hydrator: hydrationMetadata[field] });
                 }
             }
             if (metaState[stateRecordMetadata]) {
                 const metaRecords = metaState[stateRecordMetadata] as string[];
                 for (const field of metaRecords) {
-                    hydrationMetadata[field](instance, newState[field]);
+                    copyPlan.push({ field, hydrator: hydrationMetadata[field] });
                 }
             }
             if (metaState[stateObjectMetadata]) {
                 const metaObjects = metaState[stateObjectMetadata] as string[];
                 for (const field of metaObjects) {
-                    hydrationMetadata[field](instance, newState[field]);
+                    copyPlan.push({ field, hydrator: hydrationMetadata[field] });
                 }
             }
         }
@@ -789,6 +818,8 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
         // Continue to the next parent class in the prototype chain and check again.
         baseClass = newBaseClass;
     }
+
+    return copyPlan;
 }
 
 // A custom class to pass through any values to the underlying state Map.
