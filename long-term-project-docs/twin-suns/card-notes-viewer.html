@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card test notes</title>
+<style>
+/* Dark by default on every device. */
+:root { color-scheme:dark; --bg:#161718; --panel:#1f2123; --text:#e8e8e3; --muted:#9a9a92; --line:#33363a; --accent:#3d6fcf; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
+header { position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:1px solid var(--line); padding:10px max(16px, calc((100vw - 1500px) / 2)); display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+#q { flex:1 1 220px; min-width:150px; max-width:380px; }
+select, input, button, textarea { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
+button { cursor:pointer; }
+button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+main { max-width:1500px; margin:0 auto; padding:16px; }
+#list { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:14px; align-items:start; }
+#list > p { grid-column:1 / -1; }
+.card { min-width:0; scroll-margin-top:var(--hdr, 180px); }
+.card img { width:100%; border-radius:8px; display:block; }
+.thumb { cursor:pointer; text-align:center; }
+.thumb:hover img { outline:2px solid var(--accent); }
+.thumb .cap { font-size:12px; color:var(--muted); margin-top:4px; line-height:1.3; }
+.thumb .flag { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:4px; }
+.detail { display:none; }
+.card.open { grid-column:1 / -1; }
+.card.open .thumb { display:none; }
+.card.open .detail { display:grid; grid-template-columns:150px 1fr; gap:16px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; }
+.close { float:right; }
+.switch { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }
+.switch input { display:none; }
+.switch .track { position:relative; width:42px; height:22px; border-radius:11px; background:var(--line); transition:background .15s; }
+.switch .track::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:#fff; transition:transform .15s; }
+.switch input:checked + .track { background:var(--accent); }
+.switch input:checked + .track::after { transform:translateX(20px); }
+.switch .lbl.on { color:var(--text); font-weight:600; }
+.rowsum, .rowhead { display:none; }
+#list.list { display:block; }
+#list.list .thumb { display:none; }
+#list.list .rowhead, #list.list .rowsum { display:grid; grid-template-columns:minmax(0,1fr) 44px 44px; gap:10px; align-items:center; padding:8px 12px; }
+#list.list .rowhead { font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); border-bottom:1px solid var(--line); }
+#list.list .rowsum { cursor:pointer; border-bottom:1px solid var(--line); }
+#list.list .rowsum:hover { background:var(--panel); }
+#list.list .card.open .rowsum { display:none; }
+#list.list .card.open { margin:8px 0; }
+#list.list .pager { margin:10px 0; }
+.rowsum .nm { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rowsum .nm b { font-weight:600; }
+.rowsum .nm .sub { color:var(--muted); margin-left:6px; }
+.rowsum .n { text-align:center; }
+.rowsum .n.zero { color:var(--muted); }
+.rowhead .n { text-align:center; }
+.timg { position:relative; }
+.badge { position:absolute; right:6px; bottom:6px; min-width:24px; height:24px; padding:0 7px; border-radius:12px; background:var(--accent); color:#fff; font-size:13px; font-weight:700; line-height:24px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.5); }
+.badge[hidden] { display:none; }
+.pager { display:flex; align-items:center; justify-content:center; gap:14px; color:var(--muted); margin:0; }
+.detail .img { cursor:pointer; }
+.noimg { border:1px dashed var(--line); border-radius:8px; padding:24px 6px; text-align:center; color:var(--muted); font-size:12px; }
+h2 { font-size:16px; margin:0 0 4px; }
+.txt { color:var(--muted); font-size:13px; margin:0 0 8px; white-space:pre-wrap; }
+label { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:8px 0 2px; }
+textarea { width:100%; min-height:44px; resize:none; overflow:hidden; }
+.nav { display:flex; width:100%; align-items:stretch; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.nav b { flex:0 0 64px; display:flex; align-items:center; justify-content:center; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); background:var(--panel); border-right:1px solid var(--line); }
+.nav button { flex:1 1 0; border:0; border-right:1px solid var(--line); border-radius:0; padding:8px 4px; font-size:14px; }
+.nav button:last-child { border-right:0; }
+.nav button:disabled { opacity:.3; cursor:default; }
+.nav button.on { background:var(--accent); color:#fff; }
+/* Keep every nav row one line high whichever button is on (no bold shift, no wrapping). */
+.nav button { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+@media (max-width:480px) { .nav button { font-size:13px; padding-left:2px; padding-right:2px; } .nav button small { display:block; margin:0; line-height:1.1; } .nav button:has(.sym) { flex-direction:column; gap:1px; } }
+.nav[hidden] { display:none; }
+.nav.wrap { flex-wrap:wrap; }
+.nav.wrap button { flex:1 1 76px; border-bottom:1px solid var(--line); }
+.nav button small { margin-left:5px; opacity:.7; font-size:12px; font-weight:400; }
+.nav button:has(.sym) { display:flex; align-items:center; justify-content:center; gap:6px; }
+.nav button:has(.sym) small { margin-left:0; }
+.sym { width:28px; height:28px; vertical-align:middle; display:block; margin:0 auto; }
+.nav button:has(.sym) { padding:5px 4px; }
+.empty { text-align:center; color:var(--muted); padding:48px 16px; }
+.row { display:flex; align-items:center; gap:10px; margin-top:10px; }
+.tests { list-style:none; margin:4px 0 12px; padding:0; }
+.tests li { margin:0 0 10px; padding:8px 12px; background:var(--bg); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:6px; }
+.none { color:var(--muted); font-style:italic; margin:4px 0 12px; }
+.edit { display:none; }
+.readonly [data-edit], .readonly .edit { display:none !important; }
+.card.editing .edit { display:block; }
+.card.editing .view { display:none; }
+.status { color:var(--muted); font-size:13px; }
+/* Desktop: larger cards, a bigger detail panel, roomier rows. */
+@media (min-width:900px) {
+  body { font-size:16px; }
+  header { gap:10px; }
+  .nav button { padding:11px 6px; font-size:15px; }
+  .nav button:has(.sym) { padding:7px 6px; }
+  .sym { width:34px; height:34px; }
+  #list { grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:20px; padding-top:6px; }
+  .thumb .cap { font-size:13px; }
+  .card.open .detail { grid-template-columns:280px minmax(0, 1fr); gap:28px; padding:20px; }
+  .card.open .detail .txt { font-size:14px; }
+  .tests li { padding:10px 14px; }
+  #list.list .rowhead, #list.list .rowsum { padding:11px 16px; }
+}
+@media (max-width:640px) { #list { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px; } .card.open .detail { grid-template-columns:1fr; } .card.open .detail .img img { max-width:150px; } }
+</style>
+</head>
+<body>
+<header>
+  <input id="q" type="search" placeholder="Search name or text">
+  <select id="set"></select>
+  <select id="show">
+    <option value="tests">With tests</option>
+    <option value="notests">Without tests needed</option>
+    <option value="reviewed">Reviewed</option>
+    <option value="all">All cards</option>
+  </select>
+  <input id="which" type="hidden" value="any">
+  <span id="count" class="status"></span>
+  <span id="snapshot" class="status" hidden></span>
+  <span id="needing" class="status"></span>
+  <label class="switch" title="Switch between card images and a list"><span class="lbl" id="lbl-img">Images</span><input type="checkbox" id="mode"><span class="track"></span><span class="lbl" id="lbl-list">List</span></label>
+  <div class="nav" id="whichnav" hidden></div>
+  <div class="nav" id="types"></div>
+  <div class="nav" id="arenas" hidden></div>
+  <div class="nav" id="costs" hidden></div>
+  <div class="nav" id="aspects"></div>
+</header>
+<main id="list"></main>
+<script>
+let CARDS = [];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const PAGE = 12;
+const LIST_PAGE = 25;
+let listMode = false;
+try { listMode = localStorage.getItem('notesViewerMode') === 'list'; } catch (e) { /* no storage */ }
+// On a wide screen the grid has more columns of bigger cards: show three full rows (same sizes as the desktop CSS).
+function perPage() {
+  if (listMode) { return LIST_PAGE; }
+  if (window.innerWidth < 900) { return PAGE; }
+  const cols = Math.max(1, Math.floor((Math.min(window.innerWidth, 1500) - 32 + 20) / (190 + 20)));
+  return cols * 3;
+}
+let pageNo = 0;
+const TYPES = ['base', 'leader', 'unit', 'event', 'upgrade'];
+const ARENAS = ['space', 'ground'];
+const ORDER = ['aggression', 'command', 'cunning', 'vigilance', 'heroism', 'villainy'];
+const picked = { type: null, arena: null, aspects: new Set(), costs: new Set() };
+const cap = (s) => s === 'none' ? 'No aspect' : s[0].toUpperCase() + s.slice(1);
+// Official aspect icons from the Star Wars: Unlimited card API (https://admin.starwarsunlimited.com/api/card-aspects).
+const ICON = {
+  aggression: 'https://cdn.starwarsunlimited.com/icon_aggression_24cc746635.png',
+  command: 'https://cdn.starwarsunlimited.com/icon_command_df837f32c6.png',
+  cunning: 'https://cdn.starwarsunlimited.com/icon_cunning_931f93ee4c.png',
+  vigilance: 'https://cdn.starwarsunlimited.com/icon_vigilance_aebda7026f.png',
+  heroism: 'https://cdn.starwarsunlimited.com/icon_heroism_99d152cb2d.png',
+  villainy: 'https://cdn.starwarsunlimited.com/icon_villainy_eb77e7874b.png'
+};
+// Six multi-select aspect buttons (symbols only). A card shows only if it has all of the selected aspects.
+function aspectNav() {
+  const nav = $('aspects');
+  nav.innerHTML = '<b>Aspect</b>' + ORDER.map((a) => `<button type="button" data-v="${a}" title="${cap(a)}" aria-label="${cap(a)}"><img class="sym" src="${ICON[a]}" alt="${cap(a)}" referrerpolicy="no-referrer"></button>`).join('');
+  nav.querySelectorAll('button').forEach((b) => {
+    b.classList.toggle('on', picked.aspects.has(b.dataset.v));
+    b.onclick = () => {
+      const v = b.dataset.v;
+      if (picked.aspects.has(v)) { picked.aspects.delete(v); } else { picked.aspects.add(v); }
+      // Heroism and Villainy exclude each other (no card has both), so turning one on turns the other off.
+      if (picked.aspects.has(v) && (v === 'heroism' || v === 'villainy')) { picked.aspects.delete(v === 'heroism' ? 'villainy' : 'heroism'); }
+      nav.querySelectorAll('button').forEach((x) => x.classList.toggle('on', picked.aspects.has(x.dataset.v)));
+      pageNo = 0; render();
+    };
+  });
+}
+// Each row is a nav bar: one button at a time; clicking the active one clears it.
+function nav(id, label, values, key) {
+  $(id).innerHTML = '<b>' + label + '</b>' + values.map((v) => `<button type="button" data-v="${v}">${cap(v)}</button>`).join('');
+  $(id).querySelectorAll('button').forEach((b) => {
+    b.onclick = () => {
+      picked[key] = picked[key] === b.dataset.v ? null : b.dataset.v;
+      $(id).querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.v === picked[key]));
+      if (key === 'type') {
+        // The space/ground row only exists while Unit is selected.
+        if (picked.type !== 'unit') { picked.arena = null; }
+        arenaNav();
+        costNav();
+      }
+      pageNo = 0; render();
+    };
+  });
+}
+const COSTABLE = ['unit', 'upgrade', 'event'];
+const COSTS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9+'];
+// A multi-select cost row, shown for units, upgrades and events (bases and leaders have no cost to filter on).
+function costNav() {
+  const row = $('costs');
+  row.hidden = !COSTABLE.includes(picked.type);
+  if (row.hidden) { picked.costs.clear(); row.innerHTML = ''; return; }
+  row.innerHTML = '<b>Cost</b>' + COSTS.map((v) => `<button type="button" data-v="${v}">${v}</button>`).join('');
+  row.querySelectorAll('button').forEach((b) => {
+    b.classList.toggle('on', picked.costs.has(b.dataset.v));
+    b.onclick = () => {
+      if (picked.costs.has(b.dataset.v)) { picked.costs.delete(b.dataset.v); } else { picked.costs.add(b.dataset.v); }
+      b.classList.toggle('on', picked.costs.has(b.dataset.v));
+      pageNo = 0; render();
+    };
+  });
+}
+// Gray out (and disable) cost buttons that no card matches under the other filters; a selected one stays clickable so it can be cleared.
+// Numbers in the drop-downs and the "cards needing tests" label, based on everything else that is selected.
+const SHOW_LABELS = { tests: 'With tests', notests: 'Without tests needed', reviewed: 'Reviewed', all: 'All cards' };
+function updateCounts() {
+  const bySet = CARDS.filter((c) => matches(c, { skipSet: true }));
+  for (const opt of $('set').options) {
+    const n = opt.value ? bySet.filter((c) => c.set === opt.value).length : bySet.length;
+    opt.textContent = (opt.value || 'All sets') + ' (' + n + ')';
+  }
+  for (const opt of $('show').options) {
+    opt.textContent = SHOW_LABELS[opt.value] + ' (' + CARDS.filter((c) => matches(c, { show: opt.value })).length + ')';
+  }
+  // Tests and Type rows: each button shows how many cards picking it would give with everything else as it is now.
+  const put = (btn, n) => {
+    let s = btn.querySelector('small.n');
+    if (!s) { s = document.createElement('small'); s.className = 'n'; btn.appendChild(s); }
+    s.textContent = '(' + n + ')';
+  };
+  const count = (o) => CARDS.filter((c) => matches(c, o)).length;
+  $('whichnav').querySelectorAll('button').forEach((b) => put(b, count({ show: 'tests', which: b.dataset.v })));
+  $('types').querySelectorAll('button').forEach((b) => put(b, count({ type: b.dataset.v })));
+  const need = CARDS.filter((c) => matches(c, { show: 'tests' })).length;
+  $('needing').textContent = need + (need === 1 ? ' card' : ' cards') + ' needing tests';
+}
+function updateCostAvailability() {
+  const row = $('costs');
+  if (row.hidden) { return; }
+  const have = new Set(CARDS.filter((c) => matches(c, { skipCost: true })).map(costKey));
+  row.querySelectorAll('button').forEach((b) => { b.disabled = !have.has(b.dataset.v) && !picked.costs.has(b.dataset.v); });
+}
+const costKey = (c) => c.cost == null ? null : (c.cost >= 9 ? '9+' : String(c.cost));
+function arenaNav() {
+  const row = $('arenas');
+  row.hidden = picked.type !== 'unit';
+  if (row.hidden) { row.innerHTML = ''; return; }
+  nav('arenas', 'Arena', ARENAS, 'arena');
+  row.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.v === picked.arena));
+}
+function fit(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + ta.offsetHeight - ta.clientHeight) + 'px'; }
+
+async function load() {
+  // The static build (build-static-viewer.js) embeds the data and is read-only; the local server serves it live and allows edits.
+  if (window.NOTES_STATIC) {
+    CARDS = window.NOTES_STATIC;
+    document.body.classList.add('readonly');
+    $('snapshot').textContent = 'Read-only snapshot' + (window.NOTES_BUILT ? ', built ' + window.NOTES_BUILT : '');
+    $('snapshot').hidden = false;
+  } else {
+    CARDS = await (await fetch('/api/cards')).json();
+  }
+  const sets = [...new Set(CARDS.map((c) => c.set))];
+  $('set').innerHTML = '<option value="">All sets</option>' + sets.map((s) => `<option value="${s}">${s}</option>`).join('');
+  nav('types', 'Type', TYPES, 'type');
+  aspectNav();
+  const setMode = (list) => {
+    listMode = list;
+    $('mode').checked = list;
+    $('lbl-img').classList.toggle('on', !list);
+    $('lbl-list').classList.toggle('on', list);
+    try { localStorage.setItem('notesViewerMode', list ? 'list' : 'images'); } catch (e) { /* no storage */ }
+  };
+  setMode(listMode);
+  $('mode').onchange = () => { setMode($('mode').checked); pageNo = 0; render(); };
+  // Format selector (only for "With tests"): one button at a time, like the type row; "any" is the default.
+  const FORMATS = [['any', 'Either'], ['ts', 'Twin Suns'], ['a2', 'Always Two'], ['both', 'Both']];
+  $('whichnav').innerHTML = '<b>Tests</b>' + FORMATS.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join('');
+  const markFormat = () => $('whichnav').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.v === $('which').value));
+  $('whichnav').querySelectorAll('button').forEach((b) => { b.onclick = () => { $('which').value = b.dataset.v; markFormat(); pageNo = 0; render(); }; });
+  markFormat();
+  for (const id of ['set', 'show', 'q']) {
+    $(id).oninput = () => {
+      pageNo = 0;
+      if (id === 'set') { aspectNav(); }
+      // The format row only applies to "With tests".
+      $('whichnav').hidden = $('show').value !== 'tests';
+      render();
+    };
+  }
+  $('whichnav').hidden = $('show').value !== 'tests';
+  render();
+}
+
+// For the counts: o.skipCost / o.skipSet ignore that filter; o.show, o.which, o.type (null for none) and o.aspects
+// (a Set) try another value of that filter.
+function matches(c, o = {}) {
+  const typeSel = o.type !== undefined ? o.type : picked.type;
+  const aspectSel = o.aspects || picked.aspects;
+  const set = o.skipSet ? '' : $('set').value, show = o.show || $('show').value, q = $('q').value.trim().toLowerCase();
+  if (set && c.set !== set) { return false; }
+  if (show === 'tests') {
+    const which = o.which || $('which').value;
+    const ok = which === 'ts' ? c.ts.length : which === 'a2' ? c.a2.length : which === 'both' ? (c.ts.length && c.a2.length) : (c.ts.length || c.a2.length);
+    if (!ok) { return false; }
+  }
+  if (show === 'notests' && !(c.reviewed && !c.ts.length && !c.a2.length)) { return false; }
+  if (show === 'reviewed' && !c.reviewed) { return false; }
+  if (typeSel && !c.types.includes(typeSel)) { return false; }
+  // Space/Ground only applies to units and cost only to units, upgrades and events.
+  if (picked.arena && typeSel === 'unit' && c.arena !== picked.arena) { return false; }
+  if (!o.skipCost && picked.costs.size && COSTABLE.includes(typeSel) && !picked.costs.has(costKey(c))) { return false; }
+  if (aspectSel.size && ![...aspectSel].every((a) => c.aspects.includes(a))) { return false; }
+  if (q && !(c.name + ' ' + c.subtitle + ' ' + c.fields.map((f) => f.text).join(' ')).toLowerCase().includes(q)) { return false; }
+  return true;
+}
+
+// The number of tests for the chosen format (both formats combined unless "With tests" has a single one selected).
+function testCount(c) {
+  const which = $('show').value === 'tests' ? $('which').value : 'any';
+  return which === 'ts' ? c.ts.length : which === 'a2' ? c.a2.length : c.ts.length + c.a2.length;
+}
+function image(slot, c) {
+  const bare = String(parseInt(c.num, 10));
+  const urls = [...new Set([c.num, bare, bare.padStart(2, '0')])].map((n) => `https://swudb.com/images/cards/${c.set}/${n}.png`);
+  const img = slot.querySelector('img'), miss = slot.querySelector('.noimg');
+  const next = (i) => {
+    if (i >= urls.length) { miss.hidden = false; return; }
+    const p = new Image(); p.referrerPolicy = 'no-referrer';
+    p.onload = () => { img.src = urls[i]; img.hidden = false; };
+    p.onerror = () => next(i + 1);
+    p.src = urls[i];
+  };
+  next(0);
+}
+
+function render() {
+  updateCounts();
+  if (!(picked.type || picked.aspects.size || $('set').value || $('q').value.trim())) {
+    $('count').textContent = '';
+    $('list').innerHTML = '<p class="empty">Pick a type, an aspect or a set, or search, to show cards.</p>';
+    return;
+  }
+  updateCostAvailability();
+  const list = CARDS.filter((c) => matches(c));
+  $('count').textContent = `${list.length} cards`;
+  const pages = Math.max(1, Math.ceil(list.length / perPage()));
+  if (pageNo >= pages) { pageNo = pages - 1; }
+  const page = list.slice(pageNo * perPage(), (pageNo + 1) * perPage());
+  const pager = pages > 1 ? `<p class="pager"><button data-pg="-1"${pageNo === 0 ? ' disabled' : ''}>\u2039 Prev</button><span>Page ${pageNo + 1} of ${pages}</span><button data-pg="1"${pageNo >= pages - 1 ? ' disabled' : ''}>Next \u203A</button></p>` : '';
+  const tests = (arr) => arr.length ? '<ul class="tests">' + arr.map((l) => '<li>' + esc(l) + '</li>').join('') + '</ul>' : '<p class="none">No tests</p>';
+  $('list').classList.toggle('list', listMode);
+  const head = listMode ? '<div class="rowhead"><span>Card</span><span class="n">TS</span><span class="n">A2</span></div>' : '';
+  const cnt = (n) => `<span class="n${n ? '' : ' zero'}">${n || '\u2013'}</span>`;
+  $('list').innerHTML = pager + head + page.map((c) => `
+    <article class="card" data-id="${esc(c.id)}">
+     <div class="rowsum" data-open>
+      <span class="nm"><b>${esc(c.name)}</b>${c.subtitle ? ' <span class="sub">' + esc(c.subtitle) + '</span>' : ''}</span>
+      ${cnt(c.ts.length)}
+      ${cnt(c.a2.length)}
+     </div>
+     <div class="thumb" data-open title="${esc(c.name)}">
+      <div class="timg"><img hidden alt="${esc(c.name)}" referrerpolicy="no-referrer"><div class="noimg" hidden>${esc(c.name)}</div><span class="badge"${testCount(c) ? '' : ' hidden'}>${testCount(c)}</span></div>
+      <div class="cap">${esc(c.name)}</div>
+     </div>
+     <div class="detail">
+      <div class="img"><img hidden alt="${esc(c.name)}" referrerpolicy="no-referrer"><div class="noimg" hidden>${esc(c.name)}</div></div>
+      <div>
+        <button class="close" data-close>Close</button>
+        <h2>${esc(c.name)}${c.subtitle ? ' — ' + esc(c.subtitle) : ''} <span class="status">${c.set} #${c.num}</span></h2>
+        <p class="txt">${c.fields.map((f) => esc(f.label + ': ' + f.text)).join('\n')}</p>
+        <div class="view">
+          <label>Twin Suns tests</label><div data-v="ts">${tests(c.ts)}</div>
+          <label>Always Two tests</label><div data-v="a2">${tests(c.a2)}</div>
+          <div class="row"><button data-edit>Edit</button></div>
+        </div>
+        <div class="edit">
+          <label>Twin Suns tests (one per line)</label><textarea data-k="ts">${esc(c.ts.join('\n'))}</textarea>
+          <label>Always Two tests (one per line)</label><textarea data-k="a2">${esc(c.a2.join('\n'))}</textarea>
+          <div class="row"><button class="primary" data-save>Save</button><button data-cancel>Cancel</button><span class="status"></span></div>
+        </div>
+      </div>
+     </div>
+    </article>`).join('') + pager;
+  document.querySelectorAll('.card textarea').forEach((ta) => { ta.oninput = () => fit(ta); });
+  document.querySelectorAll('.card').forEach((el) => {
+    const c = CARDS.find((x) => x.id === el.dataset.id);
+    const numeric = /^\d+$/.test(c.num);
+    // The grid shows the thumbnail; the larger image in the detail panel loads when the card is opened.
+    if (numeric) { image(el.querySelector('.timg'), c); } else { el.querySelector('.timg .noimg').hidden = false; }
+    let detailImage = false;
+    const openCard = () => {
+      // Only one card is open at a time: opening this one folds any other open card back up.
+      document.querySelectorAll('.card.open').forEach((other) => { if (other !== el) { other.classList.remove('open', 'editing'); } });
+      el.classList.add('open');
+      if (!detailImage) { detailImage = true; if (numeric) { image(el.querySelector('.detail .img'), c); } else { el.querySelector('.detail .noimg').hidden = false; } }
+      el.querySelectorAll('textarea').forEach(fit);
+      // Keep the top of the card in view, just below the sticky header (its height changes with the open filter rows).
+      document.documentElement.style.setProperty('--hdr', (document.querySelector('header').offsetHeight + 12) + 'px');
+      el.scrollIntoView({ block: 'start' });
+    };
+    el.querySelectorAll('[data-open]').forEach((x) => { x.onclick = openCard; });
+    const close = () => { el.classList.remove('open', 'editing'); };
+    el.querySelector('[data-close]').onclick = close;
+    // Clicking the card image in the opened panel minimizes it again.
+    el.querySelector('.detail .img').onclick = close;
+    const get = (k) => el.querySelector(`[data-k="${k}"]`).value.split('\n').map((l) => l.trim()).filter(Boolean);
+    const st = el.querySelector('.edit .status');
+    const badge = el.querySelector('.badge');
+    const show = () => { badge.textContent = testCount(c); badge.hidden = !testCount(c); for (const k of ['ts', 'a2']) { el.querySelector(`[data-v="${k}"]`).innerHTML = tests(c[k]); el.querySelector(`[data-k="${k}"]`).value = c[k].join('\n'); } };
+    el.querySelector('[data-edit]').onclick = () => { el.classList.add('editing'); st.textContent = ''; el.querySelectorAll('textarea').forEach(fit); el.querySelector('textarea').focus(); };
+    el.querySelector('[data-cancel]').onclick = () => { show(); el.classList.remove('editing'); };
+    el.querySelector('[data-save]').onclick = async () => {
+      const r = await fetch('/api/save', { method: 'POST', headers: { 'content-type': 'application/json', 'x-notes-viewer': '1' }, body: JSON.stringify({ id: c.id, ts: get('ts'), a2: get('a2') }) });
+      if (r.ok) { c.ts = get('ts'); c.a2 = get('a2'); c.reviewed = true; show(); updateCounts(); el.classList.remove('editing'); } else { st.textContent = 'Save failed'; }
+    };
+  });
+  document.querySelectorAll('[data-pg]').forEach((b) => { b.onclick = () => { pageNo += Number(b.dataset.pg); render(); window.scrollTo(0, 0); }; });
+}
+load();
+</script>
+</body>
+</html>
