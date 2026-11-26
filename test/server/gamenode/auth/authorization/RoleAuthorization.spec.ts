@@ -184,7 +184,7 @@ describe('Role authorization', function () {
             it('is not noticed until the role lists are next refreshed', async function () {
                 const { harness } = contextRef;
                 const client = harness.createAccountClient(roles.accounts.nobody);
-                harness.db.seedRoles({ moderators: [roles.accounts.moderator.id, roles.accounts.nobody.id] });
+                harness.db.seedRoles({ moderator: [roles.accounts.moderator.id, roles.accounts.nobody.id] });
 
                 const before = await isMarkedAsync(client, 'moderator');
                 await harness.clock.advanceAsync(roleRefreshIntervalMs - oneMinuteMs);
@@ -198,7 +198,7 @@ describe('Role authorization', function () {
             it('applies to a removed moderator only once the lists are refreshed', async function () {
                 const { harness } = contextRef;
                 const client = harness.createAccountClient(roles.accounts.moderator);
-                harness.db.seedRoles({ moderators: [] });
+                harness.db.seedRoles({ moderator: [] });
 
                 const before = await isMarkedAsync(client, 'moderator');
                 await harness.clock.advanceAsync(roleRefreshIntervalMs - oneMinuteMs);

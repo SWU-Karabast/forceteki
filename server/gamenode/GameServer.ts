@@ -35,13 +35,15 @@ import { MeleeDeckFetcher } from '../utils/deck/MeleeDeckFetcher';
 import { DeckFetchError } from '../utils/deck/DeckFetchError';
 import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
-import { QueueHandler } from './QueueHandler';
+import { isQueueFormatKey, QueueHandler } from './QueueHandler';
 import { getMatchmakingSearchContext } from './MatchmakingRules';
 import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware, getSessionToken } from '../middleware/AuthMiddleWare';
-import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
+import { NotStoredAdminError, ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
+import { FeatureFlagsCache } from '../utils/featureFlags/FeatureFlagsCache';
+import { FeatureFlag, featureFlagDefinitions, isFeatureFlag } from '../utils/featureFlags/FeatureFlags';
 import { signInRefusalCode, UserFactory } from '../utils/user/UserFactory';
 import { validateUsernameFormat } from '../utils/user/UsernameRules';
 import { DeckService } from '../utils/deck/DeckService';
@@ -57,6 +59,7 @@ import type { ICosmeticEntity } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IModerationAction,
     IReportingDisabledState,
+    IServerRoleUsersListsEntity,
     IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
@@ -85,7 +88,9 @@ import {
     PlayerReportListQuerySchema,
     PlayerReportUpdateSchema,
     SaveDeckRequestSchema,
-    ServerSettingsUpdateSchema
+    ServerRoleChangeSchema,
+    ServerSettingsUpdateSchema,
+    FeatureFlagUpdateSchema
 } from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { minimumSchedulerDelayMs } from '../utils/IScheduler';
@@ -259,12 +264,14 @@ export class GameServer {
         let cosmeticsService: CosmeticsService | undefined;
         let serverRoleUsersCache: ServerRoleUsersCache | undefined;
         let serverSettingsCache: ServerSettingsCache | undefined;
+        let featureFlagsCache: FeatureFlagsCache | undefined;
         let modActionCache: ModActionService | undefined;
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
             serverRoleUsersCache = await ServerRoleUsersCache.createAsync(GameServer.ServerCacheRefreshMinutes);
             serverSettingsCache = await ServerSettingsCache.createAsync(GameServer.ServerCacheRefreshMinutes);
+            featureFlagsCache = await FeatureFlagsCache.createAsync(GameServer.ServerCacheRefreshMinutes, serverRoleUsersCache);
             cosmeticsService = await CosmeticsService.createAsync();
             modActionCache = await ModActionService.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
@@ -285,6 +292,7 @@ export class GameServer {
             deckValidator,
             serverRoleUsersCache,
             serverSettingsCache,
+            featureFlagsCache,
             cosmeticsService,
             modActionCache,
             testGameBuilder,
@@ -357,6 +365,7 @@ export class GameServer {
 
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
+    public readonly featureFlagsCache?: FeatureFlagsCache;
     public readonly modActionService?: ModActionService;
     public readonly playerReportService: PlayerReportService;
     private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
@@ -387,6 +396,7 @@ export class GameServer {
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         serverSettingsCache?: ServerSettingsCache,
+        featureFlagsCache?: FeatureFlagsCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
         testGameBuilder?: any,
@@ -417,6 +427,7 @@ export class GameServer {
         this.meleeDeckFetcher = new MeleeDeckFetcher(cardDataGetter);
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.serverSettingsCache = serverSettingsCache;
+        this.featureFlagsCache = featureFlagsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
         this.userFactory = userFactory ?? new UserFactory();
@@ -473,7 +484,8 @@ export class GameServer {
         // check if NEXTAUTH variable is set
         requireEnvVars(
             ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
-                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'],
+                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL',
+                'DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -724,7 +736,8 @@ export class GameServer {
                     usernameChangesBlocked,
                     reportingDisabled,
                     needsUsernameChange,
-                    moderation
+                    moderation,
+                    featureFlags: this.getClientFeatureFlags(user)
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -1680,6 +1693,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
                 }
 
+                if (format === SwuGameFormat.FauxSuns && !this.isFeatureEnabledFor(FeatureFlag.FauxSunsAccess, user)) {
+                    logger.info(`GameServer (create-lobby): User ${user.getId()} blocked from creating a Faux Suns lobby`);
+                    return res.status(403).json({ success: false, message: 'Faux Suns is not available yet' });
+                }
+
                 // Check Bo3 access restrictions for anonymous users
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
                 if (bo3AccessError) {
@@ -1810,6 +1828,11 @@ export class GameServer {
                 if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
                     logger.error(`GameServer (enter-queue): Invalid card pool parameter ${cardPool}`);
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
+
+                if (!isQueueFormatKey({ format, cardPool, gamesToWinMode })) {
+                    logger.warn(`GameServer (enter-queue): User ${user.getId()} asked for a queue that does not exist: ${format} / ${cardPool} / ${gamesToWinMode}`);
+                    return res.status(400).json({ success: false, message: 'There is no matchmaking queue for that format, card pool and best-of mode' });
                 }
 
                 if (!EnumHelpers.isEnumValue(matchmakingCompetitivenessPreference, MatchmakingCompetitivenessPreference)) {
@@ -2228,6 +2251,150 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.get('/api/mod/server-roles', this.buildAuthMiddleware('mod-server-roles', ServerRole.Admin), async (req, res, next) => {
+            try {
+                if (!this.serverRoleUsersCache) {
+                    return res.status(503).json({
+                        success: false,
+                        message: 'Server roles are unavailable because there is no database connection'
+                    });
+                }
+
+                const stored = await this.serverRoleUsersCache.getStoredRoleUsersAsync();
+                return res.status(200).json(await this.buildServerRolesResponseAsync(stored));
+            } catch (err) {
+                logger.error('GameServer (mod-server-roles) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/server-roles', this.buildAuthMiddleware('mod-server-roles-change', ServerRole.Admin), async (req, res, next) => {
+            try {
+                const parseResult = ServerRoleChangeSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                if (!this.serverRoleUsersCache) {
+                    return res.status(503).json({
+                        success: false,
+                        message: 'Server roles are unavailable because there is no database connection'
+                    });
+                }
+
+                const { userId, role, granted } = parseResult.data;
+
+                // admins are changed only by hand in the database, so one admin account cannot take over or lock out the others
+                if (role === ServerRole.Admin) {
+                    return res.status(403).json({ success: false, message: 'The admin role cannot be changed here' });
+                }
+
+                // a role can be removed from a user with no account, such as one deleted since it was granted
+                const username = (await this.userFactory.getUsernamesAsync([userId])).get(userId);
+                if (username === undefined && granted) {
+                    return res.status(404).json({ success: false, message: 'Player not found' });
+                }
+                const userLabel = username ?? userId;
+
+                let result: { lists: IServerRoleUsersListsEntity; changed: boolean };
+                try {
+                    result = await this.serverRoleUsersCache.setUserRoleAsync(userId, role, granted, userLabel, req.user.getId());
+                } catch (error) {
+                    if (error instanceof NotStoredAdminError) {
+                        logger.warn(`GameServer: ${req.user.getUsername()} tried to change a server role after losing the admin role`, { userId: req.user.getId() });
+                        return res.status(403).json({ success: false, message: error.message });
+                    }
+                    if (error.name === 'ConditionalCheckFailedException') {
+                        return res.status(409).json({ success: false, message: 'The roles were changed by someone else at the same time. Reload them and try again.' });
+                    }
+                    throw error;
+                }
+
+                if (result.changed) {
+                    logger.info(`GameServer: ${req.user.getUsername()} ${granted ? 'granted' : 'removed'} the ${role} role ${granted ? 'to' : 'from'} ${userLabel}`, {
+                        changedBy: req.user.getId(),
+                        userId,
+                        role,
+                        granted
+                    });
+
+                    // not awaited: the change is already stored, so a Discord outage must not fail the request
+                    this.discordDispatcher.formatAndSendServerRoleChangeAsync({
+                        user: { id: userId, username: userLabel },
+                        role,
+                        granted,
+                        changedBy: { id: req.user.getId(), username: req.user.getUsername() }
+                    }).catch((error) => {
+                        logger.error('GameServer: failed to send a server role change to Discord', {
+                            error: { message: error.message, stack: error.stack },
+                            changedBy: req.user.getId(),
+                            userId,
+                            role,
+                            granted
+                        });
+                    });
+                }
+
+                return res.status(200).json(await this.buildServerRolesResponseAsync(result.lists));
+            } catch (err) {
+                logger.error('GameServer (mod-server-roles-change) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/mod/feature-flags', this.buildAuthMiddleware('mod-feature-flags-list', ServerRole.Admin), (req, res, next) => {
+            try {
+                if (!this.featureFlagsCache) {
+                    return this.sendFeatureFlagsUnavailableResponse(res);
+                }
+
+                return res.status(200).json({ success: true, flags: this.featureFlagsCache.getAllStates() });
+            } catch (err) {
+                logger.error('GameServer (mod-feature-flags-list) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/feature-flags/:flag', this.buildAuthMiddleware('mod-feature-flags-update', ServerRole.Admin), async (req, res, next) => {
+            try {
+                const flag = req.params.flag;
+                if (!isFeatureFlag(flag)) {
+                    return res.status(404).json({ success: false, message: `Unknown feature flag '${flag}'` });
+                }
+
+                const parseResult = FeatureFlagUpdateSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                if (!this.featureFlagsCache) {
+                    return this.sendFeatureFlagsUnavailableResponse(res);
+                }
+
+                const updated = await this.featureFlagsCache.updateFlagAsync(flag, parseResult.data, req.user.getUsername());
+                logger.info('GameServer: feature flag updated by admin', {
+                    updatedBy: req.user.getUsername(),
+                    flag,
+                    enabled: updated.enabled,
+                    roles: updated.roles,
+                    userCount: updated.userIds.length
+                });
+
+                return res.status(200).json({ success: true, flag: updated });
+            } catch (err) {
+                logger.error('GameServer (mod-feature-flags-update) Server error:', err);
+                next(err);
+            }
+        });
     }
 
     /**
@@ -2242,6 +2409,37 @@ export class GameServer {
 
     private getMaintenanceMessage(): string {
         return this.serverSettingsCache?.getMaintenanceMessage() || 'Karabast is currently under maintenance. Be back soon!';
+    }
+
+    /**
+     * Whether a feature flag is on for this user.
+     *
+     * Every flag is on when there is no feature flag cache, which is the case on a local dev box running
+     * without DynamoDB, so that local development can reach everything that is behind a flag.
+     */
+    private isFeatureEnabledFor(flag: FeatureFlag, user: User): boolean {
+        return this.featureFlagsCache?.isEnabledFor(flag, user) ?? true;
+    }
+
+    /**
+     * The value of every flag the client is told about, for this user. Only the answer goes out, never
+     * who the flag is on for.
+     */
+    private getClientFeatureFlags(user: User): Partial<Record<FeatureFlag, boolean>> {
+        const flags: Partial<Record<FeatureFlag, boolean>> = {};
+        for (const flag of Object.values(FeatureFlag)) {
+            if (featureFlagDefinitions[flag].exposeToClient) {
+                flags[flag] = this.isFeatureEnabledFor(flag, user);
+            }
+        }
+        return flags;
+    }
+
+    private sendFeatureFlagsUnavailableResponse(res: Response) {
+        return res.status(503).json({
+            success: false,
+            message: 'Feature flags are unavailable because there is no database connection'
+        });
     }
 
     /**
@@ -2266,6 +2464,30 @@ export class GameServer {
         }
 
         return checkServerRoleUserPrivileges(apiPath, userId, ServerRole.Admin, this.serverRoleUsersCache).success;
+    }
+
+    /** The role lists as the admin role editor shows them: each role's users, and who last changed them, with usernames. */
+    private async buildServerRolesResponseAsync(lists: IServerRoleUsersListsEntity) {
+        const roles = Object.values(ServerRole);
+        const usernames = await this.userFactory.getUsernamesAsync([
+            ...roles.flatMap((role) => lists[role].map((holder) => holder.id)),
+            ...(lists.updatedById !== undefined ? [lists.updatedById] : [])
+        ]);
+
+        return {
+            success: true,
+            roles: Object.fromEntries(roles.map((role) => [
+                role,
+                lists[role].map((holder) => ({
+                    id: holder.id,
+                    username: usernames.get(holder.id) ?? null,
+                    note: holder.note ?? null
+                }))
+            ])),
+            updatedAt: lists.updatedAt ?? null,
+            // the username, as the role editor shows it; the stored lists keep the id
+            updatedBy: lists.updatedById !== undefined ? usernames.get(lists.updatedById) ?? lists.updatedById : null
+        };
     }
 
     /**

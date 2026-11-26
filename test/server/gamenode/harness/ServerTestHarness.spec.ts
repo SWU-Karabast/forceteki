@@ -62,7 +62,7 @@ describe('ServerTestHarness', function () {
             });
         }, {
             database: (db) => {
-                db.seedRoles({ moderators: [moderatorId] });
+                db.seedRoles({ moderator: [moderatorId] });
                 db.seedSettings({ gamesEnabled: false, maintenanceMessage: 'Back soon' });
             },
         });

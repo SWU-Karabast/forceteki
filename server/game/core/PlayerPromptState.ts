@@ -1,5 +1,5 @@
 import type { Card } from './card/Card';
-import type { IBatchTriggerResolutionPromptData, IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
+import type { IBatchTriggerResolutionPromptData, IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, OpponentMulliganChoice, OpponentResourceChoice, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -22,6 +22,12 @@ export interface IPlayerPromptStateProperties {
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
     isOpponentEffect?: boolean;
+
+    /** In the regroup phase's resource step, what the opponent who has the initiative has chosen. Only the player without the initiative is sent it. */
+    opponentResourceChoice?: OpponentResourceChoice;
+
+    /** In the setup phase's mulligan, what the opponent who has the initiative has chosen. Only the player without the initiative is sent it. */
+    opponentMulliganChoice?: OpponentMulliganChoice;
 
     // not included in the state passed to the FE
     attackTargetingHighlightAttacker?: Card;
@@ -51,6 +57,8 @@ export class PlayerPromptState {
     public perCardButtons: IButton[] = [];
     public isOpponentEffect = null;
     public playerIsNewlyActive = false;
+    public opponentResourceChoice?: OpponentResourceChoice = null;
+    public opponentMulliganChoice?: OpponentMulliganChoice = null;
 
     // not included in the state passed to the FE
     public attackTargetingHighlightAttacker?: Card = null;
@@ -101,6 +109,8 @@ export class PlayerPromptState {
         this.perCardButtons = prompt.perCardButtons ?? [];
         this.isOpponentEffect = prompt.isOpponentEffect;
         this.playerIsNewlyActive = prompt.playerIsNewlyActive;
+        this.opponentResourceChoice = prompt.opponentResourceChoice;
+        this.opponentMulliganChoice = prompt.opponentMulliganChoice;
 
         // not included in the state passed to the FE
         this.attackTargetingHighlightAttacker = prompt.attackTargetingHighlightAttacker;
@@ -154,6 +164,8 @@ export class PlayerPromptState {
             perCardButtons: this.perCardButtons,
             isOpponentEffect: this.isOpponentEffect,
             playerIsNewlyActive: this.playerIsNewlyActive,
+            opponentResourceChoice: this.opponentResourceChoice,
+            opponentMulliganChoice: this.opponentMulliganChoice,
             // attackTargetingHighlightAttacker is explicitly not included, it's not for passing to the FE
         };
     }

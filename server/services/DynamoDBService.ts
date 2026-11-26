@@ -24,22 +24,27 @@ import type {
 import {
     PlayerReportRole,
     PlayerReportStatus,
+    ServerRole,
     type IDeckDataEntity,
     type IDeckStatsEntity,
     type IUserProfileDataEntity,
     type IUserPreferences,
+    type IServerRoleUserEntity,
     type IServerRoleUsersListsEntity,
     type IServerSettingsEntity,
+    type IFeatureFlagEntity,
     isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import {
+    FeatureFlagEntitySchema,
     IDeckDataEntitySchema,
     IDeckStatsEntitySchema,
     ModActionEntitySchema,
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
+    ServerRoleUsersChangeStampSchema,
     UsernameChangeEntitySchema
 } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
@@ -100,6 +105,12 @@ export async function getDynamoDbServiceAsync() {
  */
 const withoutUndefined = <T extends Record<string, any>>(item: T): T =>
     Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined)) as T;
+
+/**
+ * The attribute a role's users were stored under before the lists were keyed by role name: `admins` for `admin`. Read
+ * as a fallback, and removed on the next save.
+ */
+const legacyServerRoleListAttribute = (role: ServerRole): string => `${role}s`;
 
 /** GSI bucket holding every open player report */
 export const OPEN_PLAYER_REPORT_GSI_KEY = 'OPEN_PLAYER_REPORT';
@@ -402,7 +413,10 @@ export class DynamoDBService {
         }, 'DynamoDB queryItems error');
     }
 
-    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>) {
+    /**
+     * @param conditionExpression if given, the update only happens when this holds for the item already stored
+     */
+    public updateItemAsync(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>, expressionAttributeNames?: Record<string, string>, conditionExpression?: string) {
         return this.executeDbOperationAsync(() => {
             const commandParams: any = {
                 TableName: this.tableName,
@@ -413,6 +427,9 @@ export class DynamoDBService {
             };
             if (expressionAttributeNames) {
                 commandParams.ExpressionAttributeNames = expressionAttributeNames;
+            }
+            if (conditionExpression) {
+                commandParams.ConditionExpression = conditionExpression;
             }
             const command = new UpdateCommand(commandParams);
             return this.client.send(command);
@@ -825,31 +842,77 @@ export class DynamoDBService {
     }
 
     // Admin user methods
-    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+    /**
+     * @param options.consistentRead read the lists as last written, rather than a possibly older copy; for a change
+     * made from them, so a recent edit is not lost
+     */
+    public getServerRoleUsersAsync(options: { consistentRead?: boolean } = {}): Promise<IServerRoleUsersListsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES');
-            if (!result.Item) {
-                return {
-                    admins: [],
-                    developers: [],
-                    moderators: [],
-                    contributors: []
-                };
-            }
+            const result = await this.getItemAsync('SERVER_ROLE_USERS', 'ROLES', options);
+            const item = result.Item;
+
+            // TODO: drop the plural fallback once the item in every environment has been saved under the role names
+            const lists = Object.fromEntries(Object.values(ServerRole).map((role) => [
+                role,
+                item?.[role] ?? item?.[legacyServerRoleListAttribute(role)] ?? []
+            ])) as Record<ServerRole, IServerRoleUserEntity[]>;
 
             return {
-                admins: result.Item.admins || [],
-                developers: result.Item.developers || [],
-                moderators: result.Item.moderators || [],
-                contributors: result.Item.contributors || []
+                ...lists,
+                ...(item?.updatedAt !== undefined ? { updatedAt: item.updatedAt, updatedById: item.updatedById } : {})
             };
         }, 'Error getting admin users');
     }
 
+    /**
+     * Writes one role's list under its role name and who changed it, leaving any other field on the item as it is, and
+     * removes the lists' old plural attributes (`admins`, …) so the item holds each list once. The other lists are
+     * written only where the item has none under their role names yet, so a hand edit to them is never overwritten.
+     * The write only happens if the lists have not changed since they were read, so two changes made at once cannot
+     * lose either.
+     * @param lists the lists the change was made from, with the changed role's list updated and `updatedAt` and
+     * `updatedById` set
+     * @param changedRole the role whose list changed
+     * @param previousUpdatedAt the `updatedAt` of the lists the change was made from; undefined if they had none
+     * @throws if `updatedAt` is not an ISO 8601 datetime or `updatedById` not a uuid
+     * @throws a `ConditionalCheckFailedException` if the stored lists have changed since
+     */
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, changedRole: ServerRole, previousUpdatedAt: string | undefined) {
+        const { updatedAt, updatedById } = ServerRoleUsersChangeStampSchema.parse(lists);
+
+        // names go through placeholders, as some (such as `admin`) are DynamoDB reserved words
+        const roles = Object.values(ServerRole);
+        // the other lists are still written where they are missing, to move them off the old plural attributes
+        const setLists = roles.map((role) => (role === changedRole ? `#${role} = :${role}` : `#${role} = if_not_exists(#${role}, :${role})`)).join(', ');
+        const removeLegacyLists = roles.map((role) => `#${legacyServerRoleListAttribute(role)}`).join(', ');
+
+        // not wrapped in another executeDbOperationAsync, which would log a refused write (an expected 409) twice
+        return this.updateItemAsync(
+            'SERVER_ROLE_USERS',
+            'ROLES',
+            `SET ${setLists}, updatedAt = :updatedAt, updatedById = :updatedById REMOVE ${removeLegacyLists}`,
+            {
+                ...Object.fromEntries(roles.map((role) => [`:${role}`, lists[role]])),
+                ':updatedAt': updatedAt,
+                ':updatedById': updatedById,
+                ...(previousUpdatedAt !== undefined ? { ':previousUpdatedAt': previousUpdatedAt } : {})
+            },
+            Object.fromEntries(roles.flatMap((role) => [
+                [`#${role}`, role],
+                [`#${legacyServerRoleListAttribute(role)}`, legacyServerRoleListAttribute(role)]
+            ])),
+            previousUpdatedAt !== undefined ? 'updatedAt = :previousUpdatedAt' : 'attribute_not_exists(updatedAt)'
+        );
+    }
+
     // Server settings methods
+    /**
+     * The read is strongly consistent: the cache re-reads straight after a moderator's change, and must
+     * see that change rather than the state before it.
+     */
     public getServerSettingsAsync(): Promise<IServerSettingsEntity> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL');
+            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL', { consistentRead: true });
 
             // A missing item means no moderator has ever set these, which is the state on the first
             // deploy of this feature. Default to enabled so that the rollout itself can't black out
@@ -883,6 +946,51 @@ export class DynamoDBService {
 
             return this.putItemAsync({ pk: 'SERVER_SETTINGS', sk: 'GLOBAL' }, attributes);
         }, 'Error saving server settings');
+    }
+
+    // Feature flag methods
+    /**
+     * Every stored feature flag, from the one item that holds them all in its `flags` map. A flag nobody
+     * has set yet has no entry; an entry that fails validation is logged and skipped, so one bad record
+     * cannot turn every flag off.
+     *
+     * The read is strongly consistent: the cache re-reads straight after an admin's change, and must
+     * see that change rather than the state before it.
+     */
+    public getFeatureFlagsAsync(): Promise<IFeatureFlagEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('FEATURE_FLAG', 'GLOBAL', { consistentRead: true });
+            const entries = Object.entries((result.Item?.flags ?? {}) as Record<string, object>)
+                .map(([flag, state]) => ({ ...state, flag }));
+            return this.validateEachAsync<IFeatureFlagEntity>(FeatureFlagEntitySchema, entries, (entry) => `feature flag ${entry?.flag}`);
+        }, 'Error getting feature flags');
+    }
+
+    /**
+     * Writes one flag's entry in the `flags` map. Only that entry is set, so admins changing different
+     * flags at the same time cannot overwrite each other.
+     */
+    public saveFeatureFlagAsync(flag: IFeatureFlagEntity) {
+        return this.executeDbOperationAsync(async () => {
+            const state: Record<string, unknown> = {
+                enabled: flag.enabled,
+                roles: flag.roles,
+                userIds: flag.userIds
+            };
+
+            // The document client is not configured with removeUndefinedValues, so undefined
+            // fields have to be omitted rather than written.
+            for (const key of ['updatedBy', 'updatedAt'] as const) {
+                if (flag[key] !== undefined) {
+                    state[key] = flag[key];
+                }
+            }
+
+            // a nested path can only be set once its parent map exists, and one update expression cannot
+            // both create the map and set a key inside it, so the first write ever needs a step of its own
+            await this.updateItemAsync('FEATURE_FLAG', 'GLOBAL', 'SET #flags = if_not_exists(#flags, :empty)', { ':empty': {} }, { '#flags': 'flags' });
+            return this.updateItemAsync('FEATURE_FLAG', 'GLOBAL', 'SET #flags.#flag = :state', { ':state': state }, { '#flags': 'flags', '#flag': flag.flag });
+        }, 'Error saving feature flag');
     }
 
     // Mod Actions

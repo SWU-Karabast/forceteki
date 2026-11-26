@@ -30,6 +30,23 @@ export enum PromptType {
     ModalEffectSelection = 'modalEffectSelection',
 }
 
+/**
+ * In the regroup phase's resource step, what the player with the initiative has chosen, as their opponent is shown it.
+ * The opponent learns only whether a card was resourced, never which one.
+ */
+export enum OpponentResourceChoice {
+    NotChosen = 'notChosen',
+    Resourced = 'resourced',
+    Passed = 'passed',
+}
+
+/** In the setup phase's mulligan, what the player with the initiative has chosen, as their opponent is shown it. */
+export enum OpponentMulliganChoice {
+    NotChosen = 'notChosen',
+    Mulligan = 'mulligan',
+    Keep = 'keep',
+}
+
 export interface IButton {
     text: string;
     arg: string;

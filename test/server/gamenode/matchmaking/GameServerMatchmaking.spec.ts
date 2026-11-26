@@ -1,4 +1,6 @@
 import {
+    CardPool,
+    GamesToWinMode,
     MatchmakingCompetitivenessPreference,
     MatchmakingCompetitivenessPreferenceSearchStage,
     SwuGameFormat
@@ -50,6 +52,37 @@ describe('GameServer matchmaking', function () {
                     expect(response.body).toEqual({
                         success: false,
                         message: jasmine.stringMatching('Invalid matchmaking competitiveness preference'),
+                    });
+
+                    await client.connectAsync();
+                    expect(client.isConnected).toBeFalse();
+                    expect(client.connectionErrors).toEqual(['Connection error, please try again']);
+                });
+            }
+
+            // combinations the enum checks let through but no queue exists for, as the quick match page never offers them
+            const missingQueues: { description: string; key: Record<string, unknown> }[] = [
+                { description: 'Faux Suns', key: { format: SwuGameFormat.FauxSuns, cardPool: CardPool.Unlimited, gamesToWinMode: GamesToWinMode.BestOfOne } },
+                { description: 'Open', key: { format: SwuGameFormat.Open, cardPool: CardPool.Unlimited, gamesToWinMode: GamesToWinMode.BestOfOne } },
+                { description: 'Limited best of three', key: { format: SwuGameFormat.Limited, cardPool: CardPool.Current, gamesToWinMode: GamesToWinMode.BestOfThree } },
+                { description: 'Premier with the unlimited card pool', key: { ...premierBestOfOne, cardPool: CardPool.Unlimited } },
+                { description: 'a missing best-of mode', key: { ...premierBestOfOne, gamesToWinMode: undefined } },
+                { description: 'an unknown best-of mode', key: { ...premierBestOfOne, gamesToWinMode: 'bestOfFive' } },
+            ];
+            for (const missingQueue of missingQueues) {
+                it(`refuses ${missingQueue.description}, which has no queue`, async function () {
+                    const { harness } = contextRef;
+                    const client = harness.createClient();
+                    const response = await harness.api.post('/api/enter-queue').send({
+                        ...missingQueue.key,
+                        user: client.userPayload(),
+                        deck: harness.decklists.validDecklist(),
+                    });
+
+                    expect(response.status).toBe(400);
+                    expect(response.body).toEqual({
+                        success: false,
+                        message: 'There is no matchmaking queue for that format, card pool and best-of mode',
                     });
 
                     await client.connectAsync();

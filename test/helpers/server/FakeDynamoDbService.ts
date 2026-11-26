@@ -3,24 +3,28 @@ import { v4 as uuid } from 'uuid';
 
 import type {
     IDeckDataEntity,
+    IFeatureFlagEntity,
     IModActionEntity,
     IPlayerReportCleanupCursor,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
     IPlayerReportLogEntity,
+    IServerRoleUserEntity,
     IServerRoleUsersListsEntity,
     IServerSettingsEntity,
     IUsernameChangeEntity,
     IUserPreferences,
     IUserProfileDataEntity
 } from '../../../server/services/DynamoDBInterfaces';
-import { isTrackedModAction, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
+import { isTrackedModAction, PlayerReportStatus, ServerRole } from '../../../server/services/DynamoDBInterfaces';
 import {
+    FeatureFlagEntitySchema,
     IDeckDataEntitySchema,
     ModActionEntitySchema,
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
     PlayerReportLogEntitySchema,
+    ServerRoleUsersChangeStampSchema,
     UsernameChangeEntitySchema
 } from '../../../server/services/DynamoDBInterfaceSchemas';
 import type { DynamoDBService, PlayerReportTransitionResult } from '../../../server/services/DynamoDBService';
@@ -45,7 +49,8 @@ type FakedMethod =
   | 'savePlayerReportAsync' | 'getPlayerReportMetaAsync' | 'getPlayerReportAsync' | 'getPlayerReportsByGsiKeyAsync'
   | 'getPlayerReportIndexAsync' | 'transitionPlayerReportAsync' | 'queryAttributesByGsiAsync'
   | 'deletePlayerReportLogsAsync' | 'deletePlayerReportAsync' | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync'
-  | 'getServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
+  | 'getServerRoleUsersAsync' | 'saveServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
+  | 'getFeatureFlagsAsync' | 'saveFeatureFlagAsync'
   | 'getCosmeticsAsync' | 'saveCosmeticAsync' | 'initializeCosmeticsAsync' | 'deleteCosmeticAsync' | 'clearAllCosmeticsAsync';
 
 /** What {@link FakeDynamoDbService.seedAccount} can set; everything is generated when omitted. */
@@ -73,7 +78,7 @@ export interface ISeededAccount {
     email: string;
 }
 
-export type ServerRoleLists = Partial<Record<keyof IServerRoleUsersListsEntity, string[]>>;
+export type ServerRoleLists = Partial<Record<ServerRole, string[]>>;
 
 /** A stored player report record, plus the GSI bucket it is filed under (open, or closed in a month). */
 export interface IStoredPlayerReport {
@@ -93,6 +98,11 @@ let nextSeededAccount = 1;
 /** The error DynamoDB raises when a write's condition expression fails. */
 function conditionalCheckFailed(): Error {
     return Object.assign(new Error('The conditional request failed'), { name: 'ConditionalCheckFailedException' });
+}
+
+/** Each role's users, copied so the caller cannot change the stored lists. */
+function copyRoleLists(lists: Record<ServerRole, IServerRoleUserEntity[]>): Record<ServerRole, IServerRoleUserEntity[]> {
+    return Object.fromEntries(Object.values(ServerRole).map((role) => [role, lists[role].map((holder) => ({ ...holder }))])) as Record<ServerRole, IServerRoleUserEntity[]>;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -132,6 +142,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - a deck is stored as its schema parses it, so only a deck's own fields are kept;
  * - creating a cosmetic with an id that is already taken fails with a `ConditionalCheckFailedException`;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
+ * - a stored feature flag that fails its schema is skipped rather than failing the whole read;
  * - everything read back through a zod schema in production goes through the same schema here.
  *
  * It does not model throttling, eventual consistency or item-size limits. Methods outside
@@ -183,8 +194,11 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     /** GSI buckets whose cleanup query throws. */
     public readonly failingGsiKeys = new Set<string>();
-    public roleUsers: IServerRoleUsersListsEntity = { admins: [], developers: [], moderators: [], contributors: [] };
+    public roleUsers: IServerRoleUsersListsEntity = copyRoleLists({ admin: [], developer: [], moderator: [], contributor: [] });
     public serverSettings?: IServerSettingsEntity;
+
+    /** Flag name -> stored state, as the `flags` map of the `FEATURE_FLAG` item holds it. */
+    public readonly featureFlags = new Map<string, IFeatureFlagEntity>();
 
     private readonly recordedLogins: string[] = [];
 
@@ -256,13 +270,18 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     /** Replaces the given role lists; roles not named keep their current members. */
     public seedRoles(roles: ServerRoleLists): void {
-        for (const [role, userIds] of Object.entries(roles) as [keyof IServerRoleUsersListsEntity, string[]][]) {
+        for (const [role, userIds] of Object.entries(roles) as [keyof ServerRoleLists, string[]][]) {
             this.roleUsers[role] = userIds.map((id) => ({ id }));
         }
     }
 
     public seedSettings(settings: IServerSettingsEntity): void {
         this.serverSettings = settings;
+    }
+
+    /** Stores a flag's state; fields not given are off or empty. */
+    public seedFeatureFlag(flag: Partial<IFeatureFlagEntity> & { flag: string }): void {
+        this.featureFlags.set(flag.flag, { enabled: false, roles: [], userIds: [], ...flag });
     }
 
     public seedModAction(modAction: IModActionEntity): void {
@@ -592,13 +611,29 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     // ---- Server roles and settings ----
 
-    public getServerRoleUsersAsync(): Promise<IServerRoleUsersListsEntity> {
+    public getServerRoleUsersAsync(_options: { consistentRead?: boolean } = {}): Promise<IServerRoleUsersListsEntity> {
         return Promise.resolve({
-            admins: [...this.roleUsers.admins],
-            developers: [...this.roleUsers.developers],
-            moderators: [...this.roleUsers.moderators],
-            contributors: [...this.roleUsers.contributors],
+            ...copyRoleLists(this.roleUsers),
+            // set only once an admin has changed the lists through the server
+            ...(this.roleUsers.updatedAt !== undefined ? { updatedAt: this.roleUsers.updatedAt, updatedById: this.roleUsers.updatedById } : {}),
         });
+    }
+
+    public saveServerRoleUsersAsync(lists: Required<IServerRoleUsersListsEntity>, changedRole: ServerRole, previousUpdatedAt: string | undefined): Promise<UpdateCommandOutput> {
+        // like the real service, the write is refused if the change is not stamped with a datetime and an id, or if the
+        // lists changed since they were read, and it writes only the changed role's list
+        ServerRoleUsersChangeStampSchema.parse(lists);
+        if (this.roleUsers.updatedAt !== previousUpdatedAt) {
+            return Promise.reject(conditionalCheckFailed());
+        }
+
+        this.roleUsers = {
+            ...copyRoleLists(this.roleUsers),
+            [changedRole]: lists[changedRole].map((holder) => ({ ...holder })),
+            updatedAt: lists.updatedAt,
+            updatedById: lists.updatedById
+        };
+        return Promise.resolve(updateResult);
     }
 
     public getServerSettingsAsync(): Promise<IServerSettingsEntity> {
@@ -620,6 +655,21 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         }
 
         this.serverSettings = stored;
+        return Promise.resolve(putResult);
+    }
+
+    // ---- Feature flags ----
+
+    public getFeatureFlagsAsync(): Promise<IFeatureFlagEntity[]> {
+        const valid = [...this.featureFlags.values()]
+            .map((item) => FeatureFlagEntitySchema.safeParse(item))
+            .filter((result) => result.success)
+            .map((result) => result.data);
+        return Promise.resolve(valid);
+    }
+
+    public saveFeatureFlagAsync(flag: IFeatureFlagEntity): Promise<PutCommandOutput> {
+        this.featureFlags.set(flag.flag, { ...flag, roles: [...flag.roles], userIds: [...flag.userIds] });
         return Promise.resolve(putResult);
     }
 

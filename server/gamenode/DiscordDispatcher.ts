@@ -8,10 +8,22 @@ import { logger } from '../logger';
 import { Helpers } from '../game/core/utils/Helpers';
 import type { MatchmakingType } from './Lobby';
 import type { SwuGameFormat } from '../game/core/Constants';
+import type { ServerRole } from '../services/DynamoDBInterfaces';
 
 interface IDiscordFormat {
     content: string;
     embeds: any[];
+
+    /** Which mentions in the message may ping anyone; `{ parse: [] }` lets none of them. */
+    allowed_mentions?: { parse: string[] };
+}
+
+/** A server role granted to a user or taken away by an admin, for the role assignment channel. */
+export interface IServerRoleChangeNotice {
+    user: { id: string; username: string };
+    role: ServerRole;
+    granted: boolean;
+    changedBy: { id: string; username: string };
 }
 
 type EitherPostResponseOrBoolean = string | boolean;
@@ -70,6 +82,15 @@ export interface IDiscordDispatcher {
         gameFormat: SwuGameFormat,
         matchType: MatchmakingType,
     ): Promise<EitherPostResponseOrBoolean>;
+
+    /**
+     * Post a server role granted or removed by an admin to the role assignment channel, so every change to who holds a
+     * role is seen.
+     * @param change Who the role was changed for, which role, and who changed it
+     * @returns Promise that returns the response body as a string if successful, false if no webhook is configured,
+     * throws an error otherwise
+     */
+    formatAndSendServerRoleChangeAsync(change: IServerRoleChangeNotice): Promise<EitherPostResponseOrBoolean>;
 }
 
 export class DiscordDispatcher implements IDiscordDispatcher {
@@ -79,6 +100,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
     private readonly _playerReportWebhookUrl: string;
+    private readonly _roleAssignmentWebhookUrl: string;
     private _serverErrorCount = 0;
     private _undoErrorCount = 0;
 
@@ -86,6 +108,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         this._bugReportWebhookUrl = process.env.DISCORD_BUG_REPORT_WEBHOOK_URL || '';
         this._serverErrorWebhookUrl = process.env.DISCORD_ERROR_REPORT_WEBHOOK_URL || '';
         this._playerReportWebhookUrl = process.env.DISCORD_PLAYER_REPORT_WEBHOOK_URL || '';
+        this._roleAssignmentWebhookUrl = process.env.DISCORD_ROLE_ASSIGNMENT_WEBHOOK_URL || '';
         if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
             if (!this._bugReportWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for bug reports. Bug reports cannot be sent to Discord.');
@@ -95,6 +118,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             }
             if (!this._playerReportWebhookUrl) {
                 throw new Error('No Discord webhook URL configured for player reports. Player reports cannot be sent to Discord.');
+            }
+            if (!this._roleAssignmentWebhookUrl) {
+                throw new Error('No Discord webhook URL configured for role assignments. Server role changes cannot be sent to Discord.');
             }
         }
     }
@@ -537,6 +563,53 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
 
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
+    }
+
+    public formatAndSendServerRoleChangeAsync(change: IServerRoleChangeNotice): Promise<EitherPostResponseOrBoolean> {
+        if (!this._roleAssignmentWebhookUrl) {
+            // If no webhook URL is configured, just log it
+            if (process.env.NODE_ENV !== 'test') {
+                logger.warn('Server role change could not be sent to Discord: No webhook URL configured for role assignments');
+            }
+            return Promise.resolve(false);
+        }
+
+        // names in code spans, so a character such as `_` cannot turn into formatting
+        const nameAndId = (person: { id: string; username: string }) => `\`${person.username}\` (${person.id})`;
+
+        const data: IDiscordFormat = {
+            content: `\`${change.changedBy.username}\` ${change.granted ? 'granted' : 'removed'} the **${change.role}** role ${change.granted ? 'to' : 'from'} \`${change.user.username}\``,
+            embeds: [
+                {
+                    title: change.granted ? 'Server role granted' : 'Server role removed',
+                    color: change.granted ? 0x2ECC71 : 0xE67E22, // green for granted, orange for removed
+                    fields: [
+                        {
+                            name: 'User',
+                            value: nameAndId(change.user),
+                            inline: true,
+                        },
+                        {
+                            name: 'Role',
+                            value: change.role,
+                            inline: true,
+                        },
+                        {
+                            name: 'Changed by',
+                            value: nameAndId(change.changedBy),
+                            inline: true,
+                        },
+                    ],
+                    timestamp: new Date().toISOString(),
+                },
+            ],
+            allowed_mentions: { parse: [] },
+        };
+
+        const formData = new FormData();
+        formData.append('payload_json', JSON.stringify(data));
+
+        return httpPostFormData(this._roleAssignmentWebhookUrl, formData);
     }
 
     /**
