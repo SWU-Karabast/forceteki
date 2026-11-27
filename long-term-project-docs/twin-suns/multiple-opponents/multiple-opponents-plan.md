@@ -56,8 +56,12 @@ needs from this one.
   - the prompts in which the player with the initiative chooses first.
 - Elimination, and the end of the game.
 - The undo request flow.
-- The Twin Suns format itself: its counters (including Blast's damage to each opponent's base), its passing rules, and
-  offering the format to players.
+- The Twin Suns format itself:
+  - a format for 3–4 players, and offering it to players;
+  - moving the `fauxSuns` counter code over to that format;
+  - Blast's damage to each opponent's base.
+
+  The counter and passing rules themselves are already built for `fauxSuns`.
 - The client.
 - The server: lobbies, matchmaking and stats.
 
@@ -69,10 +73,38 @@ needs from this one.
   - Spectator seats are numbered by index.
   - `getState` keys players by id.
   - Defeat sources record the player responsible.
-- The earlier Twin Suns work exists as the 1v1 `fauxSuns` format:
-  - two leaders per player (#2919–#2921);
-  - the Blast and Plan counters (#2390, #2918);
-  - the format itself, behind a feature flag (#2390, #2922, #3210).
+- The earlier Twin Suns work, the 1v1 `fauxSuns` format, comes from #2390 and its follow-ups. It built the following.
+  Treat its patterns as precedents to weigh, not as settled design; see [Working agreements](#working-agreements).
+  - **Two leaders per player.**
+    - `Player.getAllDeckLeaders()` and an asserting `getSingleLeader()` replaced the single `deckLeader`, and the base
+      zone holds a list of leaders.
+    - Leaders deploy and ready independently, and both provide aspects.
+    - The state sends each player's `leaders` as a list.
+    - MODEL-3 weighs it as a precedent.
+  - **The counters and their rules (12.4–12.6):** Blast, Plan, and the rules for claiming counters and passing.
+    - Their logic already counts players. Pass stays disabled until `min(3, number of players)` counters are claimed,
+      which matches 12.6's 4-player rule.
+    - The parts that assume a single opponent are Blast's damage, and how `ActionWindow` passes once a player has
+      claimed.
+    - The state sends who claimed each counter (#2918).
+  - **The format.**
+    - `Game` receives its format in the game details.
+    - The deck-side `IFormatRules` table carries a `leaderCount` for each format.
+    - The Twin Suns deck rules are enforced: 80 cards, one copy of each, two leaders, and the pairing rules.
+    - The TS26 set is legal in `fauxSuns`, and so is the Unlimited card pool (#2922).
+  - **The server.**
+    - The second leader is handled in deck import, saved decks, lobby summaries and the ongoing-games list
+      (#2919–#2921).
+    - `fauxSuns` lobbies are behind the `fauxSunsAccess` feature flag (#3210).
+    - The dev test-deck route builds two-leader decks (#3211).
+    - SWUStats and SWUBase receive Premier games only. Karabast's own stats are updated for every format.
+  - **Tests.**
+    - `setupTestAsync` takes a `format` option and a `secondLeader` for each player, with `p1SecondLeader` and
+      `p2SecondLeader` on the context.
+    - A helper in `GameFlowWrapper` claims the counters to end a `fauxSuns` action phase.
+    - The scenario specs are in [test/scenarios/TwinSuns/](../../../test/scenarios/TwinSuns/).
+  - **Nothing for multiple opponents.** None of this work covers VOCAB, CHOICE, VISIBILITY, TRIGGER or DERIVED. The
+    TS26 cards were implemented for 1v1: 14 of their 78 files read `.opponent`.
 
 **How much code assumes a single opponent**, measured at `4f5ac59b9`:
 
@@ -146,6 +178,13 @@ The live CR is v9.0, and RULES checks every row against it before a decision rel
   - Anything that changes during a game is tracked state, so undo works.
 - **The rules are the spec.** A decision cites a CR section with its version, or a ruling. An open rules question is
   recorded and asked, not guessed.
+- **Faux Suns precedents are held loosely.**
+  - The Faux Suns work was built for 1v1, before this design existed.
+  - Where this plan leans on one of its patterns, that pattern is a starting point, not a constraint. Examples are
+    `getSingleLeader()` for MODEL-3, `IFormatRules.leaderCount` for MODEL-2, and the `secondLeader` setup key for
+    HARNESS.
+  - Re-evaluate each one as the broader design takes shape. If the design points elsewhere, follow the design. The Faux
+    Suns code can change to match it.
 - **Stay in scope.**
   - Work that belongs to a held project goes to that project.
   - When this project meets single-opponent code in a held project's area, it doesn't generalize it. It makes the
@@ -261,6 +300,9 @@ these games to run in tests.
   - The phase ends when every player has passed consecutively. Today a single boolean records whether the previous
     player passed (`prevActionPhasePlayerPassed` on `Game`, set from `ActionPhase`, kept in snapshots). Once
     `ActionWindow` stops reading `.opponent`, that boolean would end the phase after any two passes in a row.
+  - The `fauxSuns` rule that a player who claims a counter has passed for the rest of the phase (`passedActionPhase`,
+    set in `ClaimCounterSystem`) has to keep working. `ActionWindow.pass` handles it today by checking
+    `opponent.passedActionPhase`. With that rule kept, the counter and passing rules work with more players.
 - **The action window.**
   - It offers every opponent's discard pile, not just `.opponent`'s.
   - It clears every other player's highlights, and so do the card-selection prompts.
@@ -290,9 +332,25 @@ these games to run in tests.
     format project later fills in;
   - a setting on the game that allows more players in any format.
 
-  Either way, this project does no format work.
-- **MODEL-3:** How is `.opponent` retired? Recommended: the asserting getter, plus the explicit single-opponent call in
-  held projects' areas, with the getter deleted when CARDS finishes.
+  Either way, this project does no format work. Either could build on what the Faux Suns work left, although, like every
+  Faux Suns precedent, that is to be re-evaluated against the broader design:
+  - `Game` already receives its format;
+  - the deck-side `IFormatRules` table already holds a `leaderCount` for each format, which the deck validator and the
+    dev test-deck builder read. A player count would sit beside it.
+- **MODEL-3:** How is `.opponent` retired? Recommended:
+  - the asserting getter;
+  - the explicit single-opponent call in held projects' areas;
+  - deleting the getter when CARDS finishes.
+
+  The Faux Suns work did something similar for leaders. It replaced `deckLeader` with a list and an asserting
+  `getSingleLeader()`, and the remaining single-leader callers say why they're safe (the stat handlers: "only ever
+  invoked for Premier-format games").
+
+  One option is for the explicit call to follow that pattern and be named `getSingleOpponent()`. Treat that as a
+  starting point, to be re-evaluated with VOCAB's design rather than adopted because Faux Suns did it.
+
+  Faux Suns could delete `deckLeader` outright, because card code never read it. `.opponent` needs a temporary getter
+  instead: 232 card files read it, and the LKI codemod is about to rewrite those files.
 
 **VOCAB: the vocabulary for how players relate.** Size L: design first, then the engine changes. Code: the ability
 machinery. This workstream reaches furthest of all.
@@ -367,6 +425,15 @@ machinery. This workstream reaches furthest of all.
   - So HARNESS adds a test-only path through setup. It sets the game's existing `preselectedFirstPlayerId` to the player
     meant to start with the initiative, and always clicks "Yourself". The mulligan and resource prompts already wait on
     every player. The game-flow project later replaces this path with the real multiplayer setup.
+- **What the Faux Suns work already provides:**
+  - **The `format` option.** Specs set it to `'fauxSuns'`.
+  - **The `secondLeader` key for each player.** It shows the pattern for new setup keys: `GameStateBuilder` and
+    `DeckBuilder` read it, and the context gets `p1SecondLeader` and `p2SecondLeader`.
+  - **The counter-claiming helper.** `GameFlowWrapper`'s helper claims the counters to end a `fauxSuns` action phase.
+    - It picks the active player from `[player1, player2]`, so it needs extending to more players.
+    - Its comment says the second player claims both remaining counters. The code, like 12.5, gives each player one
+      counter per round, so in 1v1 the phase ends at the second claim. The "Pass becomes enabled once all three tokens
+      are claimed" spec in `TwinSuns.spec.ts` has a similar stale comment.
 - **Helpers that hard-code two players:**
   - `IntegrationHelper`'s player list, and its check for unresolved prompts, which looks only at `player1` and `player2`;
   - `GameFlowWrapper`'s player pairs and its one-argument sort comparators;
@@ -538,7 +605,9 @@ against what LKI step 3.2's codemod produced.
   - State-watcher arguments.
   - Giving control, which uses DERIVED's mechanism.
   - Abilities opponents can trigger, which use TRIGGER-2's answer.
-  - The TSTODO markers in card code, and the TS26 set.
+  - The TSTODO markers in card code.
+  - The TS26 set. It was designed for multiplayer, but was implemented for 1v1: 14 of its 78 files read `.opponent`, and
+    11 of its cards mention an opponent (2 of them "each opponent").
 - **The finish.**
   - During the sweep, a lint rule against `.opponent` in `server/game/cards/**` is switched on set by set, so new card PRs
     don't add any.
@@ -693,7 +762,8 @@ fails loudly in a game with 3 or more players, and each project removes its own.
   - The timeout draw check reads one opponent's timer.
   - The game-over prompt.
   - A result model keyed by player id. Winners are stored by name today (#3219).
-  - Twin Suns' end-of-game rule (12.7).
+  - Twin Suns' end-of-game rule (12.7). Nothing here is built yet: `fauxSuns` uses the 1v1 win check, so Appendix C's
+    question on whether `fauxSuns` should follow 12.7 is still open.
 - **LKI.** Removing an eliminated player's cards is a departure, so it must write LKI records (D-22).
 - **What it needs from this project:**
   - seat order and turn order;
@@ -715,16 +785,26 @@ fails loudly in a game with 3 or more players, and each project removes its own.
 **The Twin Suns format.**
 
 - **The format.** A format for 3–4 players, offered behind a feature flag as `fauxSuns` is.
-- **Counters.**
-  - The rules for claiming counters and for passing with more players (12.5–12.6).
+  - It can reuse what `fauxSuns` already has: the deck rules (80 cards, one copy of each, two leaders, the pairing
+    rules), TS26 legality, the Unlimited card pool, and the feature-flag check on lobby creation.
+  - What it adds is the player count and the format capabilities.
+- **Counters.** The `fauxSuns` work has already built the rules for claiming counters and for passing (12.5–12.6), and
+  their logic already counts players. What remains:
   - Blast's damage to each opponent's base, a TSTODO in `ClaimCounterSystem` and `Game.claimCounter`. It can only be
-    tested once a format with counters allows more players.
-- **Format capabilities** in place of the `format === FauxSuns` checks scattered through the code.
-- **What it needs from this project:** MODEL-2.
+    tested once a format with counters allows more players;
+  - specs with 3 and 4 players for the existing rules, for example the 4-player rule that the last player may pass once
+    all three counters are taken.
+- **Format capabilities** in place of the `format === FauxSuns` checks, so that the new format gets the counters. These
+  checks are scattered through `ActionWindow`'s claim buttons, `ActionPhase`'s counter reset, `Game`'s counter state and
+  `hasUnclaimedClaimableCounter`, `Player`'s claimed-counter checks and `ClaimPlanCounterPutOnBottomSystem`.
+- **What it needs from this project:**
+  - MODEL-2;
+  - MODEL's generic passing, which keeps a counter claim as a pass for the rest of the phase.
 
 **The client.**
 
-- forceteki-client's UI for more players.
+- forceteki-client's UI for more players. The state it builds on already sends each player's `leaders` as a list, and
+  who claimed each counter, which `fauxSuns` games use today.
 - How prompts and state identify players, beyond a button per player.
 - What an eliminated player sees.
 - **What it needs from this project:** CHOICE-1, and the captures this project adds (HARNESS-3).
@@ -733,10 +813,18 @@ fails loudly in a game with 3 or more players, and each project removes its own.
 
 - **Lobbies for more players:** capacity, assigning seats, the conditions for starting, chat permissions, spectators,
   leaving in the middle of a game, and action timers.
-- **Dev test games and the bug-report export** with more players. The export (`Game.captureGameState`) returns an error
-  for more than two players. The report state has `player1`, `player2` and `opponent` fields.
+  - The second leader is already handled everywhere a deck travels: deck import, saved decks, lobby summaries and the
+    ongoing-games list.
+  - The summary fields are shaped for two players, though: `player1Leader`, `player1SecondLeader`, `player2Leader`, and
+    so on.
+- **Dev test games and the bug-report export** with more players.
+  - The dev test-deck route already builds two-leader decks.
+  - The export (`Game.captureGameState`) returns an error for more than two players, and the report state has
+    `player1`, `player2` and `opponent` fields.
 - **Matchmaking.**
-- **Stats:** SWUStats, Karabast, SWUBase and the deck matchups.
+- **Stats.**
+  - SWUStats and SWUBase already receive Premier games only, so multiplayer games are left out unless that changes.
+  - Karabast's own stats and deck matchups are updated for every format, so they need a shape for more players.
 - **Reports, and the production rollout.**
 - **What it needs:** the game-flow project's result model, and the Twin Suns format.
 
@@ -764,7 +852,8 @@ fails loudly in a game with 3 or more players, and each project removes its own.
 - **Chosen opponent:** "an opponent" picked during resolution. It is picked automatically when only one is legal.
 - **Derived player:** a player taken from an event: the defending player, the player who defeated a unit, a captor.
 - **Explicit single-opponent call:** what MODEL-3 turns a read in a held project's area into. It returns the only
-  opponent, and fails when there are more.
+  opponent, and fails when there are more. MODEL-3 suggests the name `getSingleOpponent()`, after Faux Suns'
+  `getSingleLeader()`, to be re-evaluated with the broader design.
 - **Held project:** a part of the Twin Suns work outside this project. See
   [Held for other projects](#held-for-other-projects).
 
@@ -849,9 +938,9 @@ against v9.0 too.
 | Setup | 5.2.c, 5.2.e, 11.2 | Game flow | A first player is chosen at random, and decides who starts with the initiative, which can be any player. Mulligans go clockwise. |
 | Elimination | 11.3 | Game flow | A player whose base has no HP left is eliminated and takes no more actions. All cards they own are removed from play; they are not defeated, and nothing triggers. Units held captive by their units go back to their owners. Their lasting and delayed effects stay active, and the remaining players resolve them. If they held the initiative, it goes back to the centre, available. |
 | Twin Suns end of game | 12.7 | Game flow | Once a player is eliminated, the game ends at the end of the current phase; phase-ending effects still resolve. The player with the most HP on their base wins, and tied players share the win. A player who eliminates another heals 5 damage from their own base, after the eliminated player's cards are removed (ruling). Eliminating yourself earns nothing. |
-| Twin Suns setup | 12.4 | Twin Suns format | Both leaders start below the base. The Blast and Plan counters go in the centre once the initiative has been given. |
-| Twin Suns counters | 12.5 | Twin Suns format | "Take an available counter" replaces "take the initiative", once per round. Blast deals 1 damage to each opponent's base. Plan draws 1 card, then puts 1 card from hand on the bottom of the deck. A player may hold several counters. Blast and Plan return at the start of the regroup phase. |
-| Twin Suns passing | 12.6 | Twin Suns format | A player can't pass while a counter is available, and must pass after taking one. In a 4-player game, once all three counters are taken, the last player may pass to end the phase. |
+| Twin Suns setup | 12.4 | Twin Suns format | Both leaders start below the base. The Blast and Plan counters go in the centre once the initiative has been given. **Built for `fauxSuns`.** |
+| Twin Suns counters | 12.5 | Twin Suns format | "Take an available counter" replaces "take the initiative", once per round. Blast deals 1 damage to each opponent's base. Plan draws 1 card, then puts 1 card from hand on the bottom of the deck. A player may hold several counters. Blast and Plan return at the start of the regroup phase. **Built for `fauxSuns`.** Blast still damages only the opponent's base (TSTODO), and the counters are reset at the end of the action phase, which has the same effect. |
+| Twin Suns passing | 12.6 | Twin Suns format | A player can't pass while a counter is available, and must pass after taking one. In a 4-player game, once all three counters are taken, the last player may pass to end the phase. **Built for `fauxSuns`.** Pass stays disabled until `min(3, number of players)` counters are claimed, which covers the 4-player rule, and claiming sets the claimer's `passedActionPhase`. |
 
 **Not settled in v7.0, for the game-flow project:**
 

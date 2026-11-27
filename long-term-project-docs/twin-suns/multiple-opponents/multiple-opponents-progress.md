@@ -52,7 +52,7 @@ document; this table holds only its state.
 |---|---|---|---|
 | MODEL-1 | Once elimination exists, do eliminated players stay in `getPlayers()`, and are they left out of `opponents` and turn order? | Card semantics; the game-flow project | Open. Recommended: they stay, and are skipped. |
 | MODEL-2 | What switch allows a game with more players (a stub format entry, or a game setting), and where does the player count live? | MODEL's first PR; HARNESS; the Twin Suns format project | Open |
-| MODEL-3 | How is `.opponent` retired? | CARDS; the held projects, which inherit the explicit calls | Open. Recommended: an asserting getter, explicit single-opponent calls in held areas, and deleting the getter at M3. |
+| MODEL-3 | How is `.opponent` retired? | CARDS; the held projects, which inherit the explicit calls | Open. Recommended: an asserting getter, plus explicit single-opponent calls in held areas, and deleting the getter at M3. The call might be named `getSingleOpponent()`, after Faux Suns' `getSingleLeader()`; that precedent is to be re-evaluated with the broader design. |
 | VOCAB-1 | What is the vocabulary? It has four cases (filter, exactly one player, each opponent in turn, the player themself) and covers the types. | CHOICE, TRIGGER, DERIVED, CARDS | Open |
 | VOCAB-2 | Where is a chosen opponent carried? | CARDS; LKI step 3.2 | Open. Recommended: in `context`. |
 | VOCAB-3 | Where do the helpers for card code live? | CARDS; the LKI views | Open. Recommended: on `Player` and `Game`. |
